@@ -60,11 +60,11 @@ class ConstraintBase(ComponentSerializer, metaclass=ABCMeta):
             # Test if dependent is a parameter or a descriptor.
             # We can not import `Parameter`, so......
             if dependent_obj.__class__.__name__ == 'Parameter':
-                if not dependent_obj.enabled:
+                if not dependent_obj.independent:
                     raise AssertionError('A dependent object needs to be initially enabled.')
                 if global_object.debug:
                     print(f'Dependent variable {dependent_obj}. It should be a `Descriptor`.' f'Setting to fixed')
-                dependent_obj.enabled = False
+                dependent_obj.independent = False
                 self._finalizer = weakref.finalize(self, cleanup_constraint, self.dependent_obj_ids, True)
 
         self.operator = operator
@@ -94,10 +94,10 @@ class ConstraintBase(ComponentSerializer, metaclass=ABCMeta):
         if self._enabled == enabled_value:
             return
         elif enabled_value:
-            self.get_obj(self.dependent_obj_ids).enabled = False
+            self.get_obj(self.dependent_obj_ids).independent = False
             self()
         else:
-            self.get_obj(self.dependent_obj_ids).enabled = True
+            self.get_obj(self.dependent_obj_ids).independent = True
         self._enabled = enabled_value
 
     def __call__(self, *args, no_set: bool = False, **kwargs):
@@ -126,12 +126,12 @@ class ConstraintBase(ComponentSerializer, metaclass=ABCMeta):
 
         if not no_set:
             toggle = False
-            if not dependent_obj.enabled:
-                dependent_obj.enabled = True
+            if not dependent_obj.independent:
+                dependent_obj.independent = True
                 toggle = True
             dependent_obj.value = value
             if toggle:
-                dependent_obj.enabled = False
+                dependent_obj.independent = False
         return value
 
     @abstractmethod
@@ -514,10 +514,10 @@ class FunctionalConstraint(ConstraintBase):
         return f'{self.__class__.__name__}'
 
 
-def cleanup_constraint(obj_id: str, enabled: bool):
+def cleanup_constraint(obj_id: str, independent: bool):
     try:
         obj = global_object.map.get_item_by_key(obj_id)
-        obj.enabled = enabled
+        obj.independent = independent
     except ValueError:
         if global_object.debug:
             print(f'Object with ID {obj_id} has already been deleted')

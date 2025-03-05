@@ -17,8 +17,8 @@ import pytest
 
 import easyscience
 from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.ObjectClasses import Descriptor
-from easyscience.Objects.ObjectClasses import Parameter
+from easyscience.Objects.new_variable import DescriptorNumber
+from easyscience.Objects.new_variable import Parameter
 from easyscience.Utils.io.dict import DictSerializer
 from easyscience import global_object
 
@@ -31,9 +31,9 @@ def setup_pars():
     d = {
         "name": "test",
         "par1": Parameter("p1", 0.1, fixed=True),
-        "des1": Descriptor("d1", 0.1),
+        "des1": DescriptorNumber("d1", 0.1),
         "par2": Parameter("p2", 0.1),
-        "des2": Descriptor("d2", 0.1),
+        "des2": DescriptorNumber("d2", 0.1),
         "par3": Parameter("p3", 0.1),
     }
     return d
@@ -103,8 +103,8 @@ def test_baseobj_set(setup_pars: dict):
     obj = BaseObj(name, **kwargs)
     new_value = 5.0
     with not_raises([AttributeError, ValueError]):
-        obj.p1 = new_value
-        assert obj.p1.raw_value == new_value
+        obj.p1.value = new_value
+        assert obj.p1.value == new_value
 
 
 def test_baseobj_get_parameters(setup_pars: dict):
@@ -134,25 +134,29 @@ def test_baseobj_as_dict(setup_pars: dict):
         "@class": "BaseObj",
         "@version": easyscience.__version__,
         "name": "test",
+        "unique_name": "BaseObj_0",
         "par1": {
             "@module": Parameter.__module__,
             "@class": Parameter.__name__,
             "@version": easyscience.__version__,
             "name": "p1",
             "value": 0.1,
-            "error": 0.0,
+            "unit": "dimensionless",
+            "variance": 0.0,
             "min": -np.inf,
             "max": np.inf,
             "fixed": True,
-            "units": "dimensionless",
+            "unique_name": "Parameter_0"
         },
         "des1": {
-            "@module": Descriptor.__module__,
-            "@class": Descriptor.__name__,
+            "@module": DescriptorNumber.__module__,
+            "@class": DescriptorNumber.__name__,
             "@version": easyscience.__version__,
             "name": "d1",
             "value": 0.1,
-            "units": "dimensionless",
+            "unit": "dimensionless",
+            "variable": "d1",
+            "unique_name": "DescriptorNumber_0",
             "description": "",
             "url": "",
             "display_name": "d1",
@@ -163,19 +167,22 @@ def test_baseobj_as_dict(setup_pars: dict):
             "@version": easyscience.__version__,
             "name": "p2",
             "value": 0.1,
-            "error": 0.0,
+            "unit": "dimensionless",
+            "variance": 0.0,
             "min": -np.inf,
             "max": np.inf,
             "fixed": False,
-            "units": "dimensionless",
+            "unique_name": "Parameter_1"
         },
         "des2": {
-            "@module": Descriptor.__module__,
-            "@class": Descriptor.__name__,
+            "@module": DescriptorNumber.__module__,
+            "@class": DescriptorNumber.__name__,
             "@version": easyscience.__version__,
             "name": "d2",
             "value": 0.1,
-            "units": "dimensionless",
+            "unit": "dimensionless",
+            "variance": None,
+            "unique_name": "DescriptorNumber_1",
             "description": "",
             "url": "",
             "display_name": "d2",
@@ -186,11 +193,11 @@ def test_baseobj_as_dict(setup_pars: dict):
             "@version": easyscience.__version__,
             "name": "p3",
             "value": 0.1,
-            "error": 0.0,
+            "unit": "dimensionless",
+            "variance": 0.0,
             "min": -np.inf,
             "max": np.inf,
             "fixed": False,
-            "units": "dimensionless",
         },
     }
 
@@ -333,23 +340,23 @@ def test_subclassing():
             return cls(m, c, diff)
 
         def __call__(self, *args, **kwargs):
-            return super(L2, self).__call__(*args, **kwargs) + self.diff.raw_value
+            return super(L2, self).__call__(*args, **kwargs) + self.diff.value
 
     l2 = L2.from_pars(1, 2, 3)
 
-    assert l2.m.raw_value == 1
-    assert l2.c.raw_value == 2
-    assert l2.diff.raw_value == 3
+    assert l2.m.value == 1
+    assert l2.c.value == 2
+    assert l2.diff.value == 3
 
     l2.diff = 4
     assert isinstance(l2.diff, Parameter)
-    assert l2.diff.raw_value == 4
+    assert l2.diff.value == 4
 
     l2.foo = "foo"
     assert l2.foo == "foo"
 
     x = np.linspace(0, 10, 100)
-    y = l2.m.raw_value * x + l2.c.raw_value + l2.diff.raw_value
+    y = l2.m.value * x + l2.c.value + l2.diff.value
 
     assert np.allclose(l2(x), y)
 
@@ -368,11 +375,11 @@ def test_Base_GETSET():
     a = A.from_pars(a_start)
     graph = a._global_object.map
 
-    assert a.a.raw_value == a_start
+    assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
 
     setattr(a, "a", a_end)
-    assert a.a.raw_value == a_end
+    assert a.a.value == a_end
     assert len(graph.get_edges(a)) == 1
 
 
@@ -409,11 +416,11 @@ def test_Base_GETSET_v2():
     a = A.from_pars(a_start)
     graph = a._global_object.map
 
-    assert a.a.raw_value == a_start
+    assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
 
     setattr(a, "a", a_end)
-    assert a.a.raw_value == a_end
+    assert a.a.value == a_end
     assert len(graph.get_edges(a)) == 1
 
 
@@ -434,14 +441,14 @@ def test_Base_GETSET_v3():
     a = A.from_pars(a_start)
     graph = a._global_object.map
 
-    assert a.a.raw_value == a_start
+    assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
     a_ = Parameter("a", a_end)
     assert a.a.unique_name in graph.get_edges(a)
     a__ = a.a
 
     setattr(a, "a", a_)
-    assert a.a.raw_value == a_end
+    assert a.a.value == a_end
     assert len(graph.get_edges(a)) == 1
     assert a_.unique_name in graph.get_edges(a)
     assert a__.unique_name not in graph.get_edges(a)
@@ -455,13 +462,13 @@ def test_BaseCreation():
                 self.a = a
 
     a = A()
-    assert a.a.raw_value == 1.0
+    assert a.a.value == 1.0
     a = A(2.0)
-    assert a.a.raw_value == 2.0
+    assert a.a.value == 2.0
     a = A(Parameter("a", 3.0))
-    assert a.a.raw_value == 3.0
+    assert a.a.value == 3.0
     a.a = 4.0
-    assert a.a.raw_value == 4.0
+    assert a.a.value == 4.0
 
     class B(BaseObj):
         def __init__(self, b: Optional[Union[A, Parameter, float]] = None):
@@ -472,13 +479,13 @@ def test_BaseCreation():
                 self.b = b
 
     b = B()
-    assert b.b.a.raw_value == 1.0
+    assert b.b.a.value == 1.0
     b = B(2.0)
-    assert b.b.a.raw_value == 2.0
+    assert b.b.a.value == 2.0
     b = B(A(3.0))
-    assert b.b.a.raw_value == 3.0
+    assert b.b.a.value == 3.0
     b.b.a = 4.0
-    assert b.b.a.raw_value == 4.0
+    assert b.b.a.value == 4.0
 
 def test_unique_name_generator(clear):
     # When Then

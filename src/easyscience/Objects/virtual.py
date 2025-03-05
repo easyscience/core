@@ -79,8 +79,8 @@ def component_realizer(obj: BV, component: str, recursive: bool = True):
     if not isinstance(obj, Iterable) or not issubclass(obj.__class__, MutableSequence):
         old_component = obj._kwargs[component]
         new_components = realizer(obj._kwargs[component])
-        if hasattr(new_components, 'enabled'):
-            new_components.enabled = True
+        if hasattr(new_components, 'independent'):
+            new_components.independent = True
     else:
         old_component = obj[component]
         new_components = realizer(obj[component])
@@ -169,7 +169,7 @@ def virtualizer(obj: BV) -> BV:
             d['fixed'] = True
         d['unique_name'] = None
         v_p = cls(**d)
-        v_p._enabled = False
+        v_p.independent = False
         constraint = ObjConstraint(v_p, '', obj)
         constraint.external = True
         obj._constraints['virtual'][v_p.unique_name] = constraint

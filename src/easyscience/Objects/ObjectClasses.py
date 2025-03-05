@@ -202,7 +202,7 @@ class BasedBase(ComponentSerializer):
             if hasattr(item, 'get_fit_parameters'):
                 fit_list = [*fit_list, *item.get_fit_parameters()]
             elif isinstance(item, Parameter) or isinstance(item, NewParameter):
-                if item.enabled and not item.fixed:
+                if item.independent and not item.fixed:
                     fit_list.append(item)
         return fit_list
 

@@ -24,7 +24,7 @@ class TestParameter:
             url="url",
             display_name="display_name",
             callback=self.mock_callback,
-            enabled="enabled",
+            independent="independent",
             parent=None,
         )
         return parameter
@@ -40,7 +40,7 @@ class TestParameter:
         assert parameter._max.value == 10
         assert parameter._max.unit == "m"
         assert parameter._callback == self.mock_callback
-        assert parameter._enabled == "enabled"
+        assert parameter._independent == "independent"
 
         # From super
         assert parameter._scalar.value == 1
@@ -69,7 +69,7 @@ class TestParameter:
                 url="url",
                 display_name="display_name",
                 callback=mock_callback,
-                enabled="enabled",
+                independent="independent",
                 parent=None,
             )
 
@@ -91,7 +91,7 @@ class TestParameter:
                 url="url",
                 display_name="display_name",
                 callback=mock_callback,
-                enabled="enabled",
+                independent="independent",
                 parent=None,
             )
 
@@ -189,7 +189,7 @@ class TestParameter:
     
     def test_set_bounds(self, parameter: Parameter):
         # When 
-        parameter._enabled = False
+        parameter._independent = False
         parameter._fixed = True
 
         # Then 
@@ -198,12 +198,12 @@ class TestParameter:
         # Expect
         assert parameter.min == -10
         assert parameter.max == 5
-        assert parameter._enabled == True
+        assert parameter._independent == True
         assert parameter._fixed == False
 
     def test_set_bounds_exception_min(self, parameter: Parameter):
         # When 
-        parameter._enabled = False
+        parameter._independent = False
         parameter._fixed = True
 
         # Then
@@ -213,12 +213,12 @@ class TestParameter:
         # Expect
         assert parameter.min == 0
         assert parameter.max == 10
-        assert parameter._enabled == False
+        assert parameter._independent == False
         assert parameter._fixed == True
 
     def test_set_bounds_exception_max(self, parameter: Parameter):
         # When 
-        parameter._enabled = False
+        parameter._independent = False
         parameter._fixed = True
 
         # Then
@@ -228,22 +228,22 @@ class TestParameter:
         # Expect
         assert parameter.min == 0
         assert parameter.max == 10
-        assert parameter._enabled == False
+        assert parameter._independent == False
         assert parameter._fixed == True
 
-    def test_enabled(self, parameter: Parameter):
+    def test_independent(self, parameter: Parameter):
         # When
-        parameter._enabled = True
+        parameter._independent = True
         
         # Then Expect
-        assert parameter.enabled is True
+        assert parameter.independent is True
 
-    def test_set_enabled(self, parameter: Parameter):
+    def test_set_independent(self, parameter: Parameter):
         # When
-        parameter.enabled = False
+        parameter.independent = False
 
         # Then Expect
-        assert parameter._enabled is False
+        assert parameter._independent is False
 
     def test_value_match_callback(self, parameter: Parameter):
         # When
@@ -313,7 +313,7 @@ class TestParameter:
         assert parameter_copy._description == parameter._description
         assert parameter_copy._url == parameter._url
         assert parameter_copy._display_name == parameter._display_name
-        assert parameter_copy._enabled == parameter._enabled
+        assert parameter_copy._independent == parameter._independent
 
     def test_as_data_dict(self, clear, parameter: Parameter):
         # When Then
@@ -331,7 +331,7 @@ class TestParameter:
             "description": "description",
             "url": "url",
             "display_name": "display_name",
-            "enabled": "enabled",
+            "independent": "independent",
             "unique_name": "Parameter_0",
         }
 
