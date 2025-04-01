@@ -54,7 +54,7 @@ class Parameter(DescriptorNumber):
         url: Optional[str] = None,
         display_name: Optional[str] = None,
         callback: property = property(),
-        enabled: Optional[bool] = True,
+        independent: Optional[bool] = True,
         parent: Optional[Any] = None,
     ):
         """
@@ -72,7 +72,7 @@ class Parameter(DescriptorNumber):
         :param description: A brief summary of what this object is
         :param url: Lookup url for documentation/information
         :param display_name: The name of the object as it should be displayed
-        :param enabled: Can the objects value be set
+        :param independent: Can the objects value be set
         :param parent: The object which is the parent to this one
 
         .. note::
@@ -115,7 +115,8 @@ class Parameter(DescriptorNumber):
             weakref.finalize(self, self._callback.fdel)
 
         # Create additional fitting elements
-        self._enabled = enabled
+        self._fixed = fixed
+        self._independent = independent
         self._initial_scalar = copy.deepcopy(self._scalar)
         builtin_constraint = {
             # Last argument in constructor is the name of the property holding the value of the constraint
@@ -174,9 +175,9 @@ class Parameter(DescriptorNumber):
 
         :param value: New value of self
         """
-        if not self.enabled:
+        if not self.independent:
             if global_object.debug:
-                raise CoreSetException(f'{str(self)} is not enabled.')
+                raise CoreSetException(f'{str(self)} is not independent.')
             return
 
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
@@ -292,12 +293,12 @@ class Parameter(DescriptorNumber):
 
         :param fixed: True = fixed, False = can vary
         """
-        if not self.enabled:
-            if global_object.stack.enabled:
+        if not self.independent:
+            if self._global_object.stack.enabled:
                 # Remove the recorded change from the stack
                 global_object.stack.pop()
             if global_object.debug:
-                raise CoreSetException(f'{str(self)} is not enabled.')
+                raise CoreSetException(f'{str(self)} is not independent.')
             return
         if not isinstance(fixed, bool):
             raise ValueError(f'{fixed=} must be a boolean. Got {type(fixed)}')
@@ -349,8 +350,8 @@ class Parameter(DescriptorNumber):
             raise ValueError(f'Current parameter value: {self._scalar.value} must be within {new_bound=}')
 
         # Enable the parameter if needed
-        if not self.enabled:
-            self.enabled = True
+        if not self.independent:
+            self.independent = True
         # Free parameter if needed
         if self.fixed:
             self.fixed = False
@@ -400,23 +401,23 @@ class Parameter(DescriptorNumber):
         return value
 
     @property
-    def enabled(self) -> bool:
+    def independent(self) -> bool:
         """
         Logical property to see if the objects value can be directly set.
 
         :return: Can the objects value be set
         """
-        return self._enabled
+        return self._independent
 
-    @enabled.setter
+    @independent.setter
     @property_stack_deco
-    def enabled(self, value: bool) -> None:
+    def independent(self, value: bool) -> None:
         """
         Enable and disable the direct setting of an objects value field.
 
         :param value: True - objects value can be set, False - the opposite
         """
-        self._enabled = value
+        self._independent = value
 
     def __copy__(self) -> Parameter:
         new_obj = super().__copy__()

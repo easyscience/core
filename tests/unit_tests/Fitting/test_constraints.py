@@ -113,22 +113,22 @@ def test_ObjConstraint_Multiple(threePars):
 
 def test_ConstraintEnable_Disable(twoPars):
 
-    assert twoPars[0][0].enabled
-    assert twoPars[0][1].enabled
+    assert twoPars[0][0].independent
+    assert twoPars[0][1].independent
 
     c = ObjConstraint(twoPars[0][0], "", twoPars[0][1])
     twoPars[0][0].user_constraints["num_1"] = c
 
     assert c.enabled
-    assert twoPars[0][1].enabled
-    assert not twoPars[0][0].enabled
+    assert twoPars[0][1].independent
+    assert not twoPars[0][0].independent
 
     c.enabled = False
     assert not c.enabled
-    assert twoPars[0][1].enabled
-    assert twoPars[0][0].enabled
+    assert twoPars[0][1].independent
+    assert twoPars[0][0].independent
 
     c.enabled = True
     assert c.enabled
-    assert twoPars[0][1].enabled
-    assert not twoPars[0][0].enabled
+    assert twoPars[0][1].independent
+    assert not twoPars[0][0].independent

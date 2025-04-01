@@ -159,6 +159,7 @@ def test_baseobj_as_dict(setup_pars: dict):
         "@class": "BaseObj",
         "@version": easyscience.__version__,
         "name": "test",
+        "unique_name": "BaseObj_0",
         "par1": {
             "@module": Parameter.__module__,
             "@class": Parameter.__name__,
@@ -172,6 +173,8 @@ def test_baseobj_as_dict(setup_pars: dict):
             "unit": "dimensionless",
         },
         "des1": {
+            "@module": DescriptorNumber.__module__,
+            "@class": DescriptorNumber.__name__,
             "@module": DescriptorNumber.__module__,
             "@class": DescriptorNumber.__name__,
             "@version": easyscience.__version__,
@@ -195,6 +198,8 @@ def test_baseobj_as_dict(setup_pars: dict):
             "unit": "dimensionless",
         },
         "des2": {
+            "@module": DescriptorNumber.__module__,
+            "@class": DescriptorNumber.__name__,
             "@module": DescriptorNumber.__module__,
             "@class": DescriptorNumber.__name__,
             "@version": easyscience.__version__,

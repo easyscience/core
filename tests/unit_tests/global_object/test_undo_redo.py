@@ -116,6 +116,7 @@ def test_DescriptorStrUndoRedo():
         for option in [
             ("value", 500),
             ("error", 5),
+            ("independent", False),
             ("unit", "km/s"),
             ("display_name", "boom"),
             ("enabled", False),
@@ -139,7 +140,7 @@ def test_Parameter_Bounds_UndoRedo(value):
     from easyscience import global_object
 
     global_object.stack.enabled = True
-    p = Parameter("test", 1, enabled=value)
+    p = Parameter("test", 1, independent=value)
     assert p.min == -np.inf
     assert p.max == np.inf
     assert p.bounds == (-np.inf, np.inf)
@@ -148,13 +149,13 @@ def test_Parameter_Bounds_UndoRedo(value):
     assert p.min == 0
     assert p.max == 2
     assert p.bounds == (0, 2)
-    assert p.enabled is True
+    assert p.independent is True
 
     global_object.stack.undo()
     assert p.min == -np.inf
     assert p.max == np.inf
     assert p.bounds == (-np.inf, np.inf)
-    assert p.enabled is value
+    assert p.independent is value
 
 
 def test_BaseObjUndoRedo():
