@@ -130,8 +130,15 @@ class Parameter(DescriptorNumber):
 
     def _update(self) -> None:
         """
-        Update the parameter. This is called by the interface when the parameter is changed.
+        Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
         """
+        temporary_parameter = self._global_object.dependency_interpreter(self._dependency_string)
+        self._scalar.value = temporary_parameter.value
+        self._scalar.unit = temporary_parameter.unit
+        self._scalar.variance = temporary_parameter.variance
+        self._min.value = temporary_parameter.min
+        self._max.value = temporary_parameter.max
+        self._notify_observers()
 
     @property
     def value_no_call_back(self) -> numbers.Number:

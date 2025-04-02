@@ -23,6 +23,7 @@ class GlobalObject:
 
     __dependency_interpreter = Interpreter(minimal=True)
     __dependency_interpreter.config['if'] = True
+    __dependency_interpreter.readonly_symbols = []
     __log = Logger()
     __map = Map()
     __stack = None
