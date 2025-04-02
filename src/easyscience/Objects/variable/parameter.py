@@ -11,6 +11,7 @@ from collections import namedtuple
 from types import MappingProxyType
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
@@ -78,12 +79,12 @@ class Parameter(DescriptorNumber):
         .. note::
             Undo/Redo functionality is implemented for the attributes `value`, `variance`, `error`, `min`, `max`, `bounds`, `fixed`, `unit`
         """  # noqa: E501
+        if not isinstance(value, numbers.Number):
+            raise TypeError('`value` must be a number')
         if not isinstance(min, numbers.Number):
             raise TypeError('`min` must be a number')
         if not isinstance(max, numbers.Number):
             raise TypeError('`max` must be a number')        
-        if not isinstance(value, numbers.Number):
-            raise TypeError('`value` must be a number')
         if value < min:
             raise ValueError(f'{value=} can not be less than {min=}')
         if value > max:
@@ -124,6 +125,13 @@ class Parameter(DescriptorNumber):
             'max': SelfConstraint(self, '<=', 'max'),
         }
         self._constraints = Constraints(builtin=builtin_constraint, user={}, virtual={})
+
+        self._observers: List[DescriptorNumber] = []
+
+    def _update(self) -> None:
+        """
+        Update the parameter. This is called by the interface when the parameter is changed.
+        """
 
     @property
     def value_no_call_back(self) -> numbers.Number:
@@ -207,6 +215,9 @@ class Parameter(DescriptorNumber):
         if self._callback.fset is not None:
             self._callback.fset(self._scalar.value)
 
+        # Notify observers of the change
+        self._notify_observers()
+
     def convert_unit(self, unit_str: str) -> None:
         """
         Perform unit conversion. The value, max and min can change on unit change.
@@ -218,6 +229,7 @@ class Parameter(DescriptorNumber):
         new_unit = sc.Unit(unit_str)  # unit_str is tested in super method
         self._min = self._min.to(unit=new_unit)
         self._max = self._max.to(unit=new_unit)
+        self._notify_observers()
 
     @property
     def min(self) -> numbers.Number:
@@ -246,6 +258,7 @@ class Parameter(DescriptorNumber):
             self._min.value = min_value
         else:
             raise ValueError(f'The current value ({self.value}) is smaller than the desired min value ({min_value}).')
+        self._notify_observers()
 
     @property
     def max(self) -> numbers.Number:
@@ -274,6 +287,7 @@ class Parameter(DescriptorNumber):
             self._max.value = max_value
         else:
             raise ValueError(f'The current value ({self.value}) is greater than the desired max value ({max_value}).')
+        self._notify_observers()
 
     @property
     def fixed(self) -> bool:

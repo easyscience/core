@@ -47,6 +47,8 @@ class DescriptorNumber(DescriptorBase):
         param parent: Parent of the descriptor
         .. note:: Undo/Redo functionality is implemented for the attributes `variance`, `error`, `unit` and `value`.
         """
+        self._observers: List[DescriptorNumber] = []
+
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
             raise TypeError(f'{value=} must be a number')
         if variance is not None:
@@ -74,7 +76,6 @@ class DescriptorNumber(DescriptorBase):
         if self.unit is not None:
             self.convert_unit(self._base_unit())
 
-        self._observers: List[DescriptorNumber] = []
 
     @classmethod
     def from_scipp(cls, name: str, full_value: Variable, **kwargs) -> DescriptorNumber:
@@ -92,18 +93,18 @@ class DescriptorNumber(DescriptorBase):
             raise TypeError(f'{full_value=} must be a scipp scalar')
         return cls(name=name, value=full_value.value, unit=full_value.unit, variance=full_value.variance, **kwargs)
 
-    def attach_observer(self, observer: DescriptorNumber) -> None:
+    def _attach_observer(self, observer: DescriptorNumber) -> None:
         """Attach an observer to the descriptor."""
         self._observers.append(observer)
 
-    def detach_observer(self, observer: DescriptorNumber) -> None:
+    def _detach_observer(self, observer: DescriptorNumber) -> None:
         """Detach an observer from the descriptor."""
         self._observers.remove(observer)
 
-    def notify_observers(self) -> None:
+    def _notify_observers(self) -> None:
         """Notify all observers of a change."""
         for observer in self._observers:
-            observer.update(self)
+            observer._update(self)
 
     @property
     def full_value(self) -> Variable:
@@ -141,7 +142,7 @@ class DescriptorNumber(DescriptorBase):
             raise TypeError(f'{value=} must be a number')
         self._scalar.value = float(value)
         # Notify observers of the change
-        self.notify_observers()
+        self._notify_observers()
 
     @property
     def unit(self) -> str:
@@ -186,7 +187,7 @@ class DescriptorNumber(DescriptorBase):
             variance_float = float(variance_float)
         self._scalar.variance = variance_float
         # Notify observers of the change
-        self.notify_observers()
+        self._notify_observers()
 
     @property
     def error(self) -> float:
@@ -217,7 +218,7 @@ class DescriptorNumber(DescriptorBase):
         else:
             self._scalar.variance = None
         # Notify observers of the change
-        self.notify_observers()
+        self._notify_observers()
 
     def convert_unit(self, unit_str: str) -> None:
         """
@@ -250,7 +251,7 @@ class DescriptorNumber(DescriptorBase):
         # Update the scalar
         self._scalar = new_scalar
         # Notify observers of the change
-        self.notify_observers()
+        self._notify_observers()
 
     # Just to get return type right
     def __copy__(self) -> DescriptorNumber:
