@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import copy
 import numbers
+import warnings
 import weakref
 from collections import namedtuple
 from types import MappingProxyType
@@ -55,7 +56,6 @@ class Parameter(DescriptorNumber):
         url: Optional[str] = None,
         display_name: Optional[str] = None,
         callback: property = property(),
-        independent: Optional[bool] = True,
         parent: Optional[Any] = None,
     ):
         """
@@ -69,32 +69,53 @@ class Parameter(DescriptorNumber):
         :param variance: The variance of the value
         :param min: The minimum value for fitting
         :param max: The maximum value for fitting
-        :param fixed: Can the parameter vary while fitting?
+        :param fixed: Can the parameter vary?
         :param description: A brief summary of what this object is
         :param url: Lookup url for documentation/information
         :param display_name: The name of the object as it should be displayed
-        :param independent: Can the objects value be set
+        :param independent: Is the object dependent on another object?
         :param parent: The object which is the parent to this one
 
         .. note::
             Undo/Redo functionality is implemented for the attributes `value`, `variance`, `error`, `min`, `max`, `bounds`, `fixed`, `unit`
         """  # noqa: E501
-        if not isinstance(value, numbers.Number):
-            raise TypeError('`value` must be a number')
-        if not isinstance(min, numbers.Number):
-            raise TypeError('`min` must be a number')
-        if not isinstance(max, numbers.Number):
-            raise TypeError('`max` must be a number')        
-        if value < min:
-            raise ValueError(f'{value=} can not be less than {min=}')
-        if value > max:
-            raise ValueError(f'{value=} can not be greater than {max=}')
-
-        if np.isclose(min, max, rtol=1e-9, atol=0.0):
-            raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
-        if not isinstance(fixed, bool):
-            raise TypeError('`fixed` must be either True or False')
-
+        self._observers: List[DescriptorNumber] = []
+        # If value is a string, the Parameter is a dependent parameter.
+        # The string is then run through the dependency interpreter to overwrite the value, unit, variance, min and max.  # noqa: E501
+        if isinstance(value, str):
+            if unit !='':
+                warnings.warn('Dependent parameters infer their unit from their dependency. The set unit will be ignored.')
+            if variance != 0.0:
+                warnings.warn('Dependent parameters compute their variance from their dependency. The set variance will be ignored.')  # noqa: E501
+            if min != -np.inf:
+                warnings.warn('Dependent parameters compute their minimum value from their dependency. The set min will be ignored.')  # noqa: E501
+            if max != np.inf:
+                warnings.warn('Dependent parameters compute their maximum value from their dependency. The set max will be ignored.')  # noqa: E501
+            self._dependency_string = value
+            self._independent = False
+            try:
+                dependency_result = self._global_object.dependency_interpreter(self._dependency_string)
+            except Exception as message:
+                raise ValueError(f'Invalid dependency expression: {self._dependency_string}') from message
+            value = dependency_result.value
+            unit = dependency_result.unit
+            variance = dependency_result.variance
+            min = dependency_result.min if isinstance(dependency_result, Parameter) else -np.inf
+            max = dependency_result.max if isinstance(dependency_result, Parameter) else np.inf
+        elif isinstance(value, numbers.Number):
+            if not isinstance(max, numbers.Number):
+                raise TypeError('`max` must be a number')        
+            if value < min:
+                raise ValueError(f'{value=} can not be less than {min=}')
+            if value > max:
+                raise ValueError(f'{value=} can not be greater than {max=}')
+            if np.isclose(min, max, rtol=1e-9, atol=0.0):
+                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+            if not isinstance(fixed, bool):
+                raise TypeError('`fixed` must be either True or False')
+            self._independent = True
+        else:
+            raise TypeError('`value` must be a number or a string representing a valid dependency expression.')
         self._fixed = fixed # For fitting, but must be initialized before super().__init__
         self._min = sc.scalar(float(min), unit=unit)
         self._max = sc.scalar(float(max), unit=unit)
@@ -116,8 +137,6 @@ class Parameter(DescriptorNumber):
             weakref.finalize(self, self._callback.fdel)
 
         # Create additional fitting elements
-        self._fixed = fixed
-        self._independent = independent
         self._initial_scalar = copy.deepcopy(self._scalar)
         builtin_constraint = {
             # Last argument in constructor is the name of the property holding the value of the constraint
@@ -126,19 +145,21 @@ class Parameter(DescriptorNumber):
         }
         self._constraints = Constraints(builtin=builtin_constraint, user={}, virtual={})
 
-        self._observers: List[DescriptorNumber] = []
 
     def _update(self) -> None:
         """
         Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
         """
-        temporary_parameter = self._global_object.dependency_interpreter(self._dependency_string)
-        self._scalar.value = temporary_parameter.value
-        self._scalar.unit = temporary_parameter.unit
-        self._scalar.variance = temporary_parameter.variance
-        self._min.value = temporary_parameter.min
-        self._max.value = temporary_parameter.max
-        self._notify_observers()
+        if not self._independent:
+            temporary_parameter = self._global_object.dependency_interpreter(self._dependency_string)
+            self._scalar.value = temporary_parameter.value
+            self._scalar.unit = temporary_parameter.unit
+            self._scalar.variance = temporary_parameter.variance
+            self._min.value = temporary_parameter.min
+            self._max.value = temporary_parameter.max
+            self._notify_observers()
+        else:
+            warnings.warn('This parameter is not dependent. It cannot be updated.')
 
     @property
     def value_no_call_back(self) -> numbers.Number:
