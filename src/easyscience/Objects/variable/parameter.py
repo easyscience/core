@@ -211,40 +211,62 @@ class Parameter(DescriptorNumber):
 
         :param value: New value of self
         """
-        if not self.independent:
-            if global_object.debug:
-                raise CoreSetException(f'{str(self)} is not independent.')
-            return
+        if self._independent:
+            if not isinstance(value, numbers.Number) or isinstance(value, bool):
+                raise TypeError(f'{value=} must be a number')
 
-        if not isinstance(value, numbers.Number) or isinstance(value, bool):
-            raise TypeError(f'{value=} must be a number')
+            # Need to set the value for constraints to be functional
+            self._scalar.value = float(value)
+            #        if self._callback.fset is not None:
+            #            self._callback.fset(self._scalar.value)
 
-        # Need to set the value for constraints to be functional
-        self._scalar.value = float(value)
-        #        if self._callback.fset is not None:
-        #            self._callback.fset(self._scalar.value)
+            # Deals with min/max
+            value = self._constraint_runner(self.builtin_constraints, self._scalar.value)
 
-        # Deals with min/max
-        value = self._constraint_runner(self.builtin_constraints, self._scalar.value)
+            # Deals with user constraints
+            # Changes should not be registrered in the undo/redo stack
+            stack_state = global_object.stack.enabled
+            if stack_state:
+                global_object.stack.force_state(False)
+            try:
+                value = self._constraint_runner(self.user_constraints, value)
+            finally:
+                global_object.stack.force_state(stack_state)
 
-        # Deals with user constraints
-        # Changes should not be registrered in the undo/redo stack
-        stack_state = global_object.stack.enabled
-        if stack_state:
-            global_object.stack.force_state(False)
-        try:
-            value = self._constraint_runner(self.user_constraints, value)
-        finally:
-            global_object.stack.force_state(stack_state)
+            value = self._constraint_runner(self._constraints.virtual, value)
 
-        value = self._constraint_runner(self._constraints.virtual, value)
+            self._scalar.value = float(value)
+            if self._callback.fset is not None:
+                self._callback.fset(self._scalar.value)
 
-        self._scalar.value = float(value)
-        if self._callback.fset is not None:
-            self._callback.fset(self._scalar.value)
+            # Notify observers of the change
+            self._notify_observers()
+        else:
+            raise AttributeError("This parameter is not independent, its value cannot be set directly. Please make it independent first.")  # noqa: E501
 
-        # Notify observers of the change
-        self._notify_observers()
+    @DescriptorNumber.variance.setter
+    def variance(self, variance_float: float) -> None:
+        """
+        Set the variance.
+
+        :param variance_float: Variance as a float
+        """
+        if self._independent:
+            DescriptorNumber.variance.fset(self, variance_float)
+        else:
+            raise AttributeError("This parameter is not independent, its variance cannot be set directly. Please make it independent first.")  # noqa: E501
+
+    @DescriptorNumber.error.setter
+    def error(self, value: float) -> None:
+        """
+        Set the standard deviation for the parameter.
+
+        :param value: New error value
+        """
+        if self._independent:
+            DescriptorNumber.error.fset(self, value)
+        else:
+            raise AttributeError("This parameter is not independent, its error cannot be set directly. Please make it independent first.")  # noqa: E501
 
     def convert_unit(self, unit_str: str) -> None:
         """
@@ -278,15 +300,18 @@ class Parameter(DescriptorNumber):
         :param min_value: new minimum value
         :return: None
         """
-        if not isinstance(min_value, numbers.Number):
-            raise TypeError('`min` must be a number')
-        if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
-            raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
-        if min_value <= self.value:
-            self._min.value = min_value
+        if self._independent:
+            if not isinstance(min_value, numbers.Number):
+                raise TypeError('`min` must be a number')
+            if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
+                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+            if min_value <= self.value:
+                self._min.value = min_value
+            else:
+                raise ValueError(f'The current value ({self.value}) is smaller than the desired min value ({min_value}).')
+            self._notify_observers()
         else:
-            raise ValueError(f'The current value ({self.value}) is smaller than the desired min value ({min_value}).')
-        self._notify_observers()
+            raise AttributeError("This parameter is not independent, its min cannot be set directly. Please make it independent first.")  # noqa: E501
 
     @property
     def max(self) -> numbers.Number:
@@ -307,15 +332,18 @@ class Parameter(DescriptorNumber):
         :param max_value: new maximum value
         :return: None
         """
-        if not isinstance(max_value, numbers.Number):
-            raise TypeError('`max` must be a number')
-        if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
-            raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
-        if max_value >= self.value:
-            self._max.value = max_value
+        if self._independent:
+            if not isinstance(max_value, numbers.Number):
+                raise TypeError('`max` must be a number')
+            if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
+                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+            if max_value >= self.value:
+                self._max.value = max_value
+            else:
+                raise ValueError(f'The current value ({self.value}) is greater than the desired max value ({max_value}).')
+            self._notify_observers()
         else:
-            raise ValueError(f'The current value ({self.value}) is greater than the desired max value ({max_value}).')
-        self._notify_observers()
+            raise AttributeError("This parameter is not independent, its max cannot be set directly. Please make it independent first.") # noqa: E501
 
     @property
     def fixed(self) -> bool:
