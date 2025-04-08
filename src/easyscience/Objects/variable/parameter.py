@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import copy
 import numbers
+import re
 import warnings
 import weakref
 from collections import namedtuple
@@ -93,8 +94,9 @@ class Parameter(DescriptorNumber):
                 warnings.warn('Dependent parameters compute their maximum value from their dependency. The set max will be ignored.')  # noqa: E501
             self._dependency_string = value
             self._independent = False
+            self._process_dependency_unique_names(self._dependency_string)
             try:
-                dependency_result = self._global_object.dependency_interpreter(self._dependency_string)
+                dependency_result = self._global_object.dependency_interpreter(self._clean_dependency_string)
             except Exception as message:
                 raise ValueError(f'Invalid dependency expression: {self._dependency_string}') from message
             value = dependency_result.value
@@ -151,7 +153,7 @@ class Parameter(DescriptorNumber):
         Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
         """
         if not self._independent:
-            temporary_parameter = self._global_object.dependency_interpreter(self._dependency_string)
+            temporary_parameter = self._global_object.dependency_interpreter(self._clean_dependency_string)
             self._scalar.value = temporary_parameter.value
             self._scalar.unit = temporary_parameter.unit
             self._scalar.variance = temporary_parameter.variance
@@ -390,6 +392,7 @@ class Parameter(DescriptorNumber):
         :return: Tuple of the parameters minimum and maximum values
         """
         return self.min, self.max
+    
     @bounds.setter
     def bounds(self, new_bound: Tuple[numbers.Number, numbers.Number]) -> None:
         """
@@ -440,6 +443,25 @@ class Parameter(DescriptorNumber):
         return MappingProxyType(self._constraints.builtin)
 
     @property
+    def independent(self) -> bool:
+        """
+        Logical property to see if the objects value can be directly set.
+
+        :return: Can the objects value be set
+        """
+        return self._independent
+
+    @independent.setter
+    @property_stack_deco
+    def independent(self, value: bool) -> None:
+        """
+        Enable and disable the direct setting of an objects value field.
+
+        :param value: True - objects value can be set, False - the opposite
+        """
+        self._independent = value
+
+    @property
     def user_constraints(self) -> Dict[str, ConstraintBase]:
         """
         Get the user specified constrains of the object.
@@ -470,24 +492,28 @@ class Parameter(DescriptorNumber):
                 value = constained_value
         return value
 
-    @property
-    def independent(self) -> bool:
+    def _process_dependency_unique_names(self, dependency_expression: str):
         """
-        Logical property to see if the objects value can be directly set.
+        Add the unique names of the parameters to the ASTEval interpreter. This is used to evaluate the dependency expression.
 
-        :return: Can the objects value be set
+        :param dependency_expression: The dependency expression to be evaluated
         """
-        return self._independent
+        # Get the unique_names from the expression string regardless of the quotes used
+        inputted_unique_names = re.findall("(\'.+?\')", dependency_expression)
+        inputted_unique_names += re.findall('(\".+?\")', dependency_expression)
 
-    @independent.setter
-    @property_stack_deco
-    def independent(self, value: bool) -> None:
-        """
-        Enable and disable the direct setting of an objects value field.
-
-        :param value: True - objects value can be set, False - the opposite
-        """
-        self._independent = value
+        clean_dependency_string = dependency_expression
+        existing_unique_names = self._global_object.map.vertices()
+        # Add the unique names of the parameters to the ASTEVAL interpreter
+        for name in inputted_unique_names:
+            stripped_name = name.strip("'\"")
+            if stripped_name not in existing_unique_names:
+                raise ValueError(f'A Parameter with unique_name {stripped_name} does not exist. Please check your dependency expression.') # noqa: E501
+            dependent_parameter = self._global_object.map.get_item_by_key(stripped_name)
+            self._global_object.dependency_interpreter.symtable['__'+stripped_name+'__'] = dependent_parameter
+            dependent_parameter._attach_observer(self)
+            clean_dependency_string = clean_dependency_string.replace(name, '__'+stripped_name+'__')
+        self._clean_dependency_string = clean_dependency_string
 
     def __copy__(self) -> Parameter:
         new_obj = super().__copy__()

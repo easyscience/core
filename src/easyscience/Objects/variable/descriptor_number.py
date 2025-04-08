@@ -104,7 +104,7 @@ class DescriptorNumber(DescriptorBase):
     def _notify_observers(self) -> None:
         """Notify all observers of a change."""
         for observer in self._observers:
-            observer._update(self)
+            observer._update()
 
     @property
     def full_value(self) -> Variable:
