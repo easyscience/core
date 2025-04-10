@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import ast
 import copy
 import numbers
 import re
@@ -94,6 +95,7 @@ class Parameter(DescriptorNumber):
                 warnings.warn('Dependent parameters compute their maximum value from their dependency. The set max will be ignored.')  # noqa: E501
             self._dependency_string = value
             self._independent = False
+            self._process_dependency_symbol_names(self._dependency_string)
             self._process_dependency_unique_names(self._dependency_string)
             try:
                 dependency_result = self._global_object.dependency_interpreter(self._clean_dependency_string)
@@ -510,10 +512,57 @@ class Parameter(DescriptorNumber):
             if stripped_name not in existing_unique_names:
                 raise ValueError(f'A Parameter with unique_name {stripped_name} does not exist. Please check your dependency expression.') # noqa: E501
             dependent_parameter = self._global_object.map.get_item_by_key(stripped_name)
-            self._global_object.dependency_interpreter.symtable['__'+stripped_name+'__'] = dependent_parameter
-            dependent_parameter._attach_observer(self)
-            clean_dependency_string = clean_dependency_string.replace(name, '__'+stripped_name+'__')
+            if isinstance(dependent_parameter, DescriptorNumber):
+                self._global_object.dependency_interpreter.symtable['__'+stripped_name+'__'] = dependent_parameter
+                dependent_parameter._attach_observer(self)
+                clean_dependency_string = clean_dependency_string.replace(name, '__'+stripped_name+'__')
+            else:
+                raise ValueError(f'The object with unique_name {stripped_name} is not a Parameter/DescriptorNumber. Please check your dependency expression.') # noqa: E501
         self._clean_dependency_string = clean_dependency_string
+
+    def _process_dependency_symbol_names(self, dependency_expression: str):
+        """
+        Add the symbol names of the parameters to the ASTEval interpreter. This is used to evaluate the dependency expression.
+
+        :param dependency_expression: The dependency expression to be evaluated
+        """
+        # Get the symbol names in the dependency expression by walking the abstract syntax tree with ast.
+
+        abstract_syntax_tree = ast.parse(dependency_expression)
+        abstract_syntax_tree_nodes = ast.walk(abstract_syntax_tree)
+        for node in abstract_syntax_tree_nodes:
+            # If the node is a Name, check if it is in globals and add it to the interpreter
+            if isinstance(node, ast.Name):
+                name = node.id
+                if name in globals():
+                    object = globals()[name]
+                    if isinstance(object, DescriptorNumber):
+                        self._global_object.dependency_interpreter.symtable[name] = object
+                        object._attach_observer(self)
+                else:
+                    raise ValueError(f'Object {name} not found in globals. Please check your dependency expression.')
+            # If the node is an attribute, get the attribute tree and check if the last element ie. the Name node is in globals
+            elif isinstance(node, ast.Attribute):
+                attribute_list = self._get_attribute_tree(node)
+                object_name = attribute_list[-1]
+                if object_name in globals():
+                    object = globals()[object_name]
+                else:
+                    raise ValueError(f'Object {object_name} not found in globals. Please check your dependency expression.') # noqa: E501
+                attribute_object = eval('.'.join(attribute_list.reverse()))  # noqa: S307
+                if isinstance(attribute_object, DescriptorNumber):
+                    self._global_object.dependency_interpreter.symtable[object_name] = object
+                    attribute_object._attach_observer(self)
+
+    def _get_attribute_tree(self, node: ast.Attribute, attribute_list: list = []) -> list:
+        if isinstance(node, ast.Attribute):
+            attribute_list.append(node.attr)
+            return self._get_attribute_tree(node.value, attribute_list)
+        elif isinstance(node, ast.Name):
+            attribute_list.append(node.id)
+            return attribute_list
+        else:
+            raise ValueError(f'Invalid node type: {type(node)}')
 
     def __copy__(self) -> Parameter:
         new_obj = super().__copy__()
