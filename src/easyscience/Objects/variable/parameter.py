@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import ast
 import copy
 import numbers
 import re
@@ -21,6 +20,7 @@ from typing import Union
 
 import numpy as np
 import scipp as sc
+from asteval import Interpreter
 from scipp import UnitError
 from scipp import Variable
 
@@ -31,6 +31,7 @@ from easyscience.global_object.undo_redo import property_stack_deco
 from easyscience.Utils.Exceptions import CoreSetException
 
 from .descriptor_number import DescriptorNumber
+from .descriptor_number import notify_observers
 
 Constraints = namedtuple('Constraints', ['user', 'builtin', 'virtual'])
 
@@ -59,6 +60,7 @@ class Parameter(DescriptorNumber):
         display_name: Optional[str] = None,
         callback: property = property(),
         parent: Optional[Any] = None,
+        dependency_map: Optional[dict] = {},
     ):
         """
         This class is an extension of a `DescriptorNumber`. Where the descriptor was for static
@@ -75,8 +77,8 @@ class Parameter(DescriptorNumber):
         :param description: A brief summary of what this object is
         :param url: Lookup url for documentation/information
         :param display_name: The name of the object as it should be displayed
-        :param independent: Is the object dependent on another object?
         :param parent: The object which is the parent to this one
+        :param dependency_map: A dictionary of dependencies. This is inserted into the asteval interpreter to resolve dependencies.
 
         .. note::
             Undo/Redo functionality is implemented for the attributes `value`, `variance`, `error`, `min`, `max`, `bounds`, `fixed`, `unit`
@@ -93,14 +95,24 @@ class Parameter(DescriptorNumber):
                 warnings.warn('Dependent parameters compute their minimum value from their dependency. The set min will be ignored.')  # noqa: E501
             if max != np.inf:
                 warnings.warn('Dependent parameters compute their maximum value from their dependency. The set max will be ignored.')  # noqa: E501
+            self._dependency_interpreter = Interpreter(minimal=True)
+            self._dependency_interpreter.config['if'] = True
             self._dependency_string = value
+            self._dependency_map = dependency_map
             self._independent = False
-            self._process_dependency_symbol_names(self._dependency_string)
             self._process_dependency_unique_names(self._dependency_string)
+            for key, value in self._dependency_map.items():
+                if isinstance(value, DescriptorNumber):
+                    self._dependency_interpreter.symtable[key] = value
+                    value._attach_observer(self)
+                else:
+                    raise TypeError(f'{key=} must be a DescriptorNumber or Parameter. Got {type(value)}')
             try:
-                dependency_result = self._global_object.dependency_interpreter(self._clean_dependency_string)
-            except Exception as message:
-                raise ValueError(f'Invalid dependency expression: {self._dependency_string}') from message
+                dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
+            except NameError as message:
+                raise NameError('\nUnknown name encountered in dependecy expression:'+
+                                '\n'+'\n'.join(str(message).split("\n")[1:])+
+                                '\nPlease check your expression or add the name to the dependency_map') from None
             value = dependency_result.value
             unit = dependency_result.unit
             variance = dependency_result.variance
@@ -149,13 +161,12 @@ class Parameter(DescriptorNumber):
         }
         self._constraints = Constraints(builtin=builtin_constraint, user={}, virtual={})
 
-
     def _update(self) -> None:
         """
         Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
         """
         if not self._independent:
-            temporary_parameter = self._global_object.dependency_interpreter(self._clean_dependency_string)
+            temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
             self._scalar.value = temporary_parameter.value
             self._scalar.unit = temporary_parameter.unit
             self._scalar.variance = temporary_parameter.variance
@@ -272,6 +283,19 @@ class Parameter(DescriptorNumber):
         else:
             raise AttributeError("This parameter is not independent, its error cannot be set directly. Please make it independent first.")  # noqa: E501
 
+    def _convert_unit(self, unit_str: str) -> None:
+        """
+        Perform unit conversion. The value, max and min can change on unit change.
+
+        :param new_unit: new unit
+        :return: None
+        """
+        super()._convert_unit(unit_str=unit_str)
+        new_unit = sc.Unit(unit_str)  # unit_str is tested in super method
+        self._min = self._min.to(unit=new_unit)
+        self._max = self._max.to(unit=new_unit)
+
+    @notify_observers
     def convert_unit(self, unit_str: str) -> None:
         """
         Perform unit conversion. The value, max and min can change on unit change.
@@ -279,11 +303,7 @@ class Parameter(DescriptorNumber):
         :param new_unit: new unit
         :return: None
         """
-        super().convert_unit(unit_str)
-        new_unit = sc.Unit(unit_str)  # unit_str is tested in super method
-        self._min = self._min.to(unit=new_unit)
-        self._max = self._max.to(unit=new_unit)
-        self._notify_observers()
+        self._convert_unit(unit_str)
 
     @property
     def min(self) -> numbers.Number:
@@ -513,56 +533,11 @@ class Parameter(DescriptorNumber):
                 raise ValueError(f'A Parameter with unique_name {stripped_name} does not exist. Please check your dependency expression.') # noqa: E501
             dependent_parameter = self._global_object.map.get_item_by_key(stripped_name)
             if isinstance(dependent_parameter, DescriptorNumber):
-                self._global_object.dependency_interpreter.symtable['__'+stripped_name+'__'] = dependent_parameter
-                dependent_parameter._attach_observer(self)
+                self._dependency_map['__'+stripped_name+'__'] = dependent_parameter
                 clean_dependency_string = clean_dependency_string.replace(name, '__'+stripped_name+'__')
             else:
                 raise ValueError(f'The object with unique_name {stripped_name} is not a Parameter/DescriptorNumber. Please check your dependency expression.') # noqa: E501
         self._clean_dependency_string = clean_dependency_string
-
-    def _process_dependency_symbol_names(self, dependency_expression: str):
-        """
-        Add the symbol names of the parameters to the ASTEval interpreter. This is used to evaluate the dependency expression.
-
-        :param dependency_expression: The dependency expression to be evaluated
-        """
-        # Get the symbol names in the dependency expression by walking the abstract syntax tree with ast.
-
-        abstract_syntax_tree = ast.parse(dependency_expression)
-        abstract_syntax_tree_nodes = ast.walk(abstract_syntax_tree)
-        for node in abstract_syntax_tree_nodes:
-            # If the node is a Name, check if it is in globals and add it to the interpreter
-            if isinstance(node, ast.Name):
-                name = node.id
-                if name in globals():
-                    object = globals()[name]
-                    if isinstance(object, DescriptorNumber):
-                        self._global_object.dependency_interpreter.symtable[name] = object
-                        object._attach_observer(self)
-                else:
-                    raise ValueError(f'Object {name} not found in globals. Please check your dependency expression.')
-            # If the node is an attribute, get the attribute tree and check if the last element ie. the Name node is in globals
-            elif isinstance(node, ast.Attribute):
-                attribute_list = self._get_attribute_tree(node)
-                object_name = attribute_list[-1]
-                if object_name in globals():
-                    object = globals()[object_name]
-                else:
-                    raise ValueError(f'Object {object_name} not found in globals. Please check your dependency expression.') # noqa: E501
-                attribute_object = eval('.'.join(attribute_list.reverse()))  # noqa: S307
-                if isinstance(attribute_object, DescriptorNumber):
-                    self._global_object.dependency_interpreter.symtable[object_name] = object
-                    attribute_object._attach_observer(self)
-
-    def _get_attribute_tree(self, node: ast.Attribute, attribute_list: list = []) -> list:
-        if isinstance(node, ast.Attribute):
-            attribute_list.append(node.attr)
-            return self._get_attribute_tree(node.value, attribute_list)
-        elif isinstance(node, ast.Name):
-            attribute_list.append(node.id)
-            return attribute_list
-        else:
-            raise ValueError(f'Invalid node type: {type(node)}')
 
     def __copy__(self) -> Parameter:
         new_obj = super().__copy__()
@@ -596,13 +571,13 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             other_unit = other.unit
             try:
-                other.convert_unit(self.unit)
+                other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be added') from None
             new_full_value = self.full_value + other.full_value
             min_value = self.min + other.min if isinstance(other, Parameter) else self.min + other.value
             max_value = self.max + other.max if isinstance(other, Parameter) else self.max + other.value
-            other.convert_unit(other_unit)
+            other._convert_unit(other_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -619,13 +594,13 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             original_unit = self.unit
             try:
-                self.convert_unit(other.unit)
+                self._convert_unit(other.unit)
             except UnitError:
                 raise UnitError(f'Values with units {other.unit} and {self.unit} cannot be added') from None
             new_full_value = self.full_value + other.full_value
             min_value = self.min + other.value
             max_value = self.max + other.value
-            self.convert_unit(original_unit)
+            self._convert_unit(original_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -642,7 +617,7 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             other_unit = other.unit
             try:
-                other.convert_unit(self.unit)
+                other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be subtracted') from None
             new_full_value = self.full_value - other.full_value
@@ -652,7 +627,7 @@ class Parameter(DescriptorNumber):
             else:
                 min_value = self.min - other.value
                 max_value = self.max - other.value
-            other.convert_unit(other_unit)
+            other._convert_unit(other_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -669,13 +644,13 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             original_unit = self.unit
             try:
-                self.convert_unit(other.unit)
+                self._convert_unit(other.unit)
             except UnitError:
                 raise UnitError(f'Values with units {other.unit} and {self.unit} cannot be subtracted') from None
             new_full_value = other.full_value - self.full_value
             min_value = other.value - self.max
             max_value = other.value - self.min
-            self.convert_unit(original_unit)
+            self._convert_unit(original_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -719,7 +694,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
 
@@ -743,7 +718,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
 
@@ -785,7 +760,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
 
@@ -826,7 +801,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         self.value = original_self
         return parameter

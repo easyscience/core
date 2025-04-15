@@ -5,8 +5,6 @@
 __author__ = 'github.com/wardsimon'
 __version__ = '0.1.0'
 
-from asteval import Interpreter
-
 from easyscience.Utils.classUtils import singleton
 
 from .hugger.hugger import ScriptManager
@@ -21,9 +19,6 @@ class GlobalObject:
     into the collective.
     """
 
-    __dependency_interpreter = Interpreter(minimal=True)
-    __dependency_interpreter.config['if'] = True
-    __dependency_interpreter.readonly_symbols = []
     __log = Logger()
     __map = Map()
     __stack = None
@@ -40,8 +35,6 @@ class GlobalObject:
         self.script: ScriptManager = ScriptManager()
         # Map. This is the conduit database between all global object species
         self.map: Map = self.__map
-        # Dependency interpreter. This is used to evaluate dependencies in dependent Parameters
-        self.dependency_interpreter: Interpreter = self.__dependency_interpreter
 
     def instantiate_stack(self):
         """
