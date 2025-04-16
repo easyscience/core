@@ -117,10 +117,17 @@ class DescriptorNumber(DescriptorBase):
         """Detach an observer from the descriptor."""
         self._observers.remove(observer)
 
-    def _notify_observers(self) -> None:
-        """Notify all observers of a change."""
+    def _notify_observers(self, update_id=None) -> None:
+        """Notify all observers of a change.
+        
+        :param update_id: Optional update ID to pass to observers. Used to avoid cyclic depenencies.
+
+        """
+        if update_id is None:
+            self._global_object.update_id_iterator += 1
+            update_id = self._global_object.update_id_iterator
         for observer in self._observers:
-            observer._update()
+            observer._update(update_id=update_id, updating_object=self.unique_name)
 
     @property
     def full_value(self) -> Variable:

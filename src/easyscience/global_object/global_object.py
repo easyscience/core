@@ -36,6 +36,8 @@ class GlobalObject:
         # Map. This is the conduit database between all global object species
         self.map: Map = self.__map
 
+        self.update_id_iterator = 0
+
     def instantiate_stack(self):
         """
         The undo/redo stack references the collective. Hence it has to be imported

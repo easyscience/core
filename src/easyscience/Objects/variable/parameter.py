@@ -99,11 +99,13 @@ class Parameter(DescriptorNumber):
             self._dependency_interpreter.config['if'] = True
             self._dependency_string = value
             self._dependency_map = dependency_map
+            self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
             self._independent = False
             self._process_dependency_unique_names(self._dependency_string)
             for key, value in self._dependency_map.items():
                 if isinstance(value, DescriptorNumber):
                     self._dependency_interpreter.symtable[key] = value
+                    self._dependency_updates[value.unique_name] = 0
                     value._attach_observer(self)
                 else:
                     raise TypeError(f'{key=} must be a DescriptorNumber or Parameter. Got {type(value)}')
@@ -161,18 +163,29 @@ class Parameter(DescriptorNumber):
         }
         self._constraints = Constraints(builtin=builtin_constraint, user={}, virtual={})
 
-    def _update(self) -> None:
+    def _update(self, update_id: int, updating_object: str) -> None:
         """
         Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
+
+        :param update_id: The id of the update. This is used to avoid cyclic dependencies.
+        :param updating_object: The unique_name of the object which is updating this parameter.
+
         """
         if not self._independent:
-            temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
-            self._scalar.value = temporary_parameter.value
-            self._scalar.unit = temporary_parameter.unit
-            self._scalar.variance = temporary_parameter.variance
-            self._min.value = temporary_parameter.min
-            self._max.value = temporary_parameter.max
-            self._notify_observers()
+            # Check if this parameter has already been updated by the updating object with this update id
+            if self._dependency_updates[updating_object] == update_id:
+                warnings.warn('Warning: Cyclic dependency detected!\n' +
+                             f'This parameter, {self.unique_name}, has already been updated by {updating_object} during this update.\n' +  # noqa: E501
+                              'This update will be ignored. Please check your dependencies.')
+            else:
+                # Update the value of the parameter using the dependency interpreter
+                temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
+                self._scalar.value = temporary_parameter.value
+                self._scalar.unit = temporary_parameter.unit
+                self._scalar.variance = temporary_parameter.variance
+                self._min.value = temporary_parameter.min
+                self._max.value = temporary_parameter.max
+                self._notify_observers(update_id=update_id)
         else:
             warnings.warn('This parameter is not dependent. It cannot be updated.')
 
