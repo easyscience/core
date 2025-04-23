@@ -222,6 +222,25 @@ class Parameter(DescriptorNumber):
         self._fixed = False
         self._notify_observers()
 
+    def make_independent(self) -> None:
+        """
+        Make this parameter independent.
+        This will remove the dependency expression, the dependency map and the dependency interpreter.
+
+        :return: None
+        """
+        if not self._independent:
+            for dependency in self._dependency_map.values():
+                dependency._detach_observer(self)
+            self._independent = True
+            del self._dependency_map
+            del self._dependency_updates
+            del self._dependency_interpreter
+            del self._dependency_string
+            del self._clean_dependency_string
+        else:
+            raise AttributeError('This parameter is already independent.')
+
     @property
     def value_no_call_back(self) -> numbers.Number:
         """
@@ -303,7 +322,7 @@ class Parameter(DescriptorNumber):
             # Notify observers of the change
             self._notify_observers()
         else:
-            raise AttributeError("This parameter is not independent, its value cannot be set directly. Please make it independent first.")  # noqa: E501
+            raise AttributeError("This is a dependent parameter, its value cannot be set directly.")
 
     @DescriptorNumber.variance.setter
     def variance(self, variance_float: float) -> None:
@@ -315,7 +334,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             DescriptorNumber.variance.fset(self, variance_float)
         else:
-            raise AttributeError("This parameter is not independent, its variance cannot be set directly. Please make it independent first.")  # noqa: E501
+            raise AttributeError("This is a dependent parameter, its variance cannot be set directly.")
 
     @DescriptorNumber.error.setter
     def error(self, value: float) -> None:
@@ -327,7 +346,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             DescriptorNumber.error.fset(self, value)
         else:
-            raise AttributeError("This parameter is not independent, its error cannot be set directly. Please make it independent first.")  # noqa: E501
+            raise AttributeError("This is a dependent parameter, its error cannot be set directly.")
 
     def _convert_unit(self, unit_str: str) -> None:
         """
@@ -381,7 +400,7 @@ class Parameter(DescriptorNumber):
                 raise ValueError(f'The current value ({self.value}) is smaller than the desired min value ({min_value}).')
             self._notify_observers()
         else:
-            raise AttributeError("This parameter is not independent, its min cannot be set directly. Please make it independent first.")  # noqa: E501
+            raise AttributeError("This is a dependent parameter, its minimum value cannot be set directly.")
 
     @property
     def max(self) -> numbers.Number:
@@ -413,7 +432,7 @@ class Parameter(DescriptorNumber):
                 raise ValueError(f'The current value ({self.value}) is greater than the desired max value ({max_value}).')
             self._notify_observers()
         else:
-            raise AttributeError("This parameter is not independent, its max cannot be set directly. Please make it independent first.") # noqa: E501
+            raise AttributeError("This is a dependent parameter, its maximum value cannot be set directly.")
 
     @property
     def fixed(self) -> bool:
@@ -433,17 +452,17 @@ class Parameter(DescriptorNumber):
 
         :param fixed: True = fixed, False = can vary
         """
-        if not self.independent:
+        if not isinstance(fixed, bool):
+            raise ValueError(f'{fixed=} must be a boolean. Got {type(fixed)}')
+        if self._independent:
+            self._fixed = fixed
+        else:
             if self._global_object.stack.enabled:
                 # Remove the recorded change from the stack
                 global_object.stack.pop()
-            if global_object.debug:
-                raise CoreSetException(f'{str(self)} is not independent.')
-            return
-        if not isinstance(fixed, bool):
-            raise ValueError(f'{fixed=} must be a boolean. Got {type(fixed)}')
-        self._fixed = fixed
+            raise AttributeError("This is a dependent parameter, dependent parameters cannot be fixed.")
 
+    # Is this alias really needed?
     @property
     def free(self) -> bool:
         return not self.fixed
@@ -451,6 +470,14 @@ class Parameter(DescriptorNumber):
     @free.setter
     def free(self, value: bool) -> None:
         self.fixed = not value
+
+    def independent(self) -> bool:
+        """
+        Is the parameter independent?
+
+        :return: True = independent, False = dependent
+        """
+        return self._independent
 
     @property
     def bounds(self) -> Tuple[numbers.Number, numbers.Number]:
@@ -509,25 +536,6 @@ class Parameter(DescriptorNumber):
         :return: Dictionary of constraints which are built into the system
         """
         return MappingProxyType(self._constraints.builtin)
-
-    @property
-    def independent(self) -> bool:
-        """
-        Logical property to see if the objects value can be directly set.
-
-        :return: Can the objects value be set
-        """
-        return self._independent
-
-    @independent.setter
-    @property_stack_deco
-    def independent(self, value: bool) -> None:
-        """
-        Enable and disable the direct setting of an objects value field.
-
-        :param value: True - objects value can be set, False - the opposite
-        """
-        self._independent = value
 
     @property
     def user_constraints(self) -> Dict[str, ConstraintBase]:
