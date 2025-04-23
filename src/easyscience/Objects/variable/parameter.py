@@ -242,6 +242,51 @@ class Parameter(DescriptorNumber):
             raise AttributeError('This parameter is already independent.')
 
     @property
+    def independent(self) -> bool:
+        """
+        Is the parameter independent?
+
+        :return: True = independent, False = dependent
+        """
+        return self._independent
+    
+    @independent.setter
+    def independent(self, value: bool) -> None:
+        raise AttributeError('This property is read-only. Use `make_independent` and  `make_dependent` to change the state of the parameter.')  # noqa: E501
+
+    @property
+    def depedency_expression(self) -> str:
+        """
+        Get the dependency expression of this parameter.
+
+        :return: The dependency expression of this parameter.
+        """
+        if not self._independent:
+            return self._dependency_string
+        else:
+            raise AttributeError('This parameter is independent. It has no dependency expression.')
+        
+    @depedency_expression.setter
+    def depedency_expression(self, new_expression: str) -> None:
+        raise AttributeError('Dependency expression is read-only. Use `make_dependent` to change the dependency expression.')
+
+    @property
+    def dependency_map(self) -> Dict[str, DescriptorNumber]:
+        """
+        Get the dependency map of this parameter.
+
+        :return: The dependency map of this parameter.
+        """
+        if not self._independent:
+            return self._dependency_map
+        else:
+            raise AttributeError('This parameter is independent. It has no dependency map.')
+        
+    @dependency_map.setter
+    def dependency_map(self, new_map: Dict[str, DescriptorNumber]) -> None:
+        raise AttributeError('Dependency map is read-only. Use `make_dependent` to change the dependency map.')
+
+    @property
     def value_no_call_back(self) -> numbers.Number:
         """
         Get the currently hold value of self suppressing call back.
@@ -470,14 +515,6 @@ class Parameter(DescriptorNumber):
     @free.setter
     def free(self, value: bool) -> None:
         self.fixed = not value
-
-    def independent(self) -> bool:
-        """
-        Is the parameter independent?
-
-        :return: True = independent, False = dependent
-        """
-        return self._independent
 
     @property
     def bounds(self) -> Tuple[numbers.Number, numbers.Number]:
