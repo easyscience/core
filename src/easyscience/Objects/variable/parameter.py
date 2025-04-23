@@ -60,7 +60,6 @@ class Parameter(DescriptorNumber):
         display_name: Optional[str] = None,
         callback: property = property(),
         parent: Optional[Any] = None,
-        dependency_map: Optional[dict] = {},
     ):
         """
         This class is an extension of a `DescriptorNumber`. Where the descriptor was for static
@@ -78,62 +77,26 @@ class Parameter(DescriptorNumber):
         :param url: Lookup url for documentation/information
         :param display_name: The name of the object as it should be displayed
         :param parent: The object which is the parent to this one
-        :param dependency_map: A dictionary of dependencies. This is inserted into the asteval interpreter to resolve dependencies.
 
         .. note::
             Undo/Redo functionality is implemented for the attributes `value`, `variance`, `error`, `min`, `max`, `bounds`, `fixed`, `unit`
         """  # noqa: E501
+        if not isinstance(min, numbers.Number):
+            raise TypeError('`min` must be a number')
+        if not isinstance(max, numbers.Number):
+            raise TypeError('`max` must be a number')
+        if not isinstance(value, numbers.Number):
+            raise TypeError('`value` must be a number')
+        if value < min:
+            raise ValueError(f'{value=} can not be less than {min=}')
+        if value > max:
+            raise ValueError(f'{value=} can not be greater than {max=}')
+        if np.isclose(min, max, rtol=1e-9, atol=0.0):
+            raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+        if not isinstance(fixed, bool):
+            raise TypeError('`fixed` must be either True or False')
+        self._independent = True
         self._observers: List[DescriptorNumber] = []
-        # If value is a string, the Parameter is a dependent parameter.
-        # The string is then run through the dependency interpreter to overwrite the value, unit, variance, min and max.  # noqa: E501
-        if isinstance(value, str):
-            if unit !='':
-                warnings.warn('Dependent parameters infer their unit from their dependency. The set unit will be ignored.')
-            if variance != 0.0:
-                warnings.warn('Dependent parameters compute their variance from their dependency. The set variance will be ignored.')  # noqa: E501
-            if min != -np.inf:
-                warnings.warn('Dependent parameters compute their minimum value from their dependency. The set min will be ignored.')  # noqa: E501
-            if max != np.inf:
-                warnings.warn('Dependent parameters compute their maximum value from their dependency. The set max will be ignored.')  # noqa: E501
-            self._dependency_interpreter = Interpreter(minimal=True)
-            self._dependency_interpreter.config['if'] = True
-            self._dependency_string = value
-            self._dependency_map = dependency_map
-            self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
-            self._independent = False
-            self._process_dependency_unique_names(self._dependency_string)
-            for key, value in self._dependency_map.items():
-                if isinstance(value, DescriptorNumber):
-                    self._dependency_interpreter.symtable[key] = value
-                    self._dependency_updates[value.unique_name] = 0
-                    value._attach_observer(self)
-                else:
-                    raise TypeError(f'{key=} must be a DescriptorNumber or Parameter. Got {type(value)}')
-            try:
-                dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
-            except NameError as message:
-                raise NameError('\nUnknown name encountered in dependecy expression:'+
-                                '\n'+'\n'.join(str(message).split("\n")[1:])+
-                                '\nPlease check your expression or add the name to the dependency_map') from None
-            value = dependency_result.value
-            unit = dependency_result.unit
-            variance = dependency_result.variance
-            min = dependency_result.min if isinstance(dependency_result, Parameter) else -np.inf
-            max = dependency_result.max if isinstance(dependency_result, Parameter) else np.inf
-        elif isinstance(value, numbers.Number):
-            if not isinstance(max, numbers.Number):
-                raise TypeError('`max` must be a number')        
-            if value < min:
-                raise ValueError(f'{value=} can not be less than {min=}')
-            if value > max:
-                raise ValueError(f'{value=} can not be greater than {max=}')
-            if np.isclose(min, max, rtol=1e-9, atol=0.0):
-                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
-            if not isinstance(fixed, bool):
-                raise TypeError('`fixed` must be either True or False')
-            self._independent = True
-        else:
-            raise TypeError('`value` must be a number or a string representing a valid dependency expression.')
         self._fixed = fixed # For fitting, but must be initialized before super().__init__
         self._min = sc.scalar(float(min), unit=unit)
         self._max = sc.scalar(float(max), unit=unit)
@@ -163,6 +126,22 @@ class Parameter(DescriptorNumber):
         }
         self._constraints = Constraints(builtin=builtin_constraint, user={}, virtual={})
 
+    @classmethod
+    def from_dependency(cls, name: str, dependency_expression: str, dependency_map: Optional[dict] = None, **kwargs) -> Parameter:  # noqa: E501
+        """
+        Create a dependent Parameter directly from a dependency expression.
+        
+        :param name: The name of the parameter
+        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by the ASTEval interpreter.
+        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies. 
+        :param kwargs: Additional keyword arguments to pass to the Parameter constructor.
+        :return: A new dependent Parameter object.
+        """  # noqa: E501
+        parameter = cls(name=name, value=0.0, unit='', variance=0.0, min=-np.inf, max=np.inf, **kwargs)
+        parameter.make_dependent(dependency_expression=dependency_expression, dependency_map=dependency_map)
+        return parameter
+
+
     def _update(self, update_id: int, updating_object: str) -> None:
         """
         Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
@@ -188,6 +167,60 @@ class Parameter(DescriptorNumber):
                 self._notify_observers(update_id=update_id)
         else:
             warnings.warn('This parameter is not dependent. It cannot be updated.')
+
+    def make_dependent(self, dependency_expression: str, dependency_map: Optional[dict] = None) -> None:
+        """
+        Make this parameter dependent on another parameter. This will overwrite the current value, unit, variance, min and max.
+
+        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by the ASTEval interpreter.
+        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies. 
+        """  # noqa: E501
+        if not isinstance(dependency_expression, str):
+            raise TypeError('`dependency_expression` must be a string representing a valid dependency expression.')
+        if not (isinstance(dependency_map, dict) or dependency_map is None):
+            raise TypeError('`dependency_map` must be a dictionary of dependencies and their corresponding names in the dependecy expression.')  # noqa: E501
+        for key, value in self._dependency_map.items():
+            if not isinstance(key, str):
+                raise TypeError('`dependency_map` keys must be strings representing the names of the dependencies in the dependency expression.')  # noqa: E501
+            if not isinstance(value, DescriptorNumber):
+                raise TypeError(f'`dependency_map` values must be DescriptorNumbers or Parameters. Got {type(value)} for {key}.')  # noqa: E501
+
+        # If we're overwriting the dependency
+        if not self._independent:
+            for old_dependency in self._dependency_map.values():
+                old_dependency._detach_observer(self)
+
+        self._dependency_string = dependency_expression
+        self._dependency_map = dependency_map if dependency_map is not None else {}
+        self._dependency_interpreter = Interpreter(minimal=True)
+        self._dependency_interpreter.config['if'] = True
+        self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
+        
+        self._process_dependency_unique_names(self._dependency_string)
+        for key, value in self._dependency_map.items():
+                self._dependency_interpreter.symtable[key] = value
+                self._dependency_interpreter.readonly_symbols.add(key)
+                value._attach_observer(self)
+        try:
+            dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
+        except NameError as message:
+            raise NameError('\nUnknown name encountered in dependecy expression:'+
+                            '\n'+'\n'.join(str(message).split("\n")[1:])+
+                            '\nPlease check your expression or add the name to the `dependency_map`') from None
+        except Exception as message:
+            raise Exception('\nError encountered in dependecy expression:'+
+                            '\n'+'\n'.join(str(message).split("\n")[1:])+
+                            '\nPlease check your expression') from None
+        if not isinstance(dependency_result, DescriptorNumber):
+            raise TypeError(f'The dependency expression: "{self._clean_dependency_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
+        self._scalar.value = dependency_result.value
+        self._scalar.unit = dependency_result.unit
+        self._scalar.variance = dependency_result.variance
+        self._min = dependency_result.min if isinstance(dependency_result, Parameter) else dependency_result.value
+        self._max = dependency_result.max if isinstance(dependency_result, Parameter) else dependency_result.value
+        self._independent = False
+        self._fixed = False
+        self._notify_observers()
 
     @property
     def value_no_call_back(self) -> numbers.Number:
@@ -549,7 +582,7 @@ class Parameter(DescriptorNumber):
                 self._dependency_map['__'+stripped_name+'__'] = dependent_parameter
                 clean_dependency_string = clean_dependency_string.replace(name, '__'+stripped_name+'__')
             else:
-                raise ValueError(f'The object with unique_name {stripped_name} is not a Parameter/DescriptorNumber. Please check your dependency expression.') # noqa: E501
+                raise ValueError(f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber. Please check your dependency expression.') # noqa: E501
         self._clean_dependency_string = clean_dependency_string
 
     def __copy__(self) -> Parameter:
