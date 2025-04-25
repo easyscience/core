@@ -64,7 +64,7 @@ class Parameter(DescriptorNumber):
         :param variance: The variance of the value
         :param min: The minimum value for fitting
         :param max: The maximum value for fitting
-        :param fixed: Can the parameter vary?
+        :param fixed: If the parameter is free to vary during fitting
         :param description: A brief summary of what this object is
         :param url: Lookup url for documentation/information
         :param display_name: The name of the object as it should be displayed
@@ -160,7 +160,15 @@ class Parameter(DescriptorNumber):
         """
         Make this parameter dependent on another parameter. This will overwrite the current value, unit, variance, min and max.
 
-        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by the ASTEval interpreter.
+        How to use the dependency map:
+        If a parameter c has a dependency expression of 'a + b', where a and b are parameters belonging to the model class,
+        then the dependency map needs to have the form {'a': model.a, 'b': model.b}, where model is the model class.
+        I.e. the values are the actual objects, whereas the keys are how they are represented in the dependency expression.
+
+        The dependency map is not needed if the dependency expression uses the unique names of the parameters.
+        Unique names in dependency expressions are defined by quotes, e.g. 'Parameter_0' or "Parameter_0" depending on the quotes used for the expression.
+
+        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by a python interpreter.
         :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies. 
         """  # noqa: E501
         if not isinstance(dependency_expression, str):
@@ -181,13 +189,13 @@ class Parameter(DescriptorNumber):
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
         self._dependency_interpreter = Interpreter(minimal=True)
-        self._dependency_interpreter.config['if'] = True
+        self._dependency_interpreter.config['if'] = True # allows logical statements in the dependency expression
         self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
         
         self._process_dependency_unique_names(self._dependency_string)
         for key, value in self._dependency_map.items():
                 self._dependency_interpreter.symtable[key] = value
-                self._dependency_interpreter.readonly_symbols.add(key)
+                self._dependency_interpreter.readonly_symbols.add(key) # Dont allow overwriting of the dependencies in the dependency expression  # noqa: E501
                 value._attach_observer(self)
         try:
             dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
@@ -243,7 +251,7 @@ class Parameter(DescriptorNumber):
         raise AttributeError('This property is read-only. Use `make_independent` and  `make_dependent_on` to change the state of the parameter.')  # noqa: E501
 
     @property
-    def depedency_expression(self) -> str:
+    def dependency_expression(self) -> str:
         """
         Get the dependency expression of this parameter.
 
@@ -254,7 +262,7 @@ class Parameter(DescriptorNumber):
         else:
             raise AttributeError('This parameter is independent. It has no dependency expression.')
         
-    @depedency_expression.setter
+    @dependency_expression.setter
     def depedency_expression(self, new_expression: str) -> None:
         raise AttributeError('Dependency expression is read-only. Use `make_dependent_on` to change the dependency expression.')
 

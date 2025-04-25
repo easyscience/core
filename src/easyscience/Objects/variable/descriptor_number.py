@@ -240,6 +240,8 @@ class DescriptorNumber(DescriptorBase):
         else:
             self._scalar.variance = None
 
+    # When we convert units internally, we dont want to notify observers as this can cause infinite recursion.
+    # Therefore the convert_unit method is split into two methods, a private internal method and a public method.
     def _convert_unit(self, unit_str: str) -> None:
         """
         Convert the value from one unit system to another.
@@ -271,6 +273,7 @@ class DescriptorNumber(DescriptorBase):
         # Update the scalar
         self._scalar = new_scalar
 
+    # When the user calls convert_unit, we want to notify observers of the change to propagate the change.
     @notify_observers
     def convert_unit(self, unit_str: str) -> None:
         """
