@@ -465,6 +465,9 @@ class DescriptorNumber(DescriptorBase):
         return descriptor_number
 
     def _base_unit(self) -> str:
+        """
+        Extract the base unit from the unit string by removing numeric components and scientific notation.
+        """
         string = str(self._scalar.unit)
         for i, letter in enumerate(string):
             if letter == 'e':

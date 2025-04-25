@@ -34,15 +34,6 @@ class Fitter:
         self._enum_current_minimizer: AvailableMinimizers = None  # set in _update_minimizer
         self._update_minimizer(DEFAULT_MINIMIZER)
 
-    def fit_constraints(self) -> list:
-        return self._minimizer.fit_constraints()
-
-    def add_fit_constraint(self, constraint) -> None:
-        self._minimizer.add_fit_constraint(constraint)
-
-    def remove_fit_constraint(self, index: int) -> None:
-        self._minimizer.remove_fit_constraint(index)
-
     def make_model(self, pars=None) -> Callable:
         return self._minimizer.make_model(pars)
 
@@ -84,9 +75,7 @@ class Fitter:
             print(f'minimizer should be set with enum {minimizer_enum}')
             minimizer_enum = from_string_to_enum(minimizer_enum)
 
-        constraints = self._minimizer.fit_constraints()
         self._update_minimizer(minimizer_enum)
-        self._minimizer.set_fit_constraint(constraints)
 
     def _update_minimizer(self, minimizer_enum: AvailableMinimizers) -> None:
         self._minimizer = factory(minimizer_enum=minimizer_enum, fit_object=self._fit_object, fit_function=self.fit_function)
@@ -235,11 +224,7 @@ class Fitter:
             # Fit
             fit_fun_org = self._fit_function
             fit_fun_wrap = self._fit_function_wrapper(x_new, flatten=True)  # This should be wrapped.
-
-            # We change the  fit function, so have to  reset constraints
-            constraints = self._minimizer.fit_constraints()
             self.fit_function = fit_fun_wrap
-            self._minimizer.set_fit_constraint(constraints)
             f_res = self._minimizer.fit(
                 x_fit,
                 y_new,
@@ -251,9 +236,8 @@ class Fitter:
 
             # Postcompute
             fit_result = self._post_compute_reshaping(f_res, x, y)
-            # Reset the function and constrains
+            # Reset the function
             self.fit_function = fit_fun_org
-            self._minimizer.set_fit_constraint(constraints)
             return fit_result
 
         return inner_fit_callable

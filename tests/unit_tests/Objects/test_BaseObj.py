@@ -148,7 +148,7 @@ def test_baseobj_fit_objects(setup_pars: dict):
     pass
 
 
-def test_baseobj_as_dict(setup_pars: dict):
+def test_baseobj_as_dict(clear, setup_pars: dict):
     name = setup_pars["name"]
     del setup_pars["name"]
     obj = BaseObj(name, **setup_pars)
@@ -266,7 +266,6 @@ def test_baseobj_dir(setup_pars):
         "encode",
         "decode",
         "as_dict",
-        "constraints",
         "des1",
         "des2",
         "from_dict",

@@ -16,8 +16,6 @@ from typing import Union
 
 import numpy as np
 
-from easyscience.Constraints import ObjConstraint
-
 # causes circular import when Parameter is imported
 # from easyscience.Objects.ObjectClasses import BaseObj
 from easyscience.Objects.variable import Parameter
@@ -52,11 +50,6 @@ class MinimizerBase(metaclass=ABCMeta):
         self._cached_pars_vals: Dict[str, Tuple[float]] = {}
         self._cached_model = None
         self._fit_function = None
-        self._constraints = []
-
-    @property
-    def all_constraints(self) -> List[ObjConstraint]:
-        return [*self._constraints, *self._object._constraints]
 
     @property
     def enum(self) -> AvailableMinimizers:
@@ -65,18 +58,6 @@ class MinimizerBase(metaclass=ABCMeta):
     @property
     def name(self) -> str:
         return self._minimizer_enum.name
-
-    def fit_constraints(self) -> List[ObjConstraint]:
-        return self._constraints
-
-    def set_fit_constraint(self, constraints: List[ObjConstraint]):
-        self._constraints = constraints
-
-    def add_fit_constraint(self, constraint: ObjConstraint):
-        self._constraints.append(constraint)
-
-    def remove_fit_constraint(self, index: int) -> None:
-        del self._constraints[index]
 
     @abstractmethod
     def fit(
@@ -237,8 +218,6 @@ class MinimizerBase(metaclass=ABCMeta):
 
                     # Since we are calling the parameter fset will be called.
             # TODO Pre processing here
-            for constraint in self.fit_constraints():
-                constraint()
             return_data = func(x)
             # TODO Loading or manipulating data here
             return return_data

@@ -72,9 +72,6 @@ class TestDFOFit():
         # When
         minimizer._original_fit_function = MagicMock(return_value='fit_function_result')
 
-        mock_fit_constraint = MagicMock()
-        minimizer.fit_constraints = MagicMock(return_value=[mock_fit_constraint])
-
         minimizer._object = MagicMock()
         mock_parm_1 = MagicMock()
         mock_parm_1.unique_name = 'mock_parm_1'
@@ -92,7 +89,6 @@ class TestDFOFit():
 
         # Expect
         assert 'fit_function_result' == fit_function_result
-        mock_fit_constraint.assert_called_once_with()
         minimizer._original_fit_function.assert_called_once_with([10.0])
         assert minimizer._cached_pars['mock_parm_1'] == mock_parm_1
         assert minimizer._cached_pars['mock_parm_2'] == mock_parm_2

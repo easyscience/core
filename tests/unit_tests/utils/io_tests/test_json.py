@@ -11,7 +11,6 @@ from easyscience.Utils.io.json import JsonDataSerializer
 from easyscience.Utils.io.json import JsonSerializer
 from easyscience.Objects.variable import DescriptorNumber
 
-from .test_core import A
 from .test_core import check_dict
 from .test_core import dp_param_dict
 from .test_core import skip_dict
@@ -92,78 +91,6 @@ def test_variable_DataDictSerializer(dp_kwargs: dict, dp_cls: Type[DescriptorNum
     assert len(dif) == 0
 
     check_dict(data_dict, enc_d)
-
-
-@pytest.mark.parametrize(**skip_dict)
-@pytest.mark.parametrize(**dp_param_dict)
-def test_custom_class_DictSerializer_encode(
-    dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip
-):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    a_kw = {data_dict["name"]: dp_cls(**data_dict)}
-
-    full_d = {
-        "@module": A.__module__,
-        "@class": A.__name__,
-        "@version": None,
-        "name": "A",
-        dp_kwargs["name"]: deepcopy(dp_kwargs),
-    }
-
-    if not isinstance(skip, list):
-        skip = [skip]
-
-    full_d = recursive_remove(full_d, skip)
-
-    obj = A(**a_kw)
-
-    enc = obj.encode(skip=skip, encoder=JsonSerializer)
-    assert isinstance(enc, str)
-
-    # We can test like this as we don't have "complex" objects yet
-    dec = json.loads(enc)
-
-    expected_keys = set(full_d.keys())
-    obtained_keys = set(dec.keys())
-
-    dif = expected_keys.difference(obtained_keys)
-
-    assert len(dif) == 0
-
-    check_dict(full_d, dec)
-
-
-@pytest.mark.parametrize(**skip_dict)
-@pytest.mark.parametrize(**dp_param_dict)
-def test_custom_class_DataDictSerializer(
-    dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip
-):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    a_kw = {data_dict["name"]: dp_cls(**data_dict)}
-
-    full_d = {"name": "A", dp_kwargs["name"]: data_dict}
-
-    if not isinstance(skip, list):
-        skip = [skip]
-
-    full_d = recursive_remove(full_d, skip)
-
-    obj = A(**a_kw)
-
-    enc = obj.encode(skip=skip, encoder=JsonDataSerializer)
-    dec = json.loads(enc)
-
-    expected_keys = set(full_d.keys())
-    obtained_keys = set(dec.keys())
-
-    dif = expected_keys.difference(obtained_keys)
-
-    assert len(dif) == 0
-
-    check_dict(full_d, dec)
-
 
 # ########################################################################################################################
 # # TESTING DECODING

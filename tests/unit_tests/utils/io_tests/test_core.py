@@ -8,7 +8,6 @@ from typing import Type
 import pytest
 
 import easyscience
-from easyscience.Objects.ObjectClasses import BaseObj
 from easyscience.Objects.variable import DescriptorNumber
 from easyscience.Objects.variable import Parameter
 
@@ -45,7 +44,6 @@ dp_param_dict = {
                 "url": "https://www.boo.com",
                 "description": "",
                 "display_name": "test",
-                "enabled": True,
             },
             Parameter,
         ],
@@ -123,62 +121,3 @@ def test_variable_as_data_dict_methods(dp_kwargs: dict, dp_cls: Type[DescriptorN
     assert len(dif) == 0
 
     check_dict(data_dict, enc_d)
-
-
-class A(BaseObj):
-    def __init__(self, name: str = "A", **kwargs):
-        super().__init__(name=name, **kwargs)
-
-
-class B(BaseObj):
-    def __init__(self, a, b, unique_name):
-        super(B, self).__init__("B", a=a, unique_name=unique_name)
-        self.b = b
-
-
-@pytest.mark.parametrize(**dp_param_dict)
-def test_custom_class_as_dict_methods(dp_kwargs: dict, dp_cls: Type[DescriptorNumber]):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    a_kw = {data_dict["name"]: dp_cls(**data_dict)}
-
-    full_d = {
-        "@module": A.__module__,
-        "@class": A.__name__,
-        "@version": None,
-        "name": "A",
-        dp_kwargs["name"]: dp_kwargs,
-    }
-
-    obj = A(**a_kw)
-
-    enc = obj.as_dict()
-    expected_keys = set(full_d.keys())
-    obtained_keys = set(enc.keys())
-
-    dif = expected_keys.difference(obtained_keys)
-
-    assert len(dif) == 0
-
-    check_dict(full_d, enc)
-
-
-@pytest.mark.parametrize(**dp_param_dict)
-def test_custom_class_as_data_dict_methods(dp_kwargs: dict, dp_cls: Type[DescriptorNumber]):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    a_kw = {data_dict["name"]: dp_cls(**data_dict)}
-
-    full_d = {"name": "A", dp_kwargs["name"]: data_dict}
-
-    obj = A(**a_kw)
-
-    enc = obj.as_data_dict()
-    expected_keys = set(full_d.keys())
-    obtained_keys = set(enc.keys())
-
-    dif = expected_keys.difference(obtained_keys)
-
-    assert len(dif) == 0
-
-    check_dict(full_d, enc)

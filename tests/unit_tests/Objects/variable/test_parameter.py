@@ -24,7 +24,6 @@ class TestParameter:
             url="url",
             display_name="display_name",
             callback=self.mock_callback,
-            independent="independent",
             parent=None,
         )
         return parameter
@@ -40,7 +39,7 @@ class TestParameter:
         assert parameter._max.value == 10
         assert parameter._max.unit == "m"
         assert parameter._callback == self.mock_callback
-        assert parameter._independent == "independent"
+        assert parameter._independent == True
 
         # From super
         assert parameter._scalar.value == 1
@@ -69,7 +68,6 @@ class TestParameter:
                 url="url",
                 display_name="display_name",
                 callback=mock_callback,
-                independent="independent",
                 parent=None,
             )
 
@@ -91,7 +89,6 @@ class TestParameter:
                 url="url",
                 display_name="display_name",
                 callback=mock_callback,
-                independent="independent",
                 parent=None,
             )
 
@@ -185,69 +182,12 @@ class TestParameter:
         # Then Expect
         assert repr(parameter) == "<Parameter 'name': 1.0000 ± 0.1000 m (fixed), bounds=[0.0:10.0]>"
 
-    def test_bounds(self, parameter: Parameter):
-        # When Then Expect
-        assert parameter.bounds == (0, 10)
-    
-    def test_set_bounds(self, parameter: Parameter):
-        # When 
-        parameter._independent = False
-        self.mock_callback.fget.return_value = 1.0  # Ensure fget returns a scalar value
-        parameter._enabled = False
-        parameter._fixed = True
-
-        # Then 
-        parameter.bounds = (-10, 5)
-
-        # Expect
-        assert parameter.min == -10
-        assert parameter.max == 5
-        assert parameter._independent == True
-        assert parameter._fixed == False
-
-    def test_set_bounds_exception_min(self, parameter: Parameter):
-        # When 
-        parameter._independent = False
-        parameter._fixed = True
-
-        # Then
-        with pytest.raises(ValueError):
-            parameter.bounds = (2, 10)
-
-        # Expect
-        assert parameter.min == 0
-        assert parameter.max == 10
-        assert parameter._independent == False
-        assert parameter._fixed == True
-
-    def test_set_bounds_exception_max(self, parameter: Parameter):
-        # When 
-        parameter._independent = False
-        parameter._fixed = True
-
-        # Then
-        with pytest.raises(ValueError):
-            parameter.bounds = (0, 0.1)
-
-        # Expect
-        assert parameter.min == 0
-        assert parameter.max == 10
-        assert parameter._independent == False
-        assert parameter._fixed == True
-
     def test_independent(self, parameter: Parameter):
         # When
         parameter._independent = True
         
         # Then Expect
         assert parameter.independent is True
-
-    def test_set_independent(self, parameter: Parameter):
-        # When
-        parameter.independent = False
-
-        # Then Expect
-        assert parameter._independent is False
 
     def test_value_match_callback(self, parameter: Parameter):
         # When
@@ -337,7 +277,6 @@ class TestParameter:
             "description": "description",
             "url": "url",
             "display_name": "display_name",
-            "independent": "independent",
             "unique_name": "Parameter_0",
         }
 

@@ -9,13 +9,10 @@ import numbers
 import re
 import warnings
 import weakref
-from collections import namedtuple
-from types import MappingProxyType
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 import numpy as np
@@ -25,15 +22,10 @@ from scipp import UnitError
 from scipp import Variable
 
 from easyscience import global_object
-from easyscience.Constraints import ConstraintBase
-from easyscience.Constraints import SelfConstraint
 from easyscience.global_object.undo_redo import property_stack_deco
-from easyscience.Utils.Exceptions import CoreSetException
 
 from .descriptor_number import DescriptorNumber
 from .descriptor_number import notify_observers
-
-Constraints = namedtuple('Constraints', ['user', 'builtin', 'virtual'])
 
 
 class Parameter(DescriptorNumber):
@@ -119,12 +111,6 @@ class Parameter(DescriptorNumber):
 
         # Create additional fitting elements
         self._initial_scalar = copy.deepcopy(self._scalar)
-        builtin_constraint = {
-            # Last argument in constructor is the name of the property holding the value of the constraint
-            'min': SelfConstraint(self, '>=', 'min'),
-            'max': SelfConstraint(self, '<=', 'max'),
-        }
-        self._constraints = Constraints(builtin=builtin_constraint, user={}, virtual={})
 
     @classmethod
     def from_dependency(cls, name: str, dependency_expression: str, dependency_map: Optional[dict] = None, **kwargs) -> Parameter:  # noqa: E501
@@ -152,6 +138,8 @@ class Parameter(DescriptorNumber):
         """
         if not self._independent:
             # Check if this parameter has already been updated by the updating object with this update id
+            if updating_object not in self._dependency_updates:
+                self._dependency_updates[updating_object] = 0
             if self._dependency_updates[updating_object] == update_id:
                 warnings.warn('Warning: Cyclic dependency detected!\n' +
                              f'This parameter, {self.unique_name}, has already been updated by {updating_object} during this update.\n' +  # noqa: E501
@@ -179,7 +167,7 @@ class Parameter(DescriptorNumber):
             raise TypeError('`dependency_expression` must be a string representing a valid dependency expression.')
         if not (isinstance(dependency_map, dict) or dependency_map is None):
             raise TypeError('`dependency_map` must be a dictionary of dependencies and their corresponding names in the dependecy expression.')  # noqa: E501
-        for key, value in self._dependency_map.items():
+        for key, value in dependency_map.items():
             if not isinstance(key, str):
                 raise TypeError('`dependency_map` keys must be strings representing the names of the dependencies in the dependency expression.')  # noqa: E501
             if not isinstance(value, DescriptorNumber):
@@ -216,8 +204,8 @@ class Parameter(DescriptorNumber):
         self._scalar.value = dependency_result.value
         self._scalar.unit = dependency_result.unit
         self._scalar.variance = dependency_result.variance
-        self._min = dependency_result.min if isinstance(dependency_result, Parameter) else dependency_result.value
-        self._max = dependency_result.max if isinstance(dependency_result, Parameter) else dependency_result.value
+        self._min.value = dependency_result.min if isinstance(dependency_result, Parameter) else dependency_result.value
+        self._max.value = dependency_result.max if isinstance(dependency_result, Parameter) else dependency_result.value
         self._independent = False
         self._fixed = False
         self._notify_observers()
@@ -337,30 +325,17 @@ class Parameter(DescriptorNumber):
         :param value: New value of self
         """
         if self._independent:
-            if not isinstance(value, numbers.Number) or isinstance(value, bool):
+            if not isinstance(value, numbers.Number):
                 raise TypeError(f'{value=} must be a number')
+            
+            value = float(value)
+            if value < self._min.value:
+                value = self._min.value
+            if value > self._max.value:
+                value = self._max.value
 
-            # Need to set the value for constraints to be functional
-            self._scalar.value = float(value)
-            #        if self._callback.fset is not None:
-            #            self._callback.fset(self._scalar.value)
+            self._scalar.value = value
 
-            # Deals with min/max
-            value = self._constraint_runner(self.builtin_constraints, self._scalar.value)
-
-            # Deals with user constraints
-            # Changes should not be registrered in the undo/redo stack
-            stack_state = global_object.stack.enabled
-            if stack_state:
-                global_object.stack.force_state(False)
-            try:
-                value = self._constraint_runner(self.user_constraints, value)
-            finally:
-                global_object.stack.force_state(stack_state)
-
-            value = self._constraint_runner(self._constraints.virtual, value)
-
-            self._scalar.value = float(value)
             if self._callback.fset is not None:
                 self._callback.fset(self._scalar.value)
 
@@ -515,95 +490,6 @@ class Parameter(DescriptorNumber):
     @free.setter
     def free(self, value: bool) -> None:
         self.fixed = not value
-
-    @property
-    def bounds(self) -> Tuple[numbers.Number, numbers.Number]:
-        """
-        Get the bounds of the parameter.
-
-        :return: Tuple of the parameters minimum and maximum values
-        """
-        return self.min, self.max
-    
-    @bounds.setter
-    def bounds(self, new_bound: Tuple[numbers.Number, numbers.Number]) -> None:
-        """
-        Set the bounds of the parameter. *This will also enable the parameter*.
-
-        :param new_bound: New bounds. This should be a tuple of (min, max).
-        """
-        old_min = self.min
-        old_max = self.max
-        new_min, new_max = new_bound
-
-        # Begin macro operation for undo/redo
-        close_macro = False
-        if self._global_object.stack.enabled:
-            self._global_object.stack.beginMacro('Setting bounds')
-            close_macro = True
-
-        try:
-            # Update bounds
-            self.min = new_min
-            self.max = new_max
-        except ValueError:
-            # Rollback on failure
-            self.min = old_min
-            self.max = old_max
-            if close_macro:
-                self._global_object.stack.endMacro()
-            raise ValueError(f'Current parameter value: {self._scalar.value} must be within {new_bound=}')
-
-        # Enable the parameter if needed
-        if not self.independent:
-            self.independent = True
-        # Free parameter if needed
-        if self.fixed:
-            self.fixed = False
-
-        # End macro operation
-        if close_macro:
-            self._global_object.stack.endMacro()
-            
-    @property
-    def builtin_constraints(self) -> Dict[str, SelfConstraint]:
-        """
-        Get the built in constrains of the object. Typically these are the min/max
-
-        :return: Dictionary of constraints which are built into the system
-        """
-        return MappingProxyType(self._constraints.builtin)
-
-    @property
-    def user_constraints(self) -> Dict[str, ConstraintBase]:
-        """
-        Get the user specified constrains of the object.
-
-        :return: Dictionary of constraints which are user supplied
-        """
-        return self._constraints.user
-
-    @user_constraints.setter
-    def user_constraints(self, constraints_dict: Dict[str, ConstraintBase]) -> None:
-        self._constraints.user = constraints_dict
-
-    def _constraint_runner(
-        self,
-        this_constraint_type,
-        value: numbers.Number,
-    ) -> float:
-        for constraint in this_constraint_type.values():
-            if constraint.external:
-                constraint()
-                continue
-
-            constained_value = constraint(no_set=True)
-            if constained_value != value:
-                if global_object.debug:
-                    print(f'Constraint `{constraint}` has been applied')
-                self._scalar.value = constained_value
-                value = constained_value
-        return value
 
     def _process_dependency_unique_names(self, dependency_expression: str):
         """
