@@ -13,7 +13,7 @@ from scipp import UnitError
 from scipp import Variable
 
 from easyscience.global_object.undo_redo import PropertyStack
-from easyscience.global_object.undo_redo import property_stack_deco
+from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_base import DescriptorBase
 
@@ -155,7 +155,7 @@ class DescriptorNumber(DescriptorBase):
 
     @value.setter
     @notify_observers
-    @property_stack_deco
+    @property_stack
     def value(self, value: numbers.Number) -> None:
         """
         Set the value of self. This should be usable for most cases. The full value can be obtained from `obj.full_value`.
@@ -195,7 +195,7 @@ class DescriptorNumber(DescriptorBase):
 
     @variance.setter
     @notify_observers
-    @property_stack_deco
+    @property_stack
     def variance(self, variance_float: float) -> None:
         """
         Set the variance.
@@ -223,7 +223,7 @@ class DescriptorNumber(DescriptorBase):
 
     @error.setter
     @notify_observers
-    @property_stack_deco
+    @property_stack
     def error(self, value: float) -> None:
         """
         Set the standard deviation for the parameter.

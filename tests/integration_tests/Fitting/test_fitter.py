@@ -240,7 +240,7 @@ def test_fit_constraints(fit_engine):
 
     f = Fitter(sp_sin, sp_sin)
 
-    sp_sin.offset.make_dependent(dependency_expression='2*phase', dependency_map={"phase": sp_sin.phase})
+    sp_sin.offset.make_dependent_on(dependency_expression='2*phase', dependency_map={"phase": sp_sin.phase})
 
     if fit_engine is not None:
         try:

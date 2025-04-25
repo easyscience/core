@@ -65,9 +65,9 @@ def test_multi_fit(fit_engine, with_errors):
     ref_sin_2 = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
     sp_sin_2 = AbsSin(1, 0.5)
 
-    ref_sin_2.offset.make_dependent(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
+    ref_sin_2.offset.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
 
-    sp_sin_2.offset.make_dependent(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
+    sp_sin_2.offset.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
 
     x1 = np.linspace(0, 5, 200)
     y1 = ref_sin_1(x1)
@@ -121,13 +121,13 @@ def test_multi_fit2(fit_engine, with_errors):
     sp_sin_2 = AbsSin(1, 0.5)#    ref_sin_1_obj = genObjs[0]
     ref_line_obj = Line(1, 4.6)
 
-    ref_sin_2.offset.make_dependent(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
-    ref_line_obj.m.make_dependent(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
+    ref_sin_2.offset.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
+    ref_line_obj.m.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
 
     sp_line = Line(0.43, 6.1)
 
-    sp_sin_2.offset.make_dependent(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
-    sp_line.m.make_dependent(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
+    sp_sin_2.offset.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
+    sp_line.m.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
 
 
     x1 = np.linspace(0, 5, 200)
@@ -192,8 +192,8 @@ def test_multi_fit_1D_2D(fit_engine, with_errors):
     )  # The fit is VERY sensitive to the initial values :-(
 
     # Link the parameters
-    ref_sin2D.offset.make_dependent(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin1D.offset})
-    sp_sin2D.offset.make_dependent(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin1D.offset})
+    ref_sin2D.offset.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin1D.offset})
+    sp_sin2D.offset.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin1D.offset})
 
     # Generate data
     x1D = np.linspace(0.2, 3.8, 400)

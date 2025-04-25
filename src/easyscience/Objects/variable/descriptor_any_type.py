@@ -9,7 +9,7 @@ from typing import Union
 
 import numpy as np
 
-from easyscience.global_object.undo_redo import property_stack_deco
+from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_base import DescriptorBase
 
@@ -62,7 +62,7 @@ class DescriptorAnyType(DescriptorBase):
         return self._value
 
     @value.setter
-    @property_stack_deco
+    @property_stack
     def value(self, value: Union[list, np.ndarray]) -> None:
         """
         Set the value of self. 

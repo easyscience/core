@@ -22,7 +22,7 @@ from scipp import UnitError
 from scipp import Variable
 
 from easyscience import global_object
-from easyscience.global_object.undo_redo import property_stack_deco
+from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_number import DescriptorNumber
 from .descriptor_number import notify_observers
@@ -124,7 +124,7 @@ class Parameter(DescriptorNumber):
         :return: A new dependent Parameter object.
         """  # noqa: E501
         parameter = cls(name=name, value=0.0, unit='', variance=0.0, min=-np.inf, max=np.inf, **kwargs)
-        parameter.make_dependent(dependency_expression=dependency_expression, dependency_map=dependency_map)
+        parameter.make_dependent_on(dependency_expression=dependency_expression, dependency_map=dependency_map)
         return parameter
 
 
@@ -156,7 +156,7 @@ class Parameter(DescriptorNumber):
         else:
             warnings.warn('This parameter is not dependent. It cannot be updated.')
 
-    def make_dependent(self, dependency_expression: str, dependency_map: Optional[dict] = None) -> None:
+    def make_dependent_on(self, dependency_expression: str, dependency_map: Optional[dict] = None) -> None:
         """
         Make this parameter dependent on another parameter. This will overwrite the current value, unit, variance, min and max.
 
@@ -240,7 +240,7 @@ class Parameter(DescriptorNumber):
     
     @independent.setter
     def independent(self, value: bool) -> None:
-        raise AttributeError('This property is read-only. Use `make_independent` and  `make_dependent` to change the state of the parameter.')  # noqa: E501
+        raise AttributeError('This property is read-only. Use `make_independent` and  `make_dependent_on` to change the state of the parameter.')  # noqa: E501
 
     @property
     def depedency_expression(self) -> str:
@@ -256,7 +256,7 @@ class Parameter(DescriptorNumber):
         
     @depedency_expression.setter
     def depedency_expression(self, new_expression: str) -> None:
-        raise AttributeError('Dependency expression is read-only. Use `make_dependent` to change the dependency expression.')
+        raise AttributeError('Dependency expression is read-only. Use `make_dependent_on` to change the dependency expression.')
 
     @property
     def dependency_map(self) -> Dict[str, DescriptorNumber]:
@@ -272,7 +272,7 @@ class Parameter(DescriptorNumber):
         
     @dependency_map.setter
     def dependency_map(self, new_map: Dict[str, DescriptorNumber]) -> None:
-        raise AttributeError('Dependency map is read-only. Use `make_dependent` to change the dependency map.')
+        raise AttributeError('Dependency map is read-only. Use `make_dependent_on` to change the dependency map.')
 
     @property
     def value_no_call_back(self) -> numbers.Number:
@@ -317,7 +317,7 @@ class Parameter(DescriptorNumber):
         return self._scalar.value
 
     @value.setter
-    @property_stack_deco
+    @property_stack
     def value(self, value: numbers.Number) -> None:
         """
         Set the value of self. This only updates the value of the scipp scalar.
@@ -400,7 +400,7 @@ class Parameter(DescriptorNumber):
         return self._min.value
 
     @min.setter
-    @property_stack_deco
+    @property_stack
     def min(self, min_value: numbers.Number) -> None:
         """
         Set the minimum value for fitting.
@@ -432,7 +432,7 @@ class Parameter(DescriptorNumber):
         return self._max.value
 
     @max.setter
-    @property_stack_deco
+    @property_stack
     def max(self, max_value: numbers.Number) -> None:
         """
         Get the maximum value for fitting.
@@ -464,7 +464,7 @@ class Parameter(DescriptorNumber):
         return self._fixed
 
     @fixed.setter
-    @property_stack_deco
+    @property_stack
     def fixed(self, fixed: bool) -> None:
         """
         Change the parameter vary while fitting state.

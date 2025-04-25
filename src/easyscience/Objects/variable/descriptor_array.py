@@ -16,7 +16,7 @@ from scipp import UnitError
 from scipp import Variable
 
 from easyscience.global_object.undo_redo import PropertyStack
-from easyscience.global_object.undo_redo import property_stack_deco
+from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_base import DescriptorBase
 from .descriptor_number import DescriptorNumber
@@ -150,7 +150,7 @@ class DescriptorArray(DescriptorBase):
         return self._array.values
 
     @value.setter
-    @property_stack_deco
+    @property_stack
     def value(self, value: Union[list, np.ndarray]) -> None:
         """
         Set the value of self. Ensures the input is an array and matches the shape of the existing array.
@@ -225,7 +225,7 @@ class DescriptorArray(DescriptorBase):
         return self._array.variances
 
     @variance.setter
-    @property_stack_deco
+    @property_stack
     def variance(self, variance: Union[list, np.ndarray]) -> None:
         """
         Set the variance of self. Ensures the input is an array and matches the shape of the existing values.
@@ -259,7 +259,7 @@ class DescriptorArray(DescriptorBase):
         return np.sqrt(self._array.variances)
 
     @error.setter
-    @property_stack_deco
+    @property_stack
     def error(self, error: Union[list, np.ndarray]) -> None:
         """
         Set the standard deviation for the parameter, which updates the variances.
