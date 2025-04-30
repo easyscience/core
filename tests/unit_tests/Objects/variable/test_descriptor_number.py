@@ -30,6 +30,7 @@ class TestDescriptorNumber:
         assert descriptor._scalar.value == 1
         assert descriptor._scalar.unit == "m"
         assert descriptor._scalar.variance == 0.1
+        assert descriptor._observers == []
 
         # From super
         assert descriptor._name == "name"

@@ -11,7 +11,7 @@ from easyscience.fitting.available_minimizers import AvailableMinimizers
 from easyscience.Objects.ObjectClasses import BaseObj
 from easyscience.Objects.variable import Parameter
 
-
+# Model and container of parameters for tests
 class AbsSin(BaseObj):
     phase: Parameter
     offset: Parameter
@@ -229,14 +229,12 @@ def test_bumps_methods(fit_method):
 
 
 @pytest.mark.parametrize("fit_engine", [AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO])
-def test_fit_constraints(fit_engine):
+def test_dependent_parameter(fit_engine):
     ref_sin = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
     sp_sin = AbsSin(1, 0.5)
 
     x = np.linspace(0, 5, 200)
     y = ref_sin(x)
-
-    sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
 

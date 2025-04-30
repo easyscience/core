@@ -141,17 +141,24 @@ class Parameter(DescriptorNumber):
             if updating_object not in self._dependency_updates:
                 self._dependency_updates[updating_object] = 0
             if self._dependency_updates[updating_object] == update_id:
-                warnings.warn('Warning: Cyclic dependency detected!\n' +
-                             f'This parameter, {self.unique_name}, has already been updated by {updating_object} during this update.\n' +  # noqa: E501
-                              'This update will be ignored. Please check your dependencies.')
+                raise RuntimeError('\n Potential cyclic dependency detected!\n' +
+                                  f'This parameter, {self.unique_name}, has already been updated by {updating_object} during this update.\n' +  # noqa: E501
+                                   'Please check your dependencies.')
             else:
                 # Update the value of the parameter using the dependency interpreter
                 temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
                 self._scalar.value = temporary_parameter.value
                 self._scalar.unit = temporary_parameter.unit
                 self._scalar.variance = temporary_parameter.variance
-                self._min.value = temporary_parameter.min
-                self._max.value = temporary_parameter.max
+                if isinstance(temporary_parameter, Parameter):
+                    self._min.value = temporary_parameter.min
+                    self._max.value = temporary_parameter.max
+                else:
+                    self._min.value = temporary_parameter.value
+                    self._max.value = temporary_parameter.value
+                self._min.unit = temporary_parameter.unit
+                self._max.unit = temporary_parameter.unit
+                self._dependency_updates[updating_object] = update_id
                 self._notify_observers(update_id=update_id)
         else:
             warnings.warn('This parameter is not dependent. It cannot be updated.')
@@ -175,11 +182,12 @@ class Parameter(DescriptorNumber):
             raise TypeError('`dependency_expression` must be a string representing a valid dependency expression.')
         if not (isinstance(dependency_map, dict) or dependency_map is None):
             raise TypeError('`dependency_map` must be a dictionary of dependencies and their corresponding names in the dependecy expression.')  # noqa: E501
-        for key, value in dependency_map.items():
-            if not isinstance(key, str):
-                raise TypeError('`dependency_map` keys must be strings representing the names of the dependencies in the dependency expression.')  # noqa: E501
-            if not isinstance(value, DescriptorNumber):
-                raise TypeError(f'`dependency_map` values must be DescriptorNumbers or Parameters. Got {type(value)} for {key}.')  # noqa: E501
+        if isinstance(dependency_map, dict):
+            for key, value in dependency_map.items():
+                if not isinstance(key, str):
+                    raise TypeError('`dependency_map` keys must be strings representing the names of the dependencies in the dependency expression.')  # noqa: E501
+                if not isinstance(value, DescriptorNumber):
+                    raise TypeError(f'`dependency_map` values must be DescriptorNumbers or Parameters. Got {type(value)} for {key}.')  # noqa: E501
 
         # If we're overwriting the dependency
         if not self._independent:
@@ -189,7 +197,8 @@ class Parameter(DescriptorNumber):
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
         self._dependency_interpreter = Interpreter(minimal=True)
-        self._dependency_interpreter.config['if'] = True # allows logical statements in the dependency expression
+        self._dependency_interpreter.config['if'] = True 
+        self._dependency_interpreter.config['ifexp'] = True # allows logical statements in the dependency expression
         self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
         
         self._process_dependency_unique_names(self._dependency_string)
@@ -204,16 +213,18 @@ class Parameter(DescriptorNumber):
                             '\n'+'\n'.join(str(message).split("\n")[1:])+
                             '\nPlease check your expression or add the name to the `dependency_map`') from None
         except Exception as message:
-            raise Exception('\nError encountered in dependecy expression:'+
+            raise SyntaxError('\nError encountered in dependecy expression:'+
                             '\n'+'\n'.join(str(message).split("\n")[1:])+
                             '\nPlease check your expression') from None
         if not isinstance(dependency_result, DescriptorNumber):
-            raise TypeError(f'The dependency expression: "{self._clean_dependency_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
+            raise TypeError(f'The dependency expression: "{self._dependency_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
         self._scalar.value = dependency_result.value
         self._scalar.unit = dependency_result.unit
         self._scalar.variance = dependency_result.variance
         self._min.value = dependency_result.min if isinstance(dependency_result, Parameter) else dependency_result.value
         self._max.value = dependency_result.max if isinstance(dependency_result, Parameter) else dependency_result.value
+        self._min.unit = dependency_result.unit
+        self._max.unit = dependency_result.unit
         self._independent = False
         self._fixed = False
         self._notify_observers()
@@ -263,8 +274,8 @@ class Parameter(DescriptorNumber):
             raise AttributeError('This parameter is independent. It has no dependency expression.')
         
     @dependency_expression.setter
-    def depedency_expression(self, new_expression: str) -> None:
-        raise AttributeError('Dependency expression is read-only. Use `make_dependent_on` to change the dependency expression.')
+    def dependency_expression(self, new_expression: str) -> None:
+        raise AttributeError('Dependency expression is read-only. Use `make_dependent_on` to change the dependency expression.')  # noqa: E501
 
     @property
     def dependency_map(self) -> Dict[str, DescriptorNumber]:

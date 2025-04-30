@@ -8,6 +8,7 @@ from scipp import UnitError
 from easyscience.Objects.variable.parameter import Parameter
 from easyscience.Objects.variable.descriptor_number import DescriptorNumber
 from easyscience import global_object
+from easyscience.Objects.ObjectClasses import BaseObj
 
 class TestParameter:
     @pytest.fixture
@@ -27,10 +28,31 @@ class TestParameter:
             parent=None,
         )
         return parameter
+    
+    @pytest.fixture
+    def normal_parameter(self) -> Parameter:
+        parameter = Parameter(
+            name="name",
+            value=1,
+            unit="m",
+            variance=0.01,
+            min=0,
+            max=10,
+        )
+        return parameter
 
     @pytest.fixture
     def clear(self):
         global_object.map._clear()
+
+    def compare_parameters(self, parameter1: Parameter, parameter2: Parameter):
+        assert parameter1.value == parameter2.value
+        assert parameter1.unit == parameter2.unit
+        assert parameter1.variance == parameter2.variance
+        assert parameter1.min == parameter2.min
+        assert parameter1.max == parameter2.max
+        assert parameter1._min.unit == parameter2._min.unit
+        assert parameter1._max.unit == parameter2._max.unit
 
     def test_init(self, parameter: Parameter):
         # When Then Expect
@@ -49,6 +71,8 @@ class TestParameter:
         assert parameter._description == "description"
         assert parameter._url == "url"
         assert parameter._display_name == "display_name"
+        assert parameter._fixed == False
+        assert parameter._observers == []
 
     def test_init_value_min_exception(self):
         # When 
@@ -92,6 +116,208 @@ class TestParameter:
                 parent=None,
             )
 
+    def test_make_dependent_on(self, normal_parameter: Parameter):
+        # When
+        independent_parameter = Parameter(name="independent", value=1, unit="m", variance=0.01, min=0, max=10)
+        
+        # Then
+        normal_parameter.make_dependent_on(dependency_expression='2*a', dependency_map={'a': independent_parameter})
+
+        # Expect
+        assert normal_parameter._independent == False
+        assert normal_parameter.dependency_expression == '2*a'
+        assert normal_parameter.dependency_map == {'a': independent_parameter}
+        self.compare_parameters(normal_parameter, 2*independent_parameter)
+
+        # Then
+        independent_parameter.value = 2
+
+        # Expect
+        self.compare_parameters(normal_parameter, 2*independent_parameter)
+
+    def test_parameter_from_dependency(self, normal_parameter: Parameter):
+        # When Then
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*a', 
+            dependency_map={'a': normal_parameter},
+            display_name='display_name',
+        )
+
+        # Expect
+        assert dependent_parameter._independent == False
+        assert dependent_parameter.dependency_expression == '2*a'
+        assert dependent_parameter.dependency_map == {'a': normal_parameter}
+        assert dependent_parameter.name == 'dependent'
+        assert dependent_parameter.display_name == 'display_name'
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        # Then
+        normal_parameter.value = 2
+
+        # Expect
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+    def test_dependent_parameter_with_unique_name(self, clear, normal_parameter: Parameter):
+        # When Then
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*"Parameter_0"',
+        )
+
+        # Expect
+        assert dependent_parameter.dependency_expression == '2*"Parameter_0"'
+        assert dependent_parameter.dependency_map == {'__Parameter_0__': normal_parameter}
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        # Then
+        normal_parameter.value = 2
+
+        # Expect
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+    def test_process_dependency_unique_names_double_quotes(self, clear, normal_parameter: Parameter):
+        # When
+        independent_parameter = Parameter(name="independent", value=1, unit="m", variance=0.01, min=0, max=10, unique_name='Special_name')
+        normal_parameter._dependency_map = {}
+
+        # Then
+        normal_parameter._process_dependency_unique_names(dependency_expression='2*"Special_name"')
+
+        # Expect
+        assert normal_parameter._dependency_map == {'__Special_name__': independent_parameter}
+        assert normal_parameter._clean_dependency_string == '2*__Special_name__'
+
+    def test_process_dependency_unique_names_single_quotes(self, clear, normal_parameter: Parameter):
+        # When
+        independent_parameter = Parameter(name="independent", value=1, unit="m", variance=0.01, min=0, max=10, unique_name='Special_name')
+        independent_parameter_2 = Parameter(name="independent_2", value=1, unit="m", variance=0.01, min=0, max=10, unique_name='Special_name_2')
+        normal_parameter._dependency_map = {}
+
+        # Then
+        normal_parameter._process_dependency_unique_names(dependency_expression="'Special_name' + 'Special_name_2'")
+
+        # Expect
+        assert normal_parameter._dependency_map == {'__Special_name__': independent_parameter, 
+                                                    '__Special_name_2__': independent_parameter_2}
+        assert normal_parameter._clean_dependency_string == '__Special_name__ + __Special_name_2__'
+
+    def test_process_dependency_unique_names_exception_unique_name_does_not_exist(self, clear, normal_parameter: Parameter):
+        # When
+        normal_parameter._dependency_map = {}
+
+        # Then Expect
+        with pytest.raises(ValueError):
+            normal_parameter._process_dependency_unique_names(dependency_expression='2*"Special_name"')
+
+    def test_process_dependency_unique_names_exception_not_a_descriptorNumber(self, clear, normal_parameter: Parameter):
+        # When
+        normal_parameter._dependency_map = {}
+        base_obj = BaseObj(name='BaseObj', unique_name='base_obj')
+
+        # Then Expect
+        with pytest.raises(ValueError, match='The object with unique_name base_obj is not a Parameter or DescriptorNumber. Please check your dependency expression.'):
+            normal_parameter._process_dependency_unique_names(dependency_expression='2*"base_obj"')
+
+    @pytest.mark.parametrize("dependency_expression, dependency_map", [
+        (2, {'a': Parameter(name='a', value=1)}),
+        ('2*a', ['a', Parameter(name='a', value=1)]),
+        ('2*a', {4: Parameter(name='a', value=1)}),
+        ('2*a', {'a': BaseObj(name='a')}),
+    ], ids=["dependecy_expression_not_a_string", "dependency_map_not_a_dict", "dependency_map_keys_not_strings", "dependency_map_values_not_descriptor_number"])
+    def test_parameter_from_dependency_input_exceptions(self, dependency_expression, dependency_map):
+        # When Then Expect
+        with pytest.raises(TypeError):
+            Parameter.from_dependency(
+                name = 'dependent', 
+                dependency_expression=dependency_expression, 
+                dependency_map=dependency_map,
+            )
+
+    @pytest.mark.parametrize("dependency_expression, error", [
+        ('2*a + b', NameError),
+        ('2*a + 3*', SyntaxError),
+        ('2 + 2', TypeError),
+        ], ids=["parameter_not_in_map", "invalid_dependency_expression", "result_not_a_descriptor_number"])
+    def test_parameter_from_dependency_evaluation_exceptions(self, normal_parameter, dependency_expression, error):
+        # When Then Expect
+        with pytest.raises(error):
+            Parameter.from_dependency(
+                name = 'dependent', 
+                dependency_expression=dependency_expression, 
+                dependency_map={'a': normal_parameter},
+            )
+
+    def test_dependent_parameter_updates(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*a', 
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        normal_parameter.value = 2
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        normal_parameter.variance = 0.02
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        normal_parameter.error = 0.2
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        normal_parameter.convert_unit("cm")
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        normal_parameter.min = 1
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        normal_parameter.max = 300
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+    def test_dependent_parameter_indirect_updates(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*a', 
+            dependency_map={'a': normal_parameter},
+        )
+        dependent_parameter_2 = Parameter.from_dependency(
+            name = 'dependent_2',
+            dependency_expression='10*a',
+            dependency_map={'a': normal_parameter},
+        )
+        dependent_parameter_3 = Parameter.from_dependency(
+            name = 'dependent_3',
+            dependency_expression='b+c',
+            dependency_map={'b': dependent_parameter, 'c': dependent_parameter_2},
+        )
+        # Then
+        normal_parameter.value = 2
+
+        # Expect
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+        self.compare_parameters(dependent_parameter_2, 10*normal_parameter)
+        self.compare_parameters(dependent_parameter_3, 2*normal_parameter + 10*normal_parameter)
+
+    def test_dependent_parameter_cyclic_dependencies(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+        dependent_parameter_2 = Parameter.from_dependency(
+            name = 'dependent_2',
+            dependency_expression='2*b',
+            dependency_map={'b': dependent_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(RuntimeError):
+            normal_parameter.make_dependent_on(dependency_expression='2*c', dependency_map={'c': dependent_parameter_2})
+
+
     def test_min(self, parameter: Parameter):
         # When Then Expect
         assert parameter.min == 0
@@ -131,10 +357,6 @@ class TestParameter:
         assert parameter._min.unit == "mm"
         assert parameter._max.value == 10000
         assert parameter._max.unit == "mm"
-
-    def test_fixed(self, parameter: Parameter):
-        # When Then Expect
-        assert parameter.fixed == False
 
     def test_set_fixed(self, parameter: Parameter):
         # When Then 
@@ -183,11 +405,9 @@ class TestParameter:
         assert repr(parameter) == "<Parameter 'name': 1.0000 ± 0.1000 m (fixed), bounds=[0.0:10.0]>"
 
     def test_independent(self, parameter: Parameter):
-        # When
-        parameter._independent = True
-        
-        # Then Expect
-        assert parameter.independent is True
+        # When Then Expect
+        with pytest.raises(AttributeError):
+            parameter.independent = False
 
     def test_value_match_callback(self, parameter: Parameter):
         # When
