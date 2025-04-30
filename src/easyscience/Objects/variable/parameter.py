@@ -150,12 +150,8 @@ class Parameter(DescriptorNumber):
                 self._scalar.value = temporary_parameter.value
                 self._scalar.unit = temporary_parameter.unit
                 self._scalar.variance = temporary_parameter.variance
-                if isinstance(temporary_parameter, Parameter):
-                    self._min.value = temporary_parameter.min
-                    self._max.value = temporary_parameter.max
-                else:
-                    self._min.value = temporary_parameter.value
-                    self._max.value = temporary_parameter.value
+                self._min.value = temporary_parameter.min if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
+                self._max.value = temporary_parameter.max if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
                 self._min.unit = temporary_parameter.unit
                 self._max.unit = temporary_parameter.unit
                 self._dependency_updates[updating_object] = update_id
@@ -196,9 +192,14 @@ class Parameter(DescriptorNumber):
 
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
-        self._dependency_interpreter = Interpreter(minimal=True)
-        self._dependency_interpreter.config['if'] = True 
-        self._dependency_interpreter.config['ifexp'] = True # allows logical statements in the dependency expression
+        # List of allowed python constructs for the asteval interpreter
+        asteval_config = {'import':         False, 'importfrom':  False, 'assert':         False, 
+                          'augassign':      False, 'delete':      False, 'if':             True, 
+                          'ifexp':          True,  'for':         False, 'formattedvalue': False, 
+                          'functiondef':    False, 'print':       False, 'raise':          False, 
+                          'listcomp':       False, 'dictcomp':    False, 'setcomp':        False,
+                          'try':            False, 'while':       False, 'with':           False}
+        self._dependency_interpreter = Interpreter(config=asteval_config)
         self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
         
         self._process_dependency_unique_names(self._dependency_string)

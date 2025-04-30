@@ -317,6 +317,121 @@ class TestParameter:
         with pytest.raises(RuntimeError):
             normal_parameter.make_dependent_on(dependency_expression='2*c', dependency_map={'c': dependent_parameter_2})
 
+    def test_dependent_parameter_logical_dependency(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='a if a.value > 0 else -a',
+            dependency_map={'a': normal_parameter},
+        )
+        self.compare_parameters(dependent_parameter, normal_parameter)
+
+        # Then
+        normal_parameter.value = -2
+
+        # Expect
+        self.compare_parameters(dependent_parameter, -normal_parameter)
+
+    def test_dependent_parameter_return_is_descriptor_number(self):
+        # When
+        descriptor_number = DescriptorNumber(name='descriptor', value=1, unit='m', variance=0.01)
+        
+        # Then
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*descriptor',
+            dependency_map={'descriptor': descriptor_number},
+        )
+
+        # Expect
+        assert dependent_parameter.value == 2*descriptor_number.value
+        assert dependent_parameter.unit == descriptor_number.unit
+        assert dependent_parameter.variance == 0.04
+        assert dependent_parameter.min == 2*descriptor_number.value
+        assert dependent_parameter.max == 2*descriptor_number.value
+
+    def test_dependent_parameter_overwrite_dependency(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        # Then
+        normal_parameter_2 = Parameter(name='a2', value=-2, unit='m', variance=0.01, min=-10, max=0)
+        dependent_parameter.make_dependent_on(dependency_expression='3*a2', dependency_map={'a2': normal_parameter_2})
+        normal_parameter.value = 3
+
+        # Expect
+        self.compare_parameters(dependent_parameter, 3*normal_parameter_2)
+        assert dependent_parameter.dependency_expression == '3*a2'
+        assert dependent_parameter.dependency_map == {'a2': normal_parameter_2}
+        assert normal_parameter._observers == []
+    
+    def test_make_independent(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+        assert dependent_parameter.independent == False
+        self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+        # Then
+        dependent_parameter.make_independent()
+        normal_parameter.value = 5
+
+        # Expect
+        assert dependent_parameter.independent == True
+        assert normal_parameter._observers == []
+        assert dependent_parameter.value == 2
+
+    def test_make_independent_exception(self, normal_parameter: Parameter):
+        # When Then Expect
+        with pytest.raises(AttributeError):
+            normal_parameter.make_independent()
+
+    def test_independent_setter(self, normal_parameter: Parameter):
+        # When Then Expect
+        with pytest.raises(AttributeError):
+            normal_parameter.independent = False
+
+    def test_independent_parameter_dependency_expression(self, normal_parameter: Parameter):
+        # When Then Expect
+        with pytest.raises(AttributeError):
+            normal_parameter.dependency_expression
+
+    def test_dependent_parameter_dependency_expression_setter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.dependency_expression = '3*a'
+
+    def test_independent_parameter_dependency_map(self, normal_parameter: Parameter):
+        # When Then Expect
+        with pytest.raises(AttributeError):
+            normal_parameter.dependency_map
+
+    def test_dependent_parameter_dependency_map_setter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.dependency_map = {'a': normal_parameter}
 
     def test_min(self, parameter: Parameter):
         # When Then Expect
@@ -331,6 +446,18 @@ class TestParameter:
         # Expect
         assert parameter.min == 0.1
 
+    def test_set_min_dependent_parameter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.min = 0.1
+
     def test_set_min_exception(self, parameter: Parameter):
         # When Then Expect
         with pytest.raises(ValueError):
@@ -342,6 +469,18 @@ class TestParameter:
 
         # Expect
         assert parameter.max == 10
+
+    def test_set_max_dependent_parameter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.max = 10
 
     def test_set_max_exception(self, parameter: Parameter):
         # When Then Expect
@@ -364,6 +503,18 @@ class TestParameter:
 
         # Expect
         assert parameter.fixed == True
+
+    def test_set_fixed_dependent_parameter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.fixed = True
 
     @pytest.mark.parametrize("fixed", ["True", 1])
     def test_set_fixed_exception(self, parameter: Parameter, fixed):
@@ -404,11 +555,6 @@ class TestParameter:
         # Then Expect
         assert repr(parameter) == "<Parameter 'name': 1.0000 ± 0.1000 m (fixed), bounds=[0.0:10.0]>"
 
-    def test_independent(self, parameter: Parameter):
-        # When Then Expect
-        with pytest.raises(AttributeError):
-            parameter.independent = False
-
     def test_value_match_callback(self, parameter: Parameter):
         # When
         self.mock_callback.fget.return_value = 1.0
@@ -439,6 +585,18 @@ class TestParameter:
         assert parameter._callback.fset.call_count == 1
         assert parameter._scalar == sc.scalar(2, unit='m')
 
+    def test_set_value_dependent_parameter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.value = 3
+
     def test_full_value_match_callback(self, parameter: Parameter):
         # When
         self.mock_callback.fget.return_value = sc.scalar(1, unit='m')
@@ -459,7 +617,31 @@ class TestParameter:
         # When Then Expect
         with pytest.raises(AttributeError):
             parameter.full_value = sc.scalar(2, unit='s')
-    
+
+    def test_set_variance_dependent_parameter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.variance = 0.1
+
+    def test_set_error_dependent_parameter(self, normal_parameter: Parameter):
+        # When
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent',
+            dependency_expression='2*a',
+            dependency_map={'a': normal_parameter},
+        )
+
+        # Then Expect
+        with pytest.raises(AttributeError):
+            dependent_parameter.error = 0.1
+
     def test_copy(self, parameter: Parameter):
         # When Then
         self.mock_callback.fget.return_value = 1.0  # Ensure fget returns a scalar value
