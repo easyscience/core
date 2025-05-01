@@ -7,7 +7,6 @@ from typing import Union
 
 import numpy as np
 
-from easyscience.Datasets.xarray import xr  # type: ignore
 from easyscience.fitting.minimizers import MinimizerBase
 from easyscience.Objects.ObjectClasses import BaseObj
 
@@ -26,15 +25,15 @@ class AnalysisBase(BaseObj, metaclass=ABCMeta):
 
     @abstractmethod
     def calculate_theory(self,
-                         x: Union[xr.DataArray, np.ndarray],
+                         x: np.ndarray,
                          **kwargs) -> np.ndarray:
         raise NotImplementedError("calculate_theory not implemented")
 
     @abstractmethod
     def fit(self,
-            x: Union[xr.DataArray, np.ndarray],
-            y: Union[xr.DataArray, np.ndarray],
-            e: Union[xr.DataArray, np.ndarray],
+            x: np.ndarray,
+            y: np.ndarray,
+            e: np.ndarray,
             **kwargs) -> None:
         raise NotImplementedError("fit not implemented")
 

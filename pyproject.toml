@@ -35,7 +35,6 @@ dependencies = [
     "lmfit",
     "numpy",  
     "uncertainties",
-    "xarray",
     "pint",  # Only to ensure that unit is reported as dimensionless rather than empty string
     "scipp"
 ]

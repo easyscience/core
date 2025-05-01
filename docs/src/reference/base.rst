@@ -36,16 +36,3 @@ Collections
 .. autoclass:: easyscience.Objects.Groups.BaseCollection
   :members:
   :inherited-members:
-
-===============
-Data Containers
-===============
-
-.. autoclass:: easyscience.Datasets.xarray.EasyScienceDataarrayAccessor
-  :members:
-  :inherited-members:
-
-.. autoclass:: easyscience.Datasets.xarray.EasyScienceDatasetAccessor
-  :members:
-  :inherited-members:
-
