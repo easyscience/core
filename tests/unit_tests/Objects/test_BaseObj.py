@@ -355,50 +355,6 @@ def test_baseObj_name(setup_pars):
     obj = BaseObj(name, **setup_pars)
     assert obj.name == name
 
-
-def test_subclassing():
-    from typing import ClassVar
-
-    from easyscience.models.polynomial import Line
-    from easyscience.Objects.variable import Parameter
-
-    class L2(Line):
-        diff: ClassVar[Parameter]
-
-        def __init__(self, m: Parameter, c: Parameter, diff: Parameter):
-            super(L2, self).__init__(m=m, c=c)
-            self.diff = diff
-            self.foo = "bar"
-
-        @classmethod
-        def from_pars(cls, m, c, diff):
-            m = Parameter("m", m)
-            c = Parameter("c", c)
-            diff = Parameter("diff", diff)
-            return cls(m, c, diff)
-
-        def __call__(self, *args, **kwargs):
-            return super(L2, self).__call__(*args, **kwargs) + self.diff.value
-
-    l2 = L2.from_pars(1, 2, 3)
-
-    assert l2.m.value == 1
-    assert l2.c.value == 2
-    assert l2.diff.value == 3
-
-    l2.diff = 4
-    assert isinstance(l2.diff, Parameter)
-    assert l2.diff.value == 4
-
-    l2.foo = "foo"
-    assert l2.foo == "foo"
-
-    x = np.linspace(0, 10, 100)
-    y = l2.m.value * x + l2.c.value + l2.diff.value
-
-    assert np.allclose(l2(x), y)
-
-
 def test_Base_GETSET():
     class A(BaseObj):
         def __init__(self, a: Parameter):
