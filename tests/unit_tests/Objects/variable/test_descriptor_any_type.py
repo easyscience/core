@@ -76,17 +76,3 @@ class TestDescriptorAnyType:
         # Expect
         assert type(descriptor_copy) == DescriptorAnyType
         assert descriptor_copy._value == descriptor._value
-
-    def test_as_data_dict(self, clear, descriptor: DescriptorAnyType):
-        # When Then
-        descriptor_dict = descriptor.as_data_dict()
-
-        # Expect
-        assert descriptor_dict == {
-            "name": "name",
-            "value": "string",
-            "description": "description",
-            "url": "url",
-            "display_name": "display_name",
-            "unique_name": "DescriptorAnyType_0"
-        }

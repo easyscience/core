@@ -662,26 +662,6 @@ class TestParameter:
         assert parameter_copy._display_name == parameter._display_name
         assert parameter_copy._independent == parameter._independent
 
-    def test_as_data_dict(self, clear, parameter: Parameter):
-        # When Then
-        self.mock_callback.fget.return_value = 1.0  # Ensure fget returns a scalar value
-        parameter_dict = parameter.as_data_dict()
-
-        # Expect
-        assert parameter_dict == {
-            "name": "name",
-            "value": 1.0,
-            "unit": "m",
-            "variance": 0.01,
-            "min": 0,
-            "max": 10,
-            "fixed": False,
-            "description": "description",
-            "url": "url",
-            "display_name": "display_name",
-            "unique_name": "Parameter_0",
-        }
-
     @pytest.mark.parametrize("test, expected, expected_reverse", [
             (Parameter("test", 2, "m", 0.01, -10, 20),  Parameter("name + test", 3, "m", 0.02, -10, 30),                Parameter("test + name", 3, "m", 0.02, -10, 30)),
             (Parameter("test", 2, "m", 0.01),           Parameter("name + test", 3, "m", 0.02, min=-np.inf, max=np.inf),Parameter("test + name", 3, "m", 0.02, min=-np.inf, max=np.inf)),

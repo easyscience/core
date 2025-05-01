@@ -75,17 +75,3 @@ class TestDescriptorBool:
         # Expect
         assert type(descriptor_copy) == DescriptorBool
         assert descriptor_copy._bool_value == descriptor._bool_value
-
-    def test_as_data_dict(self, clear, descriptor: DescriptorBool):
-        # When Then
-        descriptor_dict = descriptor.as_data_dict()
-
-        # Expect
-        assert descriptor_dict == {
-            "name": "name",
-            "value": True,
-            "description": "description",
-            "url": "url",
-            "display_name": "display_name",
-            "unique_name": "DescriptorBool_0"
-        }

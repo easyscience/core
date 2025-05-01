@@ -97,27 +97,3 @@ def test_variable_as_dict_methods(dp_kwargs: dict, dp_cls: Type[DescriptorNumber
 
     check_dict(dp_kwargs, enc)
 
-
-@pytest.mark.parametrize(**skip_dict)
-@pytest.mark.parametrize(**dp_param_dict)
-def test_variable_as_data_dict_methods(dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    obj = dp_cls(**data_dict)
-
-    if isinstance(skip, str):
-        del data_dict[skip]
-
-    if not isinstance(skip, list):
-        skip = [skip]
-
-    enc_d = obj.as_data_dict(skip=skip)
-
-    expected_keys = set(data_dict.keys())
-    obtained_keys = set(enc_d.keys())
-
-    dif = expected_keys.difference(obtained_keys)
-
-    assert len(dif) == 0
-
-    check_dict(data_dict, enc_d)

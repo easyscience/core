@@ -140,19 +140,6 @@ class TestDesciptorBase:
         assert descriptor_copy._url == descriptor._url
         assert descriptor_copy._display_name == descriptor._display_name
 
-    def test_as_data_dict(self, clear, descriptor: DescriptorBase):
-        # When Then
-        descriptor_dict = descriptor.as_data_dict()
-
-        # Expect
-        assert descriptor_dict == {
-            "name": "name",
-            "description": "description",
-            "url": "url",
-            "display_name": "display_name",
-            "unique_name": "DescriptorBase_0",
-        }
-
     def test_unique_name_generator(self, clear, descriptor: DescriptorBase):
         # When
         second_descriptor = DescriptorBase(name="test", unique_name="DescriptorBase_2")

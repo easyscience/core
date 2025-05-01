@@ -218,32 +218,6 @@ class TestDescriptorArray:
         assert type(descriptor_copy) == DescriptorArray
         assert np.array_equal(descriptor_copy._array.values, descriptor._array.values)
         assert descriptor_copy._array.unit == descriptor._array.unit
-
-    def test_as_data_dict(self, clear, descriptor: DescriptorArray):
-        # When
-        descriptor_dict = descriptor.as_data_dict()
-
-        # Expected dictionary
-        expected_dict = {
-            "name": "name",
-            "value": np.array([[1.0, 2.0], [3.0, 4.0]]),  # Use numpy array for comparison
-            "unit": "m",
-            "variance": np.array([[0.1, 0.2], [0.3, 0.4]]),  # Use numpy array for comparison
-            "description": "description",
-            "url": "url",
-            "display_name": "display_name",
-            "unique_name": "DescriptorArray_0",
-            "dimensions": np.array(['dim0', 'dim1']),  # Use numpy array for comparison
-        }
-
-        # Then: Compare dictionaries key by key
-        for key, expected_value in expected_dict.items():
-            if isinstance(expected_value, np.ndarray):
-                # Compare numpy arrays
-                assert np.array_equal(descriptor_dict[key], expected_value), f"Mismatch for key: {key}"
-            else:
-                # Compare other values directly
-                assert descriptor_dict[key] == expected_value, f"Mismatch for key: {key}"
  
     @pytest.mark.parametrize("unit_string, expected", [
         ("1e+9", "dimensionless"),

@@ -316,7 +316,6 @@ def test_baseCollection_dir(cls):
         "extend",
         "encode",
         "remove",
-        "as_data_dict",
         "interface",
         "from_dict",
         "name",
@@ -327,9 +326,7 @@ def test_baseCollection_dir(cls):
         "pop",
         "count",
         "generate_bindings",
-        "unsafe_hash",
         "decode",
-        "encode_data",
         "sort",
     }
     assert not d.difference(expected)

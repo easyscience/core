@@ -200,22 +200,6 @@ class TestDescriptorNumber:
         assert descriptor_copy._scalar.value == descriptor._scalar.value
         assert descriptor_copy._scalar.unit == descriptor._scalar.unit
 
-    def test_as_data_dict(self, clear, descriptor: DescriptorNumber):
-        # When Then
-        descriptor_dict = descriptor.as_data_dict()
-
-        # Expect
-        assert descriptor_dict == {
-            "name": "name",
-            "value": 1.0,
-            "unit": "m",
-            "variance": 0.1,
-            "description": "description",
-            "url": "url",
-            "display_name": "display_name",
-            "unique_name": "DescriptorNumber_0",
-        }
-
     @pytest.mark.parametrize("unit_string, expected", [
         ("1e+9", "dimensionless"),
         ("1000", "dimensionless"),

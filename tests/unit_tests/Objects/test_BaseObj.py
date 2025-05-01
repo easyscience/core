@@ -279,12 +279,11 @@ def test_baseobj_dir(setup_pars):
         "par2",
         "par3",
         "switch_interface",
-        "as_data_dict",
-        "as_dict",
-        "unsafe_hash",
         "user_data",
     ]
     obtained = dir(obj)
+    print(obtained)
+    print(expected)
     assert len(obtained) == len(expected)
     assert obtained == sorted(obtained)
     assert len(set(expected).difference(set(obtained))) == 0

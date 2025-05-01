@@ -88,34 +88,6 @@ def test_variable_DataDictSerializer(dp_kwargs: dict, dp_cls: Type[DescriptorNum
     check_dict(data_dict, enc_d)
 
 
-@pytest.mark.parametrize(
-    "encoder", [None, DataDictSerializer], ids=["Default", "DataDictSerializer"]
-)
-@pytest.mark.parametrize(**skip_dict)
-@pytest.mark.parametrize(**dp_param_dict)
-def test_variable_encode_data(dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip, encoder):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    obj = dp_cls(**data_dict)
-
-    if isinstance(skip, str):
-        del data_dict[skip]
-
-    if not isinstance(skip, list):
-        skip = [skip]
-
-    enc_d = obj.encode_data(skip=skip, encoder=encoder)
-
-    expected_keys = set(data_dict.keys())
-    obtained_keys = set(enc_d.keys())
-
-    dif = expected_keys.difference(obtained_keys)
-
-    assert len(dif) == 0
-
-    check_dict(data_dict, enc_d)
-
-
 ########################################################################################################################
 # TESTING DECODING
 ########################################################################################################################
