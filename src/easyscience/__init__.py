@@ -1,11 +1,8 @@
 import warnings
 
-import pint
-
 from .global_object import GlobalObject
 
 # Must be executed before any other imports
-ureg = pint.UnitRegistry()
 global_object = GlobalObject()
 global_object.instantiate_stack()
 global_object.stack.enabled = False
