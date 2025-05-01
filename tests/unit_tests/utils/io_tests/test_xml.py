@@ -8,7 +8,7 @@ from typing import Type
 
 import pytest
 
-from easyscience.Utils.io.xml import XMLSerializer
+from easyscience.io.xml import XMLSerializer
 from easyscience.Objects.variable import DescriptorNumber
 
 from .test_core import dp_param_dict

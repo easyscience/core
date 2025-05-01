@@ -1,5 +1,3 @@
-import warnings
-
 from .global_object import GlobalObject
 
 # Must be executed before any other imports

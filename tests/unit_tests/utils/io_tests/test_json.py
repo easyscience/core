@@ -7,8 +7,8 @@ from typing import Type
 
 import pytest
 
-from easyscience.Utils.io.json import JsonDataSerializer
-from easyscience.Utils.io.json import JsonSerializer
+from easyscience.io.json import JsonDataSerializer
+from easyscience.io.json import JsonSerializer
 from easyscience.Objects.variable import DescriptorNumber
 
 from .test_core import check_dict

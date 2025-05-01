@@ -42,7 +42,7 @@ class JsonDataSerializer(BaseEncoderDecoder):
         """
         Returns a json string representation of the ComponentSerializer object.
         """
-        from easyscience.Utils.io.dict import DataDictSerializer
+        from .dict import DataDictSerializer
 
         ENCODER = type(
             JsonEncoderTemplate.__name__,

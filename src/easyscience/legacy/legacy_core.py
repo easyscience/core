@@ -16,12 +16,12 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from easyscience.Utils.io.dict import DataDictSerializer
-from easyscience.Utils.io.dict import DictSerializer
-from easyscience.Utils.io.json import jsanitize
+from ..io.dict import DataDictSerializer
+from ..io.dict import DictSerializer
+from ..io.json import jsanitize
 
 if TYPE_CHECKING:
-    from easyscience.Utils.io.template import EC
+    from ..io.template import EC
 
 
 class ComponentSerializer:

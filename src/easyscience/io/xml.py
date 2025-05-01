@@ -4,9 +4,6 @@
 
 from __future__ import annotations
 
-__author__ = 'github.com/wardsimon'
-__version__ = '0.0.1'
-
 import sys
 import xml.etree.ElementTree as ET
 from numbers import Number
@@ -17,9 +14,9 @@ from typing import Optional
 
 import numpy as np
 
-from easyscience.Utils.io.dict import DataDictSerializer
-from easyscience.Utils.io.dict import DictSerializer
-from easyscience.Utils.io.template import BaseEncoderDecoder
+from .dict import DataDictSerializer
+from .dict import DictSerializer
+from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
     from easyscience.Objects.ObjectClasses import BV

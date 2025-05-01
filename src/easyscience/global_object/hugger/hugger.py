@@ -12,7 +12,7 @@ from abc import abstractmethod
 from typing import List
 from typing import Tuple
 
-from easyscience.Utils.classUtils import singleton
+from ...utils.classUtils import singleton
 
 
 @singleton

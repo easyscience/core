@@ -3,7 +3,6 @@
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Union
 
 import numpy as np
 

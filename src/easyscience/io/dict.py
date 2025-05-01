@@ -13,7 +13,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from easyscience.Utils.io.template import BaseEncoderDecoder
+from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
     from easyscience.Objects.ObjectClasses import BV

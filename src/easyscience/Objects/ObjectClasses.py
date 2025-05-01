@@ -13,8 +13,8 @@ from typing import Set
 from typing import TypeVar
 
 from easyscience import global_object
-from easyscience.Utils.classTools import addLoggedProp
 
+from ..utils.classTools import addLoggedProp
 from .component_serializer import ComponentSerializer
 from .variable import Parameter
 from .variable.descriptor_base import DescriptorBase

@@ -10,10 +10,10 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from easyscience.Utils.io.dict import DictSerializer
+from ..io.dict import DictSerializer
 
 if TYPE_CHECKING:
-    from easyscience.Utils.io.template import EC
+    from ..io.template import EC
 
 
 class ComponentSerializer:

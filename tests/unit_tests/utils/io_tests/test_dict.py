@@ -6,8 +6,8 @@ from typing import Type
 
 import pytest
 
-from easyscience.Utils.io.dict import DataDictSerializer
-from easyscience.Utils.io.dict import DictSerializer
+from easyscience.io.dict import DataDictSerializer
+from easyscience.io.dict import DictSerializer
 from easyscience.Objects.variable import DescriptorNumber
 from easyscience.Objects.ObjectClasses import BaseObj
 
