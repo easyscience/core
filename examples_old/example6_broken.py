@@ -12,7 +12,7 @@ from easyscience import global_object
 from easyscience.fitting import Fitter
 from easyscience.Objects.ObjectClasses import BaseObj
 from easyscience.Objects.Variable import Parameter
-from easyscience.Objects.core import ComponentSerializer
+from easyscience.Objects.component_serializer import ComponentSerializer
 from easyscience.Objects.Inferface import InterfaceFactoryTemplate
 
 # This is a much more complex case where we have calculators, interfaces, interface factory and an

@@ -10,7 +10,7 @@ from typing import Optional
 
 from easyscience import global_object
 from easyscience.global_object.undo_redo import property_stack
-from easyscience.Objects.core import ComponentSerializer
+from easyscience.Objects.component_serializer import ComponentSerializer
 
 
 class DescriptorBase(ComponentSerializer, metaclass=abc.ABCMeta):

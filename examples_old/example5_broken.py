@@ -12,7 +12,7 @@ from easyscience import global_object
 from easyscience.fitting import Fitter
 from easyscience.Objects.Base import BaseObj
 from easyscience.Objects.Base import Parameter
-from easyscience.Objects.core import ComponentSerializer
+from easyscience.Objects.component_serializer import ComponentSerializer
 
 # from easyscience.Objects.Base import LoggedProperty
 from easyscience.Objects.Inferface import InterfaceFactoryTemplate
