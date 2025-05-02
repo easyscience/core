@@ -4,10 +4,6 @@
 
 from fractions import Fraction
 
-__author__ = 'github.com/wardsimon'
-__version__ = '0.1.0'
-
-
 """
 This module provides utility classes for string operations.
 """

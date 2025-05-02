@@ -19,7 +19,7 @@ from .dict import DictSerializer
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from easyscience.Objects.ObjectClasses import BV
+    from ..base_classes.base_obj import BV
 
 
 can_intent = (sys.version_info.major > 2) & (sys.version_info.minor > 8)

@@ -4,9 +4,6 @@
 
 from __future__ import annotations
 
-__author__ = 'github.com/wardsimon'
-__version__ = '0.1.0'
-
 from collections.abc import MutableSequence
 from numbers import Number
 from typing import TYPE_CHECKING
@@ -19,12 +16,13 @@ from typing import TypeVar
 from typing import Union
 
 from easyscience.global_object.undo_redo import NotarizedDict
-from easyscience.Objects.ObjectClasses import BasedBase
-from easyscience.Objects.variable.descriptor_base import DescriptorBase
+from easyscience.variable.descriptor_base import DescriptorBase
+
+from .base_classes.based_base import BasedBase
 
 if TYPE_CHECKING:
-    from easyscience.Objects.Inferface import iF
-    from easyscience.Objects.ObjectClasses import B
+    from .base_classes.base_obj import B
+    from .interface_factory import iF
     V = TypeVar('V', bound=DescriptorBase)
 
 

@@ -11,9 +11,9 @@ from typing import Union
 
 import numpy as np
 
-from easyscience.Objects.Groups import BaseCollection
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.ObjectClasses import Parameter
+from .. import BaseCollection
+from ..base_classes.base_obj import BaseObj
+from ..variable import Parameter
 
 
 def designate_calc_fn(func):

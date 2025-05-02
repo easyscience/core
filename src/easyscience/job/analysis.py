@@ -6,8 +6,8 @@ from abc import abstractmethod
 
 import numpy as np
 
-from easyscience.fitting.minimizers import MinimizerBase
-from easyscience.Objects.ObjectClasses import BaseObj
+from ..base_classes.base_obj import BaseObj
+from ..fitting.minimizers import MinimizerBase
 
 
 class AnalysisBase(BaseObj, metaclass=ABCMeta):

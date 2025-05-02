@@ -4,9 +4,6 @@
 
 from __future__ import annotations
 
-__author__ = 'github.com/wardsimon'
-__version__ = '0.1.0'
-
 from typing import TYPE_CHECKING
 from typing import List
 from typing import Tuple
@@ -15,8 +12,8 @@ from easyscience import global_object
 from easyscience.global_object.hugger.property import LoggedProperty
 
 if TYPE_CHECKING:
-    from easyscience.Objects.ObjectClasses import BV
-    from easyscience.Objects.ObjectClasses import B
+    from ..base_classes.base_obj import BV
+    from ..base_classes.base_obj import B
 
 
 def addLoggedProp(inst: BV, name: str, *args, **kwargs) -> None:

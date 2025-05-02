@@ -3,7 +3,7 @@
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
-from easyscience.Objects.ObjectClasses import BaseObj
+from ..base_classes.base_obj import BaseObj
 
 
 class TheoreticalModelBase(BaseObj):

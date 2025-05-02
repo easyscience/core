@@ -15,7 +15,7 @@ from typing import List
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from easyscience.Objects.ObjectClasses import BV
+    from ..base_classes.base_obj import BV
 
 _KNOWN_CORE_TYPES = ('Descriptor', 'Parameter')
 

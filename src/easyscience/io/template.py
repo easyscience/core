@@ -24,7 +24,7 @@ from typing import TypeVar
 import numpy as np
 
 if TYPE_CHECKING:
-    from easyscience.Objects.ObjectClasses import BV
+    from ..base_classes.base_obj import BV
 
 _e = json.JSONEncoder()
 

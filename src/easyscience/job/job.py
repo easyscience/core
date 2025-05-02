@@ -5,10 +5,10 @@
 from abc import ABCMeta
 from abc import abstractmethod
 
-from easyscience.Objects.job.analysis import AnalysisBase
-from easyscience.Objects.job.experiment import ExperimentBase
-from easyscience.Objects.job.theoreticalmodel import TheoreticalModelBase
-from easyscience.Objects.ObjectClasses import BaseObj
+from ..base_classes.base_obj import BaseObj
+from .analysis import AnalysisBase
+from .experiment import ExperimentBase
+from .theoreticalmodel import TheoreticalModelBase
 
 
 class JobBase(BaseObj, metaclass=ABCMeta):
