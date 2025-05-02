@@ -2,9 +2,6 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
-__author__ = 'github.com/wardsimon'
-__version__ = '0.1.0'
-
 import gc
 import sys
 import weakref

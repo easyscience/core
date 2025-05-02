@@ -17,8 +17,6 @@ from .template import BaseEncoderDecoder
 if TYPE_CHECKING:
     from ..base_classes.base_obj import BV
 
-_KNOWN_CORE_TYPES = ('Descriptor', 'Parameter')
-
 
 class JsonSerializer(BaseEncoderDecoder):
     def encode(self, obj: BV, skip: List[str] = []) -> str:
