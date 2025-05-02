@@ -18,13 +18,11 @@ from typing import List
 from typing import MutableSequence
 from typing import Optional
 from typing import Tuple
-from typing import Type
-from typing import TypeVar
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from ..base_classes.base_obj import BV
+    from ..base_classes import ComponentSerializer
 
 _e = json.JSONEncoder()
 
@@ -37,7 +35,7 @@ class BaseEncoderDecoder:
     """
 
     @abstractmethod
-    def encode(self, obj: BV, skip: Optional[List[str]] = None, **kwargs) -> any:
+    def encode(self, obj: ComponentSerializer, skip: Optional[List[str]] = None, **kwargs) -> any:
         """
         Abstract implementation of an encoder.
 
@@ -114,7 +112,7 @@ class BaseEncoderDecoder:
 
     def _convert_to_dict(
         self,
-        obj: BV,
+        obj: ComponentSerializer,
         skip: Optional[List[str]] = None,
         full_encode: bool = False,
         **kwargs,
@@ -264,12 +262,6 @@ class BaseEncoderDecoder:
         if issubclass(T_, (list, MutableSequence)):
             return [BaseEncoderDecoder._convert_from_dict(x) for x in d]
         return d
-
-
-if TYPE_CHECKING:
-    _ = TypeVar('EC', bound=BaseEncoderDecoder)
-    EC = Type[_]
-
 
 def recursive_encoder(obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs):
     """

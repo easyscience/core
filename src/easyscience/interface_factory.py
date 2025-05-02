@@ -3,20 +3,17 @@ from __future__ import annotations
 #  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
-from abc import ABCMeta
 from typing import TYPE_CHECKING
 from typing import Callable
 from typing import List
 from typing import NamedTuple
 from typing import Optional
 from typing import Type
-from typing import TypeVar
 
-_C = TypeVar('_C', bound=ABCMeta)
-_M = TypeVar('_M')
 if TYPE_CHECKING:
-    from easyscience.fitting import Fitter
+    from abc import ABCMeta
+
+    from .fitting import Fitter
 
 
 class InterfaceFactoryTemplate:
@@ -24,10 +21,10 @@ class InterfaceFactoryTemplate:
     This class allows for the creation and transference of interfaces.
     """
 
-    def __init__(self, interface_list: List[_C], *args, **kwargs):
-        self._interfaces: List[_C] = interface_list
-        self._current_interface: _C
-        self.__interface_obj: _M = None
+    def __init__(self, interface_list: List[ABCMeta], *args, **kwargs):
+        self._interfaces: List[ABCMeta] = interface_list
+        self._current_interface: ABCMeta
+        self.__interface_obj: None = None
         self.create(*args, **kwargs)
 
     def create(self, *args, **kwargs):
@@ -97,7 +94,7 @@ class InterfaceFactoryTemplate:
         return [self.return_name(this_interface) for this_interface in self._interfaces]
 
     @property
-    def current_interface(self) -> _C:
+    def current_interface(self) -> ABCMeta:
         """
         Returns the constructor for the currently selected interface.
 
@@ -171,7 +168,7 @@ class InterfaceFactoryTemplate:
                 prop._callback = item.make_prop(item_key)
                 prop._callback.fset(prop_value)
 
-    def __call__(self, *args, **kwargs) -> _M:
+    def __call__(self, *args, **kwargs) -> None:
         return self.__interface_obj
 
     def __reduce__(self):
@@ -230,6 +227,3 @@ class ItemContainer(NamedTuple):
             self.setter_fn(self.link_name, **{inner_key: value})
 
         return set_value
-
-
-iF = TypeVar('iF', bound=InterfaceFactoryTemplate)

@@ -12,11 +12,11 @@ from easyscience import global_object
 from easyscience.global_object.hugger.property import LoggedProperty
 
 if TYPE_CHECKING:
-    from ..base_classes.base_obj import BV
-    from ..base_classes.base_obj import B
+    from ..base_classes import BasedBase
+    from ..base_classes import ComponentSerializer
 
 
-def addLoggedProp(inst: BV, name: str, *args, **kwargs) -> None:
+def addLoggedProp(inst: ComponentSerializer, name: str, *args, **kwargs) -> None:
     cls = type(inst)
     annotations = getattr(cls, '__annotations__', False)
     if not hasattr(cls, '__perinstance'):
@@ -29,7 +29,7 @@ def addLoggedProp(inst: BV, name: str, *args, **kwargs) -> None:
     setattr(cls, name, LoggedProperty(*args, **kwargs))
 
 
-def addProp(inst: BV, name: str, *args, **kwargs) -> None:
+def addProp(inst: ComponentSerializer, name: str, *args, **kwargs) -> None:
     cls = type(inst)
     annotations = getattr(cls, '__annotations__', False)
     if not hasattr(cls, '__perinstance'):
@@ -43,7 +43,7 @@ def addProp(inst: BV, name: str, *args, **kwargs) -> None:
     setattr(cls, name, property(*args, **kwargs))
 
 
-def removeProp(inst: BV, name: str) -> None:
+def removeProp(inst: ComponentSerializer, name: str) -> None:
     cls = type(inst)
     if not hasattr(cls, '__perinstance'):
         cls = type(cls.__name__, (cls,), {'__module__': __name__})
@@ -53,7 +53,7 @@ def removeProp(inst: BV, name: str) -> None:
     delattr(cls, name)
 
 
-def generatePath(model_obj: B, skip_first: bool = False) -> Tuple[List[int], List[str]]:
+def generatePath(model_obj: BasedBase, skip_first: bool = False) -> Tuple[List[int], List[str]]:
     pars = model_obj.get_parameters()
     start_idx = 0 + int(skip_first)
     unique_names = []

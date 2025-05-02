@@ -19,7 +19,7 @@ from .dict import DictSerializer
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from ..base_classes.base_obj import BV
+    from ..base_classes import ComponentSerializer
 
 
 can_intent = (sys.version_info.major > 2) & (sys.version_info.minor > 8)
@@ -32,7 +32,7 @@ class XMLSerializer(BaseEncoderDecoder):
 
     def encode(
         self,
-        obj: BV,
+        obj: ComponentSerializer,
         skip: Optional[List[str]] = None,
         data_only: bool = False,
         fast: bool = False,
@@ -73,7 +73,7 @@ class XMLSerializer(BaseEncoderDecoder):
         return header + ET.tostring(block, encoding='unicode')
 
     @classmethod
-    def decode(cls, data: str) -> BV:
+    def decode(cls, data: str) -> ComponentSerializer:
         """
         Decode an EasyScience object which has been encoded in XML format.
 

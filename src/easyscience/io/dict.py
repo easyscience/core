@@ -16,7 +16,7 @@ from typing import Optional
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from ..base_classes.base_obj import BV
+    from ..base_classes import ComponentSerializer
 
 _KNOWN_CORE_TYPES = ("Descriptor", "Parameter")
 
@@ -28,7 +28,7 @@ class DictSerializer(BaseEncoderDecoder):
 
     def encode(
         self,
-        obj: BV,
+        obj: ComponentSerializer,
         skip: Optional[List[str]] = None,
         full_encode: bool = False,
         **kwargs,
@@ -46,7 +46,7 @@ class DictSerializer(BaseEncoderDecoder):
         return self._convert_to_dict(obj, skip=skip, full_encode=full_encode, **kwargs)
 
     @classmethod
-    def decode(cls, d: Dict) -> BV:
+    def decode(cls, d: Dict) -> ComponentSerializer:
         """
         :param d: Dict representation.
         :return: ComponentSerializer class.
@@ -55,7 +55,7 @@ class DictSerializer(BaseEncoderDecoder):
         return BaseEncoderDecoder._convert_from_dict(d)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> BV:
+    def from_dict(cls, d: Dict[str, Any]) -> ComponentSerializer:
         """
         :param d: Dict representation.
         :return: ComponentSerializer class.
@@ -70,7 +70,7 @@ class DataDictSerializer(DictSerializer):
 
     def encode(
         self,
-        obj: BV,
+        obj: ComponentSerializer,
         skip: Optional[List[str]] = None,
         full_encode: bool = False,
         **kwargs,
@@ -95,7 +95,7 @@ class DataDictSerializer(DictSerializer):
         return self._parse_dict(encoded)
 
     @classmethod
-    def decode(cls, d: Dict[str, Any]) -> BV:
+    def decode(cls, d: Dict[str, Any]) -> ComponentSerializer:
         """
         This function is not implemented as a data dictionary does not contain the necessary information to re-form an
         EasyScience object.

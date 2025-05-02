@@ -12,18 +12,15 @@ from typing import Callable
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import TypeVar
 from typing import Union
 
 from easyscience.global_object.undo_redo import NotarizedDict
-from easyscience.variable.descriptor_base import DescriptorBase
 
-from .base_classes.based_base import BasedBase
+from .base_classes import BasedBase
 
 if TYPE_CHECKING:
-    from .base_classes.base_obj import B
-    from .interface_factory import iF
-    V = TypeVar('V', bound=DescriptorBase)
+    from .interface_factory import InterfaceFactoryTemplate
+    from .variable.descriptor_base import DescriptorBase
 
 
 class BaseCollection(BasedBase, MutableSequence):
@@ -37,8 +34,8 @@ class BaseCollection(BasedBase, MutableSequence):
     def __init__(
         self,
         name: str,
-        *args: Union[B, V],
-        interface: Optional[iF] = None,
+        *args: Union[BasedBase, DescriptorBase],
+        interface: Optional[InterfaceFactoryTemplate] = None,
         unique_name: Optional[str] = None,
         **kwargs,
     ):
@@ -93,7 +90,7 @@ class BaseCollection(BasedBase, MutableSequence):
             self.interface = interface
         self._kwargs._stack_enabled = True
 
-    def insert(self, index: int, value: Union[V, B]) -> None:
+    def insert(self, index: int, value: Union[DescriptorBase, BasedBase]) -> None:
         """
         Insert an object into the collection at an index.
 
@@ -120,7 +117,7 @@ class BaseCollection(BasedBase, MutableSequence):
         else:
             raise AttributeError('Only EasyScience objects can be put into an EasyScience group')
 
-    def __getitem__(self, idx: Union[int, slice]) -> Union[V, B]:
+    def __getitem__(self, idx: Union[int, slice]) -> Union[DescriptorBase, BasedBase]:
         """
         Get an item in the collection based on its index.
 
@@ -154,7 +151,7 @@ class BaseCollection(BasedBase, MutableSequence):
         keys = list(self._kwargs.keys())
         return self._kwargs[keys[idx]]
 
-    def __setitem__(self, key: int, value: Union[B, V]) -> None:
+    def __setitem__(self, key: int, value: Union[BasedBase, DescriptorBase]) -> None:
         """
         Set an item via it's index.
 
@@ -236,7 +233,7 @@ class BaseCollection(BasedBase, MutableSequence):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} `{getattr(self, 'name')}` of length {len(self)}"
 
-    def sort(self, mapping: Callable[[Union[B, V]], Any], reverse: bool = False) -> None:
+    def sort(self, mapping: Callable[[Union[BasedBase, DescriptorBase]], Any], reverse: bool = False) -> None:
         """
         Sort the collection according to the given mapping.
 

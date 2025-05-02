@@ -6,19 +6,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Callable
 from typing import Optional
-from typing import TypeVar
 
 from ..utils.classTools import addLoggedProp
-from ..variable.descriptor_base import DescriptorBase
 from .based_base import BasedBase
-from .component_serializer import ComponentSerializer
 
 if TYPE_CHECKING:
-    V = TypeVar('V', bound=DescriptorBase)
-
-if TYPE_CHECKING:
-    B = TypeVar('B', bound=BasedBase)
-    BV = TypeVar('BV', bound=ComponentSerializer)
+    from ..variable.descriptor_base import DescriptorBase
+    from .component_serializer import ComponentSerializer
 
 
 class BaseObj(BasedBase):
@@ -33,8 +27,8 @@ class BaseObj(BasedBase):
         self,
         name: str,
         unique_name: Optional[str] = None,
-        *args: Optional[BV],
-        **kwargs: Optional[BV],
+        *args: Optional[ComponentSerializer],
+        **kwargs: Optional[ComponentSerializer],
     ):
         """
         Set up the base class.
@@ -69,7 +63,7 @@ class BaseObj(BasedBase):
                 test_class=BaseObj,
             )
 
-    def _add_component(self, key: str, component: BV) -> None:
+    def _add_component(self, key: str, component: ComponentSerializer) -> None:
         """
         Dynamically add a component to the class. This is an internal method, though can be called remotely.
         The recommended alternative is to use typing, i.e.
@@ -103,7 +97,7 @@ class BaseObj(BasedBase):
             test_class=BaseObj,
         )
 
-    def __setattr__(self, key: str, value: BV) -> None:
+    def __setattr__(self, key: str, value: ComponentSerializer) -> None:
         # Assume that the annotation is a ClassVar
         old_obj = None
         if (
@@ -135,15 +129,15 @@ class BaseObj(BasedBase):
         return f"{self.__class__.__name__} `{getattr(self, 'name')}`"
 
     @staticmethod
-    def __getter(key: str) -> Callable[[BV], BV]:
-        def getter(obj: BV) -> BV:
+    def __getter(key: str) -> Callable[[ComponentSerializer], ComponentSerializer]:
+        def getter(obj: ComponentSerializer) -> ComponentSerializer:
             return obj._kwargs[key]
 
         return getter
 
     @staticmethod
-    def __setter(key: str) -> Callable[[BV], None]:
-        def setter(obj: BV, value: float) -> None:
+    def __setter(key: str) -> Callable[[ComponentSerializer], None]:
+        def setter(obj: ComponentSerializer, value: float) -> None:
             if issubclass(obj._kwargs[key].__class__, (DescriptorBase)) and not issubclass(
                 value.__class__, (DescriptorBase)
             ):

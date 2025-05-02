@@ -9,17 +9,15 @@ from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Set
-from typing import TypeVar
 
 from easyscience import global_object
 
 from ..variable import Parameter
-from ..variable.descriptor_base import DescriptorBase
 from .component_serializer import ComponentSerializer
 
 if TYPE_CHECKING:
-    from easyscience.interface_factory import iF
-    V = TypeVar('V', bound=DescriptorBase)
+    from ..interface_factory import InterfaceFactoryTemplate
+    from ..variable.descriptor_base import DescriptorBase
 
 
 class BasedBase(ComponentSerializer):
@@ -27,7 +25,7 @@ class BasedBase(ComponentSerializer):
 
     _REDIRECT = {}
 
-    def __init__(self, name: str, interface: Optional[iF] = None, unique_name: Optional[str] = None):
+    def __init__(self, name: str, interface: Optional[InterfaceFactoryTemplate] = None, unique_name: Optional[str] = None):
         self._global_object = global_object
         if unique_name is None:
             unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
@@ -91,14 +89,14 @@ class BasedBase(ComponentSerializer):
         self._name = new_name
 
     @property
-    def interface(self) -> iF:
+    def interface(self) -> InterfaceFactoryTemplate:
         """
         Get the current interface of the object
         """
         return self._interface
 
     @interface.setter
-    def interface(self, new_interface: iF):
+    def interface(self, new_interface: InterfaceFactoryTemplate):
         """
         Set the current interface to the object and generate bindings if possible. iF.e.
         ```
@@ -153,7 +151,7 @@ class BasedBase(ComponentSerializer):
                 par_list.append(item)
         return par_list
 
-    def _get_linkable_attributes(self) -> List[V]:
+    def _get_linkable_attributes(self) -> List[DescriptorBase]:
         """
         Get all objects which can be linked against as a list.
 

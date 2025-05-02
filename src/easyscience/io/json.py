@@ -15,11 +15,11 @@ from typing import List
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from ..base_classes.base_obj import BV
+    from ..base_classes import ComponentSerializer
 
 
 class JsonSerializer(BaseEncoderDecoder):
-    def encode(self, obj: BV, skip: List[str] = []) -> str:
+    def encode(self, obj: ComponentSerializer, skip: List[str] = []) -> str:
         """
         Returns a json string representation of the ComponentSerializer object.
         """
@@ -31,12 +31,12 @@ class JsonSerializer(BaseEncoderDecoder):
         return json.dumps(obj, cls=ENCODER)
 
     @classmethod
-    def decode(cls, data: str) -> BV:
+    def decode(cls, data: str) -> ComponentSerializer:
         return json.loads(data, cls=JsonDecoderTemplate)
 
 
 class JsonDataSerializer(BaseEncoderDecoder):
-    def encode(self, obj: BV, skip: List[str] = []) -> str:
+    def encode(self, obj: ComponentSerializer, skip: List[str] = []) -> str:
         """
         Returns a json string representation of the ComponentSerializer object.
         """
@@ -56,7 +56,7 @@ class JsonDataSerializer(BaseEncoderDecoder):
         return json.dumps(obj, cls=ENCODER)
 
     @classmethod
-    def decode(cls, data: str) -> BV:
+    def decode(cls, data: str) -> ComponentSerializer:
         raise NotImplementedError('It is not possible to reconstitute objects from data only objects.')
 
 

@@ -18,7 +18,7 @@ from ..io.dict import DictSerializer
 from ..io.json import jsanitize
 
 if TYPE_CHECKING:
-    from ..io.template import EC
+    from ..io.template import BaseEncoderDecoder
 
 
 class ComponentSerializer:
@@ -32,7 +32,7 @@ class ComponentSerializer:
     def __deepcopy__(self, memo):
         return self.from_dict(self.as_dict())
 
-    def encode(self, skip: Optional[List[str]] = None, encoder: Optional[EC] = None, **kwargs) -> Any:
+    def encode(self, skip: Optional[List[str]] = None, encoder: Optional[BaseEncoderDecoder] = None, **kwargs) -> Any:
         """
         Use an encoder to covert an EasyScience object into another format. Default is to a dictionary using `DictSerializer`.
 
@@ -47,7 +47,7 @@ class ComponentSerializer:
         return encoder_obj.encode(self, skip=skip, **kwargs)
 
     @classmethod
-    def decode(cls, obj: Any, decoder: Optional[EC] = None) -> Any:
+    def decode(cls, obj: Any, decoder: Optional[BaseEncoderDecoder] = None) -> Any:
         """
         Re-create an EasyScience object from the output of an encoder. The default decoder is `DictSerializer`.
 
@@ -82,7 +82,7 @@ class ComponentSerializer:
 
         return cls.decode(obj_dict, decoder=DictSerializer)
 
-    def encode_data(self, skip: Optional[List[str]] = None, encoder: Optional[EC] = None, **kwargs) -> Any:
+    def encode_data(self, skip: Optional[List[str]] = None, encoder: Optional[BaseEncoderDecoder] = None, **kwargs) -> Any:
         """
         Returns just the data in an EasyScience object win the format specified by an encoder.
 
