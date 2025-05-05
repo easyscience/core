@@ -10,10 +10,10 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from ..io.dict import DictSerializer
+from .dict import DictSerializer
 
 if TYPE_CHECKING:
-    from ..io.template import BaseEncoderDecoder
+    from .template import BaseEncoderDecoder
 
 
 class ComponentSerializer:

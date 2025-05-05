@@ -15,8 +15,8 @@ from bumps.names import FitProblem
 from bumps.parameter import Parameter as BumpsParameter
 
 # causes circular import when Parameter is imported
-# from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+# from easyscience.base_classes import BaseObj
+from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
@@ -32,7 +32,7 @@ FIT_AVAILABLE_IDS_FILTERED.remove('pt')
 class Bumps(MinimizerBase):
     """
     This is a wrapper to Bumps: https://bumps.readthedocs.io/
-    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.Objects.Base.BaseObj`.
+    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.BaseObj`.
     """
 
     package = 'bumps'
@@ -160,7 +160,7 @@ class Bumps(MinimizerBase):
     @staticmethod
     def convert_to_par_object(obj) -> BumpsParameter:
         """
-        Convert an `EasyScience.Objects.Base.Parameter` object to a bumps Parameter object
+        Convert an `EasyScience.variable.Parameter` object to a bumps Parameter object
 
         :return: bumps Parameter compatible object.
         :rtype: BumpsParameter

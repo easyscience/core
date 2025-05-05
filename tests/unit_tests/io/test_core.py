@@ -6,8 +6,8 @@ from typing import Type
 import pytest
 
 import easyscience
-from easyscience.Objects.variable import DescriptorNumber
-from easyscience.Objects.variable import Parameter
+from easyscience.variable import DescriptorNumber
+from easyscience.variable import Parameter
 
 dp_param_dict = {
     "argnames": "dp_kwargs, dp_cls",

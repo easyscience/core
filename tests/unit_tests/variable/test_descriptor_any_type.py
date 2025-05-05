@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from easyscience.Objects.variable.descriptor_any_type import DescriptorAnyType
+from easyscience.variable import DescriptorAnyType
 from easyscience import global_object
 
 class TestDescriptorAnyType:

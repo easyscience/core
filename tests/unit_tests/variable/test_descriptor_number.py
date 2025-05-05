@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import scipp as sc
 from scipp import UnitError
 
-from easyscience.Objects.variable.descriptor_number import DescriptorNumber
+from easyscience.variable import DescriptorNumber
 from easyscience import global_object
 
 class TestDescriptorNumber:

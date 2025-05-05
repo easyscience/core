@@ -2,9 +2,8 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
-from easyscience.global_object.map import Map
-from easyscience.Objects.variable.parameter import Parameter
-from easyscience.Objects.ObjectClasses import BaseObj
+from easyscience.variable import Parameter
+from easyscience.base_classes import BaseObj
 import pytest
 import gc
 from easyscience import global_object

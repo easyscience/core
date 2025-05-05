@@ -1,6 +1,6 @@
 import pytest
 
-from easyscience.Objects.variable.descriptor_bool import DescriptorBool
+from easyscience.variable import DescriptorBool
 from easyscience import global_object
 
 class TestDescriptorBool:

@@ -19,7 +19,7 @@ from .dict import DictSerializer
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from ..base_classes import ComponentSerializer
+    from .component_serializer import ComponentSerializer
 
 
 can_intent = (sys.version_info.major > 2) & (sys.version_info.minor > 8)

@@ -16,7 +16,7 @@ from typing import Optional
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from ..base_classes import ComponentSerializer
+    from .component_serializer import ComponentSerializer
 
 _KNOWN_CORE_TYPES = ("Descriptor", "Parameter")
 

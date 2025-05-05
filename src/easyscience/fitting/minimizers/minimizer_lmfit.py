@@ -14,8 +14,8 @@ from lmfit import Parameters as LMParameters
 from lmfit.model import ModelResult
 
 # causes circular import when Parameter is imported
-# from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+# from easyscience.base_classes import BaseObj
+from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
@@ -27,7 +27,7 @@ from .utils import FitResults
 class LMFit(MinimizerBase):  # noqa: S101
     """
     This is a wrapper to the extended Levenberg-Marquardt Fit: https://lmfit.github.io/lmfit-py/
-    It allows for the lmfit fitting engine to use parameters declared in an `EasyScience.Objects.Base.BaseObj`.
+    It allows for the lmfit fitting engine to use parameters declared in an `EasyScience.base_classes.BaseObj`.
     """
 
     package = 'lmfit'
@@ -175,7 +175,7 @@ class LMFit(MinimizerBase):  # noqa: S101
     @staticmethod
     def convert_to_par_object(parameter: Parameter) -> LMParameter:
         """
-        Convert an `EasyScience.Objects.Base.Parameter` object to a lmfit Parameter object.
+        Convert an EasyScience Parameter object to a lmfit Parameter object.
 
         :return: lmfit Parameter compatible object.
         :rtype: LMParameter

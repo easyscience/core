@@ -17,10 +17,11 @@ from typing import Union
 from easyscience.global_object.undo_redo import NotarizedDict
 
 from .base_classes import BasedBase
+from .variable.descriptor_base import DescriptorBase
 
 if TYPE_CHECKING:
     from .interface_factory import InterfaceFactoryTemplate
-    from .variable.descriptor_base import DescriptorBase
+
 
 
 class BaseCollection(BasedBase, MutableSequence):

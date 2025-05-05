@@ -6,8 +6,8 @@ import pytest
 
 from easyscience.io.dict import DataDictSerializer
 from easyscience.io.dict import DictSerializer
-from easyscience.Objects.variable import DescriptorNumber
-from easyscience.Objects.ObjectClasses import BaseObj
+from easyscience.variable import DescriptorNumber
+from easyscience.base_classes import BaseObj
 
 from .test_core import check_dict
 from .test_core import dp_param_dict
@@ -138,7 +138,7 @@ def test_group_encode():
     d0 = DescriptorNumber("a", 0)
     d1 = DescriptorNumber("b", 1)
 
-    from easyscience.Objects.Groups import BaseCollection
+    from easyscience import BaseCollection
 
     b = BaseCollection("test", d0, d1)
     d = b.as_dict()
@@ -149,7 +149,7 @@ def test_group_encode2():
     d0 = DescriptorNumber("a", 0)
     d1 = DescriptorNumber("b", 1)
 
-    from easyscience.Objects.Groups import BaseCollection
+    from easyscience import BaseCollection
 
     b = BaseObj("outer", b=BaseCollection("test", d0, d1))
     d = b.as_dict()

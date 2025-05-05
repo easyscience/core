@@ -7,7 +7,7 @@ from typing import Type
 import pytest
 
 from easyscience.io.xml import XMLSerializer
-from easyscience.Objects.variable import DescriptorNumber
+from easyscience.variable import DescriptorNumber
 
 from .test_core import dp_param_dict
 from .test_core import skip_dict

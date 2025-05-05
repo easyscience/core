@@ -8,14 +8,14 @@ from typing import List
 import pytest
 
 import easyscience
-from easyscience.Objects.Groups import BaseCollection
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import DescriptorNumber
-from easyscience.Objects.variable import Parameter
+from easyscience import BaseCollection
+from easyscience.base_classes import BaseObj
+from easyscience.variable import DescriptorNumber
+from easyscience.variable import Parameter
 from easyscience import global_object
 
 test_dict = {
-    "@module": "easyscience.Objects.Groups",
+    "@module": "easyscience",
     "@class": "BaseCollection",
     "@version": easyscience.__version__,
     "name": "testing",

@@ -17,8 +17,8 @@ from typing import Union
 import numpy as np
 
 # causes circular import when Parameter is imported
-# from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+# from easyscience.base_classes import BaseObj
+from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
 from .utils import FitError
@@ -161,7 +161,7 @@ class MinimizerBase(metaclass=ABCMeta):
     @abstractmethod
     def convert_to_par_object(obj):  # todo after constraint changes, add type hint: obj: BaseObj
         """
-        Convert an `EasyScience.Objects.Base.Parameter` object to an engine Parameter object.
+        Convert an `EasyScience.variable.Parameter` object to an engine Parameter object.
         """
 
     def _prepare_parameters(self, parameters: dict[str, float]) -> dict[str, float]:

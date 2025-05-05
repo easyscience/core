@@ -5,11 +5,11 @@
 import pytest
 
 import numpy as np
-from easyscience.fitting.fitter import Fitter
+from easyscience.fitting import Fitter
 from easyscience.fitting.minimizers import FitError
-from easyscience.fitting.available_minimizers import AvailableMinimizers
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+from easyscience.fitting import AvailableMinimizers
+from easyscience.base_classes import BaseObj
+from easyscience.variable import Parameter
 
 # Model and container of parameters for tests
 class AbsSin(BaseObj):

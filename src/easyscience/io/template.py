@@ -22,7 +22,7 @@ from typing import Tuple
 import numpy as np
 
 if TYPE_CHECKING:
-    from ..base_classes import ComponentSerializer
+    from .component_serializer import ComponentSerializer
 
 _e = json.JSONEncoder()
 

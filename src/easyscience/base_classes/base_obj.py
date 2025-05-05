@@ -8,11 +8,12 @@ from typing import Callable
 from typing import Optional
 
 from ..utils.classTools import addLoggedProp
+from ..variable.descriptor_base import DescriptorBase
 from .based_base import BasedBase
 
 if TYPE_CHECKING:
-    from ..variable.descriptor_base import DescriptorBase
-    from .component_serializer import ComponentSerializer
+    from ..io.component_serializer import ComponentSerializer
+
 
 
 class BaseObj(BasedBase):

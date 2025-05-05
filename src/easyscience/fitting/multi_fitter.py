@@ -7,7 +7,7 @@ from typing import Optional
 
 import numpy as np
 
-from easyscience.Objects.Groups import BaseCollection
+from easyscience import BaseCollection
 
 from .fitter import Fitter
 from .minimizers import FitResults

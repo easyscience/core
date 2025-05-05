@@ -7,7 +7,7 @@ import pytest
 
 from easyscience.io.json import JsonDataSerializer
 from easyscience.io.json import JsonSerializer
-from easyscience.Objects.variable import DescriptorNumber
+from easyscience.variable import DescriptorNumber
 
 from .test_core import check_dict
 from .test_core import dp_param_dict

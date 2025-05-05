@@ -12,8 +12,8 @@ from typing import Set
 
 from easyscience import global_object
 
+from ..io.component_serializer import ComponentSerializer
 from ..variable import Parameter
-from .component_serializer import ComponentSerializer
 
 if TYPE_CHECKING:
     from ..interface_factory import InterfaceFactoryTemplate

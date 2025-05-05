@@ -15,7 +15,7 @@ from typing import List
 from .template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from ..base_classes import ComponentSerializer
+    from .component_serializer import ComponentSerializer
 
 
 class JsonSerializer(BaseEncoderDecoder):

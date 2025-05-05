@@ -16,9 +16,9 @@ import numpy as np
 import pytest
 
 import easyscience
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import DescriptorNumber
-from easyscience.Objects.variable import Parameter
+from easyscience.base_classes import BaseObj
+from easyscience.variable import DescriptorNumber
+from easyscience.variable import Parameter
 from easyscience.io.dict import DictSerializer
 from easyscience import global_object
 
@@ -153,7 +153,7 @@ def test_baseobj_as_dict(clear, setup_pars: dict):
     obtained = obj.as_dict()
     assert isinstance(obtained, dict)
     expected = {
-        "@module": "easyscience.Objects.ObjectClasses",
+        "@module": "easyscience.base_classes.base_obj",
         "@class": "BaseObj",
         "@version": easyscience.__version__,
         "name": "test",

@@ -7,12 +7,12 @@ import math
 import numpy as np
 import pytest
 
-from easyscience.Objects.Groups import BaseCollection
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable.parameter import Parameter
-from easyscience.Objects.variable.descriptor_str import DescriptorStr
-from easyscience.Objects.variable.descriptor_number import DescriptorNumber
-from easyscience.Objects.variable.descriptor_bool import DescriptorBool
+from easyscience import BaseCollection
+from easyscience.base_classes import BaseObj
+from easyscience.variable import Parameter
+from easyscience.variable import DescriptorStr
+from easyscience.variable import DescriptorNumber
+from easyscience.variable import DescriptorBool
 
 from easyscience.fitting import Fitter
 
