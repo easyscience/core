@@ -128,10 +128,10 @@ class BaseEncoderDecoder:
             if new_obj is not obj:
                 return new_obj
 
-        d = {'@module': get_class_module(obj), '@class': obj.__class__.__name__}
+        d = {'@module': self._get_class_module(obj), '@class': obj.__class__.__name__}
 
         try:
-            parent_module = get_class_module(obj).split('.')[0]
+            parent_module = self._get_class_module(obj).split('.')[0]
             module_version = import_module(parent_module).__version__  # type: ignore
             d['@version'] = '{}'.format(module_version)
         except (AttributeError, ImportError):
@@ -189,7 +189,7 @@ class BaseEncoderDecoder:
                                     'determine the dict format. Alternatively, '
                                     'you can implement both as_dict and from_dict.'
                                 )
-                d[c] = recursive_encoder(a, skip=skip, encoder=self, full_encode=full_encode, **kwargs)
+                d[c] = self._recursive_encoder(a, skip=skip, encoder=self, full_encode=full_encode, **kwargs)
         if spec.varargs is not None and getattr(obj, spec.varargs, None) is not None:
             d.update({spec.varargs: getattr(obj, spec.varargs)})
         if hasattr(obj, '_kwargs'):
@@ -206,7 +206,7 @@ class BaseEncoderDecoder:
                                 continue
                             vv = redirect[k](obj)
                         v_ = runner(vv)
-                        d[k] = recursive_encoder(
+                        d[k] = self._recursive_encoder(
                             v_,
                             skip=skip,
                             encoder=self,
@@ -263,29 +263,29 @@ class BaseEncoderDecoder:
             return [BaseEncoderDecoder._convert_from_dict(x) for x in d]
         return d
 
-def recursive_encoder(obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs):
-    """
-    Walk through an object encoding it
-    """
-    if encoder is None:
-        encoder = BaseEncoderDecoder()
-    T_ = type(obj)
-    if issubclass(T_, (list, tuple, MutableSequence)):
-        # Is it a core MutableSequence?
+    def _get_class_module(self, obj):
+        """
+        Returns the REAL module of the class of the object.
+        """
+        c = getattr(obj, '__old_class__', obj.__class__)
+        return c.__module__
+
+    def _recursive_encoder(self, obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs):
+        """
+        Walk through an object encoding it
+        """
+        if encoder is None:
+            encoder = BaseEncoderDecoder()
+        T_ = type(obj)
+        if issubclass(T_, (list, tuple, MutableSequence)):
+            # Is it a core MutableSequence?
+            if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
+                return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
+            else:
+                return [self._recursive_encoder(it, skip, encoder, full_encode, **kwargs) for it in obj]
+        if isinstance(obj, dict):
+            return {kk: self._recursive_encoder(vv, skip, encoder, full_encode, **kwargs) for kk, vv in obj.items()}
         if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
             return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
-        else:
-            return [recursive_encoder(it, skip, encoder, full_encode, **kwargs) for it in obj]
-    if isinstance(obj, dict):
-        return {kk: recursive_encoder(vv, skip, encoder, full_encode, **kwargs) for kk, vv in obj.items()}
-    if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
-        return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
-    return obj
+        return obj
 
-
-def get_class_module(obj):
-    """
-    Returns the REAL module of the class of the object.
-    """
-    c = getattr(obj, '__old_class__', obj.__class__)
-    return c.__module__
