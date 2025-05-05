@@ -7,7 +7,7 @@ import math
 import numpy as np
 import pytest
 
-from easyscience import BaseCollection
+from easyscience.base_classes import BaseCollection
 from easyscience.base_classes import BaseObj
 from easyscience.variable import Parameter
 from easyscience.variable import DescriptorStr

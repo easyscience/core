@@ -11,8 +11,8 @@ from typing import Union
 
 import numpy as np
 
-from .. import BaseCollection
-from ..base_classes.base_obj import BaseObj
+from ..base_classes import BaseCollection
+from ..base_classes import BaseObj
 from ..variable import Parameter
 
 

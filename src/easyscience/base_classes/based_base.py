@@ -16,7 +16,7 @@ from ..io.component_serializer import ComponentSerializer
 from ..variable import Parameter
 
 if TYPE_CHECKING:
-    from ..interface_factory import InterfaceFactoryTemplate
+    from ..fitting.calculators import InterfaceFactoryTemplate
     from ..variable.descriptor_base import DescriptorBase
 
 

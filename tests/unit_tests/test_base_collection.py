@@ -3,19 +3,17 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
-from typing import List
-
 import pytest
 
 import easyscience
-from easyscience import BaseCollection
+from easyscience.base_classes import BaseCollection
 from easyscience.base_classes import BaseObj
 from easyscience.variable import DescriptorNumber
 from easyscience.variable import Parameter
 from easyscience import global_object
 
 test_dict = {
-    "@module": "easyscience",
+    "@module": "easyscience.base_classes",
     "@class": "BaseCollection",
     "@version": easyscience.__version__,
     "name": "testing",

@@ -138,7 +138,7 @@ def test_group_encode():
     d0 = DescriptorNumber("a", 0)
     d1 = DescriptorNumber("b", 1)
 
-    from easyscience import BaseCollection
+    from easyscience.base_classes import BaseCollection
 
     b = BaseCollection("test", d0, d1)
     d = b.as_dict()
@@ -149,7 +149,7 @@ def test_group_encode2():
     d0 = DescriptorNumber("a", 0)
     d1 = DescriptorNumber("b", 1)
 
-    from easyscience import BaseCollection
+    from easyscience.base_classes import BaseCollection
 
     b = BaseObj("outer", b=BaseCollection("test", d0, d1))
     d = b.as_dict()

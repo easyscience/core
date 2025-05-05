@@ -13,7 +13,7 @@ from typing import Type
 if TYPE_CHECKING:
     from abc import ABCMeta
 
-    from .fitting import Fitter
+    from .. import Fitter
 
 
 class InterfaceFactoryTemplate:

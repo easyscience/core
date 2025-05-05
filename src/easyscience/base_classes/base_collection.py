@@ -16,11 +16,11 @@ from typing import Union
 
 from easyscience.global_object.undo_redo import NotarizedDict
 
-from .base_classes import BasedBase
-from .variable.descriptor_base import DescriptorBase
+from ..variable.descriptor_base import DescriptorBase
+from .based_base import BasedBase
 
 if TYPE_CHECKING:
-    from .interface_factory import InterfaceFactoryTemplate
+    from ..fitting.calculators import InterfaceFactoryTemplate
 
 
 

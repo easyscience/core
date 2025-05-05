@@ -7,8 +7,7 @@ from typing import Optional
 
 import numpy as np
 
-from easyscience import BaseCollection
-
+from ..base_classes import BaseCollection
 from .fitter import Fitter
 from .minimizers import FitResults
 
