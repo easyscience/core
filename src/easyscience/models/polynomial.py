@@ -3,7 +3,6 @@
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
-import functools
 from typing import ClassVar
 from typing import Iterable
 from typing import Optional
@@ -14,16 +13,6 @@ import numpy as np
 from ..base_classes import BaseCollection
 from ..base_classes import BaseObj
 from ..variable import Parameter
-
-
-def designate_calc_fn(func):
-    @functools.wraps(func)
-    def wrapper(obj, *args, **kwargs):
-        for name in list(obj.__annotations__.keys()):
-            func.__globals__['_' + name] = getattr(obj, name).value
-        return func(obj, *args, **kwargs)
-
-    return wrapper
 
 
 class Polynomial(BaseObj):
@@ -75,25 +64,3 @@ class Polynomial(BaseObj):
         s = ' + '.join(s)
         return 'Polynomial({}, {})'.format(self.name, s)
 
-
-class Line(BaseObj):
-    m: ClassVar[Parameter]
-    c: ClassVar[Parameter]
-
-    def __init__(
-        self,
-        m: Optional[Union[Parameter, float]] = None,
-        c: Optional[Union[Parameter, float]] = None,
-    ):
-        super(Line, self).__init__('line', m=Parameter('m', 1.0), c=Parameter('c', 0.0))
-        if m is not None:
-            self.m = m
-        if c is not None:
-            self.c = c
-
-    # @designate_calc_fn can be used to inject parameters into the calculation function. i.e. _m = m.value
-    def __call__(self, x: np.ndarray, *args, **kwargs) -> np.ndarray:
-        return self.m.value * x + self.c.value
-
-    def __repr__(self):
-        return '{}({}, {})'.format(self.__class__.__name__, self.m, self.c)

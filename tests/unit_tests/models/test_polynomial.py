@@ -6,11 +6,8 @@
 import numpy as np
 import pytest
 
-from easyscience.models.polynomial import Line
 from easyscience.models.polynomial import Polynomial
-from easyscience.variable import Parameter
 
-line_test_cases = ((1, 2), (-1, -2), (0.72, 6.48))
 poly_test_cases = (
     (1.,),
     (
@@ -21,33 +18,6 @@ poly_test_cases = (
     (-1., -2., -3.),
     (0.72, 6.48, -0.48),
 )
-
-
-@pytest.mark.parametrize("m, c", line_test_cases)
-def test_Line_pars(m, c):
-    line = Line(m, c)
-
-    assert line.m.value == m
-    assert line.c.value == c
-
-    x = np.linspace(0, 10, 100)
-    y = line.m.value * x + line.c.value
-    assert np.allclose(line(x), y)
-
-
-@pytest.mark.parametrize("m, c", line_test_cases)
-def test_Line_constructor(m, c):
-    m_ = Parameter("m", m)
-    c_ = Parameter("c", c)
-    line = Line(m_, c_)
-
-    assert line.m.value == m
-    assert line.c.value == c
-
-    x = np.linspace(0, 10, 100)
-    y = line.m.value * x + line.c.value
-    assert np.allclose(line(x), y)
-
 
 @pytest.mark.parametrize("coo", poly_test_cases)
 def test_Polynomial_pars(coo):
