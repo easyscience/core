@@ -14,12 +14,12 @@ from typing import Optional
 
 import numpy as np
 
-from .dict import DataDictSerializer
-from .dict import DictSerializer
-from .template import BaseEncoderDecoder
+from ..io.dict import DataDictSerializer
+from ..io.dict import DictSerializer
+from ..io.template import BaseEncoderDecoder
 
 if TYPE_CHECKING:
-    from .component_serializer import ComponentSerializer
+    from ..io.component_serializer import ComponentSerializer
 
 
 can_intent = (sys.version_info.major > 2) & (sys.version_info.minor > 8)
