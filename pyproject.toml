@@ -73,6 +73,7 @@ packages = ["src"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/easyscience"]
+exclude = ["src/easyscience/legacy"]
 
 [tool.coverage.run]
 source = ["src/easyscience"]

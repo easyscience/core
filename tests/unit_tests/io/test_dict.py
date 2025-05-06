@@ -4,7 +4,6 @@ from typing import Type
 
 import pytest
 
-from easyscience.io.dict import DataDictSerializer
 from easyscience.io.dict import DictSerializer
 from easyscience.variable import DescriptorNumber
 from easyscience.base_classes import BaseObj
@@ -60,32 +59,6 @@ def test_variable_DictSerializer(dp_kwargs: dict, dp_cls: Type[DescriptorNumber]
 
     check_dict(dp_kwargs, enc)
 
-
-@pytest.mark.parametrize(**skip_dict)
-@pytest.mark.parametrize(**dp_param_dict)
-def test_variable_DataDictSerializer(dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    obj = dp_cls(**data_dict)
-
-    if isinstance(skip, str):
-        del data_dict[skip]
-
-    if not isinstance(skip, list):
-        skip = [skip]
-
-    enc_d = obj.encode(skip=skip, encoder=DataDictSerializer)
-
-    expected_keys = set(data_dict.keys())
-    obtained_keys = set(enc_d.keys())
-
-    dif = expected_keys.difference(obtained_keys)
-
-    assert len(dif) == 0
-
-    check_dict(data_dict, enc_d)
-
-
 ########################################################################################################################
 # TESTING DECODING
 ########################################################################################################################
@@ -121,18 +94,6 @@ def test_variable_DictSerializer_from_dict(dp_kwargs: dict, dp_cls: Type[Descrip
             assert getattr(obj, k) == getattr(dec, k)
         else:
             raise AttributeError(f"{k} not found in decoded object")
-
-
-@pytest.mark.parametrize(**dp_param_dict)
-def test_variable_DataDictSerializer_decode(dp_kwargs: dict, dp_cls: Type[DescriptorNumber]):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    obj = dp_cls(**data_dict)
-
-    enc = obj.encode(encoder=DataDictSerializer)
-    with pytest.raises(NotImplementedError):
-        dec = obj.decode(enc, decoder=DataDictSerializer)
-
 
 def test_group_encode():
     d0 = DescriptorNumber("a", 0)
