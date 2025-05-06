@@ -53,14 +53,15 @@ class DescriptorNumber(DescriptorBase):
     ):
         """Constructor for the DescriptorNumber class
 
-        param name: Name of the descriptor
-        param value: Value of the descriptor
-        param unit: Unit of the descriptor
-        param variance: Variance of the descriptor
-        param description: Description of the descriptor
-        param url: URL of the descriptor
-        param display_name: Display name of the descriptor
-        param parent: Parent of the descriptor
+        :param name: Name of the descriptor
+        :param value: Value of the descriptor
+        :param unit: Unit of the descriptor
+        :param variance: Variance of the descriptor
+        :param unique_name: Unique name of this object. This is used to find the object from anywhere in the program.
+        :param description: Description of the descriptor
+        :param url: URL of the descriptor
+        :param display_name: Display name of the descriptor
+        :param parent: Parent of the descriptor
         .. note:: Undo/Redo functionality is implemented for the attributes `variance`, `error`, `unit` and `value`.
         """
         self._observers: List[DescriptorNumber] = []

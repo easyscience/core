@@ -65,6 +65,7 @@ class Parameter(DescriptorNumber):
         :param min: The minimum value for fitting
         :param max: The maximum value for fitting
         :param fixed: If the parameter is free to vary during fitting
+        :param unique_name: Unique name of this object. This is used to find the object from anywhere in the program.
         :param description: A brief summary of what this object is
         :param url: Lookup url for documentation/information
         :param display_name: The name of the object as it should be displayed
