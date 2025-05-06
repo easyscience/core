@@ -12,7 +12,7 @@ from ..variable.descriptor_base import DescriptorBase
 from .based_base import BasedBase
 
 if TYPE_CHECKING:
-    from ..io.component_serializer import ComponentSerializer
+    from ..io import ComponentSerializer
 
 
 

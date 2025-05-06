@@ -19,7 +19,7 @@ import easyscience
 from easyscience.base_classes import BaseObj
 from easyscience.variable import DescriptorNumber
 from easyscience.variable import Parameter
-from easyscience.io.dict import DictSerializer
+from easyscience.io import DictSerializer
 from easyscience import global_object
 
 @pytest.fixture

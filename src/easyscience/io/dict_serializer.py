@@ -12,13 +12,13 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from .template import BaseEncoderDecoder
+from .serializer_base import SerializerBase
 
 if TYPE_CHECKING:
     from .component_serializer import ComponentSerializer
 
 
-class DictSerializer(BaseEncoderDecoder):
+class DictSerializer(SerializerBase):
     """
     This is a serializer that can encode and decode EasyScience objects to and from a dictionary.
     """
@@ -51,4 +51,4 @@ class DictSerializer(BaseEncoderDecoder):
         :return: EasyScience object.
         """
 
-        return BaseEncoderDecoder._convert_from_dict(d)
+        return SerializerBase._convert_from_dict(d)

@@ -12,7 +12,7 @@ from typing import Set
 
 from easyscience import global_object
 
-from ..io.component_serializer import ComponentSerializer
+from ..io import ComponentSerializer
 from ..variable import Parameter
 
 if TYPE_CHECKING:

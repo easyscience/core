@@ -10,10 +10,10 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from .dict import DictSerializer
+from .dict_serializer import DictSerializer
 
 if TYPE_CHECKING:
-    from .template import BaseEncoderDecoder
+    from .serializer_base import SerializerBase
 
 
 class ComponentSerializer:
@@ -30,7 +30,7 @@ class ComponentSerializer:
     def __deepcopy__(self, memo):
         return self.from_dict(self.as_dict())
 
-    def encode(self, skip: Optional[List[str]] = None, encoder: Optional[BaseEncoderDecoder] = None, **kwargs) -> Any:
+    def encode(self, skip: Optional[List[str]] = None, encoder: Optional[SerializerBase] = None, **kwargs) -> Any:
         """
         Use an encoder to covert an EasyScience object into another format. Default is to a dictionary using `DictSerializer`.
 
@@ -45,7 +45,7 @@ class ComponentSerializer:
         return encoder_obj.encode(self, skip=skip, **kwargs)
 
     @classmethod
-    def decode(cls, obj: Any, decoder: Optional[BaseEncoderDecoder] = None) -> Any:
+    def decode(cls, obj: Any, decoder: Optional[SerializerBase] = None) -> Any:
         """
         Re-create an EasyScience object from the output of an encoder. The default decoder is `DictSerializer`.
 

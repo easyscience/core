@@ -4,7 +4,7 @@ from typing import Type
 
 import pytest
 
-from easyscience.io.dict import DictSerializer
+from easyscience.io.dict_serializer import DictSerializer
 from easyscience.variable import DescriptorNumber
 from easyscience.base_classes import BaseObj
 

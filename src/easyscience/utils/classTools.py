@@ -13,7 +13,7 @@ from easyscience.global_object.hugger.property import LoggedProperty
 
 if TYPE_CHECKING:
     from ..base_classes import BasedBase
-    from ..io.component_serializer import ComponentSerializer
+    from ..io import ComponentSerializer
 
 
 def addLoggedProp(inst: ComponentSerializer, name: str, *args, **kwargs) -> None:

@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 _e = json.JSONEncoder()
 
 
-class BaseEncoderDecoder:
+class SerializerBase:
     """
     This is the base class for creating an encoder/decoder which can convert EasyScience objects. `encode` and `decode` are
     abstract methods to be implemented for each serializer. It is expected that the helper function `_convert_to_dict`
@@ -78,7 +78,7 @@ class BaseEncoderDecoder:
 
         :param obj: any object to be encoded
         :param skip: List of field names as strings to skip when forming the encoded object
-        :param kwargs: Key-words to pass to `BaseEncoderDecoder`
+        :param kwargs: Key-words to pass to `SerializerBase`
         :return: JSON encoded dictionary
         """
 
@@ -124,7 +124,7 @@ class BaseEncoderDecoder:
             skip = []
 
         if full_encode:
-            new_obj = BaseEncoderDecoder._encode_objs(obj)
+            new_obj = SerializerBase._encode_objs(obj)
             if new_obj is not obj:
                 return new_obj
 
@@ -137,7 +137,7 @@ class BaseEncoderDecoder:
         except (AttributeError, ImportError):
             d['@version'] = None  # type: ignore
 
-        spec, args = BaseEncoderDecoder.get_arg_spec(obj.__class__.__init__)
+        spec, args = SerializerBase.get_arg_spec(obj.__class__.__init__)
         if hasattr(obj, '_arg_spec'):
             args = obj._arg_spec
 
@@ -145,7 +145,7 @@ class BaseEncoderDecoder:
 
         def runner(o):
             if full_encode:
-                return BaseEncoderDecoder._encode_objs(o)
+                return SerializerBase._encode_objs(o)
             else:
                 return o
 
@@ -252,7 +252,7 @@ class BaseEncoderDecoder:
                 mod = __import__(modname, globals(), locals(), [classname], 0)
                 if hasattr(mod, classname):
                     cls_ = getattr(mod, classname)
-                    data = {k: BaseEncoderDecoder._convert_from_dict(v) for k, v in d.items() if not k.startswith('@')}
+                    data = {k: SerializerBase._convert_from_dict(v) for k, v in d.items() if not k.startswith('@')}
                     return cls_(**data)
             elif np is not None and modname == 'numpy' and classname == 'array':
                 if d['dtype'].startswith('complex'):
@@ -260,7 +260,7 @@ class BaseEncoderDecoder:
                 return np.array(d['data'], dtype=d['dtype'])
 
         if issubclass(T_, (list, MutableSequence)):
-            return [BaseEncoderDecoder._convert_from_dict(x) for x in d]
+            return [SerializerBase._convert_from_dict(x) for x in d]
         return d
 
     def _get_class_module(self, obj):
@@ -275,7 +275,7 @@ class BaseEncoderDecoder:
         Walk through an object encoding it
         """
         if encoder is None:
-            encoder = BaseEncoderDecoder()
+            encoder = SerializerBase()
         T_ = type(obj)
         if issubclass(T_, (list, tuple, MutableSequence)):
             # Is it a core MutableSequence?
