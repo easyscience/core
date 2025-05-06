@@ -8,7 +8,6 @@ __version__ = "3.0.0"
 
 
 from typing import TYPE_CHECKING
-from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -21,7 +20,7 @@ if TYPE_CHECKING:
 
 class DictSerializer(BaseEncoderDecoder):
     """
-    This is a serializer that can encode and decode EasyScience objects to a JSON encoded dictionary.
+    This is a serializer that can encode and decode EasyScience objects to and from a dictionary.
     """
 
     def encode(
@@ -32,11 +31,11 @@ class DictSerializer(BaseEncoderDecoder):
         **kwargs,
     ):
         """
-        Convert an EasyScience object to a JSON encoded dictionary
+        Convert an EasyScience object to a dictionary.
 
         :param obj: Object to be encoded.
         :param skip: List of field names as strings to skip when forming the encoded object
-        :param full_encode: Should the data also be JSON encoded (default False)
+        :param full_encode: Should the data also be encoded (default False)
         :param kwargs: Any additional key word arguments to be passed to the encoder
         :return: object encoded to dictionary containing all information to reform an EasyScience object.
         """
@@ -46,16 +45,10 @@ class DictSerializer(BaseEncoderDecoder):
     @classmethod
     def decode(cls, d: Dict) -> ComponentSerializer:
         """
-        :param d: Dict representation.
-        :return: ComponentSerializer class.
+        Re-create an EasyScience object from the dictionary representation.
+
+        :param d: Dict representation of an EasyScience object.
+        :return: EasyScience object.
         """
 
-        return BaseEncoderDecoder._convert_from_dict(d)
-
-    @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> ComponentSerializer:
-        """
-        :param d: Dict representation.
-        :return: ComponentSerializer class.
-        """
         return BaseEncoderDecoder._convert_from_dict(d)

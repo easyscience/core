@@ -18,8 +18,11 @@ if TYPE_CHECKING:
 
 class ComponentSerializer:
     """
-    This is the base class for all EasyScience objects and deals with the data conversion to other formats via the `encode`
-    and `decode` functions. Shortcuts for dictionary and data dictionary encoding is also present.
+    This base class adds the capability of saving and loading (encoding/decoding, serializing/deserializing) easyscience 
+    objects via the `encode` and `decode` methods. 
+    The default encoder is `DictSerializer`, which converts the object to a dictionary.
+
+    Shortcuts for dictionary and encoding is also present.
     """
 
     _CORE = True
