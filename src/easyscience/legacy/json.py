@@ -34,6 +34,32 @@ class JsonSerializer(BaseEncoderDecoder):
     def decode(cls, data: str) -> ComponentSerializer:
         return json.loads(data, cls=JsonDecoderTemplate)
 
+
+class JsonDataSerializer(BaseEncoderDecoder):
+    def encode(self, obj: ComponentSerializer, skip: List[str] = []) -> str:
+        """
+        Returns a json string representation of the ComponentSerializer object.
+        """
+        from .dict import DataDictSerializer
+
+        ENCODER = type(
+            JsonEncoderTemplate.__name__,
+            (JsonEncoderTemplate, BaseEncoderDecoder),
+            {
+                'skip': skip,
+                '_converter': lambda *args, **kwargs: DataDictSerializer._parse_dict(
+                    DataDictSerializer._convert_to_dict(*args, **kwargs)
+                ),
+            },
+        )
+
+        return json.dumps(obj, cls=ENCODER)
+
+    @classmethod
+    def decode(cls, data: str) -> ComponentSerializer:
+        raise NotImplementedError('It is not possible to reconstitute objects from data only objects.')
+
+
 class JsonEncoderTemplate(json.JSONEncoder):
     """
     A Json Encoder which supports the ComponentSerializer API, plus adds support for
@@ -63,6 +89,7 @@ class JsonEncoderTemplate(json.JSONEncoder):
             Python dict representation.
         """
         return self._converter(o, self.skip, full_encode=True)
+
 
 class JsonDecoderTemplate(json.JSONDecoder):
     """
