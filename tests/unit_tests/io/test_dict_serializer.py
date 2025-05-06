@@ -8,9 +8,9 @@ from easyscience.io.dict_serializer import DictSerializer
 from easyscience.variable import DescriptorNumber
 from easyscience.base_classes import BaseObj
 
-from .test_core import check_dict
-from .test_core import dp_param_dict
-from .test_core import skip_dict
+from .test_component_serializer import check_dict
+from .test_component_serializer import dp_param_dict
+from .test_component_serializer import skip_dict
 from easyscience import global_object
 
 
