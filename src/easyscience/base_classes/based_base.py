@@ -12,7 +12,7 @@ from typing import Set
 
 from easyscience import global_object
 
-from ..io import ComponentSerializer
+from ..io import SerializerComponent
 from ..variable import Parameter
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from ..variable.descriptor_base import DescriptorBase
 
 
-class BasedBase(ComponentSerializer):
+class BasedBase(SerializerComponent):
     __slots__ = ['_name', '_global_object', 'user_data', '_kwargs']
 
     _REDIRECT = {}

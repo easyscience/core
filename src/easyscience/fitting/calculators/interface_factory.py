@@ -54,7 +54,7 @@ class InterfaceFactoryTemplate:
     def switch(self, new_interface: str, fitter: Optional[Type[Fitter]] = None):
         """
         Changes the current interface to a new interface. The current interface is destroyed and
-        all ComponentSerializer parameters carried over to the new interface. i.e. pick up where you left off.
+        all SerializerComponent parameters carried over to the new interface. i.e. pick up where you left off.
 
         :param new_interface: name of new interface to be created
         :type new_interface: str

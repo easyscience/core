@@ -15,17 +15,17 @@ from typing import Optional
 from .serializer_base import SerializerBase
 
 if TYPE_CHECKING:
-    from .component_serializer import ComponentSerializer
+    from .serializer_component import SerializerComponent
 
 
-class DictSerializer(SerializerBase):
+class SerializerDict(SerializerBase):
     """
     This is a serializer that can encode and decode EasyScience objects to and from a dictionary.
     """
 
     def encode(
         self,
-        obj: ComponentSerializer,
+        obj: SerializerComponent,
         skip: Optional[List[str]] = None,
         full_encode: bool = False,
         **kwargs,
@@ -43,7 +43,7 @@ class DictSerializer(SerializerBase):
         return self._convert_to_dict(obj, skip=skip, full_encode=full_encode, **kwargs)
 
     @classmethod
-    def decode(cls, d: Dict) -> ComponentSerializer:
+    def decode(cls, d: Dict) -> SerializerComponent:
         """
         Re-create an EasyScience object from the dictionary representation.
 

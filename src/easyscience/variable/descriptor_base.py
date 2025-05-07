@@ -10,10 +10,10 @@ from typing import Optional
 
 from easyscience import global_object
 from easyscience.global_object.undo_redo import property_stack
-from easyscience.io import ComponentSerializer
+from easyscience.io import SerializerComponent
 
 
-class DescriptorBase(ComponentSerializer, metaclass=abc.ABCMeta):
+class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
     """
     This is the base of all variable descriptions for models. It contains all information to describe a single
     unique property of an object. This description includes a name and value as well as optionally a unit, description

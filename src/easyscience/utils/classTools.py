@@ -13,10 +13,10 @@ from easyscience.global_object.hugger.property import LoggedProperty
 
 if TYPE_CHECKING:
     from ..base_classes import BasedBase
-    from ..io import ComponentSerializer
+    from ..io import SerializerComponent
 
 
-def addLoggedProp(inst: ComponentSerializer, name: str, *args, **kwargs) -> None:
+def addLoggedProp(inst: SerializerComponent, name: str, *args, **kwargs) -> None:
     cls = type(inst)
     annotations = getattr(cls, '__annotations__', False)
     if not hasattr(cls, '__perinstance'):
@@ -29,7 +29,7 @@ def addLoggedProp(inst: ComponentSerializer, name: str, *args, **kwargs) -> None
     setattr(cls, name, LoggedProperty(*args, **kwargs))
 
 
-def addProp(inst: ComponentSerializer, name: str, *args, **kwargs) -> None:
+def addProp(inst: SerializerComponent, name: str, *args, **kwargs) -> None:
     cls = type(inst)
     annotations = getattr(cls, '__annotations__', False)
     if not hasattr(cls, '__perinstance'):
@@ -43,7 +43,7 @@ def addProp(inst: ComponentSerializer, name: str, *args, **kwargs) -> None:
     setattr(cls, name, property(*args, **kwargs))
 
 
-def removeProp(inst: ComponentSerializer, name: str) -> None:
+def removeProp(inst: SerializerComponent, name: str) -> None:
     cls = type(inst)
     if not hasattr(cls, '__perinstance'):
         cls = type(cls.__name__, (cls,), {'__module__': __name__})

@@ -19,7 +19,7 @@ import easyscience
 from easyscience.base_classes import BaseObj
 from easyscience.variable import DescriptorNumber
 from easyscience.variable import Parameter
-from easyscience.io import DictSerializer
+from easyscience.io import SerializerDict
 from easyscience import global_object
 
 @pytest.fixture
@@ -227,7 +227,7 @@ def test_baseobj_as_dict(clear, setup_pars: dict):
             if "@module" in item.keys():
                 with not_raises([ValueError, AttributeError]):
                     global_object.map._clear()
-                    this_obj = DictSerializer().decode(item)
+                    this_obj = SerializerDict().decode(item)
 
             for key in check.keys():
                 assert key in item.keys()

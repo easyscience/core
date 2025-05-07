@@ -22,7 +22,7 @@ from typing import Tuple
 import numpy as np
 
 if TYPE_CHECKING:
-    from .component_serializer import ComponentSerializer
+    from .serializer_component import SerializerComponent
 
 _e = json.JSONEncoder()
 
@@ -31,11 +31,11 @@ class SerializerBase:
     """
     This is the base class for creating an encoder/decoder which can convert EasyScience objects. `encode` and `decode` are
     abstract methods to be implemented for each serializer. It is expected that the helper function `_convert_to_dict`
-    will be used as a base for encoding (or the `DictSerializer` as it's more flexible).
+    will be used as a base for encoding (or the `SerializerDict` as it's more flexible).
     """
 
     @abstractmethod
-    def encode(self, obj: ComponentSerializer, skip: Optional[List[str]] = None, **kwargs) -> any:
+    def encode(self, obj: SerializerComponent, skip: Optional[List[str]] = None, **kwargs) -> any:
         """
         Abstract implementation of an encoder.
 
@@ -51,7 +51,7 @@ class SerializerBase:
     @abstractmethod
     def decode(cls, obj: Any) -> Any:
         """
-        Re-create an EasyScience object from the output of an encoder. The default decoder is `DictSerializer`.
+        Re-create an EasyScience object from the output of an encoder. The default decoder is `SerializerDict`.
 
         :param obj: encoded EasyScience object
         :return: Reformed EasyScience object
@@ -112,7 +112,7 @@ class SerializerBase:
 
     def _convert_to_dict(
         self,
-        obj: ComponentSerializer,
+        obj: SerializerComponent,
         skip: Optional[List[str]] = None,
         full_encode: bool = False,
         **kwargs,
@@ -235,9 +235,9 @@ class SerializerBase:
             if '@module' in d and '@class' in d:
                 modname = d['@module']
                 classname = d['@class']
-                # if classname in DictSerializer.REDIRECT.get(modname, {}):
-                #     modname = DictSerializer.REDIRECT[modname][classname]["@module"]
-                #     classname = DictSerializer.REDIRECT[modname][classname]["@class"]
+                # if classname in SerializerDict.REDIRECT.get(modname, {}):
+                #     modname = SerializerDict.REDIRECT[modname][classname]["@module"]
+                #     classname = SerializerDict.REDIRECT[modname][classname]["@class"]
             else:
                 modname = None
                 classname = None
