@@ -3,65 +3,64 @@
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
-import numbers
-from typing import List
+from typing import ClassVar
+from typing import Iterable
 from typing import Optional
+from typing import Union
 
 import numpy as np
 
+from ..base_classes import BaseCollection
 from ..base_classes import BaseObj
 from ..variable import Parameter
 
 
 class Polynomial(BaseObj):
     """
-    A simple polynomial model.
+    A polynomial model.
+
+    Parameters
+    ----------
+    name : str
+        The name of the model.
+    degree : int
+        The degree of the polynomial.
     """
+
+    coefficients: ClassVar[BaseCollection]
 
     def __init__(
         self,
-        name: str,
-        coefficients: List[numbers.Number],
-        unique_name: Optional[str] = None,
+        name: str = 'polynomial',
+        coefficients: Optional[Union[Iterable[Union[float, Parameter]], BaseCollection]] = None,
     ):
-        """
-        Construct a polynomial model.
+        super(Polynomial, self).__init__(name, coefficients=BaseCollection('coefficients'))
+        if coefficients is not None:
+            if issubclass(type(coefficients), BaseCollection):
+                self.coefficients = coefficients
+            elif isinstance(coefficients, Iterable):
+                for index, item in enumerate(coefficients):
+                    if issubclass(type(item), Parameter):
+                        self.coefficients.append(item)
+                    elif isinstance(item, float):
+                        self.coefficients.append(Parameter(name='c{}'.format(index), value=item))
+                    else:
+                        raise TypeError('Coefficients must be floats or Parameters')
+            else:
+                raise TypeError('coefficients must be a list or a BaseCollection')
 
-        :param name: Name of this model.
-        :param coefficients: List of coefficients of the polynomial. The last coefficient is the constant term, the second to last is the linear term, etc.
-        :param unit: Unit of the polynomial.
-        :param unique_name: Unique name of this object. This is used to find the object from anywhere in the program.
-        
-        """  # noqa: E501
-
-        if not isinstance(coefficients, list):
-            raise TypeError('coefficients must be a list of numbers')
-        if len(coefficients) == 0:
-            raise ValueError('list of coefficients cannot be empty')
-        for coefficient, index in enumerate(coefficients):
-            if not isinstance(coefficient, numbers.Number):
-                raise TypeError(f'coefficients must be numbers, found {type(coefficient)} at index {index}')
-        self._coefficients = [Parameter(name=f'c{i}', value=c) for i, c in enumerate(coefficients)]
-
-        super().__init__(
-            name=name, 
-            unique_name=unique_name
-            )
-
-
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        return np.polyval([c.value for c in self._coefficients], x)
+    def __call__(self, x: np.ndarray, *args, **kwargs) -> np.ndarray:
+        return np.polyval([c.value for c in self.coefficients], x)
 
     def __repr__(self):
-        string = []
-        for i, c in enumerate(self._coefficients):
-            if i == 0:
-                string += [f'{c.value}']
-            elif i == 1:
-                string += [f'{c.value}x']
-            else:
-                string += [f'{c.value}x^{i}']
-        string.reverse()
-        string = ' + '.join(string)
-        return 'Polynomial "{}" : {}'.format(self.name, string)
+        s = []
+        if len(self.coefficients) >= 1:
+            s += [f'{self.coefficients[0].value}']
+            if len(self.coefficients) >= 2:
+                s += [f'{self.coefficients[1].value}x']
+                if len(self.coefficients) >= 3:
+                    s += [f'{c.value}x^{i+2}' for i, c in enumerate(self.coefficients[2:]) if c.value != 0]
+        s.reverse()
+        s = ' + '.join(s)
+        return 'Polynomial({}, {})'.format(self.name, s)
 
