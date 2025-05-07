@@ -16,12 +16,12 @@ if TYPE_CHECKING:
 
 
 
-class BaseObj(BasedBase):
+class ObjBase(BasedBase):
     """
     This is the base class for which all higher level classes are built off of.
     NOTE: This object is serializable only if parameters are supplied as:
-    `BaseObj(a=value, b=value)`. For `Parameter` or `Descriptor` objects we can
-    cheat with `BaseObj(*[Descriptor(...), Parameter(...), ...])`.
+    `ObjBase(a=value, b=value)`. For `Parameter` or `Descriptor` objects we can
+    cheat with `ObjBase(*[Descriptor(...), Parameter(...), ...])`.
     """
 
     def __init__(
@@ -38,18 +38,18 @@ class BaseObj(BasedBase):
         :param args: Any arguments?
         :param kwargs: Fields which this class should contain
         """
-        super(BaseObj, self).__init__(name=name, unique_name=unique_name)
+        super(ObjBase, self).__init__(name=name, unique_name=unique_name)
         # If Parameter or Descriptor is given as arguments...
         for arg in args:
-            if issubclass(type(arg), (BaseObj, DescriptorBase)):
+            if issubclass(type(arg), (ObjBase, DescriptorBase)):
                 kwargs[getattr(arg, 'name')] = arg
         # Set kwargs, also useful for serialization
         known_keys = self.__dict__.keys()
         self._kwargs = kwargs
         for key in kwargs.keys():
             if key in known_keys:
-                raise AttributeError('Kwargs cannot overwrite class attributes in BaseObj.')
-            if issubclass(type(kwargs[key]), (BasedBase, DescriptorBase)) or 'BaseCollection' in [
+                raise AttributeError('Kwargs cannot overwrite class attributes in ObjBase.')
+            if issubclass(type(kwargs[key]), (BasedBase, DescriptorBase)) or 'CollectionBase' in [
                 c.__name__ for c in type(kwargs[key]).__bases__
             ]:
                 self._global_object.map.add_edge(self, kwargs[key])
@@ -61,7 +61,7 @@ class BaseObj(BasedBase):
                 self.__setter(key),
                 get_id=key,
                 my_self=self,
-                test_class=BaseObj,
+                test_class=ObjBase,
             )
 
     def _add_component(self, key: str, component: SerializerComponent) -> None:
@@ -95,7 +95,7 @@ class BaseObj(BasedBase):
             self.__setter(key),
             get_id=key,
             my_self=self,
-            test_class=BaseObj,
+            test_class=ObjBase,
         )
 
     def __setattr__(self, key: str, value: SerializerComponent) -> None:
@@ -119,7 +119,7 @@ class BaseObj(BasedBase):
                 old_obj = self.__getattribute__(key)
                 self._global_object.map.prune_vertex_from_edge(self, old_obj)
                 self._global_object.map.add_edge(self, value)
-        super(BaseObj, self).__setattr__(key, value)
+        super(ObjBase, self).__setattr__(key, value)
         # Update the interface bindings if something changed (BasedBase and Descriptor)
         if old_obj is not None:
             old_interface = getattr(self, 'interface', None)

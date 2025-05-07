@@ -11,7 +11,7 @@ import dfols
 import numpy as np
 
 # causes circular import when Parameter is imported
-# from easyscience.base_classes import BaseObj
+# from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
@@ -30,15 +30,15 @@ class DFO(MinimizerBase):
 
     def __init__(
         self,
-        obj,  #: BaseObj,
+        obj,  #: ObjBase,
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
-    ):  # todo after constraint changes, add type hint: obj: BaseObj  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """
-        Initialize the fitting engine with a `BaseObj` and an arbitrary fitting function.
+        Initialize the fitting engine with a `ObjBase` and an arbitrary fitting function.
 
         :param obj: Object containing elements of the `Parameter` class
-        :type obj: BaseObj
+        :type obj: ObjBase
         :param fit_function: function that when called returns y values. 'x' must be the first
                             and only positional argument. Additional values can be supplied by
                             keyword/value pairs

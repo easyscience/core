@@ -24,12 +24,12 @@ if TYPE_CHECKING:
 
 
 
-class BaseCollection(BasedBase, MutableSequence):
+class CollectionBase(BasedBase, MutableSequence):
     """
     This is the base class for which all higher level classes are built off of.
     NOTE: This object is serializable only if parameters are supplied as:
-    `BaseObj(a=value, b=value)`. For `Parameter` or `Descriptor` objects we can
-    cheat with `BaseObj(*[Descriptor(...), Parameter(...), ...])`.
+    `ObjBase(a=value, b=value)`. For `Parameter` or `Descriptor` objects we can
+    cheat with `ObjBase(*[Descriptor(...), Parameter(...), ...])`.
     """
 
     def __init__(
@@ -125,7 +125,7 @@ class BaseCollection(BasedBase, MutableSequence):
         :param idx: index or slice of the collection.
         :type idx: Union[int, slice]
         :return: Object at index `idx`
-        :rtype: Union[Parameter, Descriptor, BaseObj, 'BaseCollection']
+        :rtype: Union[Parameter, Descriptor, ObjBase, 'CollectionBase']
         """
         if isinstance(idx, slice):
             start, stop, step = idx.indices(len(self))

@@ -15,7 +15,7 @@ from bumps.names import FitProblem
 from bumps.parameter import Parameter as BumpsParameter
 
 # causes circular import when Parameter is imported
-# from easyscience.base_classes import BaseObj
+# from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
@@ -32,22 +32,22 @@ FIT_AVAILABLE_IDS_FILTERED.remove('pt')
 class Bumps(MinimizerBase):
     """
     This is a wrapper to Bumps: https://bumps.readthedocs.io/
-    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.BaseObj`.
+    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.
     """
 
     package = 'bumps'
 
     def __init__(
         self,
-        obj,  #: BaseObj,
+        obj,  #: ObjBase,
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
-    ):  # todo after constraint changes, add type hint: obj: BaseObj  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """
-        Initialize the fitting engine with a `BaseObj` and an arbitrary fitting function.
+        Initialize the fitting engine with a `ObjBase` and an arbitrary fitting function.
 
         :param obj: Object containing elements of the `Parameter` class
-        :type obj: BaseObj
+        :type obj: ObjBase
         :param fit_function: function that when called returns y values. 'x' must be the first
                             and only positional argument. Additional values can be supplied by
                             keyword/value pairs
@@ -151,7 +151,7 @@ class Bumps(MinimizerBase):
         :rtype: List[BumpsParameter]
         """
         if par_list is None:
-            # Assume that we have a BaseObj for which we can obtain a list
+            # Assume that we have a ObjBase for which we can obtain a list
             par_list = self._object.get_fit_parameters()
         pars_obj = [self.__class__.convert_to_par_object(obj) for obj in par_list]
         return pars_obj

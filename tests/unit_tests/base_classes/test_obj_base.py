@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 import easyscience
-from easyscience.base_classes import BaseObj
+from easyscience.base_classes import ObjBase
 from easyscience.variable import DescriptorNumber
 from easyscience.variable import Parameter
 from easyscience.io import SerializerDict
@@ -64,7 +64,7 @@ def not_raises(
         (["par1", "des1"], ["par2", "des2"]), 
     ],
 )
-def test_baseobj_create(setup_pars: dict, a: List[str], kw: List[str]):
+def test_ObjBase_create(setup_pars: dict, a: List[str], kw: List[str]):
     name = setup_pars["name"]
     args = []
     for key in a:
@@ -72,14 +72,14 @@ def test_baseobj_create(setup_pars: dict, a: List[str], kw: List[str]):
     kwargs = {}
     for key in kw:
         kwargs[key] = setup_pars[key]
-    base = BaseObj(name, None, *args, **kwargs)
+    base = ObjBase(name, None, *args, **kwargs)
     assert base.name == name
     for key in a:
         item = getattr(base, setup_pars[key].name)
         assert isinstance(item, setup_pars[key].__class__)
 
 
-def test_baseobj_copy(setup_pars: dict):
+def test_ObjBase_copy(setup_pars: dict):
     # When
     name = setup_pars["name"]
     args = []
@@ -88,7 +88,7 @@ def test_baseobj_copy(setup_pars: dict):
     kwargs = {}
     for key in ["par2", "des2"]:
         kwargs[key] = setup_pars[key]
-    base = BaseObj(name, None, *args, **kwargs)
+    base = ObjBase(name, None, *args, **kwargs)
 
     # Then
     base_copy = copy(base)
@@ -102,7 +102,7 @@ def test_baseobj_copy(setup_pars: dict):
         assert isinstance(item, setup_pars[key].__class__)
 
 
-def test_baseobj_get(setup_pars: dict):
+def test_ObjBase_get(setup_pars: dict):
     name = setup_pars["name"]
     explicit_name1 = "par1"
     explicit_name2 = "par2"
@@ -110,30 +110,30 @@ def test_baseobj_get(setup_pars: dict):
         setup_pars[explicit_name1].name: setup_pars[explicit_name1],
         setup_pars[explicit_name2].name: setup_pars[explicit_name2],
     }
-    obj = BaseObj(name, **kwargs)
+    obj = ObjBase(name, **kwargs)
     with not_raises(AttributeError):
         p1: Parameter = obj.p1
     with not_raises(AttributeError):
         p2: Parameter = obj.p2
 
 
-def test_baseobj_set(setup_pars: dict):
+def test_ObjBase_set(setup_pars: dict):
     name = setup_pars["name"]
     explicit_name1 = "par1"
     kwargs = {
         setup_pars[explicit_name1].name: setup_pars[explicit_name1],
     }
-    obj = BaseObj(name, **kwargs)
+    obj = ObjBase(name, **kwargs)
     new_value = 5.0
     with not_raises([AttributeError, ValueError]):
         obj.p1 = new_value
         assert obj.p1.value == new_value
 
 
-def test_baseobj_get_parameters(setup_pars: dict):
+def test_ObjBase_get_parameters(setup_pars: dict):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
     pars = obj.get_fit_parameters()
     assert isinstance(pars, list)
     assert len(pars) == 2
@@ -142,22 +142,22 @@ def test_baseobj_get_parameters(setup_pars: dict):
     assert "p3" in par_names
 
 
-def test_baseobj_fit_objects(setup_pars: dict):
+def test_ObjBase_fit_objects(setup_pars: dict):
     pass
 
 
-def test_baseobj_as_dict(clear, setup_pars: dict):
+def test_ObjBase_as_dict(clear, setup_pars: dict):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
     obtained = obj.as_dict()
     assert isinstance(obtained, dict)
     expected = {
-        "@module": "easyscience.base_classes.base_obj",
-        "@class": "BaseObj",
+        "@module": "easyscience.base_classes.obj_base",
+        "@class": "ObjBase",
         "@version": easyscience.__version__,
         "name": "test",
-        "unique_name": "BaseObj_0",
+        "unique_name": "ObjBase_0",
         "par1": {
             "@module": Parameter.__module__,
             "@class": Parameter.__name__,
@@ -239,27 +239,27 @@ def test_baseobj_as_dict(clear, setup_pars: dict):
     check_dict(expected, obtained)
 
 
-def test_baseobj_dict_roundtrip(clear, setup_pars: dict):
+def test_ObjBase_dict_roundtrip(clear, setup_pars: dict):
     # When
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars, unique_name='special_name')
+    obj = ObjBase(name, **setup_pars, unique_name='special_name')
     obj_dict = obj.as_dict()
 
     global_object.map._clear()
 
     # Then
-    new_obj = BaseObj.from_dict(obj_dict)
+    new_obj = ObjBase.from_dict(obj_dict)
 
     # Expect
     new_obj_dict = new_obj.as_dict()
     assert obj_dict == new_obj_dict
 
 
-def test_baseobj_dir(setup_pars):
+def test_ObjBase_dir(setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
     expected = [
         "encode",
         "decode",
@@ -287,21 +287,21 @@ def test_baseobj_dir(setup_pars):
     assert len(set(expected).difference(set(obtained))) == 0
 
 
-def test_baseobj_get_parameters(setup_pars):
+def test_ObjBase_get_parameters(setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
     pars = obj.get_parameters()
     assert len(pars) == 3
 
 
-def test_baseobj_get_parameters_nested(setup_pars):
+def test_ObjBase_get_parameters_nested(setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
 
     name2 = name + "_2"
-    obj2 = BaseObj(name2, obj=obj, **setup_pars)
+    obj2 = ObjBase(name2, obj=obj, **setup_pars)
 
     pars = obj2.get_parameters()
     assert len(pars) == 6
@@ -310,21 +310,21 @@ def test_baseobj_get_parameters_nested(setup_pars):
     assert len(pars) == 3
 
 
-def test_baseobj_get_fit_parameters(setup_pars):
+def test_ObjBase_get_fit_parameters(setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
     pars = obj.get_fit_parameters()
     assert len(pars) == 2
 
 
-def test_baseobj_get_fit_parameters_nested(setup_pars):
+def test_ObjBase_get_fit_parameters_nested(setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
 
     name2 = name + "_2"
-    obj2 = BaseObj(name2, obj=obj, **setup_pars)
+    obj2 = ObjBase(name2, obj=obj, **setup_pars)
 
     pars = obj2.get_fit_parameters()
     assert len(pars) == 4
@@ -333,10 +333,10 @@ def test_baseobj_get_fit_parameters_nested(setup_pars):
     assert len(pars) == 2
 
 
-def test_baseobj__add_component(setup_pars):
+def test_ObjBase__add_component(setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
 
     p = Parameter("added_par", 1)
     new_item_name = "Added"
@@ -347,14 +347,14 @@ def test_baseobj__add_component(setup_pars):
     assert isinstance(a, Parameter)
 
 
-def test_baseObj_name(setup_pars):
+def test_ObjBase_name(setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
     assert obj.name == name
 
 def test_Base_GETSET():
-    class A(BaseObj):
+    class A(ObjBase):
         def __init__(self, a: Parameter):
             super(A, self).__init__("a", a=a)
 
@@ -376,7 +376,7 @@ def test_Base_GETSET():
 
 
 def test_Base_GETSET():
-    class A(BaseObj):
+    class A(ObjBase):
         def __init__(self, a: Parameter):
             super(A, self).__init__("a", a=a)
             b = 0
@@ -392,7 +392,7 @@ def test_Base_GETSET():
 
 
 def test_Base_GETSET_v2():
-    class A(BaseObj):
+    class A(ObjBase):
 
         a: ClassVar[Parameter]
 
@@ -417,7 +417,7 @@ def test_Base_GETSET_v2():
 
 
 def test_Base_GETSET_v3():
-    class A(BaseObj):
+    class A(ObjBase):
 
         a: ClassVar[Parameter]
 
@@ -447,7 +447,7 @@ def test_Base_GETSET_v3():
 
 
 def test_BaseCreation():
-    class A(BaseObj):
+    class A(ObjBase):
         def __init__(self, a: Optional[Union[Parameter, float]] = None):
             super(A, self).__init__("A", a=Parameter("a", 1.0))
             if a is not None:
@@ -462,7 +462,7 @@ def test_BaseCreation():
     a.a = 4.0
     assert a.a.value == 4.0
 
-    class B(BaseObj):
+    class B(ObjBase):
         def __init__(self, b: Optional[Union[A, Parameter, float]] = None):
             super(B, self).__init__("B", b=A())
             if b is not None:
@@ -481,13 +481,13 @@ def test_BaseCreation():
 
 def test_unique_name_generator(clear):
     # When Then
-    test_obj = BaseObj(name="test")
+    test_obj = ObjBase(name="test")
     # Expect
-    assert test_obj.unique_name == "BaseObj_0"
+    assert test_obj.unique_name == "ObjBase_0"
 
 def test_unique_name_change(clear):
     # When
-    test_obj = BaseObj(name="test")
+    test_obj = ObjBase(name="test")
     # Then
     test_obj.unique_name = "test"
     # Expect
@@ -496,7 +496,7 @@ def test_unique_name_change(clear):
 @pytest.mark.parametrize("input", [2, 2.0, [2], {2}, None])
 def test_unique_name_change_exception(input):
     # When
-    test_obj = BaseObj(name="test")
+    test_obj = ObjBase(name="test")
     # Then Expect
     with pytest.raises(TypeError):
         test_obj.unique_name = input

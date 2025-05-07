@@ -6,7 +6,7 @@ import pytest
 
 from easyscience.io.serializer_dict import SerializerDict
 from easyscience.variable import DescriptorNumber
-from easyscience.base_classes import BaseObj
+from easyscience.base_classes import ObjBase
 
 from .test_serializer_component import check_dict
 from .test_serializer_component import dp_param_dict
@@ -99,9 +99,9 @@ def test_group_encode():
     d0 = DescriptorNumber("a", 0)
     d1 = DescriptorNumber("b", 1)
 
-    from easyscience.base_classes import BaseCollection
+    from easyscience.base_classes import CollectionBase
 
-    b = BaseCollection("test", d0, d1)
+    b = CollectionBase("test", d0, d1)
     d = b.as_dict()
     assert isinstance(d["data"], list)
 
@@ -110,8 +110,8 @@ def test_group_encode2():
     d0 = DescriptorNumber("a", 0)
     d1 = DescriptorNumber("b", 1)
 
-    from easyscience.base_classes import BaseCollection
+    from easyscience.base_classes import CollectionBase
 
-    b = BaseObj("outer", b=BaseCollection("test", d0, d1))
+    b = ObjBase("outer", b=CollectionBase("test", d0, d1))
     d = b.as_dict()
     assert isinstance(d["b"], dict)

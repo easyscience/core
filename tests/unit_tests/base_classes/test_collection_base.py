@@ -6,15 +6,15 @@
 import pytest
 
 import easyscience
-from easyscience.base_classes import BaseCollection
-from easyscience.base_classes import BaseObj
+from easyscience.base_classes import CollectionBase
+from easyscience.base_classes import ObjBase
 from easyscience.variable import DescriptorNumber
 from easyscience.variable import Parameter
 from easyscience import global_object
 
 test_dict = {
     "@module": "easyscience.base_classes",
-    "@class": "BaseCollection",
+    "@class": "CollectionBase",
     "@version": easyscience.__version__,
     "name": "testing",
     "data": [
@@ -26,7 +26,7 @@ test_dict = {
             "value": 1.0,
             "unit": "dimensionless",
             "variance": None,
-            "unique_name": "BaseCollection_0",
+            "unique_name": "CollectionBase_0",
             "description": "",
             "url": "",
             "display_name": "par1",
@@ -35,11 +35,11 @@ test_dict = {
 }
 
 
-class Alpha(BaseCollection):
+class Alpha(CollectionBase):
     pass
 
 
-class_constructors = [BaseCollection, Alpha]
+class_constructors = [CollectionBase, Alpha]
 
 
 @pytest.fixture
@@ -56,7 +56,7 @@ def setup_pars():
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_from_base(cls, setup_pars):
+def test_CollectionBase_from_base(cls, setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
     coll = cls(name, **setup_pars)
@@ -72,14 +72,14 @@ def test_baseCollection_from_base(cls, setup_pars):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", range(1, 11))
-def test_baseCollection_from_baseObj(cls, setup_pars: dict, value: int):
+def test_CollectionBase_from_ObjBase(cls, setup_pars: dict, value: int):
     name = setup_pars["name"]
     del setup_pars["name"]
     objs = {}
 
     prefix = "obj"
     for idx in range(value):
-        objs[prefix + str(idx)] = BaseObj(prefix + str(idx), **setup_pars)
+        objs[prefix + str(idx)] = ObjBase(prefix + str(idx), **setup_pars)
 
     coll = cls(name, **objs)
 
@@ -96,7 +96,7 @@ def test_baseCollection_from_baseObj(cls, setup_pars: dict, value: int):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", ("abc", False, (), []))
-def test_baseCollection_create_fail(cls, setup_pars, value):
+def test_CollectionBase_create_fail(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
     setup_pars["to_fail"] = value
@@ -107,7 +107,7 @@ def test_baseCollection_create_fail(cls, setup_pars, value):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("key", ("user_data", "_kwargs", "interface"))
-def test_baseCollection_create_fail2(cls, setup_pars, key):
+def test_CollectionBase_create_fail2(cls, setup_pars, key):
     name = setup_pars["name"]
     del setup_pars["name"]
     setup_pars[key] = DescriptorNumber("fail_name", 0)
@@ -117,7 +117,7 @@ def test_baseCollection_create_fail2(cls, setup_pars, key):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_append_base(cls, setup_pars):
+def test_CollectionBase_append_base(cls, setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -136,7 +136,7 @@ def test_baseCollection_append_base(cls, setup_pars):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", ("abc", False, (), []))
-def test_baseCollection_append_fail(cls, setup_pars, value):
+def test_CollectionBase_append_fail(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -147,7 +147,7 @@ def test_baseCollection_append_fail(cls, setup_pars, value):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", (0, 1, 3, "par1", "des1"))
-def test_baseCollection_getItem(cls, setup_pars, value):
+def test_CollectionBase_getItem(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -163,7 +163,7 @@ def test_baseCollection_getItem(cls, setup_pars, value):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", (False, [], (), 100, 100.4))
-def test_baseCollection_getItem_type_fail(cls, setup_pars, value):
+def test_CollectionBase_getItem_type_fail(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -174,7 +174,7 @@ def test_baseCollection_getItem_type_fail(cls, setup_pars, value):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_getItem_slice(cls, setup_pars):
+def test_CollectionBase_getItem_slice(cls, setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -186,7 +186,7 @@ def test_baseCollection_getItem_slice(cls, setup_pars):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", (0, 1, 3))
-def test_baseCollection_setItem(cls, setup_pars, value):
+def test_CollectionBase_setItem(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -205,7 +205,7 @@ def test_baseCollection_setItem(cls, setup_pars, value):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", ("abc", (), []))
-def test_baseCollection_setItem_fail(cls, setup_pars, value):
+def test_CollectionBase_setItem_fail(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -218,7 +218,7 @@ def test_baseCollection_setItem_fail(cls, setup_pars, value):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", (0, 1, 3))
-def test_baseCollection_delItem(cls, setup_pars, value):
+def test_CollectionBase_delItem(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -237,7 +237,7 @@ def test_baseCollection_delItem(cls, setup_pars, value):
 
 @pytest.mark.parametrize("cls", class_constructors)
 @pytest.mark.parametrize("value", (0, 1, 3))
-def test_baseCollection_len(cls, setup_pars, value):
+def test_CollectionBase_len(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
 
@@ -249,7 +249,7 @@ def test_baseCollection_len(cls, setup_pars, value):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_get_parameters(cls, setup_pars):
+def test_CollectionBase_get_parameters(cls, setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
     obj = cls(name, **setup_pars)
@@ -258,10 +258,10 @@ def test_baseCollection_get_parameters(cls, setup_pars):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_get_parameters_nested(cls, setup_pars):
+def test_CollectionBase_get_parameters_nested(cls, setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
 
     name2 = name + "_2"
     obj2 = cls(name2, obj=obj, **setup_pars)
@@ -271,7 +271,7 @@ def test_baseCollection_get_parameters_nested(cls, setup_pars):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_get_fit_parameters(cls, setup_pars):
+def test_CollectionBase_get_fit_parameters(cls, setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
     obj = cls(name, **setup_pars)
@@ -280,10 +280,10 @@ def test_baseCollection_get_fit_parameters(cls, setup_pars):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_get_fit_parameters_nested(cls, setup_pars):
+def test_CollectionBase_get_fit_parameters_nested(cls, setup_pars):
     name = setup_pars["name"]
     del setup_pars["name"]
-    obj = BaseObj(name, **setup_pars)
+    obj = ObjBase(name, **setup_pars)
 
     name2 = name + "_2"
     obj2 = cls(name2, obj=obj, **setup_pars)
@@ -293,7 +293,7 @@ def test_baseCollection_get_fit_parameters_nested(cls, setup_pars):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_dir(cls):
+def test_CollectionBase_dir(cls):
     name = "testing"
     kwargs = {"p1": DescriptorNumber("par1", 1)}
     obj = cls(name, **kwargs)
@@ -329,7 +329,7 @@ def test_baseCollection_dir(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_as_dict(cls):
+def test_CollectionBase_as_dict(cls):
     name = "testing"
     kwargs = {"p1": DescriptorNumber("par1", 1)}
     obj = cls(name, **kwargs)
@@ -373,7 +373,7 @@ def test_baseCollection_as_dict(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_from_dict(cls):
+def test_CollectionBase_from_dict(cls):
     global_object.map._clear() #TODO: figure out why this test fails without this line
     name = "testing"
     kwargs = {"p1": DescriptorNumber("par1", 1)}
@@ -388,7 +388,7 @@ def test_baseCollection_from_dict(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_repr(cls):
+def test_CollectionBase_repr(cls):
     name = "test"
     p1 = Parameter("p1", 1)
     obj = cls(name, p1)
@@ -398,7 +398,7 @@ def test_baseCollection_repr(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_iterator(cls):
+def test_CollectionBase_iterator(cls):
     name = "test"
     p1 = Parameter("p1", 1)
     p2 = Parameter("p2", 2)
@@ -414,7 +414,7 @@ def test_baseCollection_iterator(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_iterator_dict(cls):
+def test_CollectionBase_iterator_dict(cls):
     global_object.map._clear() #TODO: figure out why this test fails without this line
     name = "test"
     p1 = Parameter("p1", 1)
@@ -434,7 +434,7 @@ def test_baseCollection_iterator_dict(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_sameName(cls):
+def test_CollectionBase_sameName(cls):
     global_object.map._clear() #TODO: figure out why this test fails without this line
     name = "test"
     p1 = Parameter("p1", 1)
@@ -455,7 +455,7 @@ def test_baseCollection_sameName(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_set_index(cls):
+def test_CollectionBase_set_index(cls):
     name = "test"
     p1 = Parameter("p1", 1)
     p2 = Parameter("p1", 2)
@@ -477,7 +477,7 @@ def test_baseCollection_set_index(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_set_index_based(cls):
+def test_CollectionBase_set_index_based(cls):
     name = "test"
     p1 = Parameter("p1", 1)
     p2 = Parameter("p2", 2)
@@ -501,7 +501,7 @@ def test_baseCollection_set_index_based(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_sort(cls):
+def test_CollectionBase_sort(cls):
     name = "test"
     v = [1, 4, 3, 2, 5]
     expected = [1, 2, 3, 4, 5]
@@ -512,7 +512,7 @@ def test_baseCollection_sort(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_sort_reverse(cls):
+def test_CollectionBase_sort_reverse(cls):
     name = "test"
     v = [1, 4, 3, 2, 5]
     expected = [1, 2, 3, 4, 5]
@@ -523,12 +523,12 @@ def test_baseCollection_sort_reverse(cls):
         assert item.value == expected[i]
 
 
-class Beta(BaseObj):
+class Beta(ObjBase):
     pass
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_basecollectionGraph(cls):
+def test_CollectionBaseGraph(cls):
     from easyscience import global_object
 
     G = global_object.map

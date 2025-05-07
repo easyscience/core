@@ -3,10 +3,10 @@
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
-from ..base_classes.base_obj import BaseObj
+from ..base_classes.obj_base import ObjBase
 
 
-class TheoreticalModelBase(BaseObj):
+class TheoreticalModelBase(ObjBase):
     """
     This virtual class allows for the creation of technique-specific Theory objects.
     """

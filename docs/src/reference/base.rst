@@ -26,13 +26,13 @@ Super Classes
   :members:
   :inherited-members:
 
-.. autoclass:: easyscience.base_classes.BaseObj
+.. autoclass:: easyscience.base_classes.ObjBase
   :members: +_add_component
   :inherited-members:
 
 Collections
 ===========
 
-.. autoclass:: easyscience.BaseCollection
+.. autoclass:: easyscience.CollectionBase
   :members:
   :inherited-members:

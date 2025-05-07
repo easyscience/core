@@ -18,8 +18,8 @@ class LoggedProperty(property):
     """
     Pump up python properties. In this case we can see who has called this property and
     then do something if a criteria is met. In this case if the caller is not a member of
-    the `BaseObj` class. Note that all high level `EasyScience` objects should be built from
-    `BaseObj`.
+    the `ObjBase` class. Note that all high level `EasyScience` objects should be built from
+    `ObjBase`.
     """
 
     _global_object = global_object

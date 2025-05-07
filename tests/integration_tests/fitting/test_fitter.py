@@ -8,11 +8,11 @@ import numpy as np
 from easyscience.fitting import Fitter
 from easyscience.fitting.minimizers import FitError
 from easyscience.fitting import AvailableMinimizers
-from easyscience.base_classes import BaseObj
+from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 # Model and container of parameters for tests
-class AbsSin(BaseObj):
+class AbsSin(ObjBase):
     phase: Parameter
     offset: Parameter
 
@@ -25,7 +25,7 @@ class AbsSin(BaseObj):
         return np.abs(np.sin(self.phase.value * x + self.offset.value))
 
 
-class AbsSin2D(BaseObj):
+class AbsSin2D(ObjBase):
     phase: Parameter
     offset: Parameter
 

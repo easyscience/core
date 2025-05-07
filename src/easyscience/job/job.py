@@ -5,13 +5,13 @@
 from abc import ABCMeta
 from abc import abstractmethod
 
-from ..base_classes.base_obj import BaseObj
+from ..base_classes.obj_base import ObjBase
 from .analysis import AnalysisBase
 from .experiment import ExperimentBase
 from .theoreticalmodel import TheoreticalModelBase
 
 
-class JobBase(BaseObj, metaclass=ABCMeta):
+class JobBase(ObjBase, metaclass=ABCMeta):
     """
     This virtual class allows for the creation of technique-specific Job objects.
     """

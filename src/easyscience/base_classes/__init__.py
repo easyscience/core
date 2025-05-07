@@ -1,9 +1,9 @@
-from .base_collection import BaseCollection
-from .base_obj import BaseObj
+from .collection_base import CollectionBase
+from .obj_base import ObjBase
 from .based_base import BasedBase
 
 __all__ = [
-    BaseObj,
+    ObjBase,
     BasedBase,
-    BaseCollection,
+    CollectionBase,
 ]

@@ -10,12 +10,12 @@ from typing import Union
 
 import numpy as np
 
-from ..base_classes import BaseCollection
-from ..base_classes import BaseObj
+from ..base_classes import CollectionBase
+from ..base_classes import ObjBase
 from ..variable import Parameter
 
 
-class Polynomial(BaseObj):
+class Polynomial(ObjBase):
     """
     A polynomial model.
 
@@ -27,16 +27,16 @@ class Polynomial(BaseObj):
         The degree of the polynomial.
     """
 
-    coefficients: ClassVar[BaseCollection]
+    coefficients: ClassVar[CollectionBase]
 
     def __init__(
         self,
         name: str = 'polynomial',
-        coefficients: Optional[Union[Iterable[Union[float, Parameter]], BaseCollection]] = None,
+        coefficients: Optional[Union[Iterable[Union[float, Parameter]], CollectionBase]] = None,
     ):
-        super(Polynomial, self).__init__(name, coefficients=BaseCollection('coefficients'))
+        super(Polynomial, self).__init__(name, coefficients=CollectionBase('coefficients'))
         if coefficients is not None:
-            if issubclass(type(coefficients), BaseCollection):
+            if issubclass(type(coefficients), CollectionBase):
                 self.coefficients = coefficients
             elif isinstance(coefficients, Iterable):
                 for index, item in enumerate(coefficients):
@@ -47,7 +47,7 @@ class Polynomial(BaseObj):
                     else:
                         raise TypeError('Coefficients must be floats or Parameters')
             else:
-                raise TypeError('coefficients must be a list or a BaseCollection')
+                raise TypeError('coefficients must be a list or a CollectionBase')
 
     def __call__(self, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         return np.polyval([c.value for c in self.coefficients], x)

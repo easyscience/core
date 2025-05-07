@@ -6,11 +6,11 @@ from abc import abstractmethod
 
 import numpy as np
 
-from ..base_classes.base_obj import BaseObj
+from ..base_classes.obj_base import ObjBase
 from ..fitting.minimizers import MinimizerBase
 
 
-class AnalysisBase(BaseObj, metaclass=ABCMeta):
+class AnalysisBase(ObjBase, metaclass=ABCMeta):
     """
     This virtual class allows for the creation of technique-specific Analysis objects.
     """

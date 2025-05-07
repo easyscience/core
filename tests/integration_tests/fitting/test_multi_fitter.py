@@ -7,11 +7,11 @@ import pytest
 import numpy as np
 from easyscience.fitting.multi_fitter import MultiFitter
 from easyscience.fitting.minimizers import FitError
-from easyscience.base_classes import BaseObj
+from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 
-class Line(BaseObj):
+class Line(ObjBase):
     m: Parameter
     c: Parameter
 
@@ -24,7 +24,7 @@ class Line(BaseObj):
         return self.m.value * x + self.c.value
     
 
-class AbsSin(BaseObj):
+class AbsSin(ObjBase):
     phase: Parameter
     offset: Parameter
 
@@ -37,7 +37,7 @@ class AbsSin(BaseObj):
         return np.abs(np.sin(self.phase.value * x + self.offset.value))
 
 
-class AbsSin2D(BaseObj):
+class AbsSin2D(ObjBase):
     phase: Parameter
     offset: Parameter
 

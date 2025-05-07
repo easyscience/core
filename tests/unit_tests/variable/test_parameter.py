@@ -8,7 +8,7 @@ from scipp import UnitError
 from easyscience.variable import Parameter
 from easyscience.variable import DescriptorNumber
 from easyscience import global_object
-from easyscience.base_classes import BaseObj
+from easyscience.base_classes import ObjBase
 
 class TestParameter:
     @pytest.fixture
@@ -213,7 +213,7 @@ class TestParameter:
     def test_process_dependency_unique_names_exception_not_a_descriptorNumber(self, clear, normal_parameter: Parameter):
         # When
         normal_parameter._dependency_map = {}
-        base_obj = BaseObj(name='BaseObj', unique_name='base_obj')
+        base_obj = ObjBase(name='ObjBase', unique_name='base_obj')
 
         # Then Expect
         with pytest.raises(ValueError, match='The object with unique_name base_obj is not a Parameter or DescriptorNumber. Please check your dependency expression.'):
@@ -223,7 +223,7 @@ class TestParameter:
         (2, {'a': Parameter(name='a', value=1)}),
         ('2*a', ['a', Parameter(name='a', value=1)]),
         ('2*a', {4: Parameter(name='a', value=1)}),
-        ('2*a', {'a': BaseObj(name='a')}),
+        ('2*a', {'a': ObjBase(name='a')}),
     ], ids=["dependecy_expression_not_a_string", "dependency_map_not_a_dict", "dependency_map_keys_not_strings", "dependency_map_values_not_descriptor_number"])
     def test_parameter_from_dependency_input_exceptions(self, dependency_expression, dependency_map):
         # When Then Expect

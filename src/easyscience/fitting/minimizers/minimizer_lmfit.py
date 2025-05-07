@@ -14,7 +14,7 @@ from lmfit import Parameters as LMParameters
 from lmfit.model import ModelResult
 
 # causes circular import when Parameter is imported
-# from easyscience.base_classes import BaseObj
+# from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
@@ -27,22 +27,22 @@ from .utils import FitResults
 class LMFit(MinimizerBase):  # noqa: S101
     """
     This is a wrapper to the extended Levenberg-Marquardt Fit: https://lmfit.github.io/lmfit-py/
-    It allows for the lmfit fitting engine to use parameters declared in an `EasyScience.base_classes.BaseObj`.
+    It allows for the lmfit fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.
     """
 
     package = 'lmfit'
 
     def __init__(
         self,
-        obj,  #: BaseObj,
+        obj,  #: ObjBase,
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
-    ):  # todo after constraint changes, add type hint: obj: BaseObj  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """
-        Initialize the minimizer with the `BaseObj` and the `fit_function` to be used.
+        Initialize the minimizer with the `ObjBase` and the `fit_function` to be used.
 
         :param obj: Base object which contains the parameters to be fitted
-        :type obj: BaseObj
+        :type obj: ObjBase
         :param fit_function: Function which will be fitted to the data
         :type fit_function: Callable
         :param method: Method to be used by the minimizer
@@ -167,7 +167,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         :return: lmfit Parameters compatible object
         """
         if parameters is None:
-            # Assume that we have a BaseObj for which we can obtain a list
+            # Assume that we have a ObjBase for which we can obtain a list
             parameters = self._object.get_fit_parameters()
         lm_parameters = LMParameters().add_many([self.convert_to_par_object(parameter) for parameter in parameters])
         return lm_parameters

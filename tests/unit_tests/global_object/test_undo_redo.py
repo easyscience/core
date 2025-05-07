@@ -7,8 +7,8 @@ import math
 import numpy as np
 import pytest
 
-from easyscience.base_classes import BaseCollection
-from easyscience.base_classes import BaseObj
+from easyscience.base_classes import CollectionBase
+from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 from easyscience.variable import DescriptorStr
 from easyscience.variable import DescriptorNumber
@@ -149,10 +149,10 @@ def test_Parameter_Bounds_UndoRedo():
     assert parameter.max == np.inf
 
 
-def test_BaseObjUndoRedo():
+def test_ObjBaseUndoRedo():
     objs = {obj.name: obj for obj in [createSingleObjs(idx) for idx in range(5)]}
     name = "test"
-    obj = BaseObj(name, **objs)
+    obj = ObjBase(name, **objs)
     name2 = "best"
 
     # Test name
@@ -164,10 +164,10 @@ def test_BaseObjUndoRedo():
         assert not e
 
 
-def test_BaseCollectionUndoRedo():
+def test_CollectionBaseUndoRedo():
     objs = [createSingleObjs(idx) for idx in range(5)]
     name = "test"
-    obj = BaseCollection(name, *objs)
+    obj = CollectionBase(name, *objs)
     name2 = "best"
 
     # assert not doUndoRedo(obj, 'name', name2)
@@ -271,7 +271,7 @@ def test_fittingUndoRedo(fit_engine):
     x = np.linspace(-5, 5, 100)
     dy = np.random.rand(*x.shape)
 
-    class Line(BaseObj):
+    class Line(ObjBase):
         def __init__(self, m: Parameter, c: Parameter):
             super(Line, self).__init__("basic_line", m=m, c=c)
 
