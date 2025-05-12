@@ -128,10 +128,10 @@ class SerializerBase:
             if new_obj is not obj:
                 return new_obj
 
-        d = {'@module': self._get_class_module(obj), '@class': obj.__class__.__name__}
+        d = {'@module': obj.__module__, '@class': obj.__class__.__name__}
 
         try:
-            parent_module = self._get_class_module(obj).split('.')[0]
+            parent_module = obj.__module__.split('.')[0]
             module_version = import_module(parent_module).__version__  # type: ignore
             d['@version'] = '{}'.format(module_version)
         except (AttributeError, ImportError):
@@ -262,13 +262,6 @@ class SerializerBase:
         if issubclass(T_, (list, MutableSequence)):
             return [SerializerBase._convert_from_dict(x) for x in d]
         return d
-
-    def _get_class_module(self, obj):
-        """
-        Returns the REAL module of the class of the object.
-        """
-        c = getattr(obj, '__old_class__', obj.__class__)
-        return c.__module__
 
     def _recursive_encoder(self, obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs):
         """
