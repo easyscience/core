@@ -11,7 +11,6 @@ import pytest
 from easyscience.Utils.io.xml import XMLSerializer
 from easyscience.Objects.variable import DescriptorNumber
 
-from .test_core import A
 from .test_core import dp_param_dict
 from .test_core import skip_dict
 from easyscience import global_object
@@ -64,39 +63,6 @@ def test_variable_XMLDictSerializer(dp_kwargs: dict, dp_cls: Type[DescriptorNumb
     data_xml = ET.XML(enc)
     assert data_xml.tag == "data"
     recursive_test(data_xml, ref_encode)
-
-
-@pytest.mark.parametrize(**skip_dict)
-@pytest.mark.parametrize(**dp_param_dict)
-def test_custom_class_XMLDictSerializer_encode(
-    dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip
-):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
-
-    a_kw = {data_dict["name"]: dp_cls(**data_dict)}
-
-    full_d = {
-        "@module": A.__module__,
-        "@class": A.__name__,
-        "@version": None,
-        "name": "A",
-        dp_kwargs["name"]: deepcopy(dp_kwargs),
-    }
-
-    if not isinstance(skip, list):
-        skip = [skip]
-
-    full_d = recursive_remove(full_d, skip)
-
-    obj = A(**a_kw)
-
-    enc = obj.encode(skip=skip, encoder=XMLSerializer)
-    ref_encode = obj.encode(skip=skip)
-    assert isinstance(enc, str)
-    data_xml = ET.XML(enc)
-    assert data_xml.tag == "data"
-    recursive_test(data_xml, ref_encode)
-
 
 # ########################################################################################################################
 # # TESTING DECODING

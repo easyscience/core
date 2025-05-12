@@ -8,7 +8,6 @@ __version__ = "0.0.1"
 import pytest
 
 import numpy as np
-from easyscience.Constraints import ObjConstraint
 from easyscience.fitting.multi_fitter import MultiFitter
 from easyscience.fitting.minimizers import FitError
 from easyscience.Objects.ObjectClasses import BaseObj
@@ -66,15 +65,9 @@ def test_multi_fit(fit_engine, with_errors):
     ref_sin_2 = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
     sp_sin_2 = AbsSin(1, 0.5)
 
-    ref_sin_1.offset.user_constraints["ref_sin2"] = ObjConstraint(
-        ref_sin_2.offset, "", ref_sin_1.offset
-    )
-    ref_sin_1.offset.user_constraints["ref_sin2"]()
+    ref_sin_2.offset.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
 
-    sp_sin_1.offset.user_constraints["sp_sin2"] = ObjConstraint(
-        sp_sin_2.offset, "", sp_sin_1.offset
-    )
-    sp_sin_1.offset.user_constraints["sp_sin2"]()
+    sp_sin_2.offset.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
 
     x1 = np.linspace(0, 5, 200)
     y1 = ref_sin_1(x1)
@@ -128,25 +121,14 @@ def test_multi_fit2(fit_engine, with_errors):
     sp_sin_2 = AbsSin(1, 0.5)#    ref_sin_1_obj = genObjs[0]
     ref_line_obj = Line(1, 4.6)
 
-    ref_sin_1.offset.user_constraints["ref_sin2"] = ObjConstraint(
-        ref_sin_2.offset, "", ref_sin_1.offset
-    )
-    ref_sin_1.offset.user_constraints["ref_line"] = ObjConstraint(
-        ref_line_obj.m, "", ref_sin_1.offset
-    )
-    ref_sin_1.offset.user_constraints["ref_sin2"]()
-    ref_sin_1.offset.user_constraints["ref_line"]()
+    ref_sin_2.offset.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
+    ref_line_obj.m.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin_1.offset})
 
     sp_line = Line(0.43, 6.1)
 
-    sp_sin_1.offset.user_constraints["sp_sin2"] = ObjConstraint(
-        sp_sin_2.offset, "", sp_sin_1.offset
-    )
-    sp_sin_1.offset.user_constraints["sp_line"] = ObjConstraint(
-        sp_line.m, "", sp_sin_1.offset
-    )
-    sp_sin_1.offset.user_constraints["sp_sin2"]()
-    sp_sin_1.offset.user_constraints["sp_line"]()
+    sp_sin_2.offset.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
+    sp_line.m.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin_1.offset})
+
 
     x1 = np.linspace(0, 5, 200)
     y1 = ref_sin_1(x1)
@@ -210,15 +192,8 @@ def test_multi_fit_1D_2D(fit_engine, with_errors):
     )  # The fit is VERY sensitive to the initial values :-(
 
     # Link the parameters
-    ref_sin1D.offset.user_constraints["ref_sin2"] = ObjConstraint(
-        ref_sin2D.offset, "", ref_sin1D.offset
-    )
-    ref_sin1D.offset.user_constraints["ref_sin2"]()
-
-    sp_sin1D.offset.user_constraints["sp_sin2"] = ObjConstraint(
-        sp_sin2D.offset, "", sp_sin1D.offset
-    )
-    sp_sin1D.offset.user_constraints["sp_sin2"]()
+    ref_sin2D.offset.make_dependent_on(dependency_expression="ref_sin1", dependency_map={"ref_sin1": ref_sin1D.offset})
+    sp_sin2D.offset.make_dependent_on(dependency_expression="sp_sin1", dependency_map={"sp_sin1": sp_sin1D.offset})
 
     # Generate data
     x1D = np.linspace(0.2, 3.8, 400)

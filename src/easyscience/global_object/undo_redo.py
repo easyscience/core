@@ -428,18 +428,18 @@ class DictStackReCreate(UndoCommand):
         self._parent.data = self._new_value
 
 
-def property_stack_deco(arg: Union[str, Callable], begin_macro: bool = False) -> Callable:
+def property_stack(arg: Union[str, Callable], begin_macro: bool = False) -> Callable:
     """
     Decorate a `property` setter with undo/redo functionality
     This decorator can be used as:
 
-    @property_stack_deco
+    @property_stack
     def func()
     ....
 
     or
 
-    @property_stack_deco("This is the undo/redo text)
+    @property_stack("This is the undo/redo text)
     def func()
     ....
 

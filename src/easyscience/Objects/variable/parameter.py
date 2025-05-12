@@ -6,29 +6,26 @@ from __future__ import annotations
 
 import copy
 import numbers
+import re
+import warnings
 import weakref
-from collections import namedtuple
-from types import MappingProxyType
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 import numpy as np
 import scipp as sc
+from asteval import Interpreter
 from scipp import UnitError
 from scipp import Variable
 
 from easyscience import global_object
-from easyscience.Constraints import ConstraintBase
-from easyscience.Constraints import SelfConstraint
-from easyscience.global_object.undo_redo import property_stack_deco
-from easyscience.Utils.Exceptions import CoreSetException
+from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_number import DescriptorNumber
-
-Constraints = namedtuple('Constraints', ['user', 'builtin', 'virtual'])
+from .descriptor_number import notify_observers
 
 
 class Parameter(DescriptorNumber):
@@ -54,7 +51,6 @@ class Parameter(DescriptorNumber):
         url: Optional[str] = None,
         display_name: Optional[str] = None,
         callback: property = property(),
-        enabled: Optional[bool] = True,
         parent: Optional[Any] = None,
     ):
         """
@@ -68,11 +64,10 @@ class Parameter(DescriptorNumber):
         :param variance: The variance of the value
         :param min: The minimum value for fitting
         :param max: The maximum value for fitting
-        :param fixed: Can the parameter vary while fitting?
+        :param fixed: If the parameter is free to vary during fitting
         :param description: A brief summary of what this object is
         :param url: Lookup url for documentation/information
         :param display_name: The name of the object as it should be displayed
-        :param enabled: Can the objects value be set
         :param parent: The object which is the parent to this one
 
         .. note::
@@ -81,19 +76,19 @@ class Parameter(DescriptorNumber):
         if not isinstance(min, numbers.Number):
             raise TypeError('`min` must be a number')
         if not isinstance(max, numbers.Number):
-            raise TypeError('`max` must be a number')        
+            raise TypeError('`max` must be a number')
         if not isinstance(value, numbers.Number):
             raise TypeError('`value` must be a number')
         if value < min:
             raise ValueError(f'{value=} can not be less than {min=}')
         if value > max:
             raise ValueError(f'{value=} can not be greater than {max=}')
-
         if np.isclose(min, max, rtol=1e-9, atol=0.0):
             raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
         if not isinstance(fixed, bool):
             raise TypeError('`fixed` must be either True or False')
-
+        self._independent = True
+        self._observers: List[DescriptorNumber] = []
         self._fixed = fixed # For fitting, but must be initialized before super().__init__
         self._min = sc.scalar(float(min), unit=unit)
         self._max = sc.scalar(float(max), unit=unit)
@@ -115,14 +110,189 @@ class Parameter(DescriptorNumber):
             weakref.finalize(self, self._callback.fdel)
 
         # Create additional fitting elements
-        self._enabled = enabled
         self._initial_scalar = copy.deepcopy(self._scalar)
-        builtin_constraint = {
-            # Last argument in constructor is the name of the property holding the value of the constraint
-            'min': SelfConstraint(self, '>=', 'min'),
-            'max': SelfConstraint(self, '<=', 'max'),
-        }
-        self._constraints = Constraints(builtin=builtin_constraint, user={}, virtual={})
+
+    @classmethod
+    def from_dependency(cls, name: str, dependency_expression: str, dependency_map: Optional[dict] = None, **kwargs) -> Parameter:  # noqa: E501
+        """
+        Create a dependent Parameter directly from a dependency expression.
+        
+        :param name: The name of the parameter
+        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by the ASTEval interpreter.
+        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies. 
+        :param kwargs: Additional keyword arguments to pass to the Parameter constructor.
+        :return: A new dependent Parameter object.
+        """  # noqa: E501
+        parameter = cls(name=name, value=0.0, unit='', variance=0.0, min=-np.inf, max=np.inf, **kwargs)
+        parameter.make_dependent_on(dependency_expression=dependency_expression, dependency_map=dependency_map)
+        return parameter
+
+
+    def _update(self, update_id: int, updating_object: str) -> None:
+        """
+        Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
+
+        :param update_id: The id of the update. This is used to avoid cyclic dependencies.
+        :param updating_object: The unique_name of the object which is updating this parameter.
+
+        """
+        if not self._independent:
+            # Check if this parameter has already been updated by the updating object with this update id
+            if updating_object not in self._dependency_updates:
+                self._dependency_updates[updating_object] = 0
+            if self._dependency_updates[updating_object] == update_id:
+                raise RuntimeError('\n Potential cyclic dependency detected!\n' +
+                                  f'This parameter, {self.unique_name}, has already been updated by {updating_object} during this update.\n' +  # noqa: E501
+                                   'Please check your dependencies.')
+            else:
+                # Update the value of the parameter using the dependency interpreter
+                temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
+                self._scalar.value = temporary_parameter.value
+                self._scalar.unit = temporary_parameter.unit
+                self._scalar.variance = temporary_parameter.variance
+                self._min.value = temporary_parameter.min if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
+                self._max.value = temporary_parameter.max if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
+                self._min.unit = temporary_parameter.unit
+                self._max.unit = temporary_parameter.unit
+                self._dependency_updates[updating_object] = update_id
+                self._notify_observers(update_id=update_id)
+        else:
+            warnings.warn('This parameter is not dependent. It cannot be updated.')
+
+    def make_dependent_on(self, dependency_expression: str, dependency_map: Optional[dict] = None) -> None:
+        """
+        Make this parameter dependent on another parameter. This will overwrite the current value, unit, variance, min and max.
+
+        How to use the dependency map:
+        If a parameter c has a dependency expression of 'a + b', where a and b are parameters belonging to the model class,
+        then the dependency map needs to have the form {'a': model.a, 'b': model.b}, where model is the model class.
+        I.e. the values are the actual objects, whereas the keys are how they are represented in the dependency expression.
+
+        The dependency map is not needed if the dependency expression uses the unique names of the parameters.
+        Unique names in dependency expressions are defined by quotes, e.g. 'Parameter_0' or "Parameter_0" depending on the quotes used for the expression.
+
+        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by a python interpreter.
+        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies. 
+        """  # noqa: E501
+        if not isinstance(dependency_expression, str):
+            raise TypeError('`dependency_expression` must be a string representing a valid dependency expression.')
+        if not (isinstance(dependency_map, dict) or dependency_map is None):
+            raise TypeError('`dependency_map` must be a dictionary of dependencies and their corresponding names in the dependecy expression.')  # noqa: E501
+        if isinstance(dependency_map, dict):
+            for key, value in dependency_map.items():
+                if not isinstance(key, str):
+                    raise TypeError('`dependency_map` keys must be strings representing the names of the dependencies in the dependency expression.')  # noqa: E501
+                if not isinstance(value, DescriptorNumber):
+                    raise TypeError(f'`dependency_map` values must be DescriptorNumbers or Parameters. Got {type(value)} for {key}.')  # noqa: E501
+
+        # If we're overwriting the dependency
+        if not self._independent:
+            for old_dependency in self._dependency_map.values():
+                old_dependency._detach_observer(self)
+
+        self._dependency_string = dependency_expression
+        self._dependency_map = dependency_map if dependency_map is not None else {}
+        # List of allowed python constructs for the asteval interpreter
+        asteval_config = {'import':         False, 'importfrom':  False, 'assert':         False, 
+                          'augassign':      False, 'delete':      False, 'if':             True, 
+                          'ifexp':          True,  'for':         False, 'formattedvalue': False, 
+                          'functiondef':    False, 'print':       False, 'raise':          False, 
+                          'listcomp':       False, 'dictcomp':    False, 'setcomp':        False,
+                          'try':            False, 'while':       False, 'with':           False}
+        self._dependency_interpreter = Interpreter(config=asteval_config)
+        self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
+        
+        self._process_dependency_unique_names(self._dependency_string)
+        for key, value in self._dependency_map.items():
+                self._dependency_interpreter.symtable[key] = value
+                self._dependency_interpreter.readonly_symbols.add(key) # Dont allow overwriting of the dependencies in the dependency expression  # noqa: E501
+                value._attach_observer(self)
+        try:
+            dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
+        except NameError as message:
+            raise NameError('\nUnknown name encountered in dependecy expression:'+
+                            '\n'+'\n'.join(str(message).split("\n")[1:])+
+                            '\nPlease check your expression or add the name to the `dependency_map`') from None
+        except Exception as message:
+            raise SyntaxError('\nError encountered in dependecy expression:'+
+                            '\n'+'\n'.join(str(message).split("\n")[1:])+
+                            '\nPlease check your expression') from None
+        if not isinstance(dependency_result, DescriptorNumber):
+            raise TypeError(f'The dependency expression: "{self._dependency_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
+        self._scalar.value = dependency_result.value
+        self._scalar.unit = dependency_result.unit
+        self._scalar.variance = dependency_result.variance
+        self._min.value = dependency_result.min if isinstance(dependency_result, Parameter) else dependency_result.value
+        self._max.value = dependency_result.max if isinstance(dependency_result, Parameter) else dependency_result.value
+        self._min.unit = dependency_result.unit
+        self._max.unit = dependency_result.unit
+        self._independent = False
+        self._fixed = False
+        self._notify_observers()
+
+    def make_independent(self) -> None:
+        """
+        Make this parameter independent.
+        This will remove the dependency expression, the dependency map and the dependency interpreter.
+
+        :return: None
+        """
+        if not self._independent:
+            for dependency in self._dependency_map.values():
+                dependency._detach_observer(self)
+            self._independent = True
+            del self._dependency_map
+            del self._dependency_updates
+            del self._dependency_interpreter
+            del self._dependency_string
+            del self._clean_dependency_string
+        else:
+            raise AttributeError('This parameter is already independent.')
+
+    @property
+    def independent(self) -> bool:
+        """
+        Is the parameter independent?
+
+        :return: True = independent, False = dependent
+        """
+        return self._independent
+    
+    @independent.setter
+    def independent(self, value: bool) -> None:
+        raise AttributeError('This property is read-only. Use `make_independent` and  `make_dependent_on` to change the state of the parameter.')  # noqa: E501
+
+    @property
+    def dependency_expression(self) -> str:
+        """
+        Get the dependency expression of this parameter.
+
+        :return: The dependency expression of this parameter.
+        """
+        if not self._independent:
+            return self._dependency_string
+        else:
+            raise AttributeError('This parameter is independent. It has no dependency expression.')
+        
+    @dependency_expression.setter
+    def dependency_expression(self, new_expression: str) -> None:
+        raise AttributeError('Dependency expression is read-only. Use `make_dependent_on` to change the dependency expression.')  # noqa: E501
+
+    @property
+    def dependency_map(self) -> Dict[str, DescriptorNumber]:
+        """
+        Get the dependency map of this parameter.
+
+        :return: The dependency map of this parameter.
+        """
+        if not self._independent:
+            return self._dependency_map
+        else:
+            raise AttributeError('This parameter is independent. It has no dependency map.')
+        
+    @dependency_map.setter
+    def dependency_map(self, new_map: Dict[str, DescriptorNumber]) -> None:
+        raise AttributeError('Dependency map is read-only. Use `make_dependent_on` to change the dependency map.')
 
     @property
     def value_no_call_back(self) -> numbers.Number:
@@ -167,45 +337,70 @@ class Parameter(DescriptorNumber):
         return self._scalar.value
 
     @value.setter
-    @property_stack_deco
+    @property_stack
     def value(self, value: numbers.Number) -> None:
         """
         Set the value of self. This only updates the value of the scipp scalar.
 
         :param value: New value of self
         """
-        if not self.enabled:
-            if global_object.debug:
-                raise CoreSetException(f'{str(self)} is not enabled.')
-            return
+        if self._independent:
+            if not isinstance(value, numbers.Number):
+                raise TypeError(f'{value=} must be a number')
+            
+            value = float(value)
+            if value < self._min.value:
+                value = self._min.value
+            if value > self._max.value:
+                value = self._max.value
 
-        if not isinstance(value, numbers.Number) or isinstance(value, bool):
-            raise TypeError(f'{value=} must be a number')
+            self._scalar.value = value
 
-        # Need to set the value for constraints to be functional
-        self._scalar.value = float(value)
-        #        if self._callback.fset is not None:
-        #            self._callback.fset(self._scalar.value)
+            if self._callback.fset is not None:
+                self._callback.fset(self._scalar.value)
 
-        # Deals with min/max
-        value = self._constraint_runner(self.builtin_constraints, self._scalar.value)
+            # Notify observers of the change
+            self._notify_observers()
+        else:
+            raise AttributeError("This is a dependent parameter, its value cannot be set directly.")
 
-        # Deals with user constraints
-        # Changes should not be registrered in the undo/redo stack
-        stack_state = global_object.stack.enabled
-        if stack_state:
-            global_object.stack.force_state(False)
-        try:
-            value = self._constraint_runner(self.user_constraints, value)
-        finally:
-            global_object.stack.force_state(stack_state)
+    @DescriptorNumber.variance.setter
+    def variance(self, variance_float: float) -> None:
+        """
+        Set the variance.
 
-        value = self._constraint_runner(self._constraints.virtual, value)
+        :param variance_float: Variance as a float
+        """
+        if self._independent:
+            DescriptorNumber.variance.fset(self, variance_float)
+        else:
+            raise AttributeError("This is a dependent parameter, its variance cannot be set directly.")
 
-        self._scalar.value = float(value)
-        if self._callback.fset is not None:
-            self._callback.fset(self._scalar.value)
+    @DescriptorNumber.error.setter
+    def error(self, value: float) -> None:
+        """
+        Set the standard deviation for the parameter.
 
+        :param value: New error value
+        """
+        if self._independent:
+            DescriptorNumber.error.fset(self, value)
+        else:
+            raise AttributeError("This is a dependent parameter, its error cannot be set directly.")
+
+    def _convert_unit(self, unit_str: str) -> None:
+        """
+        Perform unit conversion. The value, max and min can change on unit change.
+
+        :param new_unit: new unit
+        :return: None
+        """
+        super()._convert_unit(unit_str=unit_str)
+        new_unit = sc.Unit(unit_str)  # unit_str is tested in super method
+        self._min = self._min.to(unit=new_unit)
+        self._max = self._max.to(unit=new_unit)
+
+    @notify_observers
     def convert_unit(self, unit_str: str) -> None:
         """
         Perform unit conversion. The value, max and min can change on unit change.
@@ -213,10 +408,7 @@ class Parameter(DescriptorNumber):
         :param new_unit: new unit
         :return: None
         """
-        super().convert_unit(unit_str)
-        new_unit = sc.Unit(unit_str)  # unit_str is tested in super method
-        self._min = self._min.to(unit=new_unit)
-        self._max = self._max.to(unit=new_unit)
+        self._convert_unit(unit_str)
 
     @property
     def min(self) -> numbers.Number:
@@ -228,7 +420,7 @@ class Parameter(DescriptorNumber):
         return self._min.value
 
     @min.setter
-    @property_stack_deco
+    @property_stack
     def min(self, min_value: numbers.Number) -> None:
         """
         Set the minimum value for fitting.
@@ -237,14 +429,18 @@ class Parameter(DescriptorNumber):
         :param min_value: new minimum value
         :return: None
         """
-        if not isinstance(min_value, numbers.Number):
-            raise TypeError('`min` must be a number')
-        if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
-            raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
-        if min_value <= self.value:
-            self._min.value = min_value
+        if self._independent:
+            if not isinstance(min_value, numbers.Number):
+                raise TypeError('`min` must be a number')
+            if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
+                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+            if min_value <= self.value:
+                self._min.value = min_value
+            else:
+                raise ValueError(f'The current value ({self.value}) is smaller than the desired min value ({min_value}).')
+            self._notify_observers()
         else:
-            raise ValueError(f'The current value ({self.value}) is smaller than the desired min value ({min_value}).')
+            raise AttributeError("This is a dependent parameter, its minimum value cannot be set directly.")
 
     @property
     def max(self) -> numbers.Number:
@@ -256,7 +452,7 @@ class Parameter(DescriptorNumber):
         return self._max.value
 
     @max.setter
-    @property_stack_deco
+    @property_stack
     def max(self, max_value: numbers.Number) -> None:
         """
         Get the maximum value for fitting.
@@ -265,14 +461,18 @@ class Parameter(DescriptorNumber):
         :param max_value: new maximum value
         :return: None
         """
-        if not isinstance(max_value, numbers.Number):
-            raise TypeError('`max` must be a number')
-        if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
-            raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
-        if max_value >= self.value:
-            self._max.value = max_value
+        if self._independent:
+            if not isinstance(max_value, numbers.Number):
+                raise TypeError('`max` must be a number')
+            if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
+                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+            if max_value >= self.value:
+                self._max.value = max_value
+            else:
+                raise ValueError(f'The current value ({self.value}) is greater than the desired max value ({max_value}).')
+            self._notify_observers()
         else:
-            raise ValueError(f'The current value ({self.value}) is greater than the desired max value ({max_value}).')
+            raise AttributeError("This is a dependent parameter, its maximum value cannot be set directly.")
 
     @property
     def fixed(self) -> bool:
@@ -284,7 +484,7 @@ class Parameter(DescriptorNumber):
         return self._fixed
 
     @fixed.setter
-    @property_stack_deco
+    @property_stack
     def fixed(self, fixed: bool) -> None:
         """
         Change the parameter vary while fitting state.
@@ -292,17 +492,17 @@ class Parameter(DescriptorNumber):
 
         :param fixed: True = fixed, False = can vary
         """
-        if not self.enabled:
-            if global_object.stack.enabled:
-                # Remove the recorded change from the stack
-                global_object.stack.pop()
-            if global_object.debug:
-                raise CoreSetException(f'{str(self)} is not enabled.')
-            return
         if not isinstance(fixed, bool):
             raise ValueError(f'{fixed=} must be a boolean. Got {type(fixed)}')
-        self._fixed = fixed
+        if self._independent:
+            self._fixed = fixed
+        else:
+            if self._global_object.stack.enabled:
+                # Remove the recorded change from the stack
+                global_object.stack.pop()
+            raise AttributeError("This is a dependent parameter, dependent parameters cannot be fixed.")
 
+    # Is this alias really needed?
     @property
     def free(self) -> bool:
         return not self.fixed
@@ -311,112 +511,30 @@ class Parameter(DescriptorNumber):
     def free(self, value: bool) -> None:
         self.fixed = not value
 
-    @property
-    def bounds(self) -> Tuple[numbers.Number, numbers.Number]:
+    def _process_dependency_unique_names(self, dependency_expression: str):
         """
-        Get the bounds of the parameter.
+        Add the unique names of the parameters to the ASTEval interpreter. This is used to evaluate the dependency expression.
 
-        :return: Tuple of the parameters minimum and maximum values
+        :param dependency_expression: The dependency expression to be evaluated
         """
-        return self.min, self.max
-    @bounds.setter
-    def bounds(self, new_bound: Tuple[numbers.Number, numbers.Number]) -> None:
-        """
-        Set the bounds of the parameter. *This will also enable the parameter*.
+        # Get the unique_names from the expression string regardless of the quotes used
+        inputted_unique_names = re.findall("(\'.+?\')", dependency_expression)
+        inputted_unique_names += re.findall('(\".+?\")', dependency_expression)
 
-        :param new_bound: New bounds. This should be a tuple of (min, max).
-        """
-        old_min = self.min
-        old_max = self.max
-        new_min, new_max = new_bound
-
-        # Begin macro operation for undo/redo
-        close_macro = False
-        if self._global_object.stack.enabled:
-            self._global_object.stack.beginMacro('Setting bounds')
-            close_macro = True
-
-        try:
-            # Update bounds
-            self.min = new_min
-            self.max = new_max
-        except ValueError:
-            # Rollback on failure
-            self.min = old_min
-            self.max = old_max
-            if close_macro:
-                self._global_object.stack.endMacro()
-            raise ValueError(f'Current parameter value: {self._scalar.value} must be within {new_bound=}')
-
-        # Enable the parameter if needed
-        if not self.enabled:
-            self.enabled = True
-        # Free parameter if needed
-        if self.fixed:
-            self.fixed = False
-
-        # End macro operation
-        if close_macro:
-            self._global_object.stack.endMacro()
-            
-    @property
-    def builtin_constraints(self) -> Dict[str, SelfConstraint]:
-        """
-        Get the built in constrains of the object. Typically these are the min/max
-
-        :return: Dictionary of constraints which are built into the system
-        """
-        return MappingProxyType(self._constraints.builtin)
-
-    @property
-    def user_constraints(self) -> Dict[str, ConstraintBase]:
-        """
-        Get the user specified constrains of the object.
-
-        :return: Dictionary of constraints which are user supplied
-        """
-        return self._constraints.user
-
-    @user_constraints.setter
-    def user_constraints(self, constraints_dict: Dict[str, ConstraintBase]) -> None:
-        self._constraints.user = constraints_dict
-
-    def _constraint_runner(
-        self,
-        this_constraint_type,
-        value: numbers.Number,
-    ) -> float:
-        for constraint in this_constraint_type.values():
-            if constraint.external:
-                constraint()
-                continue
-
-            constained_value = constraint(no_set=True)
-            if constained_value != value:
-                if global_object.debug:
-                    print(f'Constraint `{constraint}` has been applied')
-                self._scalar.value = constained_value
-                value = constained_value
-        return value
-
-    @property
-    def enabled(self) -> bool:
-        """
-        Logical property to see if the objects value can be directly set.
-
-        :return: Can the objects value be set
-        """
-        return self._enabled
-
-    @enabled.setter
-    @property_stack_deco
-    def enabled(self, value: bool) -> None:
-        """
-        Enable and disable the direct setting of an objects value field.
-
-        :param value: True - objects value can be set, False - the opposite
-        """
-        self._enabled = value
+        clean_dependency_string = dependency_expression
+        existing_unique_names = self._global_object.map.vertices()
+        # Add the unique names of the parameters to the ASTEVAL interpreter
+        for name in inputted_unique_names:
+            stripped_name = name.strip("'\"")
+            if stripped_name not in existing_unique_names:
+                raise ValueError(f'A Parameter with unique_name {stripped_name} does not exist. Please check your dependency expression.') # noqa: E501
+            dependent_parameter = self._global_object.map.get_item_by_key(stripped_name)
+            if isinstance(dependent_parameter, DescriptorNumber):
+                self._dependency_map['__'+stripped_name+'__'] = dependent_parameter
+                clean_dependency_string = clean_dependency_string.replace(name, '__'+stripped_name+'__')
+            else:
+                raise ValueError(f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber. Please check your dependency expression.') # noqa: E501
+        self._clean_dependency_string = clean_dependency_string
 
     def __copy__(self) -> Parameter:
         new_obj = super().__copy__()
@@ -450,13 +568,13 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             other_unit = other.unit
             try:
-                other.convert_unit(self.unit)
+                other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be added') from None
             new_full_value = self.full_value + other.full_value
             min_value = self.min + other.min if isinstance(other, Parameter) else self.min + other.value
             max_value = self.max + other.max if isinstance(other, Parameter) else self.max + other.value
-            other.convert_unit(other_unit)
+            other._convert_unit(other_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -473,13 +591,13 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             original_unit = self.unit
             try:
-                self.convert_unit(other.unit)
+                self._convert_unit(other.unit)
             except UnitError:
                 raise UnitError(f'Values with units {other.unit} and {self.unit} cannot be added') from None
             new_full_value = self.full_value + other.full_value
             min_value = self.min + other.value
             max_value = self.max + other.value
-            self.convert_unit(original_unit)
+            self._convert_unit(original_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -496,7 +614,7 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             other_unit = other.unit
             try:
-                other.convert_unit(self.unit)
+                other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be subtracted') from None
             new_full_value = self.full_value - other.full_value
@@ -506,7 +624,7 @@ class Parameter(DescriptorNumber):
             else:
                 min_value = self.min - other.value
                 max_value = self.max - other.value
-            other.convert_unit(other_unit)
+            other._convert_unit(other_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -523,13 +641,13 @@ class Parameter(DescriptorNumber):
         elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
             original_unit = self.unit
             try:
-                self.convert_unit(other.unit)
+                self._convert_unit(other.unit)
             except UnitError:
                 raise UnitError(f'Values with units {other.unit} and {self.unit} cannot be subtracted') from None
             new_full_value = other.full_value - self.full_value
             min_value = other.value - self.max
             max_value = other.value - self.min
-            self.convert_unit(original_unit)
+            self._convert_unit(original_unit)
         else:
             return NotImplemented
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
@@ -573,7 +691,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
 
@@ -597,7 +715,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
 
@@ -639,7 +757,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
 
@@ -680,7 +798,7 @@ class Parameter(DescriptorNumber):
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
-        parameter.convert_unit(parameter._base_unit())
+        parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         self.value = original_self
         return parameter

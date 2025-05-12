@@ -24,42 +24,6 @@ class TestFitter():
         assert fitter._minimizer is None
         fitter._update_minimizer.assert_called_once_with(AvailableMinimizers.LMFit_leastsq)
 
-    def test_fit_constraints(self, fitter: Fitter):
-        # When
-        mock_minimizer = MagicMock()
-        mock_minimizer.fit_constraints = MagicMock(return_value='constraints')
-        fitter._minimizer = mock_minimizer
-
-        # Then
-        constraints = fitter.fit_constraints()
-
-        # Expect
-        assert constraints == 'constraints'
-
-    def test_add_fit_constraint(self, fitter: Fitter):
-        # When
-        mock_minimizer = MagicMock()
-        mock_minimizer.add_fit_constraint = MagicMock()
-        fitter._minimizer = mock_minimizer
-
-        # Then
-        fitter.add_fit_constraint('constraints')
-
-        # Expect
-        mock_minimizer.add_fit_constraint.assert_called_once_with('constraints')
-
-    def test_remove_fit_constraint(self, fitter: Fitter):
-        # When
-        mock_minimizer = MagicMock()
-        mock_minimizer.remove_fit_constraint = MagicMock()
-        fitter._minimizer = mock_minimizer
-
-        # Then
-        fitter.remove_fit_constraint(10)
-
-        # Expect
-        mock_minimizer.remove_fit_constraint.assert_called_once_with(10)
-
     def test_make_model(self, fitter: Fitter):
         # When
         mock_minimizer = MagicMock()
@@ -128,8 +92,6 @@ class TestFitter():
     def test_switch_minimizer(self, fitter: Fitter, monkeypatch):
         # When
         mock_minimizer = MagicMock()
-        mock_minimizer.fit_constraints = MagicMock(return_value='constraints')
-        mock_minimizer.set_fit_constraint = MagicMock()
         fitter._minimizer = mock_minimizer
         mock_string_to_enum = MagicMock(return_value=10)
         monkeypatch.setattr(easyscience.fitting.fitter, 'from_string_to_enum', mock_string_to_enum)
@@ -139,8 +101,6 @@ class TestFitter():
 
         # Expect
         fitter._update_minimizer.count(2)
-        mock_minimizer.set_fit_constraint.assert_called_once_with('constraints')
-        mock_minimizer.fit_constraints.assert_called_once()
         mock_string_to_enum.assert_called_once_with('great-minimizer')
 
     def test_update_minimizer(self, monkeypatch):

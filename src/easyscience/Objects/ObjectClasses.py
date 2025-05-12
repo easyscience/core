@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-__author__ = 'github.com/wardsimon'
-__version__ = '0.1.0'
-
 #  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
 from inspect import getfullargspec
 from typing import TYPE_CHECKING
 from typing import Callable
-from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
@@ -25,7 +20,6 @@ from .variable import Parameter
 from .variable.descriptor_base import DescriptorBase
 
 if TYPE_CHECKING:
-    from easyscience.Constraints import C
     from easyscience.Objects.Inferface import iF
     V = TypeVar('V', bound=DescriptorBase)
 
@@ -147,16 +141,6 @@ class BasedBase(ComponentSerializer):
         self.interface.switch(new_interface_name)
         self.generate_bindings()
 
-    @property
-    def constraints(self) -> List[C]:
-        pars = self.get_parameters()
-        constraints = []
-        for par in pars:
-            con: Dict[str, C] = par.user_constraints
-            for key in con.keys():
-                constraints.append(con[key])
-        return constraints
-
     def get_parameters(self) -> List[Parameter]:
         """
         Get all parameter objects as a list.
@@ -196,7 +180,7 @@ class BasedBase(ComponentSerializer):
             if hasattr(item, 'get_fit_parameters'):
                 fit_list = [*fit_list, *item.get_fit_parameters()]
             elif isinstance(item, Parameter):
-                if item.enabled and not item.fixed:
+                if item.independent and not item.fixed:
                     fit_list.append(item)
         return fit_list
 

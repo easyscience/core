@@ -2,20 +2,16 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
-__author__ = "github.com/wardsimon"
-__version__ = "0.0.1"
-
 import pytest
 
 import numpy as np
-from easyscience.Constraints import ObjConstraint
 from easyscience.fitting.fitter import Fitter
 from easyscience.fitting.minimizers import FitError
 from easyscience.fitting.available_minimizers import AvailableMinimizers
 from easyscience.Objects.ObjectClasses import BaseObj
 from easyscience.Objects.variable import Parameter
 
-
+# Model and container of parameters for tests
 class AbsSin(BaseObj):
     phase: Parameter
     offset: Parameter
@@ -233,20 +229,16 @@ def test_bumps_methods(fit_method):
 
 
 @pytest.mark.parametrize("fit_engine", [AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO])
-def test_fit_constraints(fit_engine):
+def test_dependent_parameter(fit_engine):
     ref_sin = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
     sp_sin = AbsSin(1, 0.5)
 
     x = np.linspace(0, 5, 200)
     y = ref_sin(x)
 
-    sp_sin.phase.fixed = False
-
     f = Fitter(sp_sin, sp_sin)
 
-    assert len(f.fit_constraints()) == 0
-    c = ObjConstraint(sp_sin.offset, "2*", sp_sin.phase)
-    f.add_fit_constraint(c)
+    sp_sin.offset.make_dependent_on(dependency_expression='2*phase', dependency_map={"phase": sp_sin.phase})
 
     if fit_engine is not None:
         try:
@@ -256,10 +248,6 @@ def test_fit_constraints(fit_engine):
 
     result = f.fit(x, y)
     check_fit_results(result, sp_sin, ref_sin, x)
-    assert len(f.fit_constraints()) == 1
-    f.remove_fit_constraint(0)
-    assert len(f.fit_constraints()) == 0
-
 
 @pytest.mark.parametrize("with_errors", [False, True])
 @pytest.mark.parametrize("fit_engine", [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO])

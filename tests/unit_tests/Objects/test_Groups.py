@@ -395,22 +395,6 @@ def test_baseCollection_from_dict(cls):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-def test_baseCollection_constraints(cls):
-    name = "test"
-    p1 = Parameter("p1", 1)
-    p2 = Parameter("p2", 2)
-
-    from easyscience.Constraints import ObjConstraint
-
-    p2.user_constraints["testing"] = ObjConstraint(p2, "2*", p1)
-
-    obj = cls(name, p1, p2)
-
-    cons: List[ObjConstraint] = obj.constraints
-    assert len(cons) == 1
-
-
-@pytest.mark.parametrize("cls", class_constructors)
 def test_baseCollection_repr(cls):
     name = "test"
     p1 = Parameter("p1", 1)

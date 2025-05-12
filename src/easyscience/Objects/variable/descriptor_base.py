@@ -9,7 +9,7 @@ from typing import Any
 from typing import Optional
 
 from easyscience import global_object
-from easyscience.global_object.undo_redo import property_stack_deco
+from easyscience.global_object.undo_redo import property_stack
 from easyscience.Objects.core import ComponentSerializer
 
 
@@ -94,7 +94,7 @@ class DescriptorBase(ComponentSerializer, metaclass=abc.ABCMeta):
         return self._name
 
     @name.setter
-    @property_stack_deco
+    @property_stack
     def name(self, new_name: str) -> None:
         """
         Set the name.
@@ -118,7 +118,7 @@ class DescriptorBase(ComponentSerializer, metaclass=abc.ABCMeta):
         return display_name
 
     @display_name.setter
-    @property_stack_deco
+    @property_stack
     def display_name(self, name: str) -> None:
         """
         Set the pretty display name.

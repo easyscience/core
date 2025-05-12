@@ -46,7 +46,6 @@ class TestMinimizerBase():
         assert minimizer._cached_pars_vals == {}
         assert minimizer._cached_model == None
         assert minimizer._fit_function == None
-        assert minimizer._constraints == []
     
     def test_enum(self, minimizer: MinimizerBase):
         assert minimizer.enum == self._mock_minimizer_enum
@@ -128,9 +127,6 @@ class TestMinimizerBase():
         # When
         minimizer._original_fit_function = MagicMock(return_value='fit_function_result')
 
-        mock_fit_constraint = MagicMock()
-        minimizer.fit_constraints = MagicMock(return_value=[mock_fit_constraint])
-
         minimizer._object = MagicMock()
         mock_parm_1 = MagicMock(Parameter)
         mock_parm_1.unique_name = 'mock_parm_1'
@@ -148,7 +144,6 @@ class TestMinimizerBase():
 
         # Expect
         assert 'fit_function_result' == fit_function_result
-        mock_fit_constraint.assert_called_once_with()
         minimizer._original_fit_function.assert_called_once_with([10.0])
         assert minimizer._cached_pars['mock_parm_1'] == mock_parm_1
         assert minimizer._cached_pars['mock_parm_2'] == mock_parm_2

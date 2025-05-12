@@ -13,10 +13,26 @@ from scipp import UnitError
 from scipp import Variable
 
 from easyscience.global_object.undo_redo import PropertyStack
-from easyscience.global_object.undo_redo import property_stack_deco
+from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_base import DescriptorBase
 
+
+# Why is this a decorator? Because otherwise we would need a flag on the convert_unit method to avoid
+# infinite recursion. This is a bit cleaner as it avoids the need for a internal only flag on a user method.
+def notify_observers(func):
+    """
+    Decorator to notify observers of a change in the descriptor.
+
+    :param func: Function to be decorated
+    :return: Decorated function
+    """
+    def wrapper(self, *args, **kwargs):
+        result = func(self, *args, **kwargs)
+        self._notify_observers()
+        return result
+
+    return wrapper
 
 class DescriptorNumber(DescriptorBase):
     """
@@ -47,6 +63,8 @@ class DescriptorNumber(DescriptorBase):
         param parent: Parent of the descriptor
         .. note:: Undo/Redo functionality is implemented for the attributes `variance`, `error`, `unit` and `value`.
         """
+        self._observers: List[DescriptorNumber] = []
+
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
             raise TypeError(f'{value=} must be a number')
         if variance is not None:
@@ -72,7 +90,8 @@ class DescriptorNumber(DescriptorBase):
 
         # Call convert_unit during initialization to ensure that the unit has no numbers in it, and to ensure unit consistency.
         if self.unit is not None:
-            self.convert_unit(self._base_unit())
+            self._convert_unit(self._base_unit())
+
 
     @classmethod
     def from_scipp(cls, name: str, full_value: Variable, **kwargs) -> DescriptorNumber:
@@ -89,6 +108,26 @@ class DescriptorNumber(DescriptorBase):
         if len(full_value.dims) != 0:
             raise TypeError(f'{full_value=} must be a scipp scalar')
         return cls(name=name, value=full_value.value, unit=full_value.unit, variance=full_value.variance, **kwargs)
+
+    def _attach_observer(self, observer: DescriptorNumber) -> None:
+        """Attach an observer to the descriptor."""
+        self._observers.append(observer)
+
+    def _detach_observer(self, observer: DescriptorNumber) -> None:
+        """Detach an observer from the descriptor."""
+        self._observers.remove(observer)
+
+    def _notify_observers(self, update_id=None) -> None:
+        """Notify all observers of a change.
+        
+        :param update_id: Optional update ID to pass to observers. Used to avoid cyclic depenencies.
+
+        """
+        if update_id is None:
+            self._global_object.update_id_iterator += 1
+            update_id = self._global_object.update_id_iterator
+        for observer in self._observers:
+            observer._update(update_id=update_id, updating_object=self.unique_name)
 
     @property
     def full_value(self) -> Variable:
@@ -115,7 +154,8 @@ class DescriptorNumber(DescriptorBase):
         return self._scalar.value
 
     @value.setter
-    @property_stack_deco
+    @notify_observers
+    @property_stack
     def value(self, value: numbers.Number) -> None:
         """
         Set the value of self. This should be usable for most cases. The full value can be obtained from `obj.full_value`.
@@ -154,7 +194,8 @@ class DescriptorNumber(DescriptorBase):
         return self._scalar.variance
 
     @variance.setter
-    @property_stack_deco
+    @notify_observers
+    @property_stack
     def variance(self, variance_float: float) -> None:
         """
         Set the variance.
@@ -181,7 +222,8 @@ class DescriptorNumber(DescriptorBase):
         return float(np.sqrt(self._scalar.variance))
 
     @error.setter
-    @property_stack_deco
+    @notify_observers
+    @property_stack
     def error(self, value: float) -> None:
         """
         Set the standard deviation for the parameter.
@@ -198,7 +240,9 @@ class DescriptorNumber(DescriptorBase):
         else:
             self._scalar.variance = None
 
-    def convert_unit(self, unit_str: str) -> None:
+    # When we convert units internally, we dont want to notify observers as this can cause infinite recursion.
+    # Therefore the convert_unit method is split into two methods, a private internal method and a public method.
+    def _convert_unit(self, unit_str: str) -> None:
         """
         Convert the value from one unit system to another.
 
@@ -229,6 +273,15 @@ class DescriptorNumber(DescriptorBase):
         # Update the scalar
         self._scalar = new_scalar
 
+    # When the user calls convert_unit, we want to notify observers of the change to propagate the change.
+    @notify_observers
+    def convert_unit(self, unit_str: str) -> None:
+        """
+        Convert the value from one unit system to another.
+
+        :param unit_str: New unit in string form
+        """
+        self._convert_unit(unit_str)
 
     # Just to get return type right
     def __copy__(self) -> DescriptorNumber:
@@ -267,11 +320,11 @@ class DescriptorNumber(DescriptorBase):
         elif type(other) is DescriptorNumber:
             original_unit = other.unit
             try:
-                other.convert_unit(self.unit)
+                other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be added') from None
             new_value = self.full_value + other.full_value
-            other.convert_unit(original_unit)
+            other._convert_unit(original_unit)
         else:
             return NotImplemented
         descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
@@ -297,11 +350,11 @@ class DescriptorNumber(DescriptorBase):
         elif type(other) is DescriptorNumber:
             original_unit = other.unit
             try:
-                other.convert_unit(self.unit)
+                other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be subtracted') from None
             new_value = self.full_value - other.full_value
-            other.convert_unit(original_unit)
+            other._convert_unit(original_unit)
         else:
             return NotImplemented
         descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
@@ -327,7 +380,7 @@ class DescriptorNumber(DescriptorBase):
         else:
             return NotImplemented
         descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.convert_unit(descriptor_number._base_unit())
+        descriptor_number._convert_unit(descriptor_number._base_unit())
         descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
@@ -355,7 +408,7 @@ class DescriptorNumber(DescriptorBase):
         else:
             return NotImplemented
         descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.convert_unit(descriptor_number._base_unit())
+        descriptor_number._convert_unit(descriptor_number._base_unit())
         descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
@@ -415,6 +468,9 @@ class DescriptorNumber(DescriptorBase):
         return descriptor_number
 
     def _base_unit(self) -> str:
+        """
+        Extract the base unit from the unit string by removing numeric components and scientific notation.
+        """
         string = str(self._scalar.unit)
         for i, letter in enumerate(string):
             if letter == 'e':

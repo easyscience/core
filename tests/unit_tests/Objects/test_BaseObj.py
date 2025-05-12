@@ -148,7 +148,7 @@ def test_baseobj_fit_objects(setup_pars: dict):
     pass
 
 
-def test_baseobj_as_dict(setup_pars: dict):
+def test_baseobj_as_dict(clear, setup_pars: dict):
     name = setup_pars["name"]
     del setup_pars["name"]
     obj = BaseObj(name, **setup_pars)
@@ -159,6 +159,7 @@ def test_baseobj_as_dict(setup_pars: dict):
         "@class": "BaseObj",
         "@version": easyscience.__version__,
         "name": "test",
+        "unique_name": "BaseObj_0",
         "par1": {
             "@module": Parameter.__module__,
             "@class": Parameter.__name__,
@@ -172,6 +173,8 @@ def test_baseobj_as_dict(setup_pars: dict):
             "unit": "dimensionless",
         },
         "des1": {
+            "@module": DescriptorNumber.__module__,
+            "@class": DescriptorNumber.__name__,
             "@module": DescriptorNumber.__module__,
             "@class": DescriptorNumber.__name__,
             "@version": easyscience.__version__,
@@ -195,6 +198,8 @@ def test_baseobj_as_dict(setup_pars: dict):
             "unit": "dimensionless",
         },
         "des2": {
+            "@module": DescriptorNumber.__module__,
+            "@class": DescriptorNumber.__name__,
             "@module": DescriptorNumber.__module__,
             "@class": DescriptorNumber.__name__,
             "@version": easyscience.__version__,
@@ -261,7 +266,6 @@ def test_baseobj_dir(setup_pars):
         "encode",
         "decode",
         "as_dict",
-        "constraints",
         "des1",
         "des2",
         "from_dict",

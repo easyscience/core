@@ -118,7 +118,6 @@ def test_DescriptorStrUndoRedo():
             ("error", 5),
             ("unit", "km/s"),
             ("display_name", "boom"),
-            ("enabled", False),
             ("fixed", False),
             ("max", 505),
             ("min", -1),
@@ -134,27 +133,23 @@ def test_ParameterUndoRedo(test):
     e = doUndoRedo(obj, attr, value)
     assert not e
 
-@pytest.mark.parametrize("value", (True, False))
-def test_Parameter_Bounds_UndoRedo(value):
+def test_Parameter_Bounds_UndoRedo():
     from easyscience import global_object
 
     global_object.stack.enabled = True
-    p = Parameter("test", 1, enabled=value)
-    assert p.min == -np.inf
-    assert p.max == np.inf
-    assert p.bounds == (-np.inf, np.inf)
+    parameter = Parameter("test", 1)
+    assert parameter.min == -np.inf
+    assert parameter.max == np.inf
 
-    p.bounds = (0, 2)
-    assert p.min == 0
-    assert p.max == 2
-    assert p.bounds == (0, 2)
-    assert p.enabled is True
+    parameter.min = 0
+    parameter.max = 2
+    assert parameter.min == 0
+    assert parameter.max == 2
 
     global_object.stack.undo()
-    assert p.min == -np.inf
-    assert p.max == np.inf
-    assert p.bounds == (-np.inf, np.inf)
-    assert p.enabled is value
+    global_object.stack.undo()
+    assert parameter.min == -np.inf
+    assert parameter.max == np.inf
 
 
 def test_BaseObjUndoRedo():
