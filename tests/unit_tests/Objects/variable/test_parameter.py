@@ -133,6 +133,7 @@ class TestParameter:
         independent_parameter.value = 2
 
         # Expect
+        normal_parameter.value == 4
         self.compare_parameters(normal_parameter, 2*independent_parameter)
 
     def test_parameter_from_dependency(self, normal_parameter: Parameter):
@@ -207,7 +208,7 @@ class TestParameter:
         normal_parameter._dependency_map = {}
 
         # Then Expect
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match='A Parameter with unique_name Special_name does not exist. Please check your dependency expression.'):
             normal_parameter._process_dependency_unique_names(dependency_expression='2*"Special_name"')
 
     def test_process_dependency_unique_names_exception_not_a_descriptorNumber(self, clear, normal_parameter: Parameter):
