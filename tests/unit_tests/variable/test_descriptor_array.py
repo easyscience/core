@@ -7,7 +7,7 @@ from scipp.testing import assert_identical
 import numpy as np
 
 from easyscience.variable import DescriptorArray
-from easyscience.variable import DescriptorNumber
+from easyscience import DescriptorNumber
 from easyscience import global_object
 
 class TestDescriptorArray:

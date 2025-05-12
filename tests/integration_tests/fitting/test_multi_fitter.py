@@ -7,8 +7,8 @@ import pytest
 import numpy as np
 from easyscience.fitting.multi_fitter import MultiFitter
 from easyscience.fitting.minimizers import FitError
-from easyscience.base_classes import ObjBase
-from easyscience.variable import Parameter
+from easyscience import ObjBase
+from easyscience import Parameter
 
 
 class Line(ObjBase):

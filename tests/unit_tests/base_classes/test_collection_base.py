@@ -7,9 +7,9 @@ import pytest
 
 import easyscience
 from easyscience.base_classes import CollectionBase
-from easyscience.base_classes import ObjBase
-from easyscience.variable import DescriptorNumber
-from easyscience.variable import Parameter
+from easyscience import ObjBase
+from easyscience import DescriptorNumber
+from easyscience import Parameter
 from easyscience import global_object
 
 test_dict = {

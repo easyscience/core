@@ -8,13 +8,12 @@ import numpy as np
 import pytest
 
 from easyscience.base_classes import CollectionBase
-from easyscience.base_classes import ObjBase
-from easyscience.variable import Parameter
 from easyscience.variable import DescriptorStr
-from easyscience.variable import DescriptorNumber
 from easyscience.variable import DescriptorBool
-
-from easyscience.fitting import Fitter
+from easyscience import ObjBase
+from easyscience import Parameter
+from easyscience import DescriptorNumber
+from easyscience import Fitter
 
 
 def createSingleObjs(idx):

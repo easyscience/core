@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 import numpy as np
 import easyscience.fitting.fitter
-from easyscience.fitting.fitter import Fitter
-from easyscience.fitting.available_minimizers import AvailableMinimizers
+from easyscience import Fitter
+from easyscience import AvailableMinimizers
 
 
 class TestFitter():

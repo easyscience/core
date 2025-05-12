@@ -7,10 +7,18 @@ global_object.stack.enabled = False
 
 
 from .__version__ import __version__ as __version__  # noqa: E402
-from .fitting.available_minimizers import AvailableMinimizers  # noqa: E402
+from .base_classes import ObjBase  # noqa: E402
+from .fitting import AvailableMinimizers  # noqa: E402
+from .fitting import Fitter  # noqa: E402
+from .variable import DescriptorNumber  # noqa: E402
+from .variable import Parameter  # noqa: E402
 
 __all__ = [
     __version__,
-    AvailableMinimizers,
     global_object,
+    ObjBase,
+    AvailableMinimizers,
+    Fitter,
+    DescriptorNumber,
+    Parameter,
 ]

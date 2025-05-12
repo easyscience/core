@@ -5,10 +5,10 @@ import numpy as np
 
 from scipp import UnitError
 
-from easyscience.variable import Parameter
-from easyscience.variable import DescriptorNumber
+from easyscience import Parameter
+from easyscience import DescriptorNumber
 from easyscience import global_object
-from easyscience.base_classes import ObjBase
+from easyscience import ObjBase
 
 class TestParameter:
     @pytest.fixture

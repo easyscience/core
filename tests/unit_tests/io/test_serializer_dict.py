@@ -5,8 +5,8 @@ from typing import Type
 import pytest
 
 from easyscience.io.serializer_dict import SerializerDict
-from easyscience.variable import DescriptorNumber
-from easyscience.base_classes import ObjBase
+from easyscience import DescriptorNumber
+from easyscience import ObjBase
 
 from .test_serializer_component import check_dict
 from .test_serializer_component import dp_param_dict

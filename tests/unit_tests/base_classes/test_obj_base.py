@@ -16,11 +16,11 @@ import numpy as np
 import pytest
 
 import easyscience
-from easyscience.base_classes import ObjBase
-from easyscience.variable import DescriptorNumber
-from easyscience.variable import Parameter
-from easyscience.io import SerializerDict
+from easyscience import ObjBase
+from easyscience import DescriptorNumber
+from easyscience import Parameter
 from easyscience import global_object
+from easyscience.io import SerializerDict
 
 @pytest.fixture
 def clear():
