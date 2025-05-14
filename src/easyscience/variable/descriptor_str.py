@@ -15,7 +15,6 @@ class DescriptorStr(DescriptorBase):
 
     def __init__(
         self,
-        name: str,
         value: str,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
@@ -24,7 +23,6 @@ class DescriptorStr(DescriptorBase):
         parent: Optional[Any] = None,
     ):
         super().__init__(
-            name=name,
             unique_name=unique_name,
             description=description,
             url=url,
@@ -60,7 +58,7 @@ class DescriptorStr(DescriptorBase):
     def __repr__(self) -> str:
         """Return printable representation."""
         class_name = self.__class__.__name__
-        obj_name = self._name
+        obj_name = self._unique_name
         obj_value = self._string
         return f"<{class_name} '{obj_name}': {obj_value}>"
 

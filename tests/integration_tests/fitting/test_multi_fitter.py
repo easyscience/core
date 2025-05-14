@@ -16,9 +16,9 @@ class Line(ObjBase):
     c: Parameter
 
     def __init__(self, m_val: float, c_val: float):
-        m = Parameter("m", m_val)
-        c = Parameter("c", c_val)
-        super(Line, self).__init__("line", m=m, c=c)
+        m = Parameter(m_val)
+        c = Parameter(c_val)
+        super(Line, self).__init__(m=m, c=c)
 
     def __call__(self, x):
         return self.m.value * x + self.c.value
@@ -29,9 +29,9 @@ class AbsSin(ObjBase):
     offset: Parameter
 
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter("offset", offset_val)
-        phase = Parameter("phase", phase_val)
-        super().__init__("sin", offset=offset, phase=phase)
+        offset = Parameter(offset_val)
+        phase = Parameter(phase_val)
+        super().__init__(offset=offset, phase=phase)
 
     def __call__(self, x):
         return np.abs(np.sin(self.phase.value * x + self.offset.value))
@@ -42,9 +42,9 @@ class AbsSin2D(ObjBase):
     offset: Parameter
 
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter("offset", offset_val)
-        phase = Parameter("phase", phase_val)
-        super().__init__("sin2D", offset=offset, phase=phase)
+        offset = Parameter(offset_val)
+        phase = Parameter(phase_val)
+        super().__init__(offset=offset, phase=phase)
 
     def __call__(self, x):
         X = x[:, :, 0]   # x is a 2D array

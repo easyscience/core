@@ -21,16 +21,19 @@ if TYPE_CHECKING:
 
 
 class BasedBase(SerializerComponent):
-    __slots__ = ['_name', '_global_object', 'user_data', '_kwargs']
+    __slots__ = ['_global_object', 'user_data', '_kwargs']
 
     _REDIRECT = {}
 
-    def __init__(self, name: str, interface: Optional[InterfaceFactoryTemplate] = None, unique_name: Optional[str] = None):
+    def __init__(self, 
+        interface: Optional[InterfaceFactoryTemplate] = None, 
+        unique_name: Optional[str] = None
+        ):
+
         self._global_object = global_object
         if unique_name is None:
             unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
         self._unique_name = unique_name
-        self._name = name
         self._global_object.map.add_vertex(self, obj_type='created')
         self.interface = interface
         self.user_data: dict = {}
@@ -68,25 +71,6 @@ class BasedBase(SerializerComponent):
             raise TypeError('Unique name has to be a string.')
         self._unique_name = new_unique_name
         self._global_object.map.add_vertex(self)
-
-    @property
-    def name(self) -> str:
-        """
-        Get the common name of the object.
-
-        :return: Common name of the object
-        """
-        return self._name
-
-    @name.setter
-    def name(self, new_name: str):
-        """
-        Set a new common name for the object.
-
-        :param new_name: New name for the object
-        :return: None
-        """
-        self._name = new_name
 
     @property
     def interface(self) -> InterfaceFactoryTemplate:

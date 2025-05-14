@@ -41,7 +41,6 @@ class DescriptorNumber(DescriptorBase):
 
     def __init__(
         self,
-        name: str,
         value: numbers.Number,
         unit: Optional[Union[str, sc.Unit]] = '',
         variance: Optional[numbers.Number] = None,
@@ -53,10 +52,10 @@ class DescriptorNumber(DescriptorBase):
     ):
         """Constructor for the DescriptorNumber class
 
-        param name: Name of the descriptor
         param value: Value of the descriptor
         param unit: Unit of the descriptor
         param variance: Variance of the descriptor
+        param unique_name: Unique name of the object. This is used to identify the object in the global map.
         param description: Description of the descriptor
         param url: URL of the descriptor
         param display_name: Display name of the descriptor
@@ -80,7 +79,6 @@ class DescriptorNumber(DescriptorBase):
         except Exception as message:
             raise UnitError(message)
         super().__init__(
-            name=name,
             unique_name=unique_name,
             description=description,
             url=url,
@@ -94,11 +92,10 @@ class DescriptorNumber(DescriptorBase):
 
 
     @classmethod
-    def from_scipp(cls, name: str, full_value: Variable, **kwargs) -> DescriptorNumber:
+    def from_scipp(cls, full_value: Variable, **kwargs) -> DescriptorNumber:
         """
         Create a DescriptorNumber from a scipp constant.
 
-        :param name: Name of the descriptor
         :param value: Value of the descriptor as a scipp scalar
         :param kwargs: Additional parameters for the descriptor
         :return: DescriptorNumber
@@ -107,7 +104,7 @@ class DescriptorNumber(DescriptorBase):
             raise TypeError(f'{full_value=} must be a scipp scalar')
         if len(full_value.dims) != 0:
             raise TypeError(f'{full_value=} must be a scipp scalar')
-        return cls(name=name, value=full_value.value, unit=full_value.unit, variance=full_value.variance, **kwargs)
+        return cls(value=full_value.value, unit=full_value.unit, variance=full_value.variance, **kwargs)
 
     def _attach_observer(self, observer: DescriptorNumber) -> None:
         """Attach an observer to the descriptor."""
@@ -291,7 +288,7 @@ class DescriptorNumber(DescriptorBase):
         """Return printable representation."""
         string = '<'
         string += self.__class__.__name__ + ' '
-        string += f"'{self._name}': "
+        string += f"'{self.unique_name}': "
         string += f'{self._scalar.value:.4f}'
         if self.variance:
             string += f' \u00b1 {self.error:.4f}'
@@ -327,8 +324,7 @@ class DescriptorNumber(DescriptorBase):
             other._convert_unit(original_unit)
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __radd__(self, other: numbers.Number) -> DescriptorNumber:
@@ -338,8 +334,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other + self.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __sub__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
@@ -357,8 +352,7 @@ class DescriptorNumber(DescriptorBase):
             other._convert_unit(original_unit)
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __rsub__(self, other: numbers.Number) -> DescriptorNumber:
@@ -368,8 +362,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other - self.full_value
         else:
             return NotImplemented
-        descriptor = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor.name = descriptor.unique_name
+        descriptor = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor
 
     def __mul__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
@@ -379,9 +372,8 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value * other.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         descriptor_number._convert_unit(descriptor_number._base_unit())
-        descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
     def __rmul__(self, other: numbers.Number) -> DescriptorNumber:
@@ -389,8 +381,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other * self.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __truediv__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
@@ -407,9 +398,8 @@ class DescriptorNumber(DescriptorBase):
             other.value = original_other
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         descriptor_number._convert_unit(descriptor_number._base_unit())
-        descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
     def __rtruediv__(self, other: numbers.Number) -> DescriptorNumber:
@@ -419,8 +409,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other / self.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
@@ -440,8 +429,7 @@ class DescriptorNumber(DescriptorBase):
             raise message from None
         if np.isnan(new_value.value):
             raise ValueError('The result of the exponentiation is not a number')
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __rpow__(self, other: numbers.Number) -> numbers.Number:
@@ -457,14 +445,12 @@ class DescriptorNumber(DescriptorBase):
 
     def __neg__(self) -> DescriptorNumber:
         new_value = -self.full_value
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __abs__(self) -> DescriptorNumber:
         new_value = abs(self.full_value)
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         return descriptor_number
 
     def _base_unit(self) -> str:

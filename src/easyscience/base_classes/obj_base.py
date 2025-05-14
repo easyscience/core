@@ -26,7 +26,6 @@ class ObjBase(BasedBase):
 
     def __init__(
         self,
-        name: str,
         unique_name: Optional[str] = None,
         *args: Optional[SerializerComponent],
         **kwargs: Optional[SerializerComponent],
@@ -34,15 +33,14 @@ class ObjBase(BasedBase):
         """
         Set up the base class.
 
-        :param name: Name of this object
         :param args: Any arguments?
         :param kwargs: Fields which this class should contain
         """
-        super(ObjBase, self).__init__(name=name, unique_name=unique_name)
+        super(ObjBase, self).__init__(unique_name=unique_name)
         # If Parameter or Descriptor is given as arguments...
         for arg in args:
             if issubclass(type(arg), (ObjBase, DescriptorBase)):
-                kwargs[getattr(arg, 'name')] = arg
+                kwargs[getattr(arg, 'unique_name')] = arg
         # Set kwargs, also useful for serialization
         known_keys = self.__dict__.keys()
         self._kwargs = kwargs
@@ -127,7 +125,7 @@ class ObjBase(BasedBase):
                 self.generate_bindings()
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__} `{getattr(self, 'name')}`"
+        return f"{self.__class__.__name__} `{getattr(self, 'unique_name')}`"
 
     @staticmethod
     def __getter(key: str) -> Callable[[SerializerComponent], SerializerComponent]:

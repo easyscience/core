@@ -15,11 +15,11 @@ class TestMap:
 
     @pytest.fixture
     def base_object(self):
-        return ObjBase(name="test")
+        return ObjBase()
 
     @pytest.fixture
     def parameter_object(self):
-        return Parameter(value=2.0, name="test2")
+        return Parameter(value=2.0)
 
     def test_add_vertex(self, clear, base_object, parameter_object):
         # When Then Expect
@@ -60,10 +60,10 @@ class TestMap:
     @pytest.mark.parametrize("cls, kwargs", [(ObjBase, {}), (Parameter, {"value": 2.0})])
     def test_identical_unique_names_exception(self, clear, cls, kwargs):
         # When
-        test_obj = cls(name="test", unique_name="test", **kwargs)
+        test_obj = cls(unique_name="test", **kwargs)
         # Then Expect
         with pytest.raises(ValueError):
-            test_obj2 = cls(name="test2", unique_name="test", **kwargs)
+            test_obj2 = cls(unique_name="test", **kwargs)
 
     def test_unique_name_change_still_in_map(self, clear, base_object, parameter_object):
         # When

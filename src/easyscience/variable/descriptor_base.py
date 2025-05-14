@@ -30,7 +30,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        name: str,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
         url: Optional[str] = None,
@@ -44,7 +43,7 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         A `Descriptor` is typically something which describes part of a model and is non-fittable and generally changes
         the state of an object.
 
-        :param name: Name of this object
+        :param unique_name: Unique name of the object. This is used to identify the object in the global map.
         :param description: A brief summary of what this object is
         :param url: Lookup url for documentation/information
         :param display_name: A pretty name for the object
@@ -56,10 +55,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         if unique_name is None:
             unique_name = global_object.generate_unique_name(self.__class__.__name__)
         self._unique_name = unique_name
-
-        if not isinstance(name, str):
-            raise TypeError('Name must be a string')
-        self._name: str = name
 
         if display_name is not None and not isinstance(display_name, str):
             raise TypeError('Display name must be a string or None')
@@ -85,27 +80,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
             global_object.map.add_edge(parent, self)
 
     @property
-    def name(self) -> str:
-        """
-        Get the name of the object.
-
-        :return: name of the object.
-        """
-        return self._name
-
-    @name.setter
-    @property_stack
-    def name(self, new_name: str) -> None:
-        """
-        Set the name.
-
-        :param new_name: name of the object.
-        """
-        if not isinstance(new_name, str):
-            raise TypeError('Name must be a string')
-        self._name = new_name
-
-    @property
     def display_name(self) -> str:
         """
         Get a pretty display name.
@@ -114,7 +88,7 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         """
         display_name = self._display_name
         if display_name is None:
-            display_name = self._name
+            display_name = self._unique_name
         return display_name
 
     @display_name.setter

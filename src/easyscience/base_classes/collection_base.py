@@ -34,7 +34,6 @@ class CollectionBase(BasedBase, MutableSequence):
 
     def __init__(
         self,
-        name: str,
         *args: Union[BasedBase, DescriptorBase],
         interface: Optional[InterfaceFactoryTemplate] = None,
         unique_name: Optional[str] = None,
@@ -43,13 +42,11 @@ class CollectionBase(BasedBase, MutableSequence):
         """
         Set up the base collection class.
 
-        :param name: Name of this object
-        :type name: str
         :param args: selection of
         :param _kwargs: Fields which this class should contain
         :type _kwargs: dict
         """
-        BasedBase.__init__(self, name, unique_name=unique_name)
+        BasedBase.__init__(self, unique_name=unique_name)
         kwargs = {key: kwargs[key] for key in kwargs.keys() if kwargs[key] is not None}
         _args = []
         for item in args:
@@ -129,18 +126,18 @@ class CollectionBase(BasedBase, MutableSequence):
         """
         if isinstance(idx, slice):
             start, stop, step = idx.indices(len(self))
-            return self.__class__(getattr(self, 'name'), *[self[i] for i in range(start, stop, step)])
+            return self.__class__(*[self[i] for i in range(start, stop, step)])
         if str(idx) in self._kwargs.keys():
             return self._kwargs[str(idx)]
         if isinstance(idx, str):
-            idx = [index for index, item in enumerate(self) if item.name == idx]
+            idx = [index for index, item in enumerate(self) if item.unique_name == idx]
             noi = len(idx)
             if noi == 0:
                 raise IndexError('Given index does not exist')
             elif noi == 1:
                 idx = idx[0]
             else:
-                return self.__class__(getattr(self, 'name'), *[self[i] for i in idx])
+                return self.__class__(*[self[i] for i in idx])
         elif not isinstance(idx, int) or isinstance(idx, bool):
             if isinstance(idx, bool):
                 raise TypeError('Boolean indexing is not supported at the moment')
@@ -148,7 +145,7 @@ class CollectionBase(BasedBase, MutableSequence):
                 if idx > len(self):
                     raise IndexError(f'Given index {idx} is out of bounds')
             except TypeError:
-                raise IndexError('Index must be of type `int`/`slice` or an item name (`str`)')
+                raise IndexError('Index must be of type `int`/`slice` or an item unique_name (`str`)')
         keys = list(self._kwargs.keys())
         return self._kwargs[keys[idx]]
 
@@ -232,7 +229,7 @@ class CollectionBase(BasedBase, MutableSequence):
         return tuple(self._kwargs.values())
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__} `{getattr(self, 'name')}` of length {len(self)}"
+        return f"{self.__class__.__name__} `{getattr(self, 'unique_name')}` of length {len(self)}"
 
     def sort(self, mapping: Callable[[Union[BasedBase, DescriptorBase]], Any], reverse: bool = False) -> None:
         """

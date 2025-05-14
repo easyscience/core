@@ -24,7 +24,7 @@ class MultiFitter(Fitter):
         fit_functions: Optional[List[Callable]] = None,
     ):
         # Create a dummy core object to hold all the fit objects.
-        self._fit_objects = CollectionBase('multi', *fit_objects)
+        self._fit_objects = CollectionBase(*fit_objects)
         self._fit_functions = fit_functions
         # Initialize with the first of the fit_functions, without this it is
         # not possible to change the fitting engine.

@@ -22,7 +22,6 @@ class DescriptorAnyType(DescriptorBase):
 
     def __init__(
         self,
-        name: str,
         value: Any,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
@@ -32,7 +31,6 @@ class DescriptorAnyType(DescriptorBase):
     ):
         """Constructor for the DescriptorAnyType class
 
-        param name: Name of the descriptor
         param value: Value of the descriptor
         param description: Description of the descriptor
         param url: URL of the descriptor
@@ -44,7 +42,6 @@ class DescriptorAnyType(DescriptorBase):
         self._value=value
         
         super().__init__(
-            name=name,
             unique_name=unique_name,
             description=description,
             url=url,
@@ -84,7 +81,7 @@ class DescriptorAnyType(DescriptorBase):
         else:
             value_repr = type(self._value)
 
-        return f"<{self.__class__.__name__} '{self._name}': {value_repr}>"
+        return f"<{self.__class__.__name__} '{self._unique_name}': {value_repr}>"
 
     def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         raw_dict = super().as_dict(skip=skip)

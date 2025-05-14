@@ -29,7 +29,6 @@ class DescriptorArray(DescriptorBase):
 
     def __init__(
         self,
-        name: str,
         value: Union[list, np.ndarray],
         unit: Optional[Union[str, sc.Unit]] = '',
         variance: Optional[Union[list, np.ndarray]] = None,
@@ -42,7 +41,6 @@ class DescriptorArray(DescriptorBase):
     ):
         """Constructor for the DescriptorArray class
 
-        param name: Name of the descriptor
         param value: List containing the values of the descriptor
         param unit: Unit of the descriptor
         param variance: Variances of the descriptor
@@ -94,7 +92,6 @@ class DescriptorArray(DescriptorBase):
                 # TODO: handle 1xn and nx1 arrays
         
         super().__init__(
-            name=name,
             unique_name=unique_name,
             description=description,
             url=url,
@@ -107,19 +104,17 @@ class DescriptorArray(DescriptorBase):
             self.convert_unit(self._base_unit())
 
     @classmethod
-    def from_scipp(cls, name: str, full_value: Variable, **kwargs) -> DescriptorArray:
+    def from_scipp(cls, full_value: Variable, **kwargs) -> DescriptorArray:
         """
         Create a DescriptorArray from a scipp array.
 
-        :param name: Name of the descriptor
         :param full_value: Value of the descriptor as a scipp variable
         :param kwargs: Additional parameters for the descriptor
         :return: DescriptorArray
         """
         if not isinstance(full_value, Variable):
             raise TypeError(f'{full_value=} must be a scipp array')
-        return cls(name=name,
-                   value=full_value.values,
+        return cls(value=full_value.values,
                    unit=full_value.unit,
                    variance=full_value.variances,
                    dimensions=full_value.dims,
@@ -326,7 +321,7 @@ class DescriptorArray(DescriptorBase):
         Large arrays are summarized for brevity.
         """
         # Base string with name
-        string = f"<{self.__class__.__name__} '{self._name}': "
+        string = f"<{self.__class__.__name__} '{self._unique_name}': "
 
         # Summarize array values
         values_summary = np.array2string(
@@ -439,8 +434,7 @@ class DescriptorArray(DescriptorBase):
         else:
             return NotImplemented
 
-        descriptor_array = DescriptorArray.from_scipp(name=self.name, full_value=new_full_value)
-        descriptor_array.name = descriptor_array.unique_name
+        descriptor_array = DescriptorArray.from_scipp(full_value=new_full_value)
         return descriptor_array
 
     def _rapply_operation(self,
@@ -630,8 +624,7 @@ class DescriptorArray(DescriptorBase):
             raise message from None
         if np.any(np.isnan(new_value.values)):
             raise ValueError('The result of the exponentiation is not a number')
-        descriptor_number = DescriptorArray.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
+        descriptor_number = DescriptorArray.from_scipp(full_value=new_value)
         return descriptor_number
 
     def __rpow__(self, other: numbers.Number):
@@ -647,8 +640,7 @@ class DescriptorArray(DescriptorBase):
         Negate all values in the DescriptorArray.
         """
         new_value = -self.full_value
-        descriptor_array = DescriptorArray.from_scipp(name=self.name, full_value=new_value)
-        descriptor_array.name = descriptor_array.unique_name
+        descriptor_array = DescriptorArray.from_scipp(full_value=new_value)
         return descriptor_array
 
     def __abs__(self) -> DescriptorArray:
@@ -658,8 +650,7 @@ class DescriptorArray(DescriptorBase):
         norm of the DescriptorArray.
         """
         new_value = abs(self.full_value)
-        descriptor_array = DescriptorArray.from_scipp(name=self.name, full_value=new_value)
-        descriptor_array.name = descriptor_array.unique_name
+        descriptor_array = DescriptorArray.from_scipp(full_value=new_value)
         return descriptor_array
 
     def __getitem__(self, a) -> DescriptorArray:
@@ -667,8 +658,7 @@ class DescriptorArray(DescriptorBase):
         Slice using scipp syntax.
         Defer slicing to scipp.
         """
-        descriptor = DescriptorArray.from_scipp(name=self.name, full_value=self.full_value.__getitem__(a))
-        descriptor.name = descriptor.unique_name
+        descriptor = DescriptorArray.from_scipp(full_value=self.full_value.__getitem__(a))
         return descriptor
 
     def __delitem__(self, a):
@@ -731,8 +721,7 @@ class DescriptorArray(DescriptorBase):
             trace = sc.array(dims=remaining_dimensions, values=trace_value, unit=self.unit, variances=trace_variance)
             constructor = DescriptorArray.from_scipp
 
-        descriptor = constructor(name=self.name, full_value=trace)
-        descriptor.name = descriptor.unique_name
+        descriptor = constructor(full_value=trace)
         return descriptor
 
     def sum(self, dim: Optional[Union[str, list]] = None) -> Union[DescriptorArray, DescriptorNumber]:
@@ -749,8 +738,7 @@ class DescriptorArray(DescriptorBase):
         else:
             constructor = DescriptorArray.from_scipp
 
-        descriptor = constructor(name=self.name, full_value=new_full_value)
-        descriptor.name = descriptor.unique_name
+        descriptor = constructor(full_value=new_full_value)
         return descriptor
     
     # This is to be implemented at a later time

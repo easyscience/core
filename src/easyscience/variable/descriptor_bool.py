@@ -14,7 +14,6 @@ class DescriptorBool(DescriptorBase):
     """
     def __init__(
         self,
-        name: str,
         value: bool,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
@@ -25,7 +24,6 @@ class DescriptorBool(DescriptorBase):
         if not isinstance(value, bool):
             raise ValueError(f'{value=} must be type bool')
         super().__init__(
-            name=name,
             unique_name=unique_name,
             description=description,
             url=url,
@@ -61,7 +59,7 @@ class DescriptorBool(DescriptorBase):
     def __repr__(self) -> str:
         """Return printable representation."""
         class_name = self.__class__.__name__
-        obj_name = self._name
+        obj_name = self._unique_name
         obj_value = self._bool_value
         return f"<{class_name} '{obj_name}': {obj_value}>"
 

@@ -29,12 +29,11 @@ def clear():
 @pytest.fixture
 def setup_pars():
     d = {
-        "name": "test",
-        "par1": Parameter("p1", 0.1, fixed=True),
-        "des1": DescriptorNumber("d1", 0.1),
-        "par2": Parameter("p2", 0.1),
-        "des2": DescriptorNumber("d2", 0.1),
-        "par3": Parameter("p3", 0.1),
+        "par1": Parameter(0.1, fixed=True),
+        "des1": DescriptorNumber(0.1),
+        "par2": Parameter(0.1),
+        "des2": DescriptorNumber(0.1),
+        "par3": Parameter(0.1),
     }
     return d
 
@@ -65,52 +64,47 @@ def not_raises(
     ],
 )
 def test_ObjBase_create(setup_pars: dict, a: List[str], kw: List[str]):
-    name = setup_pars["name"]
     args = []
     for key in a:
         args.append(setup_pars[key])
     kwargs = {}
     for key in kw:
         kwargs[key] = setup_pars[key]
-    base = ObjBase(name, None, *args, **kwargs)
-    assert base.name == name
+    base = ObjBase(None, *args, **kwargs)
     for key in a:
-        item = getattr(base, setup_pars[key].name)
+        item = getattr(base, setup_pars[key].unique_name)
         assert isinstance(item, setup_pars[key].__class__)
 
 
 def test_ObjBase_copy(setup_pars: dict):
     # When
-    name = setup_pars["name"]
     args = []
     for key in ["par1", "des1"]:
         args.append(setup_pars[key])
     kwargs = {}
     for key in ["par2", "des2"]:
         kwargs[key] = setup_pars[key]
-    base = ObjBase(name, None, *args, **kwargs)
+    base = ObjBase(None, *args, **kwargs)
 
     # Then
     base_copy = copy(base)
 
     # Expect
-    assert base_copy.name == name
     assert base_copy.unique_name != base.unique_name
 
     for key in ["par1", "des1"]:
-        item = getattr(base, setup_pars[key].name)
+        item = getattr(base, setup_pars[key].unique_name)
         assert isinstance(item, setup_pars[key].__class__)
 
 
 def test_ObjBase_get(setup_pars: dict):
-    name = setup_pars["name"]
     explicit_name1 = "par1"
     explicit_name2 = "par2"
     kwargs = {
-        setup_pars[explicit_name1].name: setup_pars[explicit_name1],
-        setup_pars[explicit_name2].name: setup_pars[explicit_name2],
+        setup_pars[explicit_name1].unique_name: setup_pars[explicit_name1],
+        setup_pars[explicit_name2].unique_name: setup_pars[explicit_name2],
     }
-    obj = ObjBase(name, **kwargs)
+    obj = ObjBase(**kwargs)
     with not_raises(AttributeError):
         p1: Parameter = obj.p1
     with not_raises(AttributeError):

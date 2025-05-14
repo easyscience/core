@@ -31,10 +31,9 @@ class Polynomial(ObjBase):
 
     def __init__(
         self,
-        name: str = 'polynomial',
         coefficients: Optional[Union[Iterable[Union[float, Parameter]], CollectionBase]] = None,
     ):
-        super(Polynomial, self).__init__(name, coefficients=CollectionBase('coefficients'))
+        super(Polynomial, self).__init__(coefficients=CollectionBase('coefficients'))
         if coefficients is not None:
             if issubclass(type(coefficients), CollectionBase):
                 self.coefficients = coefficients
@@ -43,7 +42,7 @@ class Polynomial(ObjBase):
                     if issubclass(type(item), Parameter):
                         self.coefficients.append(item)
                     elif isinstance(item, float):
-                        self.coefficients.append(Parameter(name='c{}'.format(index), value=item))
+                        self.coefficients.append(Parameter(value=item))
                     else:
                         raise TypeError('Coefficients must be floats or Parameters')
             else:
@@ -62,5 +61,5 @@ class Polynomial(ObjBase):
                     s += [f'{c.value}x^{i+2}' for i, c in enumerate(self.coefficients[2:]) if c.value != 0]
         s.reverse()
         s = ' + '.join(s)
-        return 'Polynomial({}, {})'.format(self.name, s)
+        return 'Polynomial({}, {})'.format(self.unique_name, s)
 
