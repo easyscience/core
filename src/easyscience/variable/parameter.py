@@ -185,11 +185,20 @@ class Parameter(DescriptorNumber):
                 if not isinstance(value, DescriptorNumber):
                     raise TypeError(f'`dependency_map` values must be DescriptorNumbers or Parameters. Got {type(value)} for {key}.')  # noqa: E501
 
-        # If we're overwriting the dependency
+        # If we're overwriting the dependency, store the old attributes
+        # in case we need to revert back to the old dependency
+        self._previous_independent = self._independent
         if not self._independent:
-            for old_dependency in self._dependency_map.values():
-                old_dependency._detach_observer(self)
+            self._previous_dependency = {
+                '_dependency_string': self._dependency_string,
+                '_dependency_map': self._dependency_map,
+                '_dependency_interpreter': self._dependency_interpreter,
+                '_clean_dependency_string': self._clean_dependency_string,
+            }
+            for dependency in self._dependency_map.values():
+                dependency._detach_observer(self)
 
+        self._independent = False
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
         # List of allowed python constructs for the asteval interpreter
@@ -201,8 +210,13 @@ class Parameter(DescriptorNumber):
                           'try':            False, 'while':       False, 'with':           False}
         self._dependency_interpreter = Interpreter(config=asteval_config)
         self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
-        
-        self._process_dependency_unique_names(self._dependency_string)
+
+        try:
+            self._process_dependency_unique_names(self._dependency_string)
+        except ValueError as error:
+            self._revert_dependency(skip_detach=True)
+            raise error
+
         for key, value in self._dependency_map.items():
                 self._dependency_interpreter.symtable[key] = value
                 self._dependency_interpreter.readonly_symbols.add(key) # Dont allow overwriting of the dependencies in the dependency expression  # noqa: E501
@@ -210,15 +224,19 @@ class Parameter(DescriptorNumber):
         try:
             dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
         except NameError as message:
+            self._revert_dependency()
             raise NameError('\nUnknown name encountered in dependecy expression:'+
                             '\n'+'\n'.join(str(message).split("\n")[1:])+
                             '\nPlease check your expression or add the name to the `dependency_map`') from None
         except Exception as message:
+            self._revert_dependency()
             raise SyntaxError('\nError encountered in dependecy expression:'+
                             '\n'+'\n'.join(str(message).split("\n")[1:])+
                             '\nPlease check your expression') from None
         if not isinstance(dependency_result, DescriptorNumber):
-            raise TypeError(f'The dependency expression: "{self._dependency_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
+            error_string = self._dependency_string
+            self._revert_dependency()
+            raise TypeError(f'The dependency expression: "{error_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
         self._scalar.value = dependency_result.value
         self._scalar.unit = dependency_result.unit
         self._scalar.variance = dependency_result.variance
@@ -226,7 +244,6 @@ class Parameter(DescriptorNumber):
         self._max.value = dependency_result.max if isinstance(dependency_result, Parameter) else dependency_result.value
         self._min.unit = dependency_result.unit
         self._max.unit = dependency_result.unit
-        self._independent = False
         self._fixed = False
         self._notify_observers()
 
@@ -510,6 +527,23 @@ class Parameter(DescriptorNumber):
     @free.setter
     def free(self, value: bool) -> None:
         self.fixed = not value
+
+    def _revert_dependency(self, skip_detach=False) -> None:
+        """
+        Revert the dependency to the old dependency. This is used when an error is raised during setting the dependency.
+        """
+        if self._previous_independent is True:
+            self.make_independent()
+        else:
+            if not skip_detach:
+                for dependency in self._dependency_map.values():
+                    dependency._detach_observer(self)
+            for key, value in self._previous_dependency.items():
+                setattr(self, key, value)
+            for dependency in self._dependency_map.values():
+                dependency._attach_observer(self)
+            del self._previous_dependency
+        del self._previous_independent
 
     def _process_dependency_unique_names(self, dependency_expression: str):
         """

@@ -225,7 +225,7 @@ class TestParameter:
         ('2*a', ['a', Parameter(name='a', value=1)]),
         ('2*a', {4: Parameter(name='a', value=1)}),
         ('2*a', {'a': ObjBase(name='a')}),
-    ], ids=["dependecy_expression_not_a_string", "dependency_map_not_a_dict", "dependency_map_keys_not_strings", "dependency_map_values_not_descriptor_number"])
+    ], ids=["dependency_expression_not_a_string", "dependency_map_not_a_dict", "dependency_map_keys_not_strings", "dependency_map_values_not_descriptor_number"])
     def test_parameter_from_dependency_input_exceptions(self, dependency_expression, dependency_map):
         # When Then Expect
         with pytest.raises(TypeError):
@@ -239,15 +239,46 @@ class TestParameter:
         ('2*a + b', NameError),
         ('2*a + 3*', SyntaxError),
         ('2 + 2', TypeError),
-        ], ids=["parameter_not_in_map", "invalid_dependency_expression", "result_not_a_descriptor_number"])
-    def test_parameter_from_dependency_evaluation_exceptions(self, normal_parameter, dependency_expression, error):
-        # When Then Expect
+        ('2*"special_name"', ValueError),
+        ], ids=["parameter_not_in_map", "invalid_dependency_expression", "result_not_a_descriptor_number", "unique_name_does_not_exist"])
+    def test_parameter_make_dependent_on_exceptions_cleanup_previously_dependent(self, normal_parameter, dependency_expression, error):
+        # When 
+        independent_parameter = Parameter(name='independent', value=10, unit='s', variance=0.02)
+        dependent_parameter = Parameter.from_dependency(
+            name= 'dependent',
+            dependency_expression='best', 
+            dependency_map={'best': independent_parameter}
+            )
+        # Then Expect
+        # Check that the correct error is raised
         with pytest.raises(error):
-            Parameter.from_dependency(
-                name = 'dependent', 
+            dependent_parameter.make_dependent_on(
                 dependency_expression=dependency_expression, 
                 dependency_map={'a': normal_parameter},
-            )
+                )
+        # Check that everything is properly cleaned up
+        assert normal_parameter._observers == []
+        assert dependent_parameter.independent == False
+        assert dependent_parameter.dependency_expression == 'best'
+        assert dependent_parameter.dependency_map == {'best': independent_parameter}
+        independent_parameter.value = 50
+        self.compare_parameters(dependent_parameter, independent_parameter)
+
+    def test_parameter_make_dependent_on_exceptions_cleanup_previously_independent(self, normal_parameter):
+        # When 
+        independent_parameter = Parameter(name='independent', value=10, unit='s', variance=0.02)
+        # Then Expect
+        # Check that the correct error is raised
+        with pytest.raises(NameError):
+            independent_parameter.make_dependent_on(
+                dependency_expression='2*a + b', 
+                dependency_map={'a': normal_parameter},
+                )
+        # Check that everything is properly cleaned up
+        assert normal_parameter._observers == []
+        assert independent_parameter.independent == True
+        normal_parameter.value = 50
+        assert independent_parameter.value == 10
 
     def test_dependent_parameter_updates(self, normal_parameter: Parameter):
         # When
