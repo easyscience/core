@@ -351,6 +351,7 @@ class TestParameter:
         # Check that everything is properly cleaned up
         assert dependent_parameter_2._observers == []
         assert normal_parameter.independent == True
+        assert normal_parameter.value == 1
         normal_parameter.value = 50
         self.compare_parameters(dependent_parameter_2, 4*normal_parameter)
 
