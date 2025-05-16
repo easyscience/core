@@ -117,17 +117,24 @@ class DescriptorNumber(DescriptorBase):
         """Detach an observer from the descriptor."""
         self._observers.remove(observer)
 
-    def _notify_observers(self, update_id=None) -> None:
-        """Notify all observers of a change.
-        
-        :param update_id: Optional update ID to pass to observers. Used to avoid cyclic depenencies.
-
-        """
-        if update_id is None:
-            self._global_object.update_id_iterator += 1
-            update_id = self._global_object.update_id_iterator
+    def _notify_observers(self) -> None:
+        """Notify all observers of a change."""
         for observer in self._observers:
-            observer._update(update_id=update_id, updating_object=self.unique_name)
+            observer._update()
+
+    def _ping_observers(self, ping_origin=None) -> None:
+        """Ping all observers to check if any cyclic dependencies has been introduced.
+
+        :param ping_origin: Unique_name of the origin of this ping. Used to avoid cyclic depenencies.
+        """
+        if ping_origin == self.unique_name:
+            raise RuntimeError('\n Cyclic dependency detected!\n' +
+                    f'An update of {self.unique_name} leads to it updating itself.\n' +
+                    'Please check your dependencies.')
+        if ping_origin is None:
+            ping_origin = self.unique_name
+        for observer in self._observers:
+            observer._ping_observers(ping_origin=ping_origin)
 
     @property
     def full_value(self) -> Variable:

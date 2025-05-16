@@ -88,7 +88,6 @@ class Parameter(DescriptorNumber):
         if not isinstance(fixed, bool):
             raise TypeError('`fixed` must be either True or False')
         self._independent = True
-        self._observers: List[DescriptorNumber] = []
         self._fixed = fixed # For fitting, but must be initialized before super().__init__
         self._min = sc.scalar(float(min), unit=unit)
         self._max = sc.scalar(float(max), unit=unit)
@@ -127,35 +126,21 @@ class Parameter(DescriptorNumber):
         parameter.make_dependent_on(dependency_expression=dependency_expression, dependency_map=dependency_map)
         return parameter
 
-
-    def _update(self, update_id: int, updating_object: str) -> None:
+    def _update(self) -> None:
         """
         Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
-
-        :param update_id: The id of the update. This is used to avoid cyclic dependencies.
-        :param updating_object: The unique_name of the object which is updating this parameter.
-
         """
         if not self._independent:
-            # Check if this parameter has already been updated by the updating object with this update id
-            if updating_object not in self._dependency_updates:
-                self._dependency_updates[updating_object] = 0
-            if self._dependency_updates[updating_object] == update_id:
-                raise RuntimeError('\n Potential cyclic dependency detected!\n' +
-                                  f'This parameter, {self.unique_name}, has already been updated by {updating_object} during this update.\n' +  # noqa: E501
-                                   'Please check your dependencies.')
-            else:
-                # Update the value of the parameter using the dependency interpreter
-                temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
-                self._scalar.value = temporary_parameter.value
-                self._scalar.unit = temporary_parameter.unit
-                self._scalar.variance = temporary_parameter.variance
-                self._min.value = temporary_parameter.min if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
-                self._max.value = temporary_parameter.max if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
-                self._min.unit = temporary_parameter.unit
-                self._max.unit = temporary_parameter.unit
-                self._dependency_updates[updating_object] = update_id
-                self._notify_observers(update_id=update_id)
+            # Update the value of the parameter using the dependency interpreter
+            temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
+            self._scalar.value = temporary_parameter.value
+            self._scalar.unit = temporary_parameter.unit
+            self._scalar.variance = temporary_parameter.variance
+            self._min.value = temporary_parameter.min if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
+            self._max.value = temporary_parameter.max if isinstance(temporary_parameter, Parameter) else temporary_parameter.value  # noqa: E501
+            self._min.unit = temporary_parameter.unit
+            self._max.unit = temporary_parameter.unit
+            self._notify_observers()
         else:
             warnings.warn('This parameter is not dependent. It cannot be updated.')
 
@@ -209,8 +194,8 @@ class Parameter(DescriptorNumber):
                           'listcomp':       False, 'dictcomp':    False, 'setcomp':        False,
                           'try':            False, 'while':       False, 'with':           False}
         self._dependency_interpreter = Interpreter(config=asteval_config)
-        self._dependency_updates = {} # Used to track update ids to avoid cyclic dependencies
 
+        # Process the dependency expression for unique names
         try:
             self._process_dependency_unique_names(self._dependency_string)
         except ValueError as error:
@@ -221,6 +206,7 @@ class Parameter(DescriptorNumber):
                 self._dependency_interpreter.symtable[key] = value
                 self._dependency_interpreter.readonly_symbols.add(key) # Dont allow overwriting of the dependencies in the dependency expression  # noqa: E501
                 value._attach_observer(self)
+        # Check the dependency expression for errors
         try:
             dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
         except NameError as message:
@@ -237,15 +223,15 @@ class Parameter(DescriptorNumber):
             error_string = self._dependency_string
             self._revert_dependency()
             raise TypeError(f'The dependency expression: "{error_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
-        self._scalar.value = dependency_result.value
-        self._scalar.unit = dependency_result.unit
-        self._scalar.variance = dependency_result.variance
-        self._min.value = dependency_result.min if isinstance(dependency_result, Parameter) else dependency_result.value
-        self._max.value = dependency_result.max if isinstance(dependency_result, Parameter) else dependency_result.value
-        self._min.unit = dependency_result.unit
-        self._max.unit = dependency_result.unit
+        # Check for cyclic dependencies
+        try:
+            self._ping_observers()
+        except RuntimeError as error:
+            self._revert_dependency()
+            raise error
+        # Update the parameter with the dependency result
         self._fixed = False
-        self._notify_observers()
+        self._update()
 
     def make_independent(self) -> None:
         """
@@ -259,7 +245,6 @@ class Parameter(DescriptorNumber):
                 dependency._detach_observer(self)
             self._independent = True
             del self._dependency_map
-            del self._dependency_updates
             del self._dependency_interpreter
             del self._dependency_string
             del self._clean_dependency_string

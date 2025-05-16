@@ -348,6 +348,11 @@ class TestParameter:
         # Then Expect
         with pytest.raises(RuntimeError):
             normal_parameter.make_dependent_on(dependency_expression='2*c', dependency_map={'c': dependent_parameter_2})
+        # Check that everything is properly cleaned up
+        assert dependent_parameter_2._observers == []
+        assert normal_parameter.independent == True
+        normal_parameter.value = 50
+        self.compare_parameters(dependent_parameter_2, 4*normal_parameter)
 
     def test_dependent_parameter_logical_dependency(self, normal_parameter: Parameter):
         # When
