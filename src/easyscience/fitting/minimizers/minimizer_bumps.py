@@ -1,6 +1,6 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import copy
 from typing import Callable
@@ -15,8 +15,8 @@ from bumps.names import FitProblem
 from bumps.parameter import Parameter as BumpsParameter
 
 # causes circular import when Parameter is imported
-# from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+# from easyscience.base_classes import ObjBase
+from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
@@ -32,22 +32,22 @@ FIT_AVAILABLE_IDS_FILTERED.remove('pt')
 class Bumps(MinimizerBase):
     """
     This is a wrapper to Bumps: https://bumps.readthedocs.io/
-    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.Objects.Base.BaseObj`.
+    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.
     """
 
     package = 'bumps'
 
     def __init__(
         self,
-        obj,  #: BaseObj,
+        obj,  #: ObjBase,
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
-    ):  # todo after constraint changes, add type hint: obj: BaseObj  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """
-        Initialize the fitting engine with a `BaseObj` and an arbitrary fitting function.
+        Initialize the fitting engine with a `ObjBase` and an arbitrary fitting function.
 
         :param obj: Object containing elements of the `Parameter` class
-        :type obj: BaseObj
+        :type obj: ObjBase
         :param fit_function: function that when called returns y values. 'x' must be the first
                             and only positional argument. Additional values can be supplied by
                             keyword/value pairs
@@ -151,7 +151,7 @@ class Bumps(MinimizerBase):
         :rtype: List[BumpsParameter]
         """
         if par_list is None:
-            # Assume that we have a BaseObj for which we can obtain a list
+            # Assume that we have a ObjBase for which we can obtain a list
             par_list = self._object.get_fit_parameters()
         pars_obj = [self.__class__.convert_to_par_object(obj) for obj in par_list]
         return pars_obj
@@ -160,7 +160,7 @@ class Bumps(MinimizerBase):
     @staticmethod
     def convert_to_par_object(obj) -> BumpsParameter:
         """
-        Convert an `EasyScience.Objects.Base.Parameter` object to a bumps Parameter object
+        Convert an `EasyScience.variable.Parameter` object to a bumps Parameter object
 
         :return: bumps Parameter compatible object.
         :rtype: BumpsParameter

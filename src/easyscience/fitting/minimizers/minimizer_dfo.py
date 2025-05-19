@@ -1,6 +1,6 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from typing import Callable
 from typing import Dict
@@ -11,8 +11,8 @@ import dfols
 import numpy as np
 
 # causes circular import when Parameter is imported
-# from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+# from easyscience.base_classes import ObjBase
+from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
@@ -30,15 +30,15 @@ class DFO(MinimizerBase):
 
     def __init__(
         self,
-        obj,  #: BaseObj,
+        obj,  #: ObjBase,
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
-    ):  # todo after constraint changes, add type hint: obj: BaseObj  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """
-        Initialize the fitting engine with a `BaseObj` and an arbitrary fitting function.
+        Initialize the fitting engine with a `ObjBase` and an arbitrary fitting function.
 
         :param obj: Object containing elements of the `Parameter` class
-        :type obj: BaseObj
+        :type obj: ObjBase
         :param fit_function: function that when called returns y values. 'x' must be the first
                             and only positional argument. Additional values can be supplied by
                             keyword/value pairs

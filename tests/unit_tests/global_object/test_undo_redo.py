@@ -1,23 +1,19 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
-__author__ = "github.com/wardsimon"
-__version__ = "0.0.1"
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import math
 
 import numpy as np
 import pytest
 
-from easyscience.Objects.Groups import BaseCollection
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable.parameter import Parameter
-from easyscience.Objects.variable.descriptor_str import DescriptorStr
-from easyscience.Objects.variable.descriptor_number import DescriptorNumber
-from easyscience.Objects.variable.descriptor_bool import DescriptorBool
-
-from easyscience.fitting import Fitter
+from easyscience.base_classes import CollectionBase
+from easyscience.variable import DescriptorStr
+from easyscience.variable import DescriptorBool
+from easyscience import ObjBase
+from easyscience import Parameter
+from easyscience import DescriptorNumber
+from easyscience import Fitter
 
 
 def createSingleObjs(idx):
@@ -152,10 +148,10 @@ def test_Parameter_Bounds_UndoRedo():
     assert parameter.max == np.inf
 
 
-def test_BaseObjUndoRedo():
+def test_ObjBaseUndoRedo():
     objs = {obj.name: obj for obj in [createSingleObjs(idx) for idx in range(5)]}
     name = "test"
-    obj = BaseObj(name, **objs)
+    obj = ObjBase(name, **objs)
     name2 = "best"
 
     # Test name
@@ -167,10 +163,10 @@ def test_BaseObjUndoRedo():
         assert not e
 
 
-def test_BaseCollectionUndoRedo():
+def test_CollectionBaseUndoRedo():
     objs = [createSingleObjs(idx) for idx in range(5)]
     name = "test"
-    obj = BaseCollection(name, *objs)
+    obj = CollectionBase(name, *objs)
     name2 = "best"
 
     # assert not doUndoRedo(obj, 'name', name2)
@@ -274,7 +270,7 @@ def test_fittingUndoRedo(fit_engine):
     x = np.linspace(-5, 5, 100)
     dy = np.random.rand(*x.shape)
 
-    class Line(BaseObj):
+    class Line(ObjBase):
         def __init__(self, m: Parameter, c: Parameter):
             super(Line, self).__init__("basic_line", m=m, c=c)
 

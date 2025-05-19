@@ -1,6 +1,6 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from abc import ABCMeta
 from abc import abstractmethod
@@ -17,8 +17,8 @@ from typing import Union
 import numpy as np
 
 # causes circular import when Parameter is imported
-# from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+# from easyscience.base_classes import ObjBase
+from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
 from .utils import FitError
@@ -36,10 +36,10 @@ class MinimizerBase(metaclass=ABCMeta):
 
     def __init__(
         self,
-        obj,  #: BaseObj,
+        obj,  #: ObjBase,
         fit_function: Callable,
         minimizer_enum: AvailableMinimizers,
-    ):  # todo after constraint changes, add type hint: obj: BaseObj  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         if minimizer_enum.method not in self.supported_methods():
             raise FitError(f'Method {minimizer_enum.method} not available in {self.__class__}')
         self._object = obj
@@ -159,9 +159,9 @@ class MinimizerBase(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def convert_to_par_object(obj):  # todo after constraint changes, add type hint: obj: BaseObj
+    def convert_to_par_object(obj):  # todo after constraint changes, add type hint: obj: ObjBase
         """
-        Convert an `EasyScience.Objects.Base.Parameter` object to an engine Parameter object.
+        Convert an `EasyScience.variable.Parameter` object to an engine Parameter object.
         """
 
     def _prepare_parameters(self, parameters: dict[str, float]) -> dict[str, float]:

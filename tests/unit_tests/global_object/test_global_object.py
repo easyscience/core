@@ -1,6 +1,6 @@
 import easyscience
 from easyscience.global_object.global_object import GlobalObject
-from easyscience.Objects.variable.descriptor_bool import DescriptorBool
+from easyscience.variable import DescriptorBool
 
 class TestGlobalObject:
     def test_init(self):
