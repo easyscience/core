@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright (c) 2024 Easyscience contributors (https://github.com/EasyScience)
+# Copyright (c) 2025 Easyscience contributors (https://github.com/EasyScience)
 import easyscience as pkg
 
 
