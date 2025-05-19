@@ -235,9 +235,6 @@ class SerializerBase:
             if '@module' in d and '@class' in d:
                 modname = d['@module']
                 classname = d['@class']
-                # if classname in SerializerDict.REDIRECT.get(modname, {}):
-                #     modname = SerializerDict.REDIRECT[modname][classname]["@module"]
-                #     classname = SerializerDict.REDIRECT[modname][classname]["@class"]
             else:
                 modname = None
                 classname = None

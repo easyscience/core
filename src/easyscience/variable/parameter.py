@@ -224,7 +224,7 @@ class Parameter(DescriptorNumber):
             raise TypeError(f'The dependency expression: "{error_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.')  # noqa: E501
         # Check for cyclic dependencies
         try:
-            self._ping_observers()
+            self._validate_dependencies()
         except RuntimeError as error:
             self._revert_dependency()
             raise error

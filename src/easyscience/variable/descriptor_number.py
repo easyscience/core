@@ -122,19 +122,19 @@ class DescriptorNumber(DescriptorBase):
         for observer in self._observers:
             observer._update()
 
-    def _ping_observers(self, ping_origin=None) -> None:
-        """Ping all observers to check if any cyclic dependencies has been introduced.
+    def _validate_dependencies(self, origin=None) -> None:
+        """Ping all observers to check if any cyclic dependencies have been introduced.
 
-        :param ping_origin: Unique_name of the origin of this ping. Used to avoid cyclic depenencies.
+        :param origin: Unique_name of the origin of this validation check. Used to avoid cyclic depenencies.
         """
-        if ping_origin == self.unique_name:
+        if origin == self.unique_name:
             raise RuntimeError('\n Cyclic dependency detected!\n' +
                     f'An update of {self.unique_name} leads to it updating itself.\n' +
                     'Please check your dependencies.')
-        if ping_origin is None:
-            ping_origin = self.unique_name
+        if origin is None:
+            origin = self.unique_name
         for observer in self._observers:
-            observer._ping_observers(ping_origin=ping_origin)
+            observer._validate_dependencies(origin=origin)
 
     @property
     def full_value(self) -> Variable:

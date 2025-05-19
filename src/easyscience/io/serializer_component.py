@@ -25,7 +25,6 @@ class SerializerComponent:
     Shortcuts for dictionary and encoding is also present.
     """
 
-    _CORE = True
 
     def __deepcopy__(self, memo):
         return self.from_dict(self.as_dict())
