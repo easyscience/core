@@ -299,9 +299,15 @@ class DescriptorNumber(DescriptorBase):
         string = '<'
         string += self.__class__.__name__ + ' '
         string += f"'{self._name}': "
-        string += f'{self._scalar.value:.4f}'
-        if self.variance:
-            string += f' \u00b1 {self.error:.4f}'
+        if np.abs(self._scalar.value)>1e4 or (np.abs(self._scalar.value)<1e-4 and np.abs(self._scalar.value)>0):
+            # Use scientific notation for large or small values
+            string += f'{self._scalar.value:.3e}'
+            if self.variance:
+                string += f' \u00b1 {self.error:.3e}'
+        else:
+            string += f'{self._scalar.value:.4f}'
+            if self.variance:
+                string += f' \u00b1 {self.error:.4f}'
         obj_unit = self._scalar.unit
         if obj_unit == 'dimensionless':
             obj_unit = ''
