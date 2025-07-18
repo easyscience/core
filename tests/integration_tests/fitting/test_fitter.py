@@ -321,3 +321,34 @@ def test_2D_non_vectorized(fit_engine, with_errors):
     assert result.residual == pytest.approx(
         mm(XY.reshape(-1, 2)) - y_calc_ref, abs=1e-2
     )
+
+@pytest.mark.parametrize("fit_engine", [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO])
+def test_fixed_parameter_does_not_change(fit_engine):
+    # WHEN
+    ref_sin = AbsSin(0.2, np.pi)
+    sp_sin = AbsSin(0.354, 3.05)
+
+    x = np.linspace(0, 5, 200)
+    y = ref_sin(x)
+
+    # Fix the offset, only phase should be optimized
+    sp_sin.offset.fixed = True
+    sp_sin.phase.fixed = False
+
+    fixed_offset_before = sp_sin.offset.value
+
+    # THEN
+    f = Fitter(sp_sin, sp_sin)
+    if fit_engine is not None:
+        try:
+            f.switch_minimizer(fit_engine)
+        except AttributeError:
+            pytest.skip(msg=f"{fit_engine} is not installed")
+
+    result = f.fit(x, y)
+
+    # EXPECT 
+    # Offset should remain unchanged
+    assert sp_sin.offset.value == pytest.approx(fixed_offset_before, abs=1e-12)
+    # Phase should be optimized
+    assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
