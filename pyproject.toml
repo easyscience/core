@@ -30,7 +30,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "asteval",
-    "bumps",
+    "bumps<1.0.0",
     "DFO-LS",
     "lmfit",
     "numpy",  
