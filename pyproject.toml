@@ -21,13 +21,12 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Development Status :: 3 - Alpha"
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "asteval",
     "bumps<1.0.0",
@@ -127,10 +126,9 @@ force-single-line = true
 legacy_tox_ini = """
 [tox]
 isolated_build = True
-envlist = py{3.10,3.11,3.12,3.13}
+envlist = py{3.11,3.12,3.13}
 [gh-actions]
 python =
-        3.10: py310
         3.11: py311
         3.12: py312
         3.13: py313
