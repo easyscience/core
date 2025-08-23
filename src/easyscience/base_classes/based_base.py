@@ -158,6 +158,7 @@ class BasedBase(SerializerComponent):
         :return: List of `Descriptor`/`Parameter` objects.
         """
         item_list = []
+        from ..variable.descriptor_base import DescriptorBase
         for key, item in self._kwargs.items():
             if hasattr(item, '_get_linkable_attributes'):
                 item_list = [*item_list, *item._get_linkable_attributes()]

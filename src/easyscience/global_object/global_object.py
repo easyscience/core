@@ -2,7 +2,7 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
-from ..utils.classUtils import singleton
+from ..Utils.classUtils import singleton
 from .hugger.hugger import ScriptManager
 from .logger import Logger
 from .map import Map

@@ -9,7 +9,7 @@ from abc import abstractmethod
 from typing import List
 from typing import Tuple
 
-from ...utils.classUtils import singleton
+from ...Utils.classUtils import singleton
 
 
 @singleton
