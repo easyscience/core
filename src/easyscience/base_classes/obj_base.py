@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from typing import Callable
 from typing import Optional
 
-from ..Utils.classTools import addLoggedProp
+from ..utils.classTools import addLoggedProp
 from ..variable.descriptor_base import DescriptorBase
 from .based_base import BasedBase
 
