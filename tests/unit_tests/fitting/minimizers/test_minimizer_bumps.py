@@ -33,11 +33,11 @@ class TestBumpsFit():
 
     def test_all_methods(self, minimizer: Bumps) -> None:
         # When Then Expect
-        assert minimizer.all_methods() == ['amoeba', 'de', 'dream', 'newton', 'scipy.leastsq', 'lm']
+        assert minimizer.all_methods() == ['amoeba', 'de', 'dream', 'newton', 'lm']
 
     def test_supported_methods(self, minimizer: Bumps) -> None:
         # When Then Expect
-        assert set(minimizer.supported_methods()) == set(['scipy.leastsq','newton', 'lm', 'amoeba'])
+        assert set(minimizer.supported_methods()) == set(['newton', 'lm', 'amoeba'])
 
     def test_fit(self, minimizer: Bumps, monkeypatch) -> None:
         # When
@@ -107,7 +107,7 @@ class TestBumpsFit():
         minimizer._cached_pars['b'].value = 'b'
 
         mock_cached_model = MagicMock()
-        mock_cached_model._pnames = ['pa', 'pb']
+        mock_cached_model.pars = {'pa':0, 'pb': 0}
         minimizer._cached_model = mock_cached_model
 
         mock_fit_result = MagicMock()
@@ -136,7 +136,7 @@ class TestBumpsFit():
         mock_cached_model.x = 'x'
         mock_cached_model.y = 'y'
         mock_cached_model.dy = 'dy'
-        mock_cached_model._pnames = ['ppar_1', 'ppar_2']
+        mock_cached_model.pars = {'ppar_1': 0, 'ppar_2': 0}
         minimizer._cached_model = mock_cached_model
 
         mock_cached_par_1 = MagicMock()

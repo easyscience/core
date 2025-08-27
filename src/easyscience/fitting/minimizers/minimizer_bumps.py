@@ -63,7 +63,7 @@ class Bumps(MinimizerBase):
     @staticmethod
     def supported_methods() -> List[str]:
         # only a small subset
-        methods = ['scipy.leastsq', 'amoeba', 'newton', 'lm']
+        methods = ['amoeba', 'newton', 'lm']
         return methods
 
     def fit(
@@ -219,7 +219,7 @@ class Bumps(MinimizerBase):
             global_object.stack.enabled = True
             global_object.stack.beginMacro('Fitting routine')
 
-        for index, name in enumerate(self._cached_model._pnames):
+        for index, name in enumerate(self._cached_model.pars.keys()):
             dict_name = name[len(MINIMIZER_PARAMETER_PREFIX) :]
             pars[dict_name].value = fit_result.x[index]
             pars[dict_name].error = fit_result.dx[index]
@@ -242,7 +242,7 @@ class Bumps(MinimizerBase):
         results.success = fit_results.success
         pars = self._cached_pars
         item = {}
-        for index, name in enumerate(self._cached_model._pnames):
+        for index, name in enumerate(self._cached_model.pars.keys()):
             dict_name = name[len(MINIMIZER_PARAMETER_PREFIX) :]
 
             item[name] = pars[dict_name].value
