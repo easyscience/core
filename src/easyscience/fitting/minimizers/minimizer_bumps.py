@@ -133,7 +133,7 @@ class Bumps(MinimizerBase):
 
         try:
             model_results = bumps_fit(problem, **method_dict, **minimizer_kwargs, **kwargs)
-            self._set_parameter_fit_result(model_results, stack_status)
+            self._set_parameter_fit_result(model_results, stack_status, problem._parameters)
             results = self._gen_fit_results(model_results)
         except Exception as e:
             for key in self._cached_pars.keys():
@@ -200,7 +200,7 @@ class Bumps(MinimizerBase):
 
         return _outer(self)
 
-    def _set_parameter_fit_result(self, fit_result, stack_status: bool):
+    def _set_parameter_fit_result(self, fit_result, stack_status: bool, par_list: List[BumpsParameter]):
         """
         Update parameters to their final values and assign a std error to them.
 
@@ -219,7 +219,7 @@ class Bumps(MinimizerBase):
             global_object.stack.enabled = True
             global_object.stack.beginMacro('Fitting routine')
 
-        for index, name in enumerate(self._cached_model.pars.keys()):
+        for index, name in enumerate([par.name for par in par_list]):
             dict_name = name[len(MINIMIZER_PARAMETER_PREFIX) :]
             pars[dict_name].value = fit_result.x[index]
             pars[dict_name].error = fit_result.dx[index]

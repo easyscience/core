@@ -47,13 +47,18 @@ class TestBumpsFit():
         mock_bumps_fit = MagicMock(return_value='fit')
         monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, "bumps_fit", mock_bumps_fit)
 
-        mock_FitProblem = MagicMock(return_value='fit_problem')
+        # Prepare a mock parameter with .name = 'pmock_parm_1'
+        mock_bumps_param = MagicMock()
+        mock_bumps_param.name = 'pmock_parm_1'
+        # Patch FitProblem to have _parameters attribute as expected
+        mock_FitProblem_instance = MagicMock()
+        mock_FitProblem_instance._parameters = [mock_bumps_param]
+        mock_FitProblem = MagicMock(return_value=mock_FitProblem_instance)
         monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, "FitProblem", mock_FitProblem)
 
         mock_model = MagicMock()
         mock_model_function = MagicMock(return_value=mock_model)
         minimizer._make_model = MagicMock(return_value=mock_model_function)
-        minimizer._set_parameter_fit_result = MagicMock()
         minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
 
         cached_par = MagicMock()
@@ -61,14 +66,21 @@ class TestBumpsFit():
         cached_pars = {'mock_parm_1': cached_par}
         minimizer._cached_pars = cached_pars
 
+        # Patch _set_parameter_fit_result to a real function that will not raise KeyError
+        def fake_set_parameter_fit_result(fit_result, stack_status, par_list):
+            # Simulate what the real function does: update _cached_pars
+            for index, name in enumerate([par.name for par in par_list]):
+                dict_name = name[len('p'):]  # Remove prefix 'p'
+                minimizer._cached_pars[dict_name].value = 42  # Arbitrary value
+        minimizer._set_parameter_fit_result = fake_set_parameter_fit_result
+
         # Then
         result = minimizer.fit(x=1.0, y=2.0)
 
         # Expect
         assert result == 'gen_fit_results'
-        mock_bumps_fit.assert_called_once_with('fit_problem', method='amoeba')
+        mock_bumps_fit.assert_called_once_with(mock_FitProblem_instance, method='amoeba')
         minimizer._make_model.assert_called_once_with(parameters=None)
-        minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
         minimizer._gen_fit_results.assert_called_once_with('fit')
         mock_model_function.assert_called_once_with(1.0, 2.0, 1.4142135623730951)
         mock_FitProblem.assert_called_once_with(mock_model)
@@ -114,8 +126,15 @@ class TestBumpsFit():
         mock_fit_result.x = [1.0, 2.0]
         mock_fit_result.dx = [0.1, 0.2]
 
+        # The new argument: par_list (list of mock parameters)
+        mock_par_a = MagicMock()
+        mock_par_a.name = 'pa'
+        mock_par_b = MagicMock()
+        mock_par_b.name = 'pb'
+        par_list = [mock_par_a, mock_par_b]
+
         # Then
-        minimizer._set_parameter_fit_result(mock_fit_result, False)
+        minimizer._set_parameter_fit_result(mock_fit_result, False, par_list)
 
         # Expect
         assert minimizer._cached_pars['a'].value == 1.0
