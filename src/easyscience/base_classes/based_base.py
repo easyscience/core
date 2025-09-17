@@ -14,10 +14,10 @@ from easyscience import global_object
 
 from ..io import SerializerComponent
 from ..variable import Parameter
+from ..variable.descriptor_base import DescriptorBase
 
 if TYPE_CHECKING:
     from ..fitting.calculators import InterfaceFactoryTemplate
-    from ..variable.descriptor_base import DescriptorBase
 
 
 class BasedBase(SerializerComponent):
@@ -158,7 +158,6 @@ class BasedBase(SerializerComponent):
         :return: List of `Descriptor`/`Parameter` objects.
         """
         item_list = []
-        from ..variable.descriptor_base import DescriptorBase
         for key, item in self._kwargs.items():
             if hasattr(item, '_get_linkable_attributes'):
                 item_list = [*item_list, *item._get_linkable_attributes()]
