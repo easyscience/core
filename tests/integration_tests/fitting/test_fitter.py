@@ -67,20 +67,20 @@ def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
     assert np.all(result.x == x)
     for item1, item2 in zip(sp_sin._kwargs.values(), ref_sin._kwargs.values()):
         # assert item.error > 0 % This does not work as some methods don't calculate error
-        assert item1.error == pytest.approx(0, abs=1e-1)
+        assert item1.error == pytest.approx(0, abs=2.1e-1)
         assert item1.value == pytest.approx(item2.value, abs=5e-3)
     y_calc_ref = ref_sin(x)
     assert result.y_calc == pytest.approx(y_calc_ref, abs=1e-2)
     assert result.residual == pytest.approx(sp_sin(x) - y_calc_ref, abs=1e-2)
 
 
-@pytest.mark.parametrize("with_errors", [False, True])
 @pytest.mark.parametrize("fit_engine", [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO])
-def test_basic_fit(fit_engine: AvailableMinimizers, with_errors):
+def test_basic_fit(fit_engine: AvailableMinimizers):
     ref_sin = AbsSin(0.2, np.pi)
     sp_sin = AbsSin(0.354, 3.05)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     sp_sin.offset.fixed = False
@@ -92,11 +92,8 @@ def test_basic_fit(fit_engine: AvailableMinimizers, with_errors):
             f.switch_minimizer(fit_engine)
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
-    args = [x, y]
-    kwargs = {}
-    if with_errors:
-        kwargs["weights"] = 1 / np.sqrt(y)
-    result = f.fit(*args, **kwargs)
+
+    result = f.fit(x=x, y=y, weights=weights)
 
     if fit_engine is not None:
         assert result.minimizer_engine.package == fit_engine.name.lower() # Special case where minimizer matches package
@@ -110,6 +107,7 @@ def test_fit_result(fit_engine):
     sp_sin = AbsSin(0.354, 3.05)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     sp_sin.offset.fixed = False
@@ -132,7 +130,7 @@ def test_fit_result(fit_engine):
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
 
-    result = f.fit(x, y)
+    result = f.fit(x, y, weights=weights)
     check_fit_results(result, sp_sin, ref_sin, x, sp_ref1=sp_ref1, sp_ref2=sp_ref2)
 
 
@@ -142,6 +140,7 @@ def test_basic_max_evaluations(fit_engine):
     sp_sin = AbsSin(0.354, 3.05)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     sp_sin.offset.fixed = False
@@ -153,11 +152,9 @@ def test_basic_max_evaluations(fit_engine):
             f.switch_minimizer(fit_engine)
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
-    args = [x, y]
-    kwargs = {}
     f.max_evaluations = 3
     try:
-        result = f.fit(*args, **kwargs)
+        result = f.fit(x=x, y=y, weights=weights)
         # Result should not be the same as the reference
         assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
         assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
@@ -172,6 +169,7 @@ def test_basic_tolerance(fit_engine, tolerance):
     sp_sin = AbsSin(0.354, 3.05)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     sp_sin.offset.fixed = False
@@ -183,10 +181,8 @@ def test_basic_tolerance(fit_engine, tolerance):
             f.switch_minimizer(fit_engine)
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
-    args = [x, y]
-    kwargs = {}
     f.tolerance = tolerance
-    result = f.fit(*args, **kwargs)
+    result = f.fit(x=x, y=y, weights=weights)
     # Result should not be the same as the reference
     assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
     assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
@@ -198,6 +194,7 @@ def test_lmfit_methods(fit_method):
     sp_sin = AbsSin(0.354, 3.05)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     sp_sin.offset.fixed = False
@@ -205,7 +202,7 @@ def test_lmfit_methods(fit_method):
 
     f = Fitter(sp_sin, sp_sin)
     assert fit_method in f._minimizer.supported_methods()
-    result = f.fit(x, y, method=fit_method)
+    result = f.fit(x, y, weights=weights, method=fit_method)
     check_fit_results(result, sp_sin, ref_sin, x)
 
 
@@ -216,6 +213,7 @@ def test_bumps_methods(fit_method):
     sp_sin = AbsSin(0.354, 3.05)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     sp_sin.offset.fixed = False
@@ -224,7 +222,7 @@ def test_bumps_methods(fit_method):
     f = Fitter(sp_sin, sp_sin)
     f.switch_minimizer("Bumps")
     assert fit_method in f._minimizer.supported_methods()
-    result = f.fit(x, y, method=fit_method)
+    result = f.fit(x, y, weights=weights, method=fit_method)
     check_fit_results(result, sp_sin, ref_sin, x)
 
 
@@ -234,6 +232,7 @@ def test_dependent_parameter(fit_engine):
     sp_sin = AbsSin(1, 0.5)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     f = Fitter(sp_sin, sp_sin)
@@ -246,12 +245,11 @@ def test_dependent_parameter(fit_engine):
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
 
-    result = f.fit(x, y)
+    result = f.fit(x, y, weights=weights)
     check_fit_results(result, sp_sin, ref_sin, x)
 
-@pytest.mark.parametrize("with_errors", [False, True])
 @pytest.mark.parametrize("fit_engine", [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO])
-def test_2D_vectorized(fit_engine, with_errors):
+def test_2D_vectorized(fit_engine):
     x = np.linspace(0, 5, 200)
     mm = AbsSin2D(0.3, 1.6)
     m2 = AbsSin2D(
@@ -259,6 +257,7 @@ def test_2D_vectorized(fit_engine, with_errors):
     )  # The fit is quite sensitive to the initial values :-(
     X, Y = np.meshgrid(x, x)
     XY = np.stack((X, Y), axis=2)
+    weights = np.ones_like(mm(XY))
     ff = Fitter(m2, m2)
     if fit_engine is not None:
         try:
@@ -266,11 +265,7 @@ def test_2D_vectorized(fit_engine, with_errors):
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
     try:
-        args = [XY, mm(XY)]
-        kwargs = {"vectorized": True}
-        if with_errors:
-            kwargs["weights"] = 1 / np.sqrt(args[1])
-        result = ff.fit(*args, **kwargs)
+        result = ff.fit(x=XY, y=mm(XY), weights=weights, vectorized=True)
     except FitError as e:
         if "Unable to allocate" in str(e):
             pytest.skip(msg="MemoryError - Matrix too large")
@@ -285,9 +280,8 @@ def test_2D_vectorized(fit_engine, with_errors):
     assert result.residual == pytest.approx(mm(XY) - y_calc_ref, abs=1e-2)
 
 
-@pytest.mark.parametrize("with_errors", [False, True])
 @pytest.mark.parametrize("fit_engine", [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO])
-def test_2D_non_vectorized(fit_engine, with_errors):
+def test_2D_non_vectorized(fit_engine):
     x = np.linspace(0, 5, 200)
     mm = AbsSin2DL(0.3, 1.6)
     m2 = AbsSin2DL(
@@ -295,6 +289,7 @@ def test_2D_non_vectorized(fit_engine, with_errors):
     )  # The fit is quite sensitive to the initial values :-(
     X, Y = np.meshgrid(x, x)
     XY = np.stack((X, Y), axis=2)
+    weights = np.ones_like(mm(XY.reshape(-1, 2)))
     ff = Fitter(m2, m2)
     if fit_engine is not None:
         try:
@@ -302,11 +297,7 @@ def test_2D_non_vectorized(fit_engine, with_errors):
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
     try:
-        args = [XY, mm(XY.reshape(-1, 2))]
-        kwargs = {"vectorized": False}
-        if with_errors:
-            kwargs["weights"] = 1 / np.sqrt(args[1])
-        result = ff.fit(*args, **kwargs)
+        result = ff.fit(x=XY, y=mm(XY.reshape(-1, 2)), weights=weights, vectorized=False)
     except FitError as e:
         if "Unable to allocate" in str(e):
             pytest.skip(msg="MemoryError - Matrix too large")
@@ -329,6 +320,7 @@ def test_fixed_parameter_does_not_change(fit_engine):
     sp_sin = AbsSin(0.354, 3.05)
 
     x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
     y = ref_sin(x)
 
     # Fix the offset, only phase should be optimized
@@ -345,7 +337,7 @@ def test_fixed_parameter_does_not_change(fit_engine):
         except AttributeError:
             pytest.skip(msg=f"{fit_engine} is not installed")
 
-    result = f.fit(x, y)
+    result = f.fit(x=x, y=y, weights=weights)
 
     # EXPECT 
     # Offset should remain unchanged

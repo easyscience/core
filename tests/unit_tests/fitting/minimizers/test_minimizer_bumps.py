@@ -75,14 +75,14 @@ class TestBumpsFit():
         minimizer._set_parameter_fit_result = fake_set_parameter_fit_result
 
         # Then
-        result = minimizer.fit(x=1.0, y=2.0)
+        result = minimizer.fit(x=1.0, y=2.0, weights=1)
 
         # Expect
         assert result == 'gen_fit_results'
         mock_bumps_fit.assert_called_once_with(mock_FitProblem_instance, method='amoeba')
         minimizer._make_model.assert_called_once_with(parameters=None)
         minimizer._gen_fit_results.assert_called_once_with('fit')
-        mock_model_function.assert_called_once_with(1.0, 2.0, 1.4142135623730951)
+        mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
  
 

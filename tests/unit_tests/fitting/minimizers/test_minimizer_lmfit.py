@@ -7,6 +7,7 @@ from easyscience.fitting.minimizers.minimizer_lmfit import LMFit
 from easyscience import Parameter
 from lmfit import Parameter as LMParameter
 from easyscience.fitting.minimizers.utils import FitError
+import numpy as np
 
 
 class TestLMFit():
@@ -94,11 +95,11 @@ class TestLMFit():
         minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
 
         # Then
-        result = minimizer.fit(x=1.0, y=2.0)
+        result = minimizer.fit(x=1.0, y=2.0, weights=1)
 
         # Expect
         assert result == 'gen_fit_results'
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=0.7071067811865475, max_nfev=None, fit_kws={}, method='leastsq')
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq')
         minimizer._make_model.assert_called_once_with()
         minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
         minimizer._gen_fit_results.assert_called_once_with('fit')
@@ -112,10 +113,10 @@ class TestLMFit():
         minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
 
         # Then
-        minimizer.fit(x=1.0, y=2.0, model=mock_model)
+        minimizer.fit(x=1.0, y=2.0, weights=1, model=mock_model)
 
         # Expect
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=0.7071067811865475, max_nfev=None, fit_kws={}, method='leastsq')
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq')
         minimizer._make_model.assert_not_called()
 
     def test_fit_method(self, minimizer: LMFit) -> None:
@@ -129,10 +130,10 @@ class TestLMFit():
         minimizer.all_methods = MagicMock(return_value=['method_passed'])
 
         # Then
-        minimizer.fit(x=1.0, y=2.0, method='method_passed')
+        minimizer.fit(x=1.0, y=2.0, weights=1, method='method_passed')
 
         # Expect
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=0.7071067811865475, max_nfev=None, fit_kws={}, method='method_passed')
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='method_passed')
         minimizer.supported_methods.assert_called_once_with()
 
     def test_fit_kwargs(self, minimizer: LMFit) -> None:
@@ -144,10 +145,10 @@ class TestLMFit():
         minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
 
         # Then
-        minimizer.fit(x=1.0, y=2.0, minimizer_kwargs={'minimizer_key': 'minimizer_val'}, engine_kwargs={'engine_key': 'engine_val'})
+        minimizer.fit(x=1.0, y=2.0, weights=1, minimizer_kwargs={'minimizer_key': 'minimizer_val'}, engine_kwargs={'engine_key': 'engine_val'})
 
         # Expect
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=0.7071067811865475, max_nfev=None, fit_kws={'minimizer_key': 'minimizer_val'}, method='leastsq', engine_key='engine_val')
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={'minimizer_key': 'minimizer_val'}, method='leastsq', engine_key='engine_val')
 
     def test_fit_exception(self, minimizer: LMFit) -> None:
         # When
@@ -157,7 +158,7 @@ class TestLMFit():
 
         # Then Expect
         with pytest.raises(FitError):
-            minimizer.fit(x=1.0, y=2.0)
+            minimizer.fit(x=1.0, y=2.0, weights=1)
 
     def test_convert_to_pars_obj(self, minimizer: LMFit, monkeypatch) -> None:
         # When

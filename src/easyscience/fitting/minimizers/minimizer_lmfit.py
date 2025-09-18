@@ -112,6 +112,10 @@ class LMFit(MinimizerBase):  # noqa: S101
         :return: Fit results
         :rtype: ModelResult
         """
+        weights = np.asarray(weights)
+        if weights.ndim > 1:
+            raise ValueError('Weights must be a 1D array.')
+        
         if not np.isfinite(weights).all():
             raise ValueError('Weights cannot be NaN or infinite.')
         
