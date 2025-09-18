@@ -127,6 +127,7 @@ class Map:
         name = obj.unique_name
         if name in self._store.keys():
             raise ValueError(f'Object name {name} already exists in the graph.')
+
         self._store[name] = obj
         self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
         self.__type_dict[name].finalizer = weakref.finalize(self._store[name], self.prune, name)
@@ -261,6 +262,18 @@ class Map:
         return False
 
     def _clear(self):
+        """Reset the map to an empty state."""
+        # Fast bulk clear instead of iterating through vertices
+        store_size = len(self._store)
+        self._store.clear()
+        self.__type_dict.clear()
+        # Only collect garbage if there were many objects
+        # value chosen based on performance testing in
+        # tests/performance/gc_threshold_strategy.py
+        if store_size > 100:
+            gc.collect()
+
+    def _clear_old(self):
         """Reset the map to an empty state."""
         for vertex in self.vertices():
             self.prune(vertex)
