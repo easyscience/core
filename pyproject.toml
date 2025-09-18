@@ -46,7 +46,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "tox-gh-actions"
+    "tox-gh-actions",
+    "psutil"
 ]
 docs = [
     "doc8",
