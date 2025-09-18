@@ -14,10 +14,10 @@ from easyscience import global_object
 
 from ..io import SerializerComponent
 from ..variable import Parameter
+from ..variable.descriptor_base import DescriptorBase
 
 if TYPE_CHECKING:
     from ..fitting.calculators import InterfaceFactoryTemplate
-    from ..variable.descriptor_base import DescriptorBase
 
 
 class BasedBase(SerializerComponent):
