@@ -81,7 +81,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         self,
         x: np.ndarray,
         y: np.ndarray,
-        weights: Optional[np.ndarray] = None,
+        weights: np.ndarray = None,
         model: Optional[LMModel] = None,
         parameters: Optional[LMParameters] = None,
         method: Optional[str] = None,
@@ -112,8 +112,11 @@ class LMFit(MinimizerBase):  # noqa: S101
         :return: Fit results
         :rtype: ModelResult
         """
-        if weights is None:
-            weights = 1 / np.sqrt(np.abs(y))
+        if not np.isfinite(weights).all():
+            raise ValueError('Weights cannot be NaN or infinite.')
+        
+        if (weights <= 0).any():
+            raise ValueError('Weights must be strictly positive and non-zero.')
 
         if engine_kwargs is None:
             engine_kwargs = {}

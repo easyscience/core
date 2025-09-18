@@ -64,7 +64,7 @@ class MinimizerBase(metaclass=ABCMeta):
         self,
         x: np.ndarray,
         y: np.ndarray,
-        weights: Optional[np.ndarray] = None,
+        weights: np.ndarray,
         model: Optional[Callable] = None,
         parameters: Optional[Parameter] = None,
         method: Optional[str] = None,
