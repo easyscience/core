@@ -126,7 +126,19 @@ class Map:
     def add_vertex(self, obj: object, obj_type: str = None):
         name = obj.unique_name
         if name in self._store.keys():
-            raise ValueError(f'Object name {name} already exists in the graph.')
+            # modify the name to make it unique:
+            #  add "_1" or increment the number if already exists
+            suffix = 1
+            base_name = name
+            new_name = base_name + '_' + str(suffix)
+            while new_name in self._store.keys():
+                suffix += 1
+                new_name = base_name + '_' + str(suffix)
+            # Update the object's unique_name directly to avoid recursive add_vertex call
+            obj._unique_name = new_name  # Direct assignment to avoid setter
+            name = new_name
+            # too much overhead in logging
+            # print(f"Warning: Object name already exists. Changed to unique name '{name}'")
         self._store[name] = obj
         self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
         self.__type_dict[name].finalizer = weakref.finalize(self._store[name], self.prune, name)
