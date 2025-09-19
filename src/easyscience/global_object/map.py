@@ -84,9 +84,13 @@ class Map:
             # If we hit a concurrent modification, create a safe copy
             # by iterating through items and collecting valid keys
             valid_keys = []
-            items = list(self._store.data.items()) if hasattr(self._store, 'data') else []
+            # Query all weak references to avoid modification during iteration
+            # WeakValueDictionary does not support items() directly, so we access the underlying data
+            items = list(self._store.data.items())
             for key, ref in items:
-                if ref() is not None:  # Only include keys with valid references
+                # Instantiating the weak reference to see if the object is still alive
+                # This test does not modify the dictionary
+                if ref() is not None:
                     valid_keys.append(key)
             return valid_keys
 
