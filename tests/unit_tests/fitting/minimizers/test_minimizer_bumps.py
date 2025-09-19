@@ -85,7 +85,7 @@ class TestBumpsFit():
         mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
 
-    @pytest.mark.parametrize("weights", [np.array([[1, 2], [3, 4]]), np.nan, np.zeros(5), np.inf, -np.ones(5)], ids=["multidimensional", "NaNs", "zeros", "Infs", "negative"])
+    @pytest.mark.parametrize("weights", [np.array([1, 2, 3, 4]), np.array([[1, 2, 3], [4, 5, 6]]), np.repeat(np.nan,3), np.zeros(3), np.repeat(np.inf,3), -np.ones(3)], ids=["wrong_length", "multidimensional", "NaNs", "zeros", "Infs", "negative"])
     def test_fit_weight_exceptions(self, minimizer: Bumps, weights) -> None:
         # When Then Expect
         with pytest.raises(ValueError):

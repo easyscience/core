@@ -101,9 +101,13 @@ class Bumps(MinimizerBase):
         """
         method_dict = self._get_method_kwargs(method)
 
-        weights = np.asarray(weights)
-        if weights.ndim > 1:
-            raise ValueError('Weights must be a 1D array.')
+        x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
+
+        if y.shape != x.shape:
+            raise ValueError('x and y must have the same shape.')
+        
+        if weights.shape != x.shape:
+            raise ValueError('Weights must have the same shape as x and y.')
 
         if not np.isfinite(weights).all():
             raise ValueError('Weights cannot be NaN or infinite.')
