@@ -31,6 +31,12 @@ class TestLMFit():
                 minimizer_enum=MagicMock(package='dfo', method='not_leastsq')
             )
 
+    @pytest.mark.parametrize("weights", [np.array([[1, 2], [3, 4]]), np.nan, np.zeros(5), np.inf, -np.ones(5)], ids=["multidimensional", "NaNs", "zeros", "Infs", "negative"])
+    def test_fit_weight_exceptions(self, minimizer: LMFit, weights) -> None:
+        # When Then Expect
+        with pytest.raises(ValueError):
+            minimizer.fit(x=np.array([1, 2, 3]), y=np.array([1, 2, 3]), weights=weights)
+
     def test_make_model(self, minimizer: LMFit, monkeypatch) -> None:
         # When
         mock_lm_model = MagicMock()

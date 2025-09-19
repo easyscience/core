@@ -93,6 +93,12 @@ class TestDFOFit():
         assert minimizer._cached_pars['mock_parm_1'] == mock_parm_1
         assert minimizer._cached_pars['mock_parm_2'] == mock_parm_2
 
+    @pytest.mark.parametrize("weights", [np.array([[1, 2], [3, 4]]), np.nan, np.zeros(5), np.inf, -np.ones(5)], ids=["multidimensional", "NaNs", "zeros", "Infs", "negative"])
+    def test_fit_weight_exceptions(self, minimizer: DFO, weights) -> None:
+        # When Then Expect
+        with pytest.raises(ValueError):
+            minimizer.fit(x=np.array([1, 2, 3]), y=np.array([1, 2, 3]), weights=weights)
+
     def test_make_model(self, minimizer: DFO) -> None:
         # When
         mock_fit_function = MagicMock(return_value=np.array([11, 22]))
