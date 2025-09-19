@@ -11,7 +11,7 @@ import numpy as np
 
 from easyscience import global_object
 from easyscience.fitting import Fitter
-from easyscience.Objects.core import ComponentSerializer
+from easyscience.Objects.component_serializer import ComponentSerializer
 from easyscience.Objects.ObjectClasses import BaseObj
 from easyscience.Objects.ObjectClasses import Parameter
 
@@ -407,14 +407,14 @@ class Line(BaseObj):
         if self.interface:
             return self.interface().get_value("m")
         else:
-            return self.m.raw_value
+            return self.m.value
 
     @property
     def intercept(self):
         if self.interface:
             return self.interface().get_value("c")
         else:
-            return self.c.raw_value
+            return self.c.value
 
     def __repr__(self):
         return f"Line: m={self.m}, c={self.c}"

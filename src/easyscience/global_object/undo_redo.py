@@ -1,9 +1,6 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
-__author__ = 'github.com/wardsimon'
-__version__ = '0.1.0'
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import abc
 import functools
@@ -428,18 +425,18 @@ class DictStackReCreate(UndoCommand):
         self._parent.data = self._new_value
 
 
-def property_stack_deco(arg: Union[str, Callable], begin_macro: bool = False) -> Callable:
+def property_stack(arg: Union[str, Callable], begin_macro: bool = False) -> Callable:
     """
     Decorate a `property` setter with undo/redo functionality
     This decorator can be used as:
 
-    @property_stack_deco
+    @property_stack
     def func()
     ....
 
     or
 
-    @property_stack_deco("This is the undo/redo text)
+    @property_stack("This is the undo/redo text)
     def func()
     ....
 

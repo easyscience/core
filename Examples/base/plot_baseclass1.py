@@ -1,8 +1,8 @@
 """
-Subclassing BaseObj - Simple Pendulum
+Subclassing ObjBase - Simple Pendulum
 =====================================
-This  example shows how to subclass :class:`easyscience.Objects.Base.BaseObj` with parameters from
-:class:`EasyScience.Objects.Base.Parameter`. For this example a simple pendulum will be modeled.
+This  example shows how to subclass :class:`easyscience.base_classes.ObjBase` with parameters from
+:class:`EasyScience.variable.Parameter`. For this example a simple pendulum will be modeled.
 
 .. math::
     y = A \sin (2 \pi f t + \phi )
@@ -17,8 +17,8 @@ saving time from multiple imports.
 import matplotlib.pyplot as plt
 import numpy as np
 
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.ObjectClasses import Parameter
+from easyscience.base_classes import ObjBase
+from easyscience.variable import Parameter
 
 # %%
 # Subclassing
@@ -29,7 +29,7 @@ from easyscience.Objects.ObjectClasses import Parameter
 # embedded rST text block:
 
 
-class Pendulum(BaseObj):
+class Pendulum(ObjBase):
     def __init__(self, A: Parameter, f: Parameter, p: Parameter):
         super(Pendulum, self).__init__('SimplePendulum', A=A, f=f, p=p)
 
@@ -41,13 +41,13 @@ class Pendulum(BaseObj):
         return cls(A, f, p)
 
     def __call__(self, t):
-        return self.A.raw_value * np.sin(2 * np.pi * self.f.raw_value * t + self.p.raw_value)
+        return self.A.value * np.sin(2 * np.pi * self.f.value * t + self.p.value)
 
     def plot(self, time, axis=None, **kwargs):
         if axis is None:
             axis = plt
         else:
-            axis.set_title(f'A={self.A.raw_value}, F={self.f.raw_value}, P={self.p.raw_value}')
+            axis.set_title(f'A={self.A.value}, F={self.f.value}, P={self.p.value}')
         p = axis.plot(time, self(time), **kwargs)
         return p
 

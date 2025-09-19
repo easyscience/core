@@ -1,10 +1,9 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
-from easyscience.global_object.map import Map
-from easyscience.Objects.variable.parameter import Parameter
-from easyscience.Objects.ObjectClasses import BaseObj
+from easyscience import Parameter
+from easyscience import ObjBase
 import pytest
 import gc
 from easyscience import global_object
@@ -16,7 +15,7 @@ class TestMap:
 
     @pytest.fixture
     def base_object(self):
-        return BaseObj(name="test")
+        return ObjBase(name="test")
 
     @pytest.fixture
     def parameter_object(self):
@@ -39,7 +38,7 @@ class TestMap:
 
     def test_weakref(self, clear):
         # When
-        test_obj = BaseObj(name="test")
+        test_obj = ObjBase(name="test")
         assert len(global_object.map._store) == 1
         assert len(global_object.map._Map__type_dict) == 1
         # Then
@@ -58,7 +57,7 @@ class TestMap:
         assert global_object.map.get_item_by_key(base_object.unique_name) == base_object
         assert global_object.map.get_item_by_key(parameter_object.unique_name) == parameter_object
 
-    @pytest.mark.parametrize("cls, kwargs", [(BaseObj, {}), (Parameter, {"value": 2.0})])
+    @pytest.mark.parametrize("cls, kwargs", [(ObjBase, {}), (Parameter, {"value": 2.0})])
     def test_identical_unique_names_exception(self, clear, cls, kwargs):
         # When
         test_obj = cls(name="test", unique_name="test", **kwargs)
@@ -68,13 +67,13 @@ class TestMap:
 
     def test_unique_name_change_still_in_map(self, clear, base_object, parameter_object):
         # When
-        assert global_object.map.get_item_by_key("BaseObj_0") == base_object
+        assert global_object.map.get_item_by_key("ObjBase_0") == base_object
         assert global_object.map.get_item_by_key("Parameter_0") == parameter_object
         # Then
         base_object.unique_name = "test3"
         parameter_object.unique_name = "test4"
         # Expect
-        assert global_object.map.get_item_by_key("BaseObj_0") == base_object
+        assert global_object.map.get_item_by_key("ObjBase_0") == base_object
         assert global_object.map.get_item_by_key("Parameter_0") == parameter_object
         assert global_object.map.get_item_by_key("test3") == base_object
         assert global_object.map.get_item_by_key("test4") == parameter_object

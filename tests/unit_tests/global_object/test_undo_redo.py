@@ -1,23 +1,19 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
-__author__ = "github.com/wardsimon"
-__version__ = "0.0.1"
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import math
 
 import numpy as np
 import pytest
 
-from easyscience.Objects.Groups import BaseCollection
-from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable.parameter import Parameter
-from easyscience.Objects.variable.descriptor_str import DescriptorStr
-from easyscience.Objects.variable.descriptor_number import DescriptorNumber
-from easyscience.Objects.variable.descriptor_bool import DescriptorBool
-
-from easyscience.fitting import Fitter
+from easyscience.base_classes import CollectionBase
+from easyscience.variable import DescriptorStr
+from easyscience.variable import DescriptorBool
+from easyscience import ObjBase
+from easyscience import Parameter
+from easyscience import DescriptorNumber
+from easyscience import Fitter
 
 
 def createSingleObjs(idx):
@@ -118,7 +114,6 @@ def test_DescriptorStrUndoRedo():
             ("error", 5),
             ("unit", "km/s"),
             ("display_name", "boom"),
-            ("enabled", False),
             ("fixed", False),
             ("max", 505),
             ("min", -1),
@@ -134,33 +129,29 @@ def test_ParameterUndoRedo(test):
     e = doUndoRedo(obj, attr, value)
     assert not e
 
-@pytest.mark.parametrize("value", (True, False))
-def test_Parameter_Bounds_UndoRedo(value):
+def test_Parameter_Bounds_UndoRedo():
     from easyscience import global_object
 
     global_object.stack.enabled = True
-    p = Parameter("test", 1, enabled=value)
-    assert p.min == -np.inf
-    assert p.max == np.inf
-    assert p.bounds == (-np.inf, np.inf)
+    parameter = Parameter("test", 1)
+    assert parameter.min == -np.inf
+    assert parameter.max == np.inf
 
-    p.bounds = (0, 2)
-    assert p.min == 0
-    assert p.max == 2
-    assert p.bounds == (0, 2)
-    assert p.enabled is True
+    parameter.min = 0
+    parameter.max = 2
+    assert parameter.min == 0
+    assert parameter.max == 2
 
     global_object.stack.undo()
-    assert p.min == -np.inf
-    assert p.max == np.inf
-    assert p.bounds == (-np.inf, np.inf)
-    assert p.enabled is value
+    global_object.stack.undo()
+    assert parameter.min == -np.inf
+    assert parameter.max == np.inf
 
 
-def test_BaseObjUndoRedo():
+def test_ObjBaseUndoRedo():
     objs = {obj.name: obj for obj in [createSingleObjs(idx) for idx in range(5)]}
     name = "test"
-    obj = BaseObj(name, **objs)
+    obj = ObjBase(name, **objs)
     name2 = "best"
 
     # Test name
@@ -172,10 +163,10 @@ def test_BaseObjUndoRedo():
         assert not e
 
 
-def test_BaseCollectionUndoRedo():
+def test_CollectionBaseUndoRedo():
     objs = [createSingleObjs(idx) for idx in range(5)]
     name = "test"
-    obj = BaseCollection(name, *objs)
+    obj = CollectionBase(name, *objs)
     name2 = "best"
 
     # assert not doUndoRedo(obj, 'name', name2)
@@ -277,9 +268,10 @@ def test_fittingUndoRedo(fit_engine):
     m_value = 6
     c_value = 2
     x = np.linspace(-5, 5, 100)
+    weights = np.ones_like(x)
     dy = np.random.rand(*x.shape)
 
-    class Line(BaseObj):
+    class Line(ObjBase):
         def __init__(self, m: Parameter, c: Parameter):
             super(Line, self).__init__("basic_line", m=m, c=c)
 
@@ -317,7 +309,7 @@ def test_fittingUndoRedo(fit_engine):
     from easyscience import global_object
 
     global_object.stack.enabled = True
-    res = f.fit(x, y)
+    res = f.fit(x, y, weights=weights)
 
     # assert l1.c.value == pytest.approx(l2.c.value, rel=l2.c.error * 3)
     # assert l1.m.value == pytest.approx(l2.m.value, rel=l2.m.error * 3)

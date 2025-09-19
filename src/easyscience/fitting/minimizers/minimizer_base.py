@@ -1,6 +1,6 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from abc import ABCMeta
 from abc import abstractmethod
@@ -16,11 +16,9 @@ from typing import Union
 
 import numpy as np
 
-from easyscience.Constraints import ObjConstraint
-
 # causes circular import when Parameter is imported
-# from easyscience.Objects.ObjectClasses import BaseObj
-from easyscience.Objects.variable import Parameter
+# from easyscience.base_classes import ObjBase
+from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
 from .utils import FitError
@@ -38,10 +36,10 @@ class MinimizerBase(metaclass=ABCMeta):
 
     def __init__(
         self,
-        obj,  #: BaseObj,
+        obj,  #: ObjBase,
         fit_function: Callable,
         minimizer_enum: AvailableMinimizers,
-    ):  # todo after constraint changes, add type hint: obj: BaseObj  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         if minimizer_enum.method not in self.supported_methods():
             raise FitError(f'Method {minimizer_enum.method} not available in {self.__class__}')
         self._object = obj
@@ -52,11 +50,6 @@ class MinimizerBase(metaclass=ABCMeta):
         self._cached_pars_vals: Dict[str, Tuple[float]] = {}
         self._cached_model = None
         self._fit_function = None
-        self._constraints = []
-
-    @property
-    def all_constraints(self) -> List[ObjConstraint]:
-        return [*self._constraints, *self._object._constraints]
 
     @property
     def enum(self) -> AvailableMinimizers:
@@ -66,24 +59,12 @@ class MinimizerBase(metaclass=ABCMeta):
     def name(self) -> str:
         return self._minimizer_enum.name
 
-    def fit_constraints(self) -> List[ObjConstraint]:
-        return self._constraints
-
-    def set_fit_constraint(self, constraints: List[ObjConstraint]):
-        self._constraints = constraints
-
-    def add_fit_constraint(self, constraint: ObjConstraint):
-        self._constraints.append(constraint)
-
-    def remove_fit_constraint(self, index: int) -> None:
-        del self._constraints[index]
-
     @abstractmethod
     def fit(
         self,
         x: np.ndarray,
         y: np.ndarray,
-        weights: Optional[np.ndarray] = None,
+        weights: np.ndarray,
         model: Optional[Callable] = None,
         parameters: Optional[Parameter] = None,
         method: Optional[str] = None,
@@ -178,9 +159,9 @@ class MinimizerBase(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def convert_to_par_object(obj):  # todo after constraint changes, add type hint: obj: BaseObj
+    def convert_to_par_object(obj):  # todo after constraint changes, add type hint: obj: ObjBase
         """
-        Convert an `EasyScience.Objects.Base.Parameter` object to an engine Parameter object.
+        Convert an `EasyScience.variable.Parameter` object to an engine Parameter object.
         """
 
     def _prepare_parameters(self, parameters: dict[str, float]) -> dict[str, float]:
@@ -237,8 +218,6 @@ class MinimizerBase(metaclass=ABCMeta):
 
                     # Since we are calling the parameter fset will be called.
             # TODO Pre processing here
-            for constraint in self.fit_constraints():
-                constraint()
             return_data = func(x)
             # TODO Loading or manipulating data here
             return return_data

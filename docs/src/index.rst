@@ -56,7 +56,6 @@ Documentation
    :maxdepth: 3
 
    fitting/introduction
-   fitting/constraints
 
 .. toctree::
    :maxdepth: 2

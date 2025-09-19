@@ -1,9 +1,6 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
-__author__ = "github.com/wardsimon"
-__version__ = "0.1.0"
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import logging
 

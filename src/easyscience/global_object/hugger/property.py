@@ -1,9 +1,6 @@
-#  SPDX-FileCopyrightText: 2023 EasyScience contributors  <core@easyscience.software>
+#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2023 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
-__author__ = "github.com/wardsimon"
-__version__ = "0.1.0"
+#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import sys
 from functools import wraps
@@ -21,8 +18,8 @@ class LoggedProperty(property):
     """
     Pump up python properties. In this case we can see who has called this property and
     then do something if a criteria is met. In this case if the caller is not a member of
-    the `BaseObj` class. Note that all high level `EasyScience` objects should be built from
-    `BaseObj`.
+    the `ObjBase` class. Note that all high level `EasyScience` objects should be built from
+    `ObjBase`.
     """
 
     _global_object = global_object

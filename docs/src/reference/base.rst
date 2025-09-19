@@ -5,13 +5,13 @@ Parameters and Objects
 Descriptors
 ===========
 
-.. autoclass:: easyscience.Objects.Variable.Descriptor
+.. autoclass:: easyscience.variable.Descriptor
   :members:
 
 Parameters
 ==========
 
-.. autoclass:: easyscience.Objects.Variable.Parameter
+.. autoclass:: easyscience.variable.Parameter
   :members:
   :inherited-members:
 
@@ -22,30 +22,17 @@ Super Classes and Collections
 Super Classes
 =============
 
-.. autoclass:: easyscience.Objects.ObjectClasses.BasedBase
+.. autoclass:: easyscience.base_classes.BasedBase
   :members:
   :inherited-members:
 
-.. autoclass:: easyscience.Objects.ObjectClasses.BaseObj
+.. autoclass:: easyscience.base_classes.ObjBase
   :members: +_add_component
   :inherited-members:
 
 Collections
 ===========
 
-.. autoclass:: easyscience.Objects.Groups.BaseCollection
+.. autoclass:: easyscience.CollectionBase
   :members:
   :inherited-members:
-
-===============
-Data Containers
-===============
-
-.. autoclass:: easyscience.Datasets.xarray.EasyScienceDataarrayAccessor
-  :members:
-  :inherited-members:
-
-.. autoclass:: easyscience.Datasets.xarray.EasyScienceDatasetAccessor
-  :members:
-  :inherited-members:
-
