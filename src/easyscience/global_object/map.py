@@ -76,7 +76,19 @@ class Map:
 
     def vertices(self) -> List[str]:
         """returns the vertices of a map"""
-        return list(self._store.keys())
+        # Create a copy to avoid "dictionary changed size during iteration" errors
+        # This can happen when objects are garbage collected during iteration
+        try:
+            return list(self._store.keys())
+        except RuntimeError:
+            # If we hit a concurrent modification, create a safe copy
+            # by iterating through items and collecting valid keys
+            valid_keys = []
+            items = list(self._store.data.items()) if hasattr(self._store, 'data') else []
+            for key, ref in items:
+                if ref() is not None:  # Only include keys with valid references
+                    valid_keys.append(key)
+            return valid_keys
 
     def edges(self):
         """returns the edges of a map"""
