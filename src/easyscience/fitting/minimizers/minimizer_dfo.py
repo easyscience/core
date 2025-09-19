@@ -59,7 +59,7 @@ class DFO(MinimizerBase):
         self,
         x: np.ndarray,
         y: np.ndarray,
-        weights: Optional[np.ndarray] = None,
+        weights: np.ndarray,
         model: Optional[Callable] = None,
         parameters: Optional[List[Parameter]] = None,
         method: str = None,
@@ -74,7 +74,7 @@ class DFO(MinimizerBase):
         :type x: np.ndarray
         :param y: measured points
         :type y: np.ndarray
-        :param weights: Weights for supplied measured points * Not really optional*
+        :param weights: Weights for supplied measured points
         :type weights: np.ndarray
         :param model: Optional Model which is being fitted to
         :type model: lmModel
@@ -86,8 +86,19 @@ class DFO(MinimizerBase):
         :return: Fit results
         :rtype: ModelResult
         """
-        if weights is None:
-            weights = np.sqrt(np.abs(y))
+        x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
+
+        if y.shape != x.shape:
+            raise ValueError('x and y must have the same shape.')
+        
+        if weights.shape != x.shape:
+            raise ValueError('Weights must have the same shape as x and y.')
+        
+        if not np.isfinite(weights).all():
+            raise ValueError('Weights cannot be NaN or infinite.')
+        
+        if (weights <= 0).any():
+            raise ValueError('Weights must be strictly positive and non-zero.')
 
         if model is None:
             model_function = self._make_model(parameters=parameters)

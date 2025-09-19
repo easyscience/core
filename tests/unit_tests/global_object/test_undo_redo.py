@@ -268,6 +268,7 @@ def test_fittingUndoRedo(fit_engine):
     m_value = 6
     c_value = 2
     x = np.linspace(-5, 5, 100)
+    weights = np.ones_like(x)
     dy = np.random.rand(*x.shape)
 
     class Line(ObjBase):
@@ -308,7 +309,7 @@ def test_fittingUndoRedo(fit_engine):
     from easyscience import global_object
 
     global_object.stack.enabled = True
-    res = f.fit(x, y)
+    res = f.fit(x, y, weights=weights)
 
     # assert l1.c.value == pytest.approx(l2.c.value, rel=l2.c.error * 3)
     # assert l1.m.value == pytest.approx(l2.m.value, rel=l2.m.error * 3)

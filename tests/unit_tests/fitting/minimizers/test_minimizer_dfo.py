@@ -58,15 +58,15 @@ class TestDFOFit():
         minimizer._cached_pars = cached_pars
 
         # Then
-        result = minimizer.fit(x=1.0, y=2.0)
+        result = minimizer.fit(x=1.0, y=2.0, weights=1)
 
         # Expect
         assert result == 'gen_fit_results'
         minimizer._dfo_fit.assert_called_once_with(cached_pars, mock_model)
         minimizer._make_model.assert_called_once_with(parameters=None)
         minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
-        minimizer._gen_fit_results.assert_called_once_with('fit', 1.4142135623730951)
-        mock_model_function.assert_called_once_with(1.0, 2.0, 1.4142135623730951)
+        minimizer._gen_fit_results.assert_called_once_with('fit', 1)
+        mock_model_function.assert_called_once_with(1.0, 2.0, 1)
 
     def test_generate_fit_function(self, minimizer: DFO) -> None:
         # When
@@ -92,6 +92,12 @@ class TestDFOFit():
         minimizer._original_fit_function.assert_called_once_with([10.0])
         assert minimizer._cached_pars['mock_parm_1'] == mock_parm_1
         assert minimizer._cached_pars['mock_parm_2'] == mock_parm_2
+
+    @pytest.mark.parametrize("weights", [np.array([1, 2, 3, 4]), np.array([[1, 2, 3], [4, 5, 6]]), np.repeat(np.nan,3), np.zeros(3), np.repeat(np.inf,3), -np.ones(3)], ids=["wrong_length", "multidimensional", "NaNs", "zeros", "Infs", "negative"])
+    def test_fit_weight_exceptions(self, minimizer: DFO, weights) -> None:
+        # When Then Expect
+        with pytest.raises(ValueError):
+            minimizer.fit(x=np.array([1, 2, 3]), y=np.array([1, 2, 3]), weights=weights)
 
     def test_make_model(self, minimizer: DFO) -> None:
         # When

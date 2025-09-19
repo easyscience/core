@@ -75,15 +75,21 @@ class TestBumpsFit():
         minimizer._set_parameter_fit_result = fake_set_parameter_fit_result
 
         # Then
-        result = minimizer.fit(x=1.0, y=2.0)
+        result = minimizer.fit(x=1.0, y=2.0, weights=1)
 
         # Expect
         assert result == 'gen_fit_results'
         mock_bumps_fit.assert_called_once_with(mock_FitProblem_instance, method='amoeba')
         minimizer._make_model.assert_called_once_with(parameters=None)
         minimizer._gen_fit_results.assert_called_once_with('fit')
-        mock_model_function.assert_called_once_with(1.0, 2.0, 1.4142135623730951)
+        mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
+
+    @pytest.mark.parametrize("weights", [np.array([1, 2, 3, 4]), np.array([[1, 2, 3], [4, 5, 6]]), np.repeat(np.nan,3), np.zeros(3), np.repeat(np.inf,3), -np.ones(3)], ids=["wrong_length", "multidimensional", "NaNs", "zeros", "Infs", "negative"])
+    def test_fit_weight_exceptions(self, minimizer: Bumps, weights) -> None:
+        # When Then Expect
+        with pytest.raises(ValueError):
+            minimizer.fit(x=np.array([1, 2, 3]), y=np.array([1, 2, 3]), weights=weights)
  
 
     def test_make_model(self, minimizer: Bumps, monkeypatch) -> None:
