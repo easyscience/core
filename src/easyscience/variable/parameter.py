@@ -314,8 +314,24 @@ class Parameter(DescriptorNumber):
         """
         if self._callback.fget is not None:
             scalar = self._callback.fget()
-            if scalar != self._scalar:
-                self._scalar = scalar
+            # Convert callback value to proper scipp Variable if needed
+            if not isinstance(scalar, Variable):
+                # If callback returns a raw number, convert it to a scipp scalar with the same unit as _scalar
+                scalar = sc.scalar(scalar, unit=self._scalar.unit)
+            elif str(scalar.unit) == 'dimensionless' and str(self._scalar.unit) != 'dimensionless':
+                # If callback returns dimensionless but original has unit, apply the original unit
+                scalar = sc.scalar(scalar.value, unit=self._scalar.unit, variance=scalar.variance)
+
+            try:
+                if scalar != self._scalar:
+                    self._scalar = scalar
+            except UnitError:
+                # If units are incompatible, update the scalar value only, preserving original unit
+                if hasattr(scalar, 'value'):
+                    self._scalar = sc.scalar(scalar.value, unit=self._scalar.unit,
+                                           variance=scalar.variance if hasattr(scalar, 'variance') else self._scalar.variance)
+                else:
+                    self._scalar = sc.scalar(scalar, unit=self._scalar.unit, variance=self._scalar.variance)
         return self._scalar
 
     @full_value.setter
