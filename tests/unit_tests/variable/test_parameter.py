@@ -656,6 +656,72 @@ class TestParameter:
         with pytest.raises(AttributeError):
             parameter.full_value = sc.scalar(2, unit='s')
 
+    def test_full_value_callback_unit_corruption_fix(self):
+        """
+        Test that demonstrates the fix for the unit corruption issue when callbacks
+        return dimensionless values or raw numbers instead of proper scipp Variables.
+
+        This test covers the scenario where interface binding (generate_bindings)
+        sets up callbacks that return raw numeric values, which previously caused
+        UnitError when accessing Parameter.full_value.
+        """
+        # Given: A parameter with units (like thickness or roughness in EasyReflectometry)
+        parameter = Parameter(name="thickness", value=10.0, unit="Å", variance=0.01)
+
+        # Verify initial state
+        assert parameter.full_value == sc.scalar(10.0, unit='Å', variance=0.01)
+        assert parameter._scalar.unit == 'Å'
+
+        # Simulate the problematic callback scenario
+        mock_callback = MagicMock()
+
+        # Test Case 1: Callback returns raw numpy.float64 (the main issue)
+        mock_callback.fget.return_value = np.float64(15.0)  # dimensionless raw value
+        parameter._callback = mock_callback
+
+        # This should NOT raise UnitError anymore
+        full_value = parameter.full_value
+        assert full_value.value == 15.0
+        assert full_value.unit == 'Å'  # Unit should be preserved
+        assert parameter._scalar.unit == 'Å'  # Original unit maintained
+
+        # Test Case 2: Callback returns dimensionless scipp Variable
+        mock_callback.fget.return_value = sc.scalar(20.0)  # dimensionless scipp Variable
+
+        # This should also work without UnitError
+        full_value = parameter.full_value
+        assert full_value.value == 20.0
+        assert full_value.unit == 'Å'  # Unit should be applied from original
+        assert parameter._scalar.unit == 'Å'
+
+        # Test Case 3: Callback returns scipp Variable with correct unit
+        mock_callback.fget.return_value = sc.scalar(25.0, unit='Å')
+
+        # This should work as before
+        full_value = parameter.full_value
+        assert full_value.value == 25.0
+        assert full_value.unit == 'Å'
+        assert parameter._scalar.unit == 'Å'
+
+        # Test Case 4: Callback returns incompatible unit (fallback behavior)
+        mock_callback.fget.return_value = sc.scalar(30.0, unit='s')  # incompatible unit
+
+        # Should handle gracefully by preserving original unit and updating value
+        full_value = parameter.full_value
+        assert full_value.value == 30.0
+        assert full_value.unit == 'Å'  # Original unit preserved
+
+        # Test Case 5: Verify arithmetic operations work after callback scenario
+        parameter2 = Parameter(name="roughness", value=3.0, unit="Å", variance=0.01)
+        mock_callback2 = MagicMock()
+        mock_callback2.fget.return_value = np.float64(5.0)  # raw dimensionless
+        parameter2._callback = mock_callback2
+
+        # Both parameters should work in arithmetic operations
+        result = parameter.full_value + parameter2.full_value
+        assert result.unit == 'Å'
+        assert result.value == 35.0  # 30.0 + 5.0
+
     def test_set_variance_dependent_parameter(self, normal_parameter: Parameter):
         # When
         dependent_parameter = Parameter.from_dependency(
