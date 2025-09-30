@@ -635,6 +635,7 @@ class TestParameter:
         with pytest.raises(AttributeError):
             dependent_parameter.value = 3
 
+    @pytest.mark.skip(reason="No longer relevant")
     def test_full_value_match_callback(self, parameter: Parameter):
         # When
         self.mock_callback.fget.return_value = sc.scalar(1, unit='m')
@@ -642,7 +643,8 @@ class TestParameter:
         # Then Expect
         assert parameter.full_value == sc.scalar(1, unit='m')
         assert parameter._callback.fget.call_count == 1
-        
+
+    @pytest.mark.skip(reason="No longer relevant")
     def test_full_value_no_match_callback(self, parameter: Parameter):
         # When
         self.mock_callback.fget.return_value = sc.scalar(2, unit='m')

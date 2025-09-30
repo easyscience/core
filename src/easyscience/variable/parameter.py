@@ -312,10 +312,6 @@ class Parameter(DescriptorNumber):
 
         :return: Value of self with unit and variance.
         """
-        if self._callback.fget is not None:
-            scalar = self._callback.fget()
-            if scalar != self._scalar:
-                self._scalar = scalar
         return self._scalar
 
     @full_value.setter
