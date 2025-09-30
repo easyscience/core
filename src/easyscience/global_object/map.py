@@ -76,23 +76,7 @@ class Map:
 
     def vertices(self) -> List[str]:
         """returns the vertices of a map"""
-        # Create a copy to avoid "dictionary changed size during iteration" errors
-        # This can happen when objects are garbage collected during iteration
-        try:
-            return list(self._store.keys())
-        except RuntimeError:
-            # If we hit a concurrent modification, create a safe copy
-            # by iterating through items and collecting valid keys
-            valid_keys = []
-            # Query all weak references to avoid modification during iteration
-            # WeakValueDictionary does not support items() directly, so we access the underlying data
-            items = list(self._store.data.items())
-            for key, ref in items:
-                # Instantiating the weak reference to see if the object is still alive
-                # This test does not modify the dictionary
-                if ref() is not None:
-                    valid_keys.append(key)
-            return valid_keys
+        return list(self._store.keys())
 
     def edges(self):
         """returns the edges of a map"""
