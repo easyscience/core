@@ -33,8 +33,14 @@ class Parameter(DescriptorNumber):
     """
 
     # Used by serializer
-    _REDIRECT = DescriptorNumber._REDIRECT
+    _REDIRECT = DescriptorNumber._REDIRECT.copy()
     _REDIRECT['callback'] = None
+    # Skip these attributes during normal serialization as they are handled specially
+    _REDIRECT['_dependency_interpreter'] = None
+    _REDIRECT['_clean_dependency_string'] = None
+    # Skip the new serialization parameters - they'll be handled by _convert_to_dict
+    _REDIRECT['_dependency_string'] = None
+    _REDIRECT['_dependency_map_unique_names'] = None
 
     def __init__(
         self,
@@ -51,6 +57,7 @@ class Parameter(DescriptorNumber):
         display_name: Optional[str] = None,
         callback: property = property(),
         parent: Optional[Any] = None,
+        **kwargs
     ):
         """
         This class is an extension of a `DescriptorNumber`. Where the descriptor was for static
@@ -72,6 +79,11 @@ class Parameter(DescriptorNumber):
         .. note::
             Undo/Redo functionality is implemented for the attributes `value`, `variance`, `error`, `min`, `max`, `bounds`, `fixed`, `unit`
         """  # noqa: E501
+        # Extract and ignore serialization-specific fields from kwargs
+        kwargs.pop('_dependency_string', None)
+        kwargs.pop('_dependency_map_unique_names', None)
+        kwargs.pop('_independent', None)
+
         if not isinstance(min, numbers.Number):
             raise TypeError('`min` must be a number')
         if not isinstance(max, numbers.Number):
@@ -121,7 +133,17 @@ class Parameter(DescriptorNumber):
         :param kwargs: Additional keyword arguments to pass to the Parameter constructor.
         :return: A new dependent Parameter object.
         """  # noqa: E501
-        parameter = cls(name=name, value=0.0, unit='', variance=0.0, min=-np.inf, max=np.inf, **kwargs)
+        # Set default values for required parameters if not provided in kwargs
+        default_kwargs = {
+            'value': 0.0,
+            'unit': '',
+            'variance': 0.0,
+            'min': -np.inf,
+            'max': np.inf
+        }
+        # Update with user-provided kwargs, giving precedence to user values
+        default_kwargs.update(kwargs)
+        parameter = cls(name=name, **default_kwargs)
         parameter.make_dependent_on(dependency_expression=dependency_expression, dependency_map=dependency_map)
         return parameter
 
@@ -550,6 +572,54 @@ class Parameter(DescriptorNumber):
                 raise ValueError(f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber. Please check your dependency expression.') # noqa: E501
         self._clean_dependency_string = clean_dependency_string
 
+    def _convert_to_dict(self, d: dict, encoder, skip=None, **kwargs) -> dict:
+        """Custom serialization to handle parameter dependencies."""
+        if skip is None:
+            skip = []
+
+        # Add dependency information for dependent parameters
+        if not self._independent:
+            # Save the dependency expression
+            d['_dependency_string'] = self._dependency_string
+
+            # Convert dependency_map to use unique_names instead of object references
+            d['_dependency_map_unique_names'] = {}
+            for key, dep_obj in self._dependency_map.items():
+                if hasattr(dep_obj, 'unique_name'):
+                    d['_dependency_map_unique_names'][key] = dep_obj.unique_name
+                else:
+                    # Fallback for objects without unique_name
+                    d['_dependency_map_unique_names'][key] = str(dep_obj)
+
+        # Mark that this parameter is dependent
+        d['_independent'] = self._independent
+
+        return d
+
+    @classmethod  
+    def from_dict(cls, obj_dict: dict) -> 'Parameter':
+        """
+        Custom deserialization to handle parameter dependencies.
+        Override the parent method to handle dependency information.
+        """
+        # Extract dependency information before creating the parameter
+        d = obj_dict.copy()  # Don't modify the original dict
+        dependency_string = d.pop('_dependency_string', None)
+        dependency_map_unique_names = d.pop('_dependency_map_unique_names', None)
+        is_independent = d.pop('_independent', True)
+
+        # Create the parameter using the base class method
+        param = super().from_dict(d)
+
+        # Store dependency information for later resolution
+        if not is_independent and dependency_string is not None:
+            param._pending_dependency_string = dependency_string
+            param._pending_dependency_map_unique_names = dependency_map_unique_names or {}
+            # Keep parameter as independent initially - will be made dependent after all objects are loaded
+            param._independent = True
+
+        return param
+
     def __copy__(self) -> Parameter:
         new_obj = super().__copy__()
         new_obj._callback = property()
@@ -877,9 +947,42 @@ class Parameter(DescriptorNumber):
         new_full_value = abs(self.full_value)
         combinations = [abs(self.min), abs(self.max)]
         if self.min < 0 and self.max > 0:
-            combinations.append(0)
+            combinations.append(0.0)
         min_value = min(combinations)
         max_value = max(combinations)
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
         parameter.name = parameter.unique_name
         return parameter
+
+    def resolve_pending_dependencies(self) -> None:
+        """Resolve pending dependencies after deserialization.
+
+        This method should be called after all parameters have been deserialized
+        to establish dependency relationships using unique_names.
+        """
+        if hasattr(self, '_pending_dependency_string') and hasattr(self, '_pending_dependency_map_unique_names'):
+            dependency_string = self._pending_dependency_string
+            dependency_map_unique_names = self._pending_dependency_map_unique_names
+
+            # Build dependency_map by looking up objects by unique_name
+            dependency_map = {}
+            for key, unique_name in dependency_map_unique_names.items():
+                try:
+                    # Look up the parameter by unique_name in the global map
+                    dep_obj = self._global_object.map.get_item_by_key(unique_name)
+                    if dep_obj is not None:
+                        dependency_map[key] = dep_obj
+                    else:
+                        raise ValueError(f"Cannot find parameter with unique_name '{unique_name}' for dependency resolution")
+                except Exception as e:
+                    raise ValueError(f"Error resolving dependency '{key}' -> '{unique_name}': {e}")
+
+            # Establish the dependency relationship
+            try:
+                self.make_dependent_on(dependency_expression=dependency_string, dependency_map=dependency_map)
+            except Exception as e:
+                raise ValueError(f"Error establishing dependency '{dependency_string}': {e}")
+
+            # Clean up temporary attributes
+            delattr(self, '_pending_dependency_string')
+            delattr(self, '_pending_dependency_map_unique_names')
