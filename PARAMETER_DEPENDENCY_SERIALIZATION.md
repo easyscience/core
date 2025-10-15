@@ -18,6 +18,7 @@ Parameters with dependencies can now be serialized to dictionaries (and JSON) wh
 ### Basic Serialization/Deserialization
 
 ```python
+import json
 from easyscience import Parameter, global_object
 from easyscience.variable.parameter_dependency_resolver import resolve_all_parameter_dependencies
 
@@ -30,20 +31,37 @@ b = Parameter.from_dependency(
     unit="m"
 )
 
-# Serialize to dictionary
-b_dict = b.as_dict()
+# Serialize to dictionary and save to file
+params_dict = {"a": a.as_dict(), "b": b.as_dict()}
+with open("parameters.json", "w") as f:
+    json.dump(params_dict, f, indent=2, default=str)
+
+print("Parameters saved to parameters.json")
+```
+
+In a new Python session:
+
+```python
+import json
+from easyscience import Parameter, global_object
+from easyscience.variable.parameter_dependency_resolver import resolve_all_parameter_dependencies
+
+# Load parameters from file
+with open("parameters.json", "r") as f:
+    params_dict = json.load(f)
 
 # Clear global map (simulate new environment)
 global_object.map._clear()
 
-# Deserialize
-new_b = Parameter.from_dict(b_dict) 
+# Deserialize parameters
+new_a = Parameter.from_dict(params_dict["a"])
+new_b = Parameter.from_dict(params_dict["b"])
 
 # Resolve dependencies
-resolve_all_parameter_dependencies({"b": new_b})
+resolve_all_parameter_dependencies({"a": new_a, "b": new_b})
 
 # Dependencies are now working
-a.value = 5.0
+new_a.value = 5.0
 print(new_b.value)  # Will be 10.0 (2 * 5.0)
 ```
 

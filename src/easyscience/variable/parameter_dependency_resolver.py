@@ -39,6 +39,8 @@ def resolve_all_parameter_dependencies(obj: Any) -> None:
                         if not callable(attr_value):  # Skip methods
                             _collect_parameters(attr_value, parameters)
                     except (AttributeError, Exception):
+                        # log the exception
+                        print(f"Error accessing attribute '{attr_name}' of {item}")
                         # Skip attributes that can't be accessed
                         continue
 
@@ -58,14 +60,16 @@ def resolve_all_parameter_dependencies(obj: Any) -> None:
                 resolved_count += 1
             except Exception as e:
                 error_count += 1
-                errors.append(f"Failed to resolve dependencies for parameter '{param.name}' (unique_name: '{param.unique_name}'): {e}")
+                errors.append(f"Failed to resolve dependencies for parameter '{param.name}'" \
+                               f" (unique_name: '{param.unique_name}'): {e}")
 
     # Report results
     if resolved_count > 0:
         print(f"Successfully resolved dependencies for {resolved_count} parameter(s).")
 
     if error_count > 0:
-        error_message = f"Failed to resolve dependencies for {error_count} parameter(s):\n" + "\n".join(errors)
+        error_message = f"Failed to resolve dependencies for {error_count} parameter(s):\n" \
+                + "\n".join(errors)
         raise ValueError(error_message)
 
 
@@ -98,6 +102,8 @@ def get_parameters_with_pending_dependencies(obj: Any) -> List[Parameter]:
                         if not callable(attr_value):  # Skip methods
                             _collect_pending_parameters(attr_value)
                     except (AttributeError, Exception):
+                        # log the exception
+                        print(f"Error accessing attribute '{attr_name}' of {item}")
                         # Skip attributes that can't be accessed
                         continue
 
