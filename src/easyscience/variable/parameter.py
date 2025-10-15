@@ -1010,7 +1010,7 @@ class Parameter(DescriptorNumber):
                     if dep_obj is not None:
                         dependency_map[key] = dep_obj
                     else:
-                        raise ValueError(f"Cannot find parameter with dependency_id '{dependency_id}' for dependency resolution")
+                        raise ValueError(f"Cannot find parameter with dependency_id '{dependency_id}'")
 
             # Fallback to unique_names if dependency IDs not available or incomplete
             if hasattr(self, '_pending_dependency_map_unique_names'):
@@ -1024,7 +1024,7 @@ class Parameter(DescriptorNumber):
                             if dep_obj is not None:
                                 dependency_map[key] = dep_obj
                             else:
-                                raise ValueError(f"Cannot find parameter with unique_name '{unique_name}' for dependency resolution")
+                                raise ValueError(f"Cannot find parameter with unique_name '{unique_name}'")
                         except Exception as e:
                             raise ValueError(f"Error resolving dependency '{key}' -> '{unique_name}': {e}")
 
