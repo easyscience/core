@@ -135,7 +135,8 @@ python =
 [gh-actions:env]
 PLATFORM =
     ubuntu-latest: linux
-    macos-15-intel: macos
+    macos-latest: macos
+    macos-15-intel: macos-intel
     windows-latest: windows
 [testenv]
 passenv =
