@@ -41,6 +41,8 @@ class Parameter(DescriptorNumber):
     # Skip the new serialization parameters - they'll be handled by _convert_to_dict
     _REDIRECT['_dependency_string'] = None
     _REDIRECT['_dependency_map_unique_names'] = None
+    _REDIRECT['_dependency_map_dependency_ids'] = None
+    _REDIRECT['__dependency_id'] = None
 
     def __init__(
         self,
@@ -82,7 +84,10 @@ class Parameter(DescriptorNumber):
         # Extract and ignore serialization-specific fields from kwargs
         kwargs.pop('_dependency_string', None)
         kwargs.pop('_dependency_map_unique_names', None)
+        kwargs.pop('_dependency_map_dependency_ids', None)
         kwargs.pop('_independent', None)
+        # Extract dependency_id if provided during deserialization
+        provided_dependency_id = kwargs.pop('__dependency_id', None)
 
         if not isinstance(min, numbers.Number):
             raise TypeError('`min` must be a number')
@@ -121,6 +126,14 @@ class Parameter(DescriptorNumber):
 
         # Create additional fitting elements
         self._initial_scalar = copy.deepcopy(self._scalar)
+
+        # Generate unique dependency ID for serialization/deserialization
+        # Use provided dependency_id if available (during deserialization), otherwise generate new one
+        if provided_dependency_id is not None:
+            self.__dependency_id = provided_dependency_id
+        else:
+            import uuid
+            self.__dependency_id = str(uuid.uuid4())
 
     @classmethod
     def from_dependency(cls, name: str, dependency_expression: str, dependency_map: Optional[dict] = None, **kwargs) -> Parameter:  # noqa: E501
@@ -316,6 +329,15 @@ class Parameter(DescriptorNumber):
     @dependency_map.setter
     def dependency_map(self, new_map: Dict[str, DescriptorNumber]) -> None:
         raise AttributeError('Dependency map is read-only. Use `make_dependent_on` to change the dependency map.')
+
+    @property
+    def dependency_id(self) -> str:
+        """
+        Get the unique dependency ID of this parameter used for serialization.
+
+        :return: The dependency ID of this parameter.
+        """
+        return self.__dependency_id
 
     @property
     def value_no_call_back(self) -> numbers.Number:
@@ -582,14 +604,23 @@ class Parameter(DescriptorNumber):
             # Save the dependency expression
             d['_dependency_string'] = self._dependency_string
 
-            # Convert dependency_map to use unique_names instead of object references
+            # Convert dependency_map to use dependency_ids (preferred) and unique_names (fallback)
+            d['_dependency_map_dependency_ids'] = {}
             d['_dependency_map_unique_names'] = {}
+
             for key, dep_obj in self._dependency_map.items():
+                # Store dependency_id if available (more reliable)
+                if hasattr(dep_obj, '__dependency_id'):
+                    d['_dependency_map_dependency_ids'][key] = dep_obj.__dependency_id
+                # Also store unique_name as fallback
                 if hasattr(dep_obj, 'unique_name'):
                     d['_dependency_map_unique_names'][key] = dep_obj.unique_name
                 else:
-                    # Fallback for objects without unique_name
+                    # Last resort fallback for objects without unique_name
                     d['_dependency_map_unique_names'][key] = str(dep_obj)
+
+        # Always include dependency_id for this parameter
+        d['__dependency_id'] = self.__dependency_id
 
         # Mark that this parameter is dependent
         d['_independent'] = self._independent
@@ -606,15 +637,20 @@ class Parameter(DescriptorNumber):
         d = obj_dict.copy()  # Don't modify the original dict
         dependency_string = d.pop('_dependency_string', None)
         dependency_map_unique_names = d.pop('_dependency_map_unique_names', None)
+        dependency_map_dependency_ids = d.pop('_dependency_map_dependency_ids', None)
         is_independent = d.pop('_independent', True)
+        # Note: Keep __dependency_id in the dict so it gets passed to __init__
 
-        # Create the parameter using the base class method
+        # Create the parameter using the base class method (dependency_id is now handled in __init__)
         param = super().from_dict(d)
 
         # Store dependency information for later resolution
         if not is_independent and dependency_string is not None:
             param._pending_dependency_string = dependency_string
-            param._pending_dependency_map_unique_names = dependency_map_unique_names or {}
+            if dependency_map_dependency_ids:
+                param._pending_dependency_map_dependency_ids = dependency_map_dependency_ids
+            if dependency_map_unique_names:
+                param._pending_dependency_map_unique_names = dependency_map_unique_names
             # Keep parameter as independent initially - will be made dependent after all objects are loaded
             param._independent = True
 
@@ -958,24 +994,39 @@ class Parameter(DescriptorNumber):
         """Resolve pending dependencies after deserialization.
 
         This method should be called after all parameters have been deserialized
-        to establish dependency relationships using unique_names.
+        to establish dependency relationships using dependency_ids or unique_names as fallback.
         """
-        if hasattr(self, '_pending_dependency_string') and hasattr(self, '_pending_dependency_map_unique_names'):
+        if hasattr(self, '_pending_dependency_string'):
             dependency_string = self._pending_dependency_string
-            dependency_map_unique_names = self._pending_dependency_map_unique_names
-
-            # Build dependency_map by looking up objects by unique_name
             dependency_map = {}
-            for key, unique_name in dependency_map_unique_names.items():
-                try:
-                    # Look up the parameter by unique_name in the global map
-                    dep_obj = self._global_object.map.get_item_by_key(unique_name)
+
+            # Try dependency IDs first (more reliable)
+            if hasattr(self, '_pending_dependency_map_dependency_ids'):
+                dependency_map_dependency_ids = self._pending_dependency_map_dependency_ids
+
+                # Build dependency_map by looking up objects by dependency_id
+                for key, dependency_id in dependency_map_dependency_ids.items():
+                    dep_obj = self._find_parameter_by_dependency_id(dependency_id)
                     if dep_obj is not None:
                         dependency_map[key] = dep_obj
                     else:
-                        raise ValueError(f"Cannot find parameter with unique_name '{unique_name}' for dependency resolution")
-                except Exception as e:
-                    raise ValueError(f"Error resolving dependency '{key}' -> '{unique_name}': {e}")
+                        raise ValueError(f"Cannot find parameter with dependency_id '{dependency_id}' for dependency resolution")
+
+            # Fallback to unique_names if dependency IDs not available or incomplete
+            if hasattr(self, '_pending_dependency_map_unique_names'):
+                dependency_map_unique_names = self._pending_dependency_map_unique_names
+
+                for key, unique_name in dependency_map_unique_names.items():
+                    if key not in dependency_map:  # Only add if not already resolved by dependency_id
+                        try:
+                            # Look up the parameter by unique_name in the global map
+                            dep_obj = self._global_object.map.get_item_by_key(unique_name)
+                            if dep_obj is not None:
+                                dependency_map[key] = dep_obj
+                            else:
+                                raise ValueError(f"Cannot find parameter with unique_name '{unique_name}' for dependency resolution")
+                        except Exception as e:
+                            raise ValueError(f"Error resolving dependency '{key}' -> '{unique_name}': {e}")
 
             # Establish the dependency relationship
             try:
@@ -985,4 +1036,14 @@ class Parameter(DescriptorNumber):
 
             # Clean up temporary attributes
             delattr(self, '_pending_dependency_string')
-            delattr(self, '_pending_dependency_map_unique_names')
+            if hasattr(self, '_pending_dependency_map_dependency_ids'):
+                delattr(self, '_pending_dependency_map_dependency_ids')
+            if hasattr(self, '_pending_dependency_map_unique_names'):
+                delattr(self, '_pending_dependency_map_unique_names')
+
+    def _find_parameter_by_dependency_id(self, dependency_id: str) -> Optional['Parameter']:
+        """Find a parameter by its dependency_id from all parameters in the global map."""
+        for obj in self._global_object.map._store.values():
+            if isinstance(obj, Parameter) and hasattr(obj, '__dependency_id') and obj.__dependency_id == dependency_id:
+                return obj
+        return None

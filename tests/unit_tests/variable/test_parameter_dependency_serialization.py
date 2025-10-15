@@ -303,3 +303,105 @@ class TestParameterDependencySerialization:
         assert isinstance(deserialized, Parameter)
         assert deserialized.name == "b"
         assert deserialized.independent is True  # Base path doesn't handle dependencies
+
+    def test_dependency_id_system_order_independence(self, clear_global_map):
+        """Test that dependency IDs allow parameters to be loaded in any order."""
+        # Create parameters with dependencies
+        x = Parameter(name="x", value=5.0, unit="m", min=0, max=20)
+        y = Parameter(name="y", value=10.0, unit="m", min=0, max=30)
+
+        z = Parameter.from_dependency(
+            name="z",
+            dependency_expression="x * y",
+            dependency_map={"x": x, "y": y},
+            unit="m^2"
+        )
+
+        # Verify original functionality
+        assert z.value == 50.0  # 5 * 10
+
+        # Get dependency IDs
+        x_dep_id = x.dependency_id
+        y_dep_id = y.dependency_id
+        z_dep_id = z.dependency_id
+
+        # Serialize all parameters
+        params_data = {
+            "x": x.as_dict(),
+            "y": y.as_dict(), 
+            "z": z.as_dict()
+        }
+
+        # Verify dependency IDs are in serialized data
+        assert params_data["x"]["__dependency_id"] == x_dep_id
+        assert params_data["y"]["__dependency_id"] == y_dep_id
+        assert params_data["z"]["__dependency_id"] == z_dep_id
+        assert "_dependency_map_dependency_ids" in params_data["z"]
+
+        # Test loading in different orders
+        test_orders = [
+            ["x", "y", "z"],  # Normal order
+            ["z", "x", "y"],  # Dependent first
+            ["y", "z", "x"],  # Mixed order
+            ["z", "y", "x"]   # Dependent first, reverse order
+        ]
+
+        for order in test_orders:
+            global_object.map._clear()
+            new_params = {}
+
+            # Load in the specified order
+            for name in order:
+                new_params[name] = Parameter.from_dict(params_data[name])
+
+            # Verify dependency IDs are preserved
+            assert new_params["x"].dependency_id == x_dep_id
+            assert new_params["y"].dependency_id == y_dep_id
+            assert new_params["z"].dependency_id == z_dep_id
+
+            # Resolve dependencies
+            resolve_all_parameter_dependencies(new_params)
+
+            # Verify functionality regardless of loading order
+            assert new_params["z"].independent is False
+            assert new_params["z"].value == 50.0
+
+            # Test dependency updates still work
+            new_params["x"].value = 6.0
+            assert new_params["z"].value == 60.0  # 6 * 10
+
+            new_params["y"].value = 8.0
+            assert new_params["z"].value == 48.0  # 6 * 8
+
+    def test_dependency_id_fallback_to_unique_name(self, clear_global_map):
+        """Test that the system falls back to unique_name when dependency_id is not available."""
+        # Create parameters
+        a = Parameter(name="a", value=3.0, unit="m")
+        b = Parameter.from_dependency(
+            name="b",
+            dependency_expression="2 * a",
+            dependency_map={"a": a},
+            unit="m"
+        )
+
+        # Serialize parameters
+        params_data = {
+            "a": a.as_dict(),
+            "b": b.as_dict()
+        }
+
+        # Remove dependency_id information to simulate old format
+        del params_data["b"]["_dependency_map_dependency_ids"]
+        # Keep unique_name mapping for fallback
+
+        # Deserialize and resolve
+        global_object.map._clear()
+        new_params = {}
+        for name, data in params_data.items():
+            new_params[name] = Parameter.from_dict(data)
+
+        resolve_all_parameter_dependencies(new_params)
+
+        # Should still work using unique_name fallback
+        assert new_params["b"].independent is False
+        assert new_params["b"].value == 6.0  # 2 * 3
