@@ -11,9 +11,22 @@ class TestParameterDependencySerialization:
     
     @pytest.fixture
     def clear_global_map(self):
-        """Clear the global map before each test."""
+        """This fixture pattern:
+          - Clears the map before each test (clean slate)
+          - Yields control to the test
+          - Clears the map after each test (cleanup)
+
+        Dependency serialization tests require more robust
+        setup-yield-cleanup pattern because they involve complex
+        object lifecycles with serialization, deserialization,
+        and dependency resolution that are particularly sensitive
+        to global state contamination.
+        """
+        # The global map uses weakref.WeakValueDictionary() for object storage,
+        # but also maintains strong references in __type_dict that need explicit cleanup.
         global_object.map._clear()
         yield
+        # final cleanup after test
         global_object.map._clear()
 
     def test_independent_parameter_serialization(self, clear_global_map):
