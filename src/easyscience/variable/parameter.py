@@ -33,6 +33,7 @@ class Parameter(DescriptorNumber):
     """
 
     # Used by serializer
+    # We copy the parent's _REDIRECT and modify it to avoid altering the parent's class dict
     _REDIRECT = DescriptorNumber._REDIRECT.copy()
     _REDIRECT['callback'] = None
     # Skip these attributes during normal serialization as they are handled specially
@@ -59,7 +60,7 @@ class Parameter(DescriptorNumber):
         display_name: Optional[str] = None,
         callback: property = property(),
         parent: Optional[Any] = None,
-        **kwargs
+        **kwargs: Any  # Additional keyword arguments (used for (de)serialization)
     ):
         """
         This class is an extension of a `DescriptorNumber`. Where the descriptor was for static
