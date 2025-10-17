@@ -25,7 +25,6 @@ poetry.lock
 
 # Pixi
 .pixi/
-pixi.lock
 
 # PyInstaller
 build
