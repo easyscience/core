@@ -23,6 +23,10 @@ dist
 poetry.lock
 *.egg-info
 
+# Pixi
+.pixi/
+pixi.lock
+
 # PyInstaller
 build
 *.spec

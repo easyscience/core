@@ -1,5 +1,5 @@
 # This workflow will for a variety of Python versions
-# - install the code base
+# - install the code base with pixi
 # - lint the code base
 # - test the code base
 # - upload the test coverage to codecov
@@ -10,7 +10,7 @@
 #
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
 
-name: CI using pip
+name: CI using pixi
 
 on: [push, pull_request]
 
@@ -19,11 +19,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/ruff-action@v3
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: v0.29.0
+          cache: true
+      - name: Run linting
+        run: pixi run lint
       - name: Suggestion to fix issues
         if: ${{ failure() }}
         run: |
-            echo "::notice::In project root run 'python.exe -m ruff . --fix' and commit changes to fix issues."
+            echo "::notice::In project root run 'pixi run lint-fix' and commit changes to fix issues."
             exit 1
 
   Code_Testing:
@@ -39,17 +44,16 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
-    - uses: actions/setup-python@v6
+    - uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: ${{ matrix.python-version }}
+        pixi-version: v0.29.0
+        cache: true
 
-    - name: Install dependencies
-      run: pip install -e '.[dev]'
+    - name: Set Python version
+      run: pixi add python=${{ matrix.python-version }}
 
-    - name: Test with tox
-      run: |
-        pip install tox tox-gh-actions coverage
-        tox
+    - name: Install dependencies and run tests
+      run: pixi run test
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4.0.1
@@ -69,16 +73,13 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
-    - uses: actions/setup-python@v6
+    - uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: '3.11'
+        pixi-version: v0.29.0
+        cache: true
 
-    - name: Install dependencies and build
-      run: |
-        pip install -e '.[dev]'
-        python -m build
+    - name: Build package
+      run: pixi run build
 
-    - name: Check Build
-      run: |
-        pip install tox tox-gh-actions coverage
-        tox
+    - name: Run tox tests
+      run: pixi run tox

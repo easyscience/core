@@ -19,6 +19,47 @@ Or direct from the repository:
 
 ```pip install https://github.com/easyScience/EasyScience```
 
+### Development with Pixi
+
+For development, we recommend using [pixi](https://pixi.sh), which provides a unified package and environment management solution:
+
+1. Install pixi following the [official installation guide](https://pixi.sh/latest/#installation)
+
+2. Clone the repository and navigate to the project directory:
+```bash
+git clone https://github.com/easyScience/EasyScience.git
+cd EasyScience
+```
+
+3. Install dependencies and set up the development environment:
+```bash
+pixi install
+```
+
+4. Run tests:
+```bash
+pixi run test
+```
+
+5. Run linting:
+```bash
+pixi run lint
+```
+
+6. Build the package:
+```bash
+pixi run build
+```
+
+Available pixi tasks:
+- `pixi run test` - Run the full test suite with coverage
+- `pixi run test-unit` - Run only unit tests
+- `pixi run lint` - Check code style with ruff
+- `pixi run lint-fix` - Fix code style issues automatically
+- `pixi run format` - Format code with ruff
+- `pixi run build` - Build the package
+- `pixi run docs-build` - Build documentation
+
 ## Test
 
 After installation, launch the test suite:

@@ -1,0 +1,76 @@
+[project]
+name = "easyscience"
+channels = ["conda-forge", "pypi"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+python = ">=3.11,<3.14"
+
+[feature.build.pypi-dependencies]
+# Build dependencies
+hatchling = "<=1.21.0"
+setuptools-git-versioning = "*"
+build = "*"
+
+[feature.dev.pypi-dependencies]
+# Development dependencies
+codecov = "*"
+flake8 = "*"
+matplotlib = "*"
+pytest = "*"
+pytest-cov = "*"
+ruff = "*"
+tox = "*"
+tox-gh-actions = "*"
+
+[feature.docs.pypi-dependencies]
+# Documentation dependencies
+doc8 = "*"
+readme-renderer = "*"
+sphinx_autodoc_typehints = "*"
+sphinx_book_theme = "*"
+sphinx_gallery = "*"
+toml = "*"
+sphinx = "*"
+
+[environments]
+default = ["build", "dev"]
+dev = ["build", "dev"]
+docs = ["build", "docs"]
+ci = ["build", "dev", "docs"]
+
+[tasks]
+# Development tasks
+install-dev = "pip install -e '.[dev]'"
+test = "pytest --cov=src/easyscience tests --cov-branch --cov-report=xml:coverage-unit.xml"
+test-unit = "pytest tests/unit_tests"
+test-integration = "pytest tests/integration_tests"
+
+# Code quality tasks
+lint = "ruff check ."
+lint-fix = "ruff check . --fix"
+format = "ruff format ."
+format-check = "ruff format . --check"
+
+# Build tasks
+build = "python -m build"
+clean = "rm -rf dist/ build/ *.egg-info/"
+
+# Tox tasks
+tox = "tox"
+
+# Documentation tasks
+docs-build = "sphinx-build -b html docs/src docs/_build/html"
+docs-clean = "rm -rf docs/_build/"
+
+[pypi-dependencies]
+# Core runtime dependencies
+asteval = "*"
+bumps = "*"
+dfo-ls = "*"
+lmfit = "*"
+numpy = "*"
+uncertainties = "*"
+scipp = "*"
+# Editable install of the package itself
+easyscience = { path = ".", editable = true }
