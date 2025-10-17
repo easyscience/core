@@ -24,10 +24,10 @@ class _EntryList(list):
             s += ', '.join(self._type)
         else:
             s += 'Undefined'
-        s += '. With'
         if self.finalizer is None:
-            s += 'out'
-        s += 'a finalizer.'
+            s += '. Without a finalizer.'
+        else:
+            s += '. With a finalizer.'
         return s
 
     def __delitem__(self, key):
