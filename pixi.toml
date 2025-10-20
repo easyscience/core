@@ -1,6 +1,6 @@
 [project]
 name = "easyscience"
-channels = ["conda-forge", "pypi"]
+channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 
 [dependencies]
@@ -14,24 +14,11 @@ build = "*"
 
 [feature.dev.pypi-dependencies]
 # Development dependencies
-codecov = "*"
-flake8 = "*"
-matplotlib = "*"
-pytest = "*"
-pytest-cov = "*"
-ruff = "*"
-tox = "*"
-tox-gh-actions = "*"
+easyscience = { path = ".", extras = ["dev"], editable = true }
 
 [feature.docs.pypi-dependencies]
 # Documentation dependencies
-doc8 = "*"
-readme-renderer = "*"
-sphinx_autodoc_typehints = "*"
-sphinx_book_theme = "*"
-sphinx_gallery = "*"
-toml = "*"
-sphinx = "*"
+easyscience = { path = ".", extras = ["docs"], editable = true }
 
 [environments]
 default = ["build", "dev"]
@@ -64,13 +51,5 @@ docs-build = "sphinx-build -b html docs/src docs/_build/html"
 docs-clean = "rm -rf docs/_build/"
 
 [pypi-dependencies]
-# Core runtime dependencies
-asteval = "*"
-bumps = "*"
-dfo-ls = "*"
-lmfit = "*"
-numpy = "*"
-uncertainties = "*"
-scipp = "*"
 # Editable install of the package itself
 easyscience = { path = ".", editable = true }

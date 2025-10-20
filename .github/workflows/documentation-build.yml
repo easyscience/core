@@ -30,13 +30,13 @@ jobs:
     - uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.29.0
-        cache: true
-        
-    - name: Install dependencies
-      run: pixi install --environment docs
-      
+        environments: docs
+        activate-environment: docs
+        run-install: true
+        cache: false
+        post-cleanup: false
     - name: Build documentation
-      run: pixi run --environment docs docs-build
+      run: pixi run docs-build
       
     - name: Build and Commit
       uses: sphinx-notes/pages@master
