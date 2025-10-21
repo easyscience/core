@@ -21,7 +21,8 @@ easyscience = { path = ".", extras = ["dev"], editable = true }
 easyscience = { path = ".", extras = ["docs"], editable = true }
 
 [environments]
-default = ["build"]
+# dev is the default for ruff
+default = ["build", "dev"]
 dev = ["build", "dev"]
 docs = ["build", "docs"]
 ci = ["build", "dev", "docs"]
@@ -53,3 +54,4 @@ docs-clean = "rm -rf docs/_build/"
 [pypi-dependencies]
 # Editable install of the package itself
 easyscience = { path = ".", editable = true }
+
