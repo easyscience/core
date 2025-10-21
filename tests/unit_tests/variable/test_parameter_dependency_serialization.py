@@ -5,6 +5,7 @@ from copy import deepcopy
 from easyscience import Parameter, global_object
 from easyscience.variable.parameter_dependency_resolver import resolve_all_parameter_dependencies
 from easyscience.variable.parameter_dependency_resolver import get_parameters_with_pending_dependencies
+from easyscience.variable.parameter_dependency_resolver import deserialize_and_resolve_parameters
 
 
 class TestParameterDependencySerialization:
@@ -105,7 +106,7 @@ class TestParameterDependencySerialization:
             "c": c.as_dict()
         }
         
-        # Clear and deserialize
+        # Clear and deserialize (manual approach)
         global_object.map._clear()
         new_params = {}
         for name, data in params_data.items():
@@ -117,6 +118,10 @@ class TestParameterDependencySerialization:
         
         # Resolve dependencies
         resolve_all_parameter_dependencies(new_params)
+        
+        # Alternative simplified approach using the helper function:
+        # global_object.map._clear()
+        # new_params = deserialize_and_resolve_parameters(params_data)
         
         # After resolution, c should be dependent and functional
         assert new_params["c"].independent is False
@@ -418,3 +423,60 @@ class TestParameterDependencySerialization:
         # Should still work using unique_name fallback
         assert new_params["b"].independent is False
         assert new_params["b"].value == 6.0  # 2 * 3
+
+    def test_deserialize_and_resolve_parameters_helper(self, clear_global_map):
+        """Test the convenience helper function for deserialization and dependency resolution."""
+        # Create test parameters with dependencies
+        a = Parameter(name="a", value=2.0, unit="m", min=0, max=10)
+        b = Parameter(name="b", value=3.0, unit="m", min=0, max=10)
+
+        c = Parameter.from_dependency(
+            name="c",
+            dependency_expression="a + b",
+            dependency_map={"a": a, "b": b},
+            unit="m"
+        )
+
+        # Verify original dependency works
+        assert c.value == 5.0  # 2 + 3
+
+        # Serialize all parameters
+        params_data = {
+            "a": a.as_dict(),
+            "b": b.as_dict(),
+            "c": c.as_dict()
+        }
+
+        # Clear global map
+        global_object.map._clear()
+
+        # Use the helper function instead of manual deserialization + resolution
+        new_params = deserialize_and_resolve_parameters(params_data)
+
+        # Verify all parameters are correctly deserialized and dependencies resolved
+        assert len(new_params) == 3
+        assert "a" in new_params
+        assert "b" in new_params
+        assert "c" in new_params
+
+        # Check that independent parameters work
+        assert new_params["a"].name == "a"
+        assert new_params["a"].value == 2.0
+        assert new_params["a"].independent is True
+
+        assert new_params["b"].name == "b"
+        assert new_params["b"].value == 3.0
+        assert new_params["b"].independent is True
+
+        # Check that dependent parameter is properly resolved
+        assert new_params["c"].name == "c"
+        assert new_params["c"].value == 5.0  # 2 + 3
+        assert new_params["c"].independent is False
+
+        # Verify dependency still works after helper function
+        new_params["a"].value = 10.0
+        assert new_params["c"].value == 13.0  # 10 + 3
+
+        # Verify no pending dependencies remain
+        pending = get_parameters_with_pending_dependencies(new_params)
+        assert len(pending) == 0

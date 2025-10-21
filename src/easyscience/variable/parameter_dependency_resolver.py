@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import Dict
 from typing import List
 
 from .parameter import Parameter
@@ -31,18 +32,24 @@ def resolve_all_parameter_dependencies(obj: Any) -> None:
             for element in item:
                 _collect_parameters(element, parameters)
         elif hasattr(item, '__dict__'):
-            # Check object attributes
-            for attr_name in dir(item):
+            # Check instance attributes
+            for attr_name, attr_value in item.__dict__.items():
                 if not attr_name.startswith('_'):  # Skip private attributes
-                    try:
-                        attr_value = getattr(item, attr_name)
-                        if not callable(attr_value):  # Skip methods
+                    _collect_parameters(attr_value, parameters)
+
+            # Check class properties (descriptors like Parameter instances)
+            for attr_name in dir(type(item)):
+                if not attr_name.startswith('_'):  # Skip private attributes
+                    class_attr = getattr(type(item), attr_name, None)
+                    if isinstance(class_attr, property):
+                        try:
+                            attr_value = getattr(item, attr_name)
                             _collect_parameters(attr_value, parameters)
-                    except (AttributeError, Exception):
-                        # log the exception
-                        print(f"Error accessing attribute '{attr_name}' of {item}")
-                        # Skip attributes that can't be accessed
-                        continue
+                        except (AttributeError, Exception):
+                            # log the exception
+                            print(f"Error accessing property '{attr_name}' of {item}")
+                            # Skip properties that can't be accessed
+                            continue
 
     # Collect all parameters
     all_parameters = []
@@ -95,18 +102,46 @@ def get_parameters_with_pending_dependencies(obj: Any) -> List[Parameter]:
             for element in item:
                 _collect_pending_parameters(element)
         elif hasattr(item, '__dict__'):
-            # Check object attributes
-            for attr_name in dir(item):
+            # Check instance attributes
+            for attr_name, attr_value in item.__dict__.items():
                 if not attr_name.startswith('_'):  # Skip private attributes
-                    try:
-                        attr_value = getattr(item, attr_name)
-                        if not callable(attr_value):  # Skip methods
+                    _collect_pending_parameters(attr_value)
+
+            # Check class properties (descriptors like Parameter instances)
+            for attr_name in dir(type(item)):
+                if not attr_name.startswith('_'):  # Skip private attributes
+                    class_attr = getattr(type(item), attr_name, None)
+                    if isinstance(class_attr, property):
+                        try:
+                            attr_value = getattr(item, attr_name)
                             _collect_pending_parameters(attr_value)
-                    except (AttributeError, Exception):
-                        # log the exception
-                        print(f"Error accessing attribute '{attr_name}' of {item}")
-                        # Skip attributes that can't be accessed
-                        continue
+                        except (AttributeError, Exception):
+                            # log the exception
+                            print(f"Error accessing property '{attr_name}' of {item}")
+                            # Skip properties that can't be accessed
+                            continue
 
     _collect_pending_parameters(obj)
     return parameters_with_pending
+
+
+def deserialize_and_resolve_parameters(params_data: Dict[str, Dict[str, Any]]) -> Dict[str, Parameter]:
+    """
+    Deserialize parameters from a dictionary and resolve their dependencies.
+
+    This is a convenience function that combines Parameter.from_dict() deserialization
+    with dependency resolution in a single call.
+
+    :param params_data: Dictionary mapping parameter names to their serialized data
+    :return: Dictionary mapping parameter names to deserialized Parameters with resolved dependencies
+    """
+    # Deserialize all parameters first
+    new_params = {}
+    for name, data in params_data.items():
+        new_params[name] = Parameter.from_dict(data)
+
+    # Resolve all dependencies
+    resolve_all_parameter_dependencies(new_params)
+
+    return new_params
+
