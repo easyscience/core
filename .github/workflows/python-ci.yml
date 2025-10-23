@@ -43,9 +43,11 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: Setup Pixi
-      uses: ./.github/actions/setup-pixi
+      uses: prefix-dev/setup-pixi@v0.9.0
       with:
-        run-install: 'false'
+        run-install: false
+        cache: false
+        post-cleanup: false
 
     - name: Set Python version
       run: pixi add python=${{ matrix.python-version }}
