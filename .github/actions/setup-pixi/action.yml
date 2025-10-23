@@ -12,7 +12,7 @@ inputs:
   run-install:
     description: 'Whether to run install'
     required: false
-    default: 'false'
+    default: 'true'
   cache:
     description: 'Whether to use cache'
     required: false
@@ -21,15 +21,11 @@ inputs:
     description: 'Whether to run post cleanup'
     required: false
     default: 'false'
-  pixi-version:
-    description: 'Version of setup-pixi action to use'
-    required: false
-    default: 'v0.9.0'
 
 runs:
   using: 'composite'
   steps:
-    - uses: prefix-dev/setup-pixi@${{ inputs.pixi-version }}
+    - uses: prefix-dev/setup-pixi@0.9.0
       with:
         environments: ${{ inputs.environments }}
         activate-environment: ${{ inputs.activate-environment }}
