@@ -1,0 +1,38 @@
+name: 'Setup Pixi Environment'
+description: 'Sets up pixi with common configuration'
+inputs:
+  environments:
+    description: 'Pixi environments to setup'
+    required: false
+    default: 'dev'
+  activate-environment:
+    description: 'Environment to activate'
+    required: false
+    default: 'dev'
+  run-install:
+    description: 'Whether to run install'
+    required: false
+    default: 'false'
+  cache:
+    description: 'Whether to use cache'
+    required: false
+    default: 'false'
+  post-cleanup:
+    description: 'Whether to run post cleanup'
+    required: false
+    default: 'false'
+  pixi-version:
+    description: 'Version of setup-pixi action to use'
+    required: false
+    default: 'v0.9.0'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: prefix-dev/setup-pixi@${{ inputs.pixi-version }}
+      with:
+        environments: ${{ inputs.environments }}
+        activate-environment: ${{ inputs.activate-environment }}
+        run-install: ${{ inputs.run-install }}
+        cache: ${{ inputs.cache }}
+        post-cleanup: ${{ inputs.post-cleanup }}
