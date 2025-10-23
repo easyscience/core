@@ -23,9 +23,10 @@ jobs:
         with:
           environments: dev
           activate-environment: dev
-          run-install: false
+          run-install: true
           cache: false
           post-cleanup: false
+
       - name: Run linting
         run: pixi run lint
       - name: Suggestion to fix issues
@@ -51,7 +52,7 @@ jobs:
       with:
         environments: dev
         activate-environment: dev
-        run-install: false
+        run-install: true
         cache: false
         post-cleanup: false
 
@@ -83,7 +84,7 @@ jobs:
       with:
         environments: dev
         activate-environment: dev
-        run-install: false
+        run-install: true
         cache: false
         post-cleanup: false
 
