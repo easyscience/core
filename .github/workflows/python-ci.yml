@@ -44,12 +44,14 @@ jobs:
 
     - name: Setup Pixi
       uses: ./.github/actions/setup-pixi
+      with:
+        run-install: 'false'
 
     - name: Set Python version
       run: pixi add python=${{ matrix.python-version }}
 
     - name: Install dependencies and run tests
-      run: pixi run test
+      run: pixi run -e dev test
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4.0.1
