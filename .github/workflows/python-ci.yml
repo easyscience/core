@@ -25,7 +25,7 @@ jobs:
           cache: false
           post-cleanup: false
       - name: Run linting
-        run: pixi run lint
+        run: pixi run -e dev lint
       - name: Suggestion to fix issues
         if: ${{ failure() }}
         run: |
