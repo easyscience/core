@@ -55,7 +55,7 @@ jobs:
       run: pixi add python=${{ matrix.python-version }}
 
     - name: Install dependencies and run tests
-      run: pixi run test
+      run: pixi run -e dev test
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4.0.1
@@ -85,4 +85,4 @@ jobs:
       run: pixi run build
 
     - name: Run tox tests
-      run: pixi run tox
+      run: pixi run -e dev tox

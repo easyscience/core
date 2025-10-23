@@ -40,7 +40,7 @@ jobs:
       run: pixi run build
       
     - name: Run tests with tox
-      run: pixi run tox
+      run: pixi run -e dev tox
       
     - uses: actions/upload-artifact@v4
       with:
