@@ -4,7 +4,7 @@ This document explains how to serialize and deserialize `Parameter` objects that
 
 ## Overview
 
-Parameters with dependencies can now be serialized to dictionaries (and JSON) while preserving their dependency relationships. After deserialization, the dependencies are automatically reconstructed using the `unique_name` attribute to match parameters.
+Parameters with dependencies can now be serialized to dictionaries (and JSON) while preserving their dependency relationships. After deserialization, the dependencies are automatically reconstructed using the `dependency_id` attribute to match parameters, with `unique_name` attribute being used as a fallback.
 
 ## Key Features
 
