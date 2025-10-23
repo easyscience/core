@@ -36,7 +36,7 @@ jobs:
         post-cleanup: false
 
     - name: Build documentation
-      run: pixi run -e docs docs-build
+      run: pixi run -e dev docs-build
       
     - name: Build and Commit
       uses: sphinx-notes/pages@master

@@ -21,10 +21,10 @@ easyscience = { path = ".", extras = ["dev"], editable = true }
 easyscience = { path = ".", extras = ["docs"], editable = true }
 
 [environments]
-# dev is the default for ruff
-dev = ["build", "dev"]
-docs = ["build", "docs"]
-ci = ["build", "dev", "docs"]
+# Default environment with basic build setup
+default = ["build"]
+# Development environment with build, dev, and docs features
+dev = ["build", "dev", "docs"]
 
 [tasks]
 # Development tasks
