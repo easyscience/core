@@ -530,27 +530,51 @@ class TestDictStack:
     def test_undo_redo_creation(self):
         """Test undo/redo for creation"""
         nd = NotarizedDict()
-        # Actually create the key first so DictStack can set it up correctly
-        nd['key'] = 'old_value'
         cmd = DictStack(nd, 'key', 'value')
-        
-        # After creation, undo should revert to old value or delete
+
+        # Simulate the initial operation (like UndoStack.push() does)
+        cmd.redo()
+        assert nd.data['key'] == 'value'
+
+        # After creation, undo should delete the key
         cmd.undo()
-        # Should either be deleted or reverted
-        
+        assert 'key' not in nd.data
+
         # After undo, redo should create/set new value
         cmd.redo()
         assert nd.data['key'] == 'value'
-        
+
+    def test_undo_redo_modification(self):
+        """Test undo/redo for modification"""
+        nd = NotarizedDict()
+        nd['key'] = 'old_value'
+        cmd = DictStack(nd, 'key', 'new_value')
+
+        # Simulate the initial operation (like UndoStack.push() does)
+        cmd.redo()
+        assert nd.data['key'] == 'new_value'
+
+        # After modification, undo should revert to old value
+        cmd.undo()
+        assert nd.data['key'] == 'old_value'
+
+        # After undo, redo should set new value
+        cmd.redo()
+        assert nd.data['key'] == 'new_value'
+
     def test_undo_redo_deletion(self):
         """Test undo/redo for deletion"""
         nd = NotarizedDict(key='value')
         cmd = DictStack(nd, 'key')
-        
+
+        # Simulate the initial operation (like UndoStack.push() does)
+        cmd.redo()
+        assert 'key' not in nd.data
+
         # After deletion, undo should restore
         cmd.undo()
         assert nd.data['key'] == 'value'
-        
+
         # After undo, redo should delete
         cmd.redo()
         assert 'key' not in nd.data
