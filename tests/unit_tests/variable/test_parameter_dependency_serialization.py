@@ -1,6 +1,7 @@
 import pytest
 import json
 from copy import deepcopy
+from unittest.mock import Mock
 
 from easyscience import Parameter, global_object
 from easyscience.variable.parameter_dependency_resolver import resolve_all_parameter_dependencies
@@ -480,3 +481,29 @@ class TestParameterDependencySerialization:
         # Verify no pending dependencies remain
         pending = get_parameters_with_pending_dependencies(new_params)
         assert len(pending) == 0
+
+    def test_serialization_error_dependency_without_unique_name(self, clear_global_map):
+        """Test that serialization raises an appropriate error when a dependency object lacks unique_name."""
+        # Create a parameter with dependencies
+        a = Parameter(name="a", value=2.0, unit="m", min=0, max=10)
+        b = Parameter.from_dependency(
+            name="b",
+            dependency_expression="2 * a",
+            dependency_map={"a": a},
+            unit="m"
+        )
+
+        # Artificially create a mock object without unique_name in the dependency map
+        # This is a defensive test since under normal circumstances this shouldn't happen
+        mock_obj = Mock()
+        # Mock obj has no unique_name attribute
+        if hasattr(mock_obj, 'unique_name'):
+            delattr(mock_obj, 'unique_name')
+
+        # Manually inject the mock object into the dependency map to trigger the error
+        # This bypasses the normal type checking that would prevent this
+        b._dependency_map["mock"] = mock_obj
+
+        # Attempt to serialize should raise a ValueError
+        with pytest.raises(ValueError, match="does not have a unique_name attribute"):
+            b.as_dict()

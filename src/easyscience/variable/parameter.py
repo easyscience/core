@@ -617,8 +617,8 @@ class Parameter(DescriptorNumber):
                 if hasattr(dep_obj, 'unique_name'):
                     d['_dependency_map_unique_names'][key] = dep_obj.unique_name
                 else:
-                    # Last resort fallback for objects without unique_name
-                    d['_dependency_map_unique_names'][key] = str(dep_obj)
+                    # This is quite impossible - throw an error
+                    raise ValueError(f'The object with unique_name {key} does not have a unique_name attribute.')
 
         # Always include dependency_id for this parameter
         d['__dependency_id'] = self.__dependency_id
