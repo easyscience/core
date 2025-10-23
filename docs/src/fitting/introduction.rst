@@ -131,13 +131,50 @@ Parameters can depend on other parameters through expressions:
     area = Parameter.from_dependency(
         name="area",
         dependency_expression="length * width",
-        dependency_map={"length": length, "width": width},
-        unit="m^2"
+        dependency_map={"length": length, "width": width}
     )
     
     # When length or width changes, area updates automatically
     length.value = 15.0
     print(area.value)  # Will be 75.0 (15 * 5)
+
+Using make_dependent_on() Method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also make an existing parameter dependent on other parameters using the ``make_dependent_on()`` method. This is useful when you want to convert an independent parameter into a dependent one:
+
+.. code-block:: python
+
+    # Create independent parameters
+    radius = Parameter("radius", 5.0, unit="m", min=1, max=20)
+    height = Parameter("height", 10.0, unit="m", min=1, max=50)
+    volume = Parameter("volume", 100.0, unit="m³")  # Initially independent
+    pi = Parameter("pi", 3.14159, fixed=True)  # Constant parameter
+
+    # Make volume dependent on radius and height
+    volume.make_dependent_on(
+        dependency_expression="pi * radius**2 * height",
+        dependency_map={"radius": radius, "height": height, "pi": pi}
+    )
+
+    # Now volume automatically updates when radius or height changes
+    radius.value = 8.0
+    print(f"New volume: {volume.value:.2f} m³")  # Automatically calculated
+
+    # The parameter becomes dependent and cannot be set directly
+    try:
+        volume.value = 200.0  # This will raise an AttributeError
+    except AttributeError:
+        print("Cannot set value of dependent parameter directly")
+
+**What to expect:**
+
+- The parameter becomes **dependent** and its ``independent`` property becomes ``False``
+- You **cannot directly set** the value, bounds, or variance of a dependent parameter
+- The parameter's value is **automatically recalculated** whenever any of its dependencies change
+- Dependent parameters **cannot be fitted** (they are automatically fixed)
+- The original value, unit, variance, min, and max are **overwritten** by the dependency calculation
+- You can **revert to independence** using the ``make_independent()`` method if needed
 
 Advanced Fitting Options
 -----------------------

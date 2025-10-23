@@ -88,8 +88,7 @@ Parameters can depend on other parameters through mathematical expressions:
     volume = Parameter.from_dependency(
         name="volume",
         dependency_expression="3.14159 * radius**2 * height",
-        dependency_map={"radius": radius, "height": height},
-        unit="m^3"
+        dependency_map={"radius": radius, "height": height}
     )
     
     # Automatic updates
