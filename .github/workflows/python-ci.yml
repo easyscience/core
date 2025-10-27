@@ -87,7 +87,9 @@ jobs:
         post-cleanup: false
 
     - name: Build package
-      run: pixi run build
+      run:
+        pixi run build
+        pixi run update-lock
 
     - name: Run tox tests
       run: pixi run tox
