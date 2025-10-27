@@ -6,12 +6,6 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 [dependencies]
 python = ">=3.11,<3.14"
 
-[feature.build.pypi-dependencies]
-# Build dependencies
-hatchling = "<=1.21.0"
-setuptools-git-versioning = "*"
-build = "*"
-
 [feature.dev.pypi-dependencies]
 # Development dependencies
 easyscience = { path = ".", extras = ["dev"], editable = true }
@@ -19,6 +13,10 @@ easyscience = { path = ".", extras = ["dev"], editable = true }
 [feature.docs.pypi-dependencies]
 # Documentation dependencies
 easyscience = { path = ".", extras = ["docs"], editable = true }
+
+[feature.build.pypi-dependencies]
+# build dependencies
+easyscience = { path = ".", extras = ["build"], editable = true }
 
 [environments]
 # Default environment with basic build setup
@@ -28,7 +26,7 @@ dev = ["build", "dev", "docs"]
 
 [tasks]
 # Development tasks
-install-dev = "pip install -e '.[dev]'"
+# install-dev = "pip install -e '.[dev]'"
 test = "pytest --cov=src/easyscience tests --cov-branch --cov-report=xml:coverage-unit.xml"
 test-unit = "pytest tests/unit_tests"
 test-integration = "pytest tests/integration_tests"

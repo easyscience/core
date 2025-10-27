@@ -38,6 +38,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+build = [
+    hatchling = "<=1.21.0"
+    setuptools-git-versioning = "*"
+    build = "*"
+]
 dev = [
     "build",
     "codecov",
