@@ -26,7 +26,6 @@ dev = ["build", "dev", "docs"]
 
 [tasks]
 # Development tasks
-# install-dev = "pip install -e '.[dev]'"
 test = "pytest --cov=src/easyscience tests --cov-branch --cov-report=xml:coverage-unit.xml"
 test-unit = "pytest tests/unit_tests"
 test-integration = "pytest tests/integration_tests"
