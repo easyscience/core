@@ -1336,7 +1336,7 @@ packages:
 - pypi: ./
   name: easyscience
   version: 2.0.0
-  sha256: 15d0345414a1518b86ef13192d49bd67e32f569e08cc0f0dddf42ff2211c2621
+  sha256: 9bc78e3bef1598da97f578cb356cfd7a68086a4278ac3bf89c3e8dd5275aaf2b
   requires_dist:
   - asteval
   - bumps
@@ -1345,6 +1345,9 @@ packages:
   - numpy
   - scipp
   - uncertainties
+  - build ; extra == 'build'
+  - hatchling<=1.21.0 ; extra == 'build'
+  - setuptools-git-versioning ; extra == 'build'
   - build ; extra == 'dev'
   - codecov ; extra == 'dev'
   - flake8 ; extra == 'dev'
