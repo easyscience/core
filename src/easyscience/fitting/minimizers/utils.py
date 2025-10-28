@@ -51,6 +51,7 @@ class FitResults:
     def reduced_chi(self):
         return self.chi2 / (len(self.x) - self.n_pars)
 
+
 class FitError(Exception):
     def __init__(self, e: Exception = None):
         self.e = e

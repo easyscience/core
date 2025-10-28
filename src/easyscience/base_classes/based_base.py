@@ -194,5 +194,3 @@ class BasedBase(SerializerComponent):
         temp = self.as_dict(skip=['unique_name'])
         new_obj = self.__class__.from_dict(temp)
         return new_obj
-
-

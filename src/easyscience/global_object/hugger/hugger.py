@@ -15,8 +15,8 @@ from ...utils.classUtils import singleton
 @singleton
 class Store:
     __log = []
-    __var_ident = "var_"
-    __ret_ident = "ret_"
+    __var_ident = 'var_'
+    __ret_ident = 'ret_'
 
     def __init__(self):
         self.log = self.__log  # TODO Async problem?
@@ -26,12 +26,12 @@ class Store:
     @staticmethod
     def get_defaults() -> dict:
         return {
-            "log": Store.__log,
-            "create_list": Store.__create_list,
-            "unique_args": Store.__unique_args,
-            "unique_rets": Store.__unique_rets,
-            "var_ident": Store.__var_ident,
-            "ret_ident": Store.__ret_ident,
+            'log': Store.__log,
+            'create_list': Store.__create_list,
+            'unique_args': Store.__unique_args,
+            'unique_rets': Store.__unique_rets,
+            'var_ident': Store.__var_ident,
+            'ret_ident': Store.__ret_ident,
         }
 
     def append_log(self, log_entry: str):
@@ -87,9 +87,7 @@ class PatcherFactory(Hugger, metaclass=ABCMeta):
     @staticmethod
     def is_mutable(arg) -> bool:
         ret = True
-        if isinstance(
-            arg, (int, float, complex, str, tuple, frozenset, bytes, property)
-        ):
+        if isinstance(arg, (int, float, complex, str, tuple, frozenset, bytes, property)):
             ret = False
         return ret
 
@@ -112,7 +110,7 @@ class PatcherFactory(Hugger, metaclass=ABCMeta):
         stack = stack_(sys._getframe(1))
         start = 0 + skip
         if len(stack) < start + 1:
-            return ""
+            return ''
         parentframe = stack[start]
 
         name = []
@@ -122,16 +120,16 @@ class PatcherFactory(Hugger, metaclass=ABCMeta):
         if module:
             name.append(module.__name__)
         # detect classname
-        if "self" in parentframe.f_locals:
+        if 'self' in parentframe.f_locals:
             # I don't know any way to detect call from the object method
             # XXX: there seems to be no way to detect static method call - it will
             #      be just a function call
-            name.append(parentframe.f_locals["self"].__class__.__name__)
+            name.append(parentframe.f_locals['self'].__class__.__name__)
         codename = parentframe.f_code.co_name
-        if codename != "<module>":  # top level usually
+        if codename != '<module>':  # top level usually
             name.append(codename)  # function or a method
         del parentframe
-        return ".".join(name)
+        return '.'.join(name)
 
     def _append_args(self, *args, **kwargs):
         def check(res):
@@ -184,9 +182,9 @@ class PatcherFactory(Hugger, metaclass=ABCMeta):
     def __options(self, item) -> Tuple[int, dict]:
         this_id = id(item)
         option = {
-            "create_list": self._store.create_list,
-            "return_list": self._store.unique_rets,
-            "input_list": self._store.unique_args,
+            'create_list': self._store.create_list,
+            'return_list': self._store.unique_rets,
+            'input_list': self._store.unique_args,
         }
         return this_id, option
 
@@ -210,9 +208,7 @@ class PatcherFactory(Hugger, metaclass=ABCMeta):
                     return cls
             method_in = method_in.__func__  # fallback to __qualname__ parsing
         if inspect.isfunction(method_in):
-            class_name = method_in.__qualname__.split(".<locals>", 1)[0].rsplit(".", 1)[
-                0
-            ]
+            class_name = method_in.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0]
             try:
                 cls = getattr(inspect.getmodule(method_in), class_name)
             except AttributeError:

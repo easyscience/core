@@ -12,6 +12,7 @@ class DescriptorBool(DescriptorBase):
     """
     A `Descriptor` for boolean values.
     """
+
     def __init__(
         self,
         name: str,

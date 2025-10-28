@@ -14,6 +14,7 @@ class AnalysisBase(ObjBase, metaclass=ABCMeta):
     """
     This virtual class allows for the creation of technique-specific Analysis objects.
     """
+
     def __init__(self, name: str, interface=None, *args, **kwargs):
         super(AnalysisBase, self).__init__(name, *args, **kwargs)
         self.name = name
@@ -23,18 +24,12 @@ class AnalysisBase(ObjBase, metaclass=ABCMeta):
         self.interface = interface
 
     @abstractmethod
-    def calculate_theory(self,
-                         x: np.ndarray,
-                         **kwargs) -> np.ndarray:
-        raise NotImplementedError("calculate_theory not implemented")
+    def calculate_theory(self, x: np.ndarray, **kwargs) -> np.ndarray:
+        raise NotImplementedError('calculate_theory not implemented')
 
     @abstractmethod
-    def fit(self,
-            x: np.ndarray,
-            y: np.ndarray,
-            e: np.ndarray,
-            **kwargs) -> None:
-        raise NotImplementedError("fit not implemented")
+    def fit(self, x: np.ndarray, y: np.ndarray, e: np.ndarray, **kwargs) -> None:
+        raise NotImplementedError('fit not implemented')
 
     @property
     def calculator(self) -> str:
@@ -57,6 +52,4 @@ class AnalysisBase(ObjBase, metaclass=ABCMeta):
 
     # required dunder methods
     def __str__(self):
-        return f"Analysis: {self.name}"
-    
-    
+        return f'Analysis: {self.name}'

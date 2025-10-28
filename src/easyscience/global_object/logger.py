@@ -11,9 +11,7 @@ class Logger:
         self.level = log_level
         self.logger.setLevel(self.level)
 
-    def getLogger(
-        self, logger_name, color: str = "32", defaults: bool = True
-    ) -> logging:
+    def getLogger(self, logger_name, color: str = '32', defaults: bool = True) -> logging:
         """
         Create a logger
         :param color:
