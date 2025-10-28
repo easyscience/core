@@ -26,13 +26,8 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
-    - uses: prefix-dev/setup-pixi@v0.9.0
-      with:
-        environments: dev
-        activate-environment: dev
-        run-install: true
-        cache: false
-        post-cleanup: false
+    - name: Setup Pixi
+      uses: ./.github/actions/setup-pixi
 
     - name: Build package
       run: pixi run build
