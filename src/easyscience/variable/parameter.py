@@ -596,7 +596,7 @@ class Parameter(DescriptorNumber):
                 clean_dependency_string = clean_dependency_string.replace(name, '__' + stripped_name + '__')
             else:
                 raise ValueError(
-                    f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber.'
+                    f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber. '
                     'Please check your dependency expression.'
                 )  # noqa: E501
         self._clean_dependency_string = clean_dependency_string
