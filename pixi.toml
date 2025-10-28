@@ -39,7 +39,7 @@ format-check = "ruff format . --check"
 # Build tasks
 build = "python -m build"
 clean = "rm -rf dist/ build/ *.egg-info/"
-update-lock = "pixi install"
+update-lock = "pixi update"
 
 # Tox tasks
 tox = "tox"

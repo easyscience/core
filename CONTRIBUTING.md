@@ -43,11 +43,12 @@ pixi run test
 
 ### Before Submitting a Pull Request
 
-1. Ensure all tests pass: `pixi run test`
-2. Check code style: `pixi run lint`
-3. Format your code: `pixi run format`
-4. Update documentation if necessary
-5. Add tests for new functionality
+1. Update the lock file to ensure dependencies are up to date: `pixi run update-lock`
+2. Ensure all tests pass: `pixi run test`
+3. Check code style: `pixi run lint`
+4. Format your code: `pixi run format`
+5. Update documentation if necessary
+6. Add tests for new functionality
 
 ## Pull Request Process
 

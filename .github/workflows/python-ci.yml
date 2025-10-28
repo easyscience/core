@@ -29,10 +29,20 @@ jobs:
 
       - name: Run linting
         run: pixi run lint
-      - name: Suggestion to fix issues
+
+      - name: Suggestion to fix lint issues
         if: ${{ failure() }}
         run: |
             echo "::notice::In project root run 'pixi run lint-fix' and commit changes to fix issues."
+            exit 1
+
+      - name: Run formatting
+        run: pixi run format-check
+
+      - name: Suggestion to fix format issues
+        if: ${{ failure() }}
+        run: |
+            echo "::notice::In project root run 'pixi run format' and commit changes to fix issues."
             exit 1
 
   Code_Testing:
