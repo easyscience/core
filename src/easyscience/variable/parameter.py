@@ -159,22 +159,27 @@ class Parameter(DescriptorNumber):
         I.e. the values are the actual objects, whereas the keys are how they are represented in the dependency expression.
 
         The dependency map is not needed if the dependency expression uses the unique names of the parameters.
-        Unique names in dependency expressions are defined by quotes, e.g. 'Parameter_0' or "Parameter_0" depending on the quotes used for the expression.
+        Unique names in dependency expressions are defined by quotes, e.g. 'Parameter_0' or "Parameter_0" depending on
+        the quotes used for the expression.
 
-        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by a python interpreter.
-        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies.
+        :param dependency_expression: The dependency expression to evaluate. This should be a string which
+        can be evaluated by a python interpreter.
+        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs.
+        This is inserted into the asteval interpreter to resolve dependencies.
         """  # noqa: E501
         if not isinstance(dependency_expression, str):
             raise TypeError('`dependency_expression` must be a string representing a valid dependency expression.')
         if not (isinstance(dependency_map, dict) or dependency_map is None):
             raise TypeError(
-                '`dependency_map` must be a dictionary of dependencies and their corresponding names in the dependecy expression.'
+                '`dependency_map` must be a dictionary of dependencies and their'
+                'corresponding names in the dependecy expression.'
             )  # noqa: E501
         if isinstance(dependency_map, dict):
             for key, value in dependency_map.items():
                 if not isinstance(key, str):
                     raise TypeError(
-                        '`dependency_map` keys must be strings representing the names of the dependencies in the dependency expression.'
+                        '`dependency_map` keys must be strings representing the names of'
+                        'the dependencies in the dependency expression.'
                     )  # noqa: E501
                 if not isinstance(value, DescriptorNumber):
                     raise TypeError(
@@ -256,7 +261,8 @@ class Parameter(DescriptorNumber):
             error_string = self._dependency_string
             self._revert_dependency()
             raise TypeError(
-                f'The dependency expression: "{error_string}" returned a {type(dependency_result)}, it should return a Parameter or DescriptorNumber.'
+                f'The dependency expression: "{error_string}" returned a {type(dependency_result)},'
+                'it should return a Parameter or DescriptorNumber.'
             )  # noqa: E501
         # Check for cyclic dependencies
         try:
@@ -590,7 +596,8 @@ class Parameter(DescriptorNumber):
                 clean_dependency_string = clean_dependency_string.replace(name, '__' + stripped_name + '__')
             else:
                 raise ValueError(
-                    f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber. Please check your dependency expression.'
+                    f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber.'
+                    'Please check your dependency expression.'
                 )  # noqa: E501
         self._clean_dependency_string = clean_dependency_string
 
