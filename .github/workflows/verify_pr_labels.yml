@@ -1,6 +1,5 @@
-# This workflow will be verify that all PRs have at
-# least on the label: 'bugs', 'enhancement' before
-# they can be merged.
+# This workflow will verify that all PRs have at
+# least one of the [scope] labels before they can be merged.
 
 name: Verify PR labels
 on:
@@ -17,6 +16,6 @@ jobs:
       id: verify-pr-label
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        valid-labels: chore, fix, bugfix, bug, enhancement, feature, dependencies, documentation
+        valid-labels: \[scope\] bug, \[scope\] enhancement, \[scope\] documentation, \[scope\] significant, \[scope\] maintenance
         pull-request-number: ${{ github.event.pull_request.number }}
         disable-reviews: false
