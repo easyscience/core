@@ -31,10 +31,10 @@ test-unit = "pytest tests/unit_tests"
 test-integration = "pytest tests/integration_tests"
 
 # Code quality tasks
-lint = "ruff check ."
-lint-fix = "ruff check . --fix"
-format = "ruff format ."
+lint-check = "ruff check ."
+lint = "ruff check . --fix"
 format-check = "ruff format . --check"
+format = "ruff format ."
 
 # Build tasks
 build = "python -m build"

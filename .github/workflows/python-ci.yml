@@ -89,8 +89,5 @@ jobs:
     - name: Build package
       run: pixi run build
 
-    - name: Update lock file
-      run: pixi run update-lock
-
     - name: Run tox tests
       run: pixi run tox

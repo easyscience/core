@@ -35,8 +35,9 @@ pixi run test
 
 - **Run tests**: `pixi run test` (full test suite with coverage)
 - **Run unit tests only**: `pixi run test-unit`
-- **Check code style**: `pixi run lint`
-- **Fix code style**: `pixi run lint-fix`
+- **Check code style**: `pixi run lint-check`
+- **Fix code style**: `pixi run lint`
+- **Check code formatting**: `pixi run format-check`
 - **Format code**: `pixi run format`
 - **Build package**: `pixi run build`
 - **Build documentation**: `pixi run docs-build`
@@ -45,7 +46,7 @@ pixi run test
 
 1. Update the lock file to ensure dependencies are up to date: `pixi run update-lock`
 2. Ensure all tests pass: `pixi run test`
-3. Check code style: `pixi run lint`
+3. Check code style: `pixi run lint-check`
 4. Format your code: `pixi run format`
 5. Update documentation if necessary
 6. Add tests for new functionality
