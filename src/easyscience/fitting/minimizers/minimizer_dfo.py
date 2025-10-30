@@ -90,13 +90,13 @@ class DFO(MinimizerBase):
 
         if y.shape != x.shape:
             raise ValueError('x and y must have the same shape.')
-        
+
         if weights.shape != x.shape:
             raise ValueError('Weights must have the same shape as x and y.')
-        
+
         if not np.isfinite(weights).all():
             raise ValueError('Weights cannot be NaN or infinite.')
-        
+
         if (weights <= 0).any():
             raise ValueError('Weights must be strictly positive and non-zero.')
 
@@ -152,7 +152,6 @@ class DFO(MinimizerBase):
 
         def _outer(obj: DFO):
             def _make_func(x, y, weights):
-
                 dfo_pars = {}
                 if not parameters:
                     for name, par in obj._cached_pars.items():

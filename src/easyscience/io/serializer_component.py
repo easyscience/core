@@ -18,13 +18,12 @@ if TYPE_CHECKING:
 
 class SerializerComponent:
     """
-    This base class adds the capability of saving and loading (encoding/decoding, serializing/deserializing) easyscience 
-    objects via the `encode` and `decode` methods. 
+    This base class adds the capability of saving and loading (encoding/decoding, serializing/deserializing) easyscience
+    objects via the `encode` and `decode` methods.
     The default encoder is `SerializerDict`, which converts the object to a dictionary.
 
     Shortcuts for dictionary and encoding is also present.
     """
-
 
     def __deepcopy__(self, memo):
         return self.from_dict(self.as_dict())
