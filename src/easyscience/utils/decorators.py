@@ -63,8 +63,8 @@ def time_it(func):
     :param func: function to be timed
     :return: callable function with timer
     """
-    name = func.__module__ + "." + func.__name__
-    time_logger = global_object.log.getLogger("timer." + name)
+    name = func.__module__ + '.' + func.__name__
+    time_logger = global_object.log.getLogger('timer.' + name)
 
     @functools.wraps(func)
     def _time_it(*args, **kwargs):
@@ -73,9 +73,7 @@ def time_it(func):
             return func(*args, **kwargs)
         finally:
             end_ = int(round(time() * 1000)) - start
-            time_logger.debug(
-                f"\033[1;34;49mExecution time: {end_ if end_ > 0 else 0} ms\033[0m"
-            )
+            time_logger.debug(f'\033[1;34;49mExecution time: {end_ if end_ > 0 else 0} ms\033[0m')
 
     return _time_it
 
@@ -90,7 +88,7 @@ def deprecated(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         warnings.warn_explicit(
-            "Call to deprecated function {}.".format(func.__name__),
+            'Call to deprecated function {}.'.format(func.__name__),
             category=DeprecationWarning,
             filename=func.__code__.co_filename,
             lineno=func.__code__.co_firstlineno + 1,

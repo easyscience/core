@@ -27,12 +27,14 @@ def notify_observers(func):
     :param func: Function to be decorated
     :return: Decorated function
     """
+
     def wrapper(self, *args, **kwargs):
         result = func(self, *args, **kwargs)
         self._notify_observers()
         return result
 
     return wrapper
+
 
 class DescriptorNumber(DescriptorBase):
     """
@@ -92,7 +94,6 @@ class DescriptorNumber(DescriptorBase):
         if self.unit is not None:
             self._convert_unit(self._base_unit())
 
-
     @classmethod
     def from_scipp(cls, name: str, full_value: Variable, **kwargs) -> DescriptorNumber:
         """
@@ -128,9 +129,11 @@ class DescriptorNumber(DescriptorBase):
         :param origin: Unique_name of the origin of this validation check. Used to avoid cyclic depenencies.
         """
         if origin == self.unique_name:
-            raise RuntimeError('\n Cyclic dependency detected!\n' +
-                    f'An update of {self.unique_name} leads to it updating itself.\n' +
-                    'Please check your dependencies.')
+            raise RuntimeError(
+                '\n Cyclic dependency detected!\n'
+                + f'An update of {self.unique_name} leads to it updating itself.\n'
+                + 'Please check your dependencies.'
+            )
         if origin is None:
             origin = self.unique_name
         for observer in self._observers:
@@ -266,7 +269,7 @@ class DescriptorNumber(DescriptorBase):
         try:
             new_scalar = self._scalar.to(unit=new_unit)
         except Exception as e:
-            raise UnitError(f"Failed to convert unit: {e}") from e
+            raise UnitError(f'Failed to convert unit: {e}') from e
 
         # Define the setter function for the undo stack
         def set_scalar(obj, scalar):
@@ -274,7 +277,7 @@ class DescriptorNumber(DescriptorBase):
 
         # Push to undo stack
         self._global_object.stack.push(
-            PropertyStack(self, set_scalar, old_scalar, new_scalar, text=f"Convert unit to {unit_str}")
+            PropertyStack(self, set_scalar, old_scalar, new_scalar, text=f'Convert unit to {unit_str}')
         )
 
         # Update the scalar
@@ -299,7 +302,7 @@ class DescriptorNumber(DescriptorBase):
         string = '<'
         string += self.__class__.__name__ + ' '
         string += f"'{self._name}': "
-        if np.abs(self._scalar.value)>1e4 or (np.abs(self._scalar.value)<1e-4 and self._scalar.value != 0):
+        if np.abs(self._scalar.value) > 1e4 or (np.abs(self._scalar.value) < 1e-4 and self._scalar.value != 0):
             # Use scientific notation for large or small values
             string += f'{self._scalar.value:.3e}'
             if self.variance:

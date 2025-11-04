@@ -1,0 +1,31 @@
+# This workflow will verify that all issues have at
+# least one of the [scope] labels and one of the [priority] labels
+
+name: Verify issue labels
+on:
+  issues:
+    types: [opened, labeled, unlabeled]
+
+jobs:
+  check_issue_labels:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Require [scope] label
+        uses: trstringer/require-label-prefix@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          prefix: "[scope]"
+          addLabel: true
+          defaultLabel: "[scope] ⚠️ label needed"
+
+      - name: Require [priority] label
+        if: always()
+        uses: trstringer/require-label-prefix@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          prefix: "[priority]"
+          addLabel: true
+          defaultLabel: "[priority] ⚠️ label needed"
+

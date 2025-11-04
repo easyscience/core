@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-__author__ = "https://github.com/materialsvirtuallab/monty/blob/master/monty/json.py"
-__version__ = "3.0.0"
+__author__ = 'https://github.com/materialsvirtuallab/monty/blob/master/monty/json.py'
+__version__ = '3.0.0'
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience

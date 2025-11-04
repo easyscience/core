@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from ..fitting.calculators import InterfaceFactoryTemplate
 
 
-
 class CollectionBase(BasedBase, MutableSequence):
     """
     This is the base class for which all higher level classes are built off of.
@@ -232,7 +231,7 @@ class CollectionBase(BasedBase, MutableSequence):
         return tuple(self._kwargs.values())
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__} `{getattr(self, 'name')}` of length {len(self)}"
+        return f'{self.__class__.__name__} `{getattr(self, "name")}` of length {len(self)}'
 
     def sort(self, mapping: Callable[[Union[BasedBase, DescriptorBase]], Any], reverse: bool = False) -> None:
         """

@@ -278,4 +278,3 @@ class SerializerBase:
         if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
             return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
         return obj
-

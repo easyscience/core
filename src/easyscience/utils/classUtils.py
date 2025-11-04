@@ -47,7 +47,7 @@ def cached_class(klass):
     """
     cache = {}
 
-    @wraps(klass, assigned=("__name__", "__module__"), updated=())
+    @wraps(klass, assigned=('__name__', '__module__'), updated=())
     class _decorated(klass):
         # The wraps decorator can't do this because __doc__
         # isn't writable once the class is created
