@@ -62,10 +62,8 @@ jobs:
     - name: Set Python version
       run: pixi add python=${{ matrix.python-version }}
 
-    - name: Test with pytest and coverage
-      run: |
-        pip install pytest pytest-cov
-        pytest --cov=src/easyscience tests --cov-branch --cov-report=xml:coverage-unit.xml
+    - name: Install dependencies and run tests
+      run: pixi run -e dev test
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
