@@ -548,70 +548,6 @@ class Parameter(DescriptorNumber):
 
         return raw_dict
 
-    @classmethod
-    def from_dict(cls, obj_dict: dict) -> 'Parameter':
-        """
-        Custom deserialization to handle parameter dependencies.
-        Override the parent method to handle dependency information.
-        """
-        # Extract dependency information before creating the parameter
-        raw_dict = obj_dict.copy()  # Don't modify the original dict
-        dependency_string = raw_dict.pop('_dependency_string', None)
-        dependency_map_dependency_ids = raw_dict.pop('_dependency_map_dependency_ids', None)
-        is_independent = raw_dict.pop('_independent', True)
-        # Note: Keep _dependency_id in the dict so it gets passed to __init__
-
-        # Create the parameter using the base class method (dependency_id is now handled in __init__)
-        param = super().from_dict(raw_dict)
-
-        # Store dependency information for later resolution
-        if not is_independent:
-            param._pending_dependency_string = dependency_string
-            param._pending_dependency_map_dependency_ids = dependency_map_dependency_ids
-            # Keep parameter as independent initially - will be made dependent after all objects are loaded
-            param._independent = True
-
-        return param
-
-    def resolve_pending_dependencies(self) -> None:
-        """Resolve pending dependencies after deserialization.
-
-        This method should be called after all parameters have been deserialized
-        to establish dependency relationships using dependency_ids.
-        """
-        if hasattr(self, '_pending_dependency_string'):
-            dependency_string = self._pending_dependency_string
-            dependency_map = {}
-
-            if hasattr(self, '_pending_dependency_map_dependency_ids'):
-                dependency_map_dependency_ids = self._pending_dependency_map_dependency_ids
-
-                # Build dependency_map by looking up objects by dependency_id
-                for key, dependency_id in dependency_map_dependency_ids.items():
-                    dep_obj = self._find_parameter_by_dependency_id(dependency_id)
-                    if dep_obj is not None:
-                        dependency_map[key] = dep_obj
-                    else:
-                        raise ValueError(f"Cannot find parameter with dependency_id '{dependency_id}'")
-
-            # Establish the dependency relationship
-            try:
-                self.make_dependent_on(dependency_expression=dependency_string, dependency_map=dependency_map)
-            except Exception as e:
-                raise ValueError(f"Error establishing dependency '{dependency_string}': {e}")
-
-            # Clean up temporary attributes
-            delattr(self, '_pending_dependency_string')
-            delattr(self, '_pending_dependency_map_dependency_ids')
-
-    def _find_parameter_by_dependency_id(self, dependency_id: str) -> Optional['DescriptorNumber']:
-        """Find a parameter by its dependency_id from all parameters in the global map."""
-        for obj in self._global_object.map._store.values():
-            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_dependency_id') and obj._dependency_id == dependency_id:
-                return obj
-        return None
-
-
     def _revert_dependency(self, skip_detach=False) -> None:
         """
         Revert the dependency to the old dependency. This is used when an error is raised during setting the dependency.
@@ -653,6 +589,31 @@ class Parameter(DescriptorNumber):
             else:
                 raise ValueError(f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber. Please check your dependency expression.') # noqa: E501
         self._clean_dependency_string = clean_dependency_string
+
+    @classmethod
+    def from_dict(cls, obj_dict: dict) -> 'Parameter':
+        """
+        Custom deserialization to handle parameter dependencies.
+        Override the parent method to handle dependency information.
+        """
+        # Extract dependency information before creating the parameter
+        raw_dict = obj_dict.copy()  # Don't modify the original dict
+        dependency_string = raw_dict.pop('_dependency_string', None)
+        dependency_map_dependency_ids = raw_dict.pop('_dependency_map_dependency_ids', None)
+        is_independent = raw_dict.pop('_independent', True)
+        # Note: Keep _dependency_id in the dict so it gets passed to __init__
+
+        # Create the parameter using the base class method (dependency_id is now handled in __init__)
+        param = super().from_dict(raw_dict)
+
+        # Store dependency information for later resolution
+        if not is_independent:
+            param._pending_dependency_string = dependency_string
+            param._pending_dependency_map_dependency_ids = dependency_map_dependency_ids
+            # Keep parameter as independent initially - will be made dependent after all objects are loaded
+            param._independent = True
+
+        return param
 
     def __copy__(self) -> Parameter:
         new_obj = super().__copy__()
@@ -987,3 +948,42 @@ class Parameter(DescriptorNumber):
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
         parameter.name = parameter.unique_name
         return parameter
+
+    def resolve_pending_dependencies(self) -> None:
+        """Resolve pending dependencies after deserialization.
+
+        This method should be called after all parameters have been deserialized
+        to establish dependency relationships using dependency_ids.
+        """
+        if hasattr(self, '_pending_dependency_string'):
+            dependency_string = self._pending_dependency_string
+            dependency_map = {}
+
+            if hasattr(self, '_pending_dependency_map_dependency_ids'):
+                dependency_map_dependency_ids = self._pending_dependency_map_dependency_ids
+
+                # Build dependency_map by looking up objects by dependency_id
+                for key, dependency_id in dependency_map_dependency_ids.items():
+                    dep_obj = self._find_parameter_by_dependency_id(dependency_id)
+                    if dep_obj is not None:
+                        dependency_map[key] = dep_obj
+                    else:
+                        raise ValueError(f"Cannot find parameter with dependency_id '{dependency_id}'")
+
+            # Establish the dependency relationship
+            try:
+                self.make_dependent_on(dependency_expression=dependency_string, dependency_map=dependency_map)
+            except Exception as e:
+                raise ValueError(f"Error establishing dependency '{dependency_string}': {e}")
+
+            # Clean up temporary attributes
+            delattr(self, '_pending_dependency_string')
+            delattr(self, '_pending_dependency_map_dependency_ids')
+
+    def _find_parameter_by_dependency_id(self, dependency_id: str) -> Optional['DescriptorNumber']:
+        """Find a parameter by its dependency_id from all parameters in the global map."""
+        for obj in self._global_object.map._store.values():
+            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_dependency_id') and obj._dependency_id == dependency_id:
+                return obj
+        return None
+    
