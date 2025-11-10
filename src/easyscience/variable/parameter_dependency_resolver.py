@@ -67,7 +67,7 @@ def resolve_all_parameter_dependencies(obj: Any) -> None:
                 resolved_count += 1
             except Exception as e:
                 error_count += 1
-                dependency_id = getattr(param, '__dependency_id', 'unknown')
+                dependency_id = getattr(param, '_dependency_id', 'unknown')
                 errors.append(f"Failed to resolve dependencies for parameter '{param.name}'" \
                                f" (unique_name: '{param.unique_name}', dependency_id: '{dependency_id}'): {e}")
 
