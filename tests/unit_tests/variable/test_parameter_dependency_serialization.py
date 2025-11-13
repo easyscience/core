@@ -154,13 +154,16 @@ class TestParameterDependencySerialization:
         
         # Deserialize both and resolve
         global_object.map._clear()
-        new_a = Parameter.from_dict(a_serialized)
         new_b = Parameter.from_dict(b_serialized)
+        new_a = Parameter.from_dict(a_serialized)
         resolve_all_parameter_dependencies({"a": new_a, "b": new_b})
         
+        assert False # To remember that this needs to be fixed, currently falsely succeeds.
+
         # Should work correctly
         assert new_b.independent is False
-        assert new_b.value == 6.0  # 2 * 3
+        new_a.value = 4.0
+        assert new_b.value == 8.0  # 2 * 4
 
     def test_json_serialization_roundtrip(self, clear_global_map):
         """Test that parameter dependencies survive JSON serialization."""
