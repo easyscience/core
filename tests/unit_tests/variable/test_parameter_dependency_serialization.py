@@ -71,7 +71,7 @@ class TestParameterDependencySerialization:
         
         # Should contain dependency information
         assert serialized['_dependency_string'] == "2 * a"
-        assert serialized['_dependency_map_dependency_ids'] == {"a": a._dependency_id}
+        assert serialized['_dependency_map_dependency_ids'] == {"a": a._DescriptorNumber__dependency_id}
         assert serialized['_independent'] is False
         
         # Deserialize
@@ -81,7 +81,7 @@ class TestParameterDependencySerialization:
         # Should have pending dependency info
         assert hasattr(new_b, '_pending_dependency_string')
         assert new_b._pending_dependency_string == "2 * a"
-        assert new_b._pending_dependency_map_dependency_ids == {"a": a._dependency_id}
+        assert new_b._pending_dependency_map_dependency_ids == {"a": a._DescriptorNumber__dependency_id}
         assert new_b.independent is True  # Initially independent until dependencies resolved
 
     def test_dependency_resolution_after_deserialization(self, clear_global_map):
@@ -150,7 +150,7 @@ class TestParameterDependencySerialization:
         # Should contain unique name mapping
         assert b_serialized['_dependency_string'] == '2 * "Parameter_0"'
         assert "__Parameter_0__" in b_serialized['_dependency_map_dependency_ids']
-        assert b_serialized['_dependency_map_dependency_ids']["__Parameter_0__"] == a._dependency_id
+        assert b_serialized['_dependency_map_dependency_ids']["__Parameter_0__"] == a._DescriptorNumber__dependency_id
         
         # Deserialize both and resolve
         global_object.map._clear()
@@ -350,8 +350,8 @@ class TestParameterDependencySerialization:
         assert z.value == 50.0  # 5 * 10
 
         # Get dependency IDs
-        x_dep_id = x._dependency_id
-        y_dep_id = y._dependency_id
+        x_dep_id = x._DescriptorNumber__dependency_id
+        y_dep_id = y._DescriptorNumber__dependency_id
 
         # Serialize all parameters
         params_data = {
@@ -361,9 +361,9 @@ class TestParameterDependencySerialization:
         }
 
         # Verify dependency IDs are in serialized data
-        assert params_data["x"]["_dependency_id"] == x_dep_id
-        assert params_data["y"]["_dependency_id"] == y_dep_id
-        assert "_dependency_id" not in params_data["z"]
+        assert params_data["x"]["__dependency_id"] == x_dep_id
+        assert params_data["y"]["__dependency_id"] == y_dep_id
+        assert "__dependency_id" not in params_data["z"]
         assert "_dependency_map_dependency_ids" in params_data["z"]
 
         # THEN
@@ -376,8 +376,8 @@ class TestParameterDependencySerialization:
 
         # EXPECT
         # Verify dependency IDs are preserved
-        assert new_params["x"]._dependency_id == x_dep_id
-        assert new_params["y"]._dependency_id == y_dep_id
+        assert new_params["x"]._DescriptorNumber__dependency_id == x_dep_id
+        assert new_params["y"]._DescriptorNumber__dependency_id == y_dep_id
 
         # Resolve dependencies
         resolve_all_parameter_dependencies(new_params)

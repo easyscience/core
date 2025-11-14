@@ -544,7 +544,7 @@ class Parameter(DescriptorNumber):
             # Convert dependency_map to use dependency_ids
             raw_dict['_dependency_map_dependency_ids'] = {}
             for key, obj in self._dependency_map.items():
-                raw_dict['_dependency_map_dependency_ids'][key] = obj._dependency_id
+                raw_dict['_dependency_map_dependency_ids'][key] = obj._DescriptorNumber__dependency_id
 
         return raw_dict
 
@@ -983,7 +983,7 @@ class Parameter(DescriptorNumber):
     def _find_parameter_by_dependency_id(self, dependency_id: str) -> Optional['DescriptorNumber']:
         """Find a parameter by its dependency_id from all parameters in the global map."""
         for obj in self._global_object.map._store.values():
-            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_dependency_id') and obj._dependency_id == dependency_id:
+            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__dependency_id') and obj._DescriptorNumber__dependency_id == dependency_id:
                 return obj
         return None
     

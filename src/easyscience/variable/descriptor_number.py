@@ -68,8 +68,8 @@ class DescriptorNumber(DescriptorBase):
         self._observers: List[DescriptorNumber] = []
 
         # Extract dependency_id if provided during deserialization
-        if '_dependency_id' in kwargs:
-            self._dependency_id = kwargs.pop('_dependency_id')
+        if '__dependency_id' in kwargs:
+            self.__dependency_id = kwargs.pop('__dependency_id')
 
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
             raise TypeError(f'{value=} must be a number')
@@ -118,14 +118,14 @@ class DescriptorNumber(DescriptorBase):
     def _attach_observer(self, observer: DescriptorNumber) -> None:
         """Attach an observer to the descriptor."""
         self._observers.append(observer)
-        if not hasattr(self, '_dependency_id'):
-            self._dependency_id = str(uuid.uuid4())
+        if not hasattr(self, '_DescriptorNumber__dependency_id'):
+            self.__dependency_id = str(uuid.uuid4())
 
     def _detach_observer(self, observer: DescriptorNumber) -> None:
         """Detach an observer from the descriptor."""
         self._observers.remove(observer)
         if not self._observers:
-            del self._dependency_id
+            del self.__dependency_id
 
     def _notify_observers(self) -> None:
         """Notify all observers of a change."""
@@ -333,8 +333,8 @@ class DescriptorNumber(DescriptorBase):
         raw_dict['value'] = self._scalar.value
         raw_dict['unit'] = str(self._scalar.unit)
         raw_dict['variance'] = self._scalar.variance
-        if hasattr(self, '_dependency_id'):
-            raw_dict['_dependency_id'] = self._dependency_id
+        if hasattr(self, '_DescriptorNumber__dependency_id'):
+            raw_dict['__dependency_id'] = self.__dependency_id
         return raw_dict
 
     def __add__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
