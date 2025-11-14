@@ -147,18 +147,21 @@ class TestParameterDependencySerialization:
         a_serialized = a.as_dict()
         b_serialized = b.as_dict()
         
+        del a_serialized['unique_name'] # Remove unique_name to force new assignment on deserialization
+        del b_serialized['unique_name'] 
+
         # Should contain unique name mapping
-        assert b_serialized['_dependency_string'] == '2 * "Parameter_0"'
+        assert b_serialized['_dependency_string'] == '2 * __Parameter_0__'
         assert "__Parameter_0__" in b_serialized['_dependency_map_dependency_ids']
         assert b_serialized['_dependency_map_dependency_ids']["__Parameter_0__"] == a._DescriptorNumber__dependency_id
         
         # Deserialize both and resolve
         global_object.map._clear()
+        c = Parameter(name='c', value=0.0)  # Dummy to occupy unique name, to force new unique_names
+
         new_b = Parameter.from_dict(b_serialized)
         new_a = Parameter.from_dict(a_serialized)
         resolve_all_parameter_dependencies({"a": new_a, "b": new_b})
-        
-        assert False # To remember that this needs to be fixed, currently falsely succeeds.
 
         # Should work correctly
         assert new_b.independent is False

@@ -536,7 +536,7 @@ class Parameter(DescriptorNumber):
         # Add dependency information for dependent parameters
         if not self._independent:
             # Save the dependency expression
-            raw_dict['_dependency_string'] = self._dependency_string
+            raw_dict['_dependency_string'] = self._clean_dependency_string
 
             # Mark that this parameter is dependent
             raw_dict['_independent'] = self._independent
