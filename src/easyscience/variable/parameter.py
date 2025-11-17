@@ -983,7 +983,8 @@ class Parameter(DescriptorNumber):
     def _find_parameter_by_dependency_id(self, dependency_id: str) -> Optional['DescriptorNumber']:
         """Find a parameter by its dependency_id from all parameters in the global map."""
         for obj in self._global_object.map._store.values():
-            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__dependency_id') and obj._DescriptorNumber__dependency_id == dependency_id:
-                return obj
+            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__dependency_id'):
+                if obj._DescriptorNumber__dependency_id == dependency_id:
+                    return obj
         return None
     

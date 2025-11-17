@@ -253,6 +253,50 @@ class TestParameterDependencySerialization:
         assert new_params["y"].value == 10.0  # 2 * 5
         assert new_params["z"].value == 15.0  # 10 + 5
 
+    def test_dependency_with_descriptor_number(self, clear_global_map):
+        """Test that dependencies involving DescriptorNumber serialize correctly."""
+        from easyscience.variable import DescriptorNumber
+        # When
+
+        x = DescriptorNumber(name="x", value=3.0, unit="m")
+        y = Parameter(name="y", value=4.0, unit="m")
+        z = Parameter.from_dependency(
+            name="z",
+            dependency_expression="x + y",
+            dependency_map={"x": x, "y": y},
+        )
+
+        # Verify original functionality
+        assert z.value == 7.0  # 3 + 4
+
+        # Then
+        # Serialize all
+        params_data = {
+            "x": x.as_dict(),
+            "y": y.as_dict(),
+            "z": z.as_dict()
+        }
+        # Deserialize and resolve
+        global_object.map._clear()
+        new_params = {}
+        for name, data in params_data.items():
+            if name == "x":
+                new_params[name] = DescriptorNumber.from_dict(data)
+            else:
+                new_params[name] = Parameter.from_dict(data)
+
+        resolve_all_parameter_dependencies(new_params)
+
+        # Expect
+        # Test that functionality still works
+        assert new_params["z"].value == 7.0  # 3 + 4
+        new_x = new_params["x"]
+        new_y = new_params["y"]
+        new_x.value = 4.0
+        assert new_params["z"].value == 8.0  # 4 + 4
+        new_y.value = 6.0
+        assert new_params["z"].value == 10.0  # 4 + 6
+
     def test_get_parameters_with_pending_dependencies(self, clear_global_map):
         """Test utility function for finding parameters with pending dependencies."""
         # Create parameters
