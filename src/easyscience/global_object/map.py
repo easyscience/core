@@ -261,7 +261,7 @@ class Map:
         return False
 
     def _clear(self):
-        """Reset the map to an empty state."""
+        """Reset the map to an empty state. Only to be used for testing"""
         for vertex in self.vertices():
             self.prune(vertex)
         gc.collect()
