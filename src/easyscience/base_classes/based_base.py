@@ -5,6 +5,8 @@ from __future__ import annotations
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from inspect import getfullargspec
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
@@ -179,6 +181,19 @@ class BasedBase(SerializerComponent):
                 if item.independent and not item.fixed:
                     fit_list.append(item)
         return fit_list
+
+    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Encode the object as a dictionary.
+        
+        :param skip: List of field names as strings to skip when forming the dictionary
+        :return: encoded object containing all information to reform an EasyScience object.
+        """
+        if skip:
+            skip = skip + ['unique_name']
+        else:
+            skip = ['unique_name']
+        return super().as_dict(skip=skip)
 
     def __dir__(self) -> Iterable[str]:
         """
