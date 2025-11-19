@@ -77,7 +77,7 @@ class Parameter(DescriptorNumber):
         """  # noqa: E501
         # Extract and ignore serialization-specific fields from kwargs
         kwargs.pop('_dependency_string', None)
-        kwargs.pop('_dependency_map_dependency_ids', None)
+        kwargs.pop('_dependency_map_serializer_ids', None)
         kwargs.pop('_independent', None)
 
         if not isinstance(min, numbers.Number):
@@ -541,10 +541,10 @@ class Parameter(DescriptorNumber):
             # Mark that this parameter is dependent
             raw_dict['_independent'] = self._independent
 
-            # Convert dependency_map to use dependency_ids
-            raw_dict['_dependency_map_dependency_ids'] = {}
+            # Convert dependency_map to use serializer_ids
+            raw_dict['_dependency_map_serializer_ids'] = {}
             for key, obj in self._dependency_map.items():
-                raw_dict['_dependency_map_dependency_ids'][key] = obj._DescriptorNumber__dependency_id
+                raw_dict['_dependency_map_serializer_ids'][key] = obj._DescriptorNumber__serializer_id
 
         return raw_dict
 
@@ -599,17 +599,17 @@ class Parameter(DescriptorNumber):
         # Extract dependency information before creating the parameter
         raw_dict = obj_dict.copy()  # Don't modify the original dict
         dependency_string = raw_dict.pop('_dependency_string', None)
-        dependency_map_dependency_ids = raw_dict.pop('_dependency_map_dependency_ids', None)
+        dependency_map_serializer_ids = raw_dict.pop('_dependency_map_serializer_ids', None)
         is_independent = raw_dict.pop('_independent', True)
-        # Note: Keep _dependency_id in the dict so it gets passed to __init__
+        # Note: Keep _serializer_id in the dict so it gets passed to __init__
 
-        # Create the parameter using the base class method (dependency_id is now handled in __init__)
+        # Create the parameter using the base class method (serializer_id is now handled in __init__)
         param = super().from_dict(raw_dict)
 
         # Store dependency information for later resolution
         if not is_independent:
             param._pending_dependency_string = dependency_string
-            param._pending_dependency_map_dependency_ids = dependency_map_dependency_ids
+            param._pending_dependency_map_serializer_ids = dependency_map_serializer_ids
             # Keep parameter as independent initially - will be made dependent after all objects are loaded
             param._independent = True
 
@@ -953,22 +953,22 @@ class Parameter(DescriptorNumber):
         """Resolve pending dependencies after deserialization.
 
         This method should be called after all parameters have been deserialized
-        to establish dependency relationships using dependency_ids.
+        to establish dependency relationships using serializer_ids.
         """
         if hasattr(self, '_pending_dependency_string'):
             dependency_string = self._pending_dependency_string
             dependency_map = {}
 
-            if hasattr(self, '_pending_dependency_map_dependency_ids'):
-                dependency_map_dependency_ids = self._pending_dependency_map_dependency_ids
+            if hasattr(self, '_pending_dependency_map_serializer_ids'):
+                dependency_map_serializer_ids = self._pending_dependency_map_serializer_ids
 
-                # Build dependency_map by looking up objects by dependency_id
-                for key, dependency_id in dependency_map_dependency_ids.items():
-                    dep_obj = self._find_parameter_by_dependency_id(dependency_id)
+                # Build dependency_map by looking up objects by serializer_id
+                for key, serializer_id in dependency_map_serializer_ids.items():
+                    dep_obj = self._find_parameter_by_serializer_id(serializer_id)
                     if dep_obj is not None:
                         dependency_map[key] = dep_obj
                     else:
-                        raise ValueError(f"Cannot find parameter with dependency_id '{dependency_id}'")
+                        raise ValueError(f"Cannot find parameter with serializer_id '{serializer_id}'")
 
             # Establish the dependency relationship
             try:
@@ -978,13 +978,13 @@ class Parameter(DescriptorNumber):
 
             # Clean up temporary attributes
             delattr(self, '_pending_dependency_string')
-            delattr(self, '_pending_dependency_map_dependency_ids')
+            delattr(self, '_pending_dependency_map_serializer_ids')
 
-    def _find_parameter_by_dependency_id(self, dependency_id: str) -> Optional['DescriptorNumber']:
-        """Find a parameter by its dependency_id from all parameters in the global map."""
+    def _find_parameter_by_serializer_id(self, serializer_id: str) -> Optional['DescriptorNumber']:
+        """Find a parameter by its serializer_id from all parameters in the global map."""
         for obj in self._global_object.map._store.values():
-            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__dependency_id'):
-                if obj._DescriptorNumber__dependency_id == dependency_id:
+            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__serializer_id'):
+                if obj._DescriptorNumber__serializer_id == serializer_id:
                     return obj
         return None
     

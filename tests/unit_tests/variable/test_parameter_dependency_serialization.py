@@ -40,7 +40,7 @@ class TestParameterDependencySerialization:
         
         # Should not contain dependency fields
         assert '_dependency_string' not in serialized
-        assert '_dependency_map_dependency_ids' not in serialized
+        assert '_dependency_map_serializer_ids' not in serialized
         assert '_independent' not in serialized
         
         # Deserialize
@@ -71,7 +71,7 @@ class TestParameterDependencySerialization:
         
         # Should contain dependency information
         assert serialized['_dependency_string'] == "2 * a"
-        assert serialized['_dependency_map_dependency_ids'] == {"a": a._DescriptorNumber__dependency_id}
+        assert serialized['_dependency_map_serializer_ids'] == {"a": a._DescriptorNumber__serializer_id}
         assert serialized['_independent'] is False
         
         # Deserialize
@@ -81,7 +81,7 @@ class TestParameterDependencySerialization:
         # Should have pending dependency info
         assert hasattr(new_b, '_pending_dependency_string')
         assert new_b._pending_dependency_string == "2 * a"
-        assert new_b._pending_dependency_map_dependency_ids == {"a": a._DescriptorNumber__dependency_id}
+        assert new_b._pending_dependency_map_serializer_ids == {"a": a._DescriptorNumber__serializer_id}
         assert new_b.independent is True  # Initially independent until dependencies resolved
 
     def test_dependency_resolution_after_deserialization(self, clear_global_map):
@@ -147,17 +147,18 @@ class TestParameterDependencySerialization:
         a_serialized = a.as_dict()
         b_serialized = b.as_dict()
         
-        del a_serialized['unique_name'] # Remove unique_name to force new assignment on deserialization
-        del b_serialized['unique_name'] 
-
         # Should contain unique name mapping
         assert b_serialized['_dependency_string'] == '2 * __Parameter_0__'
-        assert "__Parameter_0__" in b_serialized['_dependency_map_dependency_ids']
-        assert b_serialized['_dependency_map_dependency_ids']["__Parameter_0__"] == a._DescriptorNumber__dependency_id
+        assert "__Parameter_0__" in b_serialized['_dependency_map_serializer_ids']
+        assert b_serialized['_dependency_map_serializer_ids']["__Parameter_0__"] == a._DescriptorNumber__serializer_id
         
         # Deserialize both and resolve
         global_object.map._clear()
         c = Parameter(name='c', value=0.0)  # Dummy to occupy unique name, to force new unique_names
+
+        # Remove unique_name from serialized data to force generation of new unique names
+        a_serialized.pop('unique_name', None)
+        b_serialized.pop('unique_name', None)
 
         new_b = Parameter.from_dict(b_serialized)
         new_a = Parameter.from_dict(a_serialized)
@@ -345,7 +346,7 @@ class TestParameterDependencySerialization:
         new_b = Parameter.from_dict(b_data)
         
         # Should raise error when trying to resolve
-        with pytest.raises(ValueError, match="Cannot find parameter with dependency_id"):
+        with pytest.raises(ValueError, match="Cannot find parameter with serializer_id"):
             new_b.resolve_pending_dependencies()
 
     def test_backward_compatibility_base_deserializer(self, clear_global_map):
@@ -379,7 +380,7 @@ class TestParameterDependencySerialization:
             ["y", "z", "x"],
             ["z", "y", "x"]
     ], ids=['normal_order', 'dependent_first', 'mixed_order', 'dependent_first_reverse'])
-    def test_dependency_id_system_order_independence(self, clear_global_map, order):
+    def test_serializer_id_system_order_independence(self, clear_global_map, order):
         """Test that dependency IDs allow parameters to be loaded in any order."""
         # WHEN
         # Create parameters with dependencies
@@ -397,8 +398,8 @@ class TestParameterDependencySerialization:
         assert z.value == 50.0  # 5 * 10
 
         # Get dependency IDs
-        x_dep_id = x._DescriptorNumber__dependency_id
-        y_dep_id = y._DescriptorNumber__dependency_id
+        x_dep_id = x._DescriptorNumber__serializer_id
+        y_dep_id = y._DescriptorNumber__serializer_id
 
         # Serialize all parameters
         params_data = {
@@ -408,10 +409,10 @@ class TestParameterDependencySerialization:
         }
 
         # Verify dependency IDs are in serialized data
-        assert params_data["x"]["__dependency_id"] == x_dep_id
-        assert params_data["y"]["__dependency_id"] == y_dep_id
-        assert "__dependency_id" not in params_data["z"]
-        assert "_dependency_map_dependency_ids" in params_data["z"]
+        assert params_data["x"]["__serializer_id"] == x_dep_id
+        assert params_data["y"]["__serializer_id"] == y_dep_id
+        assert "__serializer_id" not in params_data["z"]
+        assert "_dependency_map_serializer_ids" in params_data["z"]
 
         # THEN
         global_object.map._clear()
@@ -423,8 +424,8 @@ class TestParameterDependencySerialization:
 
         # EXPECT
         # Verify dependency IDs are preserved
-        assert new_params["x"]._DescriptorNumber__dependency_id == x_dep_id
-        assert new_params["y"]._DescriptorNumber__dependency_id == y_dep_id
+        assert new_params["x"]._DescriptorNumber__serializer_id == x_dep_id
+        assert new_params["y"]._DescriptorNumber__serializer_id == y_dep_id
 
         # Resolve dependencies
         resolve_all_parameter_dependencies(new_params)

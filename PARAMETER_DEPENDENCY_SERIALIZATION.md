@@ -4,12 +4,12 @@ This document explains how to serialize and deserialize `Parameter` objects that
 
 ## Overview
 
-Parameters with dependencies can now be serialized to dictionaries (and JSON) while preserving their dependency relationships. After deserialization, the dependencies are automatically reconstructed using the `dependency_id` attribute to match parameters, with `unique_name` attribute being used as a fallback.
+Parameters with dependencies can now be serialized to dictionaries (and JSON) while preserving their dependency relationships. After deserialization, the dependencies are automatically reconstructed using the `serializer_id` attribute to match parameters, with `unique_name` attribute being used as a fallback.
 
 ## Key Features
 
 - **Automatic dependency serialization**: Dependency expressions and maps are automatically saved during serialization
-- **Reliable dependency resolution**: Dependencies are resolved using stable `dependency_id` attributes with `unique_name` as fallback after deserialization
+- **Reliable dependency resolution**: Dependencies are resolved using stable `serializer_id` attributes with `unique_name` as fallback after deserialization
 - **Order-independent loading**: Parameters can be loaded in any order thanks to the reliable ID system
 - **Bulk dependency resolution**: Utility functions help resolve all dependencies at once
 - **JSON compatibility**: Full support for JSON serialization/deserialization
@@ -114,9 +114,9 @@ resolve_all_parameter_dependencies(new_params)
 During serialization, the following additional fields are added to dependent parameters:
 
 - `_dependency_string`: The original dependency expression
-- `_dependency_map_dependency_ids`: A mapping of dependency keys to stable dependency IDs (preferred)
+- `_dependency_map_serializer_ids`: A mapping of dependency keys to stable dependency IDs (preferred)
 - `_dependency_map_unique_names`: A mapping of dependency keys to unique names (fallback)
-- `__dependency_id`: The parameter's own unique dependency ID
+- `__serializer_id`: The parameter's own unique dependency ID
 - `_independent`: Boolean flag indicating if the parameter is dependent
 
 ### Deserialization
@@ -124,8 +124,8 @@ During serialization, the following additional fields are added to dependent par
 During deserialization:
 
 1. Parameters are created normally but marked as independent temporarily
-2. Dependency information is stored in `_pending_dependency_string`, `_pending_dependency_map_dependency_ids`, and `_pending_dependency_map_unique_names` attributes
-3. The parameter's own `__dependency_id` is restored from serialized data
+2. Dependency information is stored in `_pending_dependency_string`, `_pending_dependency_map_serializer_ids`, and `_pending_dependency_map_unique_names` attributes
+3. The parameter's own `__serializer_id` is restored from serialized data
 4. After all parameters are loaded, `resolve_all_parameter_dependencies()` establishes the dependency relationships using dependency IDs first, then unique names as fallback
 
 ### Dependency Resolution
@@ -133,8 +133,8 @@ During deserialization:
 The dependency resolution process:
 
 1. Scans for parameters with pending dependencies
-2. First attempts to look up dependency objects by their stable `dependency_id`
-3. Falls back to `unique_name` lookup in the global map if dependency_id is not available
+2. First attempts to look up dependency objects by their stable `serializer_id`
+3. Falls back to `unique_name` lookup in the global map if serializer_id is not available
 4. Calls `make_dependent_on()` to establish the dependency relationship
 5. Cleans up temporary attributes
 
@@ -187,7 +187,7 @@ Finds all Parameter objects that have pending dependencies.
 
 6. **Reliable ordering**: With the new dependency ID system, parameters can be loaded in any order without affecting dependency resolution
 
-7. **Access dependency ID**: Use `parameter.dependency_id` to access the stable ID for debugging or manual cross-referencing
+7. **Access dependency ID**: Use `parameter.serializer_id` to access the stable ID for debugging or manual cross-referencing
 
 ## Example: Complex Hierarchy
 
