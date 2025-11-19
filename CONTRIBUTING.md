@@ -5,6 +5,52 @@ email, or any other method with the owners of this repository before making a ch
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
+## Development Setup
+
+We use [pixi](https://pixi.sh) for dependency management and development workflow automation. This ensures consistent environments across different platforms and simplifies the development process.
+
+### Prerequisites
+
+1. Install pixi following the [official installation guide](https://pixi.sh/latest/#installation)
+
+### Getting Started
+
+1. Fork and clone the repository:
+```bash
+git clone https://github.com/your-username/EasyScience.git
+cd EasyScience
+```
+
+2. Set up the development environment:
+```bash
+pixi install
+```
+
+3. Run tests to verify everything is working:
+```bash
+pixi run test
+```
+
+### Development Workflow
+
+- **Run tests**: `pixi run test` (full test suite with coverage)
+- **Run unit tests only**: `pixi run test-unit`
+- **Check code style**: `pixi run lint-check`
+- **Fix code style**: `pixi run lint`
+- **Check code formatting**: `pixi run format-check`
+- **Format code**: `pixi run format`
+- **Build package**: `pixi run build`
+- **Build documentation**: `pixi run docs-build`
+
+### Before Submitting a Pull Request
+
+1. Update the lock file to ensure dependencies are up to date: `pixi run update-lock`
+2. Ensure all tests pass: `pixi run test`
+3. Check code style: `pixi run lint-check`
+4. Format your code: `pixi run format`
+5. Update documentation if necessary
+6. Add tests for new functionality
+
 ## Pull Request Process
 
 1. Ensure any install or build dependencies are removed before the end of the layer when doing a 

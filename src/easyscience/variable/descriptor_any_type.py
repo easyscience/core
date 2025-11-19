@@ -16,7 +16,7 @@ from .descriptor_base import DescriptorBase
 
 class DescriptorAnyType(DescriptorBase):
     """
-    A `Descriptor` for any type that does not fit the other Descriptors. Should be avoided when possible. 
+    A `Descriptor` for any type that does not fit the other Descriptors. Should be avoided when possible.
     It was created to hold the symmetry operations used in the SpaceGroup class of EasyCrystallography.
     """
 
@@ -41,8 +41,8 @@ class DescriptorAnyType(DescriptorBase):
         .. note:: Undo/Redo functionality is implemented for the attributes `variance`, `error`, `unit` and `value`.
         """
 
-        self._value=value
-        
+        self._value = value
+
         super().__init__(
             name=name,
             unique_name=unique_name,
@@ -55,7 +55,7 @@ class DescriptorAnyType(DescriptorBase):
     @property
     def value(self) -> numbers.Number:
         """
-        Get the value. 
+        Get the value.
 
         :return: Value of self.
         """
@@ -65,7 +65,7 @@ class DescriptorAnyType(DescriptorBase):
     @property_stack
     def value(self, value: Union[list, np.ndarray]) -> None:
         """
-        Set the value of self. 
+        Set the value of self.
 
         :param value: New value for the DescriptorAnyType.
         """
@@ -90,4 +90,3 @@ class DescriptorAnyType(DescriptorBase):
         raw_dict = super().as_dict(skip=skip)
         raw_dict['value'] = self._value
         return raw_dict
-

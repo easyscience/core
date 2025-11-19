@@ -212,7 +212,7 @@ class MinimizerBase(metaclass=ABCMeta):
             for name, value in kwargs.items():
                 par_name = name[1:]
                 if par_name in self._cached_pars.keys():
-                        # This will take into account constraints
+                    # This will take into account constraints
                     if self._cached_pars[par_name].value != value:
                         self._cached_pars[par_name].value = value
 

@@ -19,6 +19,10 @@ Or direct from the repository:
 
 ```pip install https://github.com/easyScience/EasyScience```
 
+### Development
+
+For development setup and workflow instructions, please see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Test
 
 After installation, launch the test suite:

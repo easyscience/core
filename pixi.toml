@@ -1,0 +1,54 @@
+[workspace]
+name = "easyscience"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+python = ">=3.11,<3.14"
+
+[feature.dev.pypi-dependencies]
+# Development dependencies
+easyscience = { path = ".", extras = ["dev"], editable = true }
+
+[feature.docs.pypi-dependencies]
+# Documentation dependencies
+easyscience = { path = ".", extras = ["docs"], editable = true }
+
+[feature.build.pypi-dependencies]
+# build dependencies
+easyscience = { path = ".", extras = ["build"], editable = true }
+
+[environments]
+# Default environment with basic build setup
+default = ["build"]
+# Development environment with build, dev, and docs features
+dev = ["build", "dev", "docs"]
+
+[tasks]
+# Development tasks
+test = "pytest --cov=src/easyscience tests --cov-branch --cov-report=xml:coverage-unit.xml"
+test-unit = "pytest tests/unit_tests"
+test-integration = "pytest tests/integration_tests"
+
+# Code quality tasks
+lint-check = "ruff check ."
+lint = "ruff check . --fix"
+format-check = "ruff format . --check"
+format = "ruff format ."
+
+# Build tasks
+build = "python -m build"
+clean = "rm -rf dist/ build/ *.egg-info/"
+update-lock = "pixi update"
+
+# Tox tasks
+tox = "tox"
+
+# Documentation tasks
+docs-build = "sphinx-build -b html docs/src docs/_build/html"
+docs-clean = "rm -rf docs/_build/"
+
+[pypi-dependencies] # == [feature.default.pypi-dependencies]
+# Editable install of the package itself
+easyscience = { path = ".", editable = true }
+

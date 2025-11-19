@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-__author__ = "https://github.com/materialsvirtuallab/monty/blob/master/monty/json.py"
-__version__ = "3.0.0"
+__author__ = 'https://github.com/materialsvirtuallab/monty/blob/master/monty/json.py'
+__version__ = '3.0.0'
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
@@ -18,7 +18,7 @@ from .template import BaseEncoderDecoder
 if TYPE_CHECKING:
     from .component_serializer import ComponentSerializer
 
-_KNOWN_CORE_TYPES = ("Descriptor", "Parameter")
+_KNOWN_CORE_TYPES = ('Descriptor', 'Parameter')
 
 
 class DictSerializer(BaseEncoderDecoder):
@@ -90,7 +90,7 @@ class DataDictSerializer(DictSerializer):
         elif isinstance(skip, str):
             skip = [skip]
         if not isinstance(skip, list):
-            raise ValueError("Skip must be a list of strings.")
+            raise ValueError('Skip must be a list of strings.')
         encoded = super().encode(obj, skip=skip, full_encode=full_encode, **kwargs)
         return self._parse_dict(encoded)
 
@@ -101,9 +101,7 @@ class DataDictSerializer(DictSerializer):
         EasyScience object.
         """
 
-        raise NotImplementedError(
-            "It is not possible to reconstitute objects from data only dictionary."
-        )
+        raise NotImplementedError('It is not possible to reconstitute objects from data only dictionary.')
 
     @staticmethod
     def _parse_dict(in_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -113,16 +111,13 @@ class DataDictSerializer(DictSerializer):
 
         out_dict = dict()
         for key in in_dict.keys():
-            if key[0] == "@":
-                if key == "@class" and in_dict[key] not in _KNOWN_CORE_TYPES:
-                    out_dict["name"] = in_dict[key]
+            if key[0] == '@':
+                if key == '@class' and in_dict[key] not in _KNOWN_CORE_TYPES:
+                    out_dict['name'] = in_dict[key]
                 continue
             out_dict[key] = in_dict[key]
             if isinstance(in_dict[key], dict):
                 out_dict[key] = DataDictSerializer._parse_dict(in_dict[key])
             elif isinstance(in_dict[key], list):
-                out_dict[key] = [
-                    DataDictSerializer._parse_dict(x) if isinstance(x, dict) else x
-                    for x in in_dict[key]
-                ]
+                out_dict[key] = [DataDictSerializer._parse_dict(x) if isinstance(x, dict) else x for x in in_dict[key]]
         return out_dict
