@@ -157,7 +157,6 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
         "@class": "ObjBase",
         "@version": easyscience.__version__,
         "name": "test",
-        "unique_name": "ObjBase_0",
         "par1": {
             "@module": Parameter.__module__,
             "@class": Parameter.__name__,
