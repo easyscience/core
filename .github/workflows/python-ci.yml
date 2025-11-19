@@ -65,15 +65,16 @@ jobs:
     - name: Install dependencies and run tests
       run: pixi run -e dev test
 
-    - name: Upload coverage
-      uses: codecov/codecov-action@v4.0.1
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN_NEW }}
-        name: Pytest coverage
-        env_vars: OS,PYTHON,GITHUB_ACTIONS,GITHUB_ACTION,GITHUB_REF,GITHUB_REPOSITORY,GITHUB_HEAD_REF,GITHUB_RUN_ID,GITHUB_SHA,COVERAGE_FILE
-      env:
-        OS: ${{ matrix.os }}
-        PYTHON: ${{ matrix.python-version }}
+        name: unit-tests-job
+        flags: unittests
+        files: ./coverage-unit.xml
+        fail_ci_if_error: true
+        verbose: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: EasyScience/corelib
 
   Package_Testing:
 
