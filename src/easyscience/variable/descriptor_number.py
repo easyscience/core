@@ -53,7 +53,7 @@ class DescriptorNumber(DescriptorBase):
         url: Optional[str] = None,
         display_name: Optional[str] = None,
         parent: Optional[Any] = None,
-        **kwargs: Any  # Additional keyword arguments (used for (de)serialization)
+        **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
         """Constructor for the DescriptorNumber class
 

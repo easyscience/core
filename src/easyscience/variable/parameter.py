@@ -53,7 +53,7 @@ class Parameter(DescriptorNumber):
         display_name: Optional[str] = None,
         callback: property = property(),
         parent: Optional[Any] = None,
-        **kwargs: Any  # Additional keyword arguments (used for (de)serialization)
+        **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
         """
         This class is an extension of a `DescriptorNumber`. Where the descriptor was for static
@@ -109,7 +109,7 @@ class Parameter(DescriptorNumber):
             url=url,
             display_name=display_name,
             parent=parent,
-            **kwargs, # Additional keyword arguments (used for (de)serialization)
+            **kwargs,  # Additional keyword arguments (used for (de)serialization)
         )
 
         self._callback = callback  # Callback is used by interface to link to model
@@ -118,7 +118,6 @@ class Parameter(DescriptorNumber):
 
         # Create additional fitting elements
         self._initial_scalar = copy.deepcopy(self._scalar)
-
 
     @classmethod
     def from_dependency(
@@ -134,13 +133,7 @@ class Parameter(DescriptorNumber):
         :return: A new dependent Parameter object.
         """  # noqa: E501
         # Set default values for required parameters for the constructor, they get overwritten by the dependency anyways
-        default_kwargs = {
-            'value': 0.0,
-            'unit': '',
-            'variance': 0.0,
-            'min': -np.inf,
-            'max': np.inf
-        }
+        default_kwargs = {'value': 0.0, 'unit': '', 'variance': 0.0, 'min': -np.inf, 'max': np.inf}
         # Update with user-provided kwargs, to avoid errors.
         default_kwargs.update(kwargs)
         parameter = cls(name=name, **default_kwargs)
@@ -575,9 +568,8 @@ class Parameter(DescriptorNumber):
         self.fixed = not value
 
     def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        """ Overwrite the as_dict method to handle dependency information. """
+        """Overwrite the as_dict method to handle dependency information."""
         raw_dict = super().as_dict(skip=skip)
-
 
         # Add dependency information for dependent parameters
         if not self._independent:
@@ -1038,4 +1030,3 @@ class Parameter(DescriptorNumber):
                 if obj._DescriptorNumber__serializer_id == serializer_id:
                     return obj
         return None
-    

@@ -14,10 +14,10 @@ from .parameter import Parameter
 def resolve_all_parameter_dependencies(obj: Any) -> None:
     """
     Recursively find all Parameter objects in an object hierarchy and resolve their pending dependencies.
-    
+
     This function should be called after deserializing a complex object that contains Parameters
     with dependencies to ensure all dependency relationships are properly established.
-    
+
     :param obj: The object to search for Parameters (can be a single Parameter, list, dict, or complex object)
     """
 
@@ -68,16 +68,17 @@ def resolve_all_parameter_dependencies(obj: Any) -> None:
             except Exception as e:
                 error_count += 1
                 serializer_id = getattr(param, '_DescriptorNumber__serializer_id', 'unknown')
-                errors.append(f"Failed to resolve dependencies for parameter '{param.name}'" \
-                               f" (unique_name: '{param.unique_name}', serializer_id: '{serializer_id}'): {e}")
+                errors.append(
+                    f"Failed to resolve dependencies for parameter '{param.name}'"
+                    f" (unique_name: '{param.unique_name}', serializer_id: '{serializer_id}'): {e}"
+                )
 
     # Report results
     if resolved_count > 0:
-        print(f"Successfully resolved dependencies for {resolved_count} parameter(s).")
+        print(f'Successfully resolved dependencies for {resolved_count} parameter(s).')
 
     if error_count > 0:
-        error_message = f"Failed to resolve dependencies for {error_count} parameter(s):\n" \
-                + "\n".join(errors)
+        error_message = f'Failed to resolve dependencies for {error_count} parameter(s):\n' + '\n'.join(errors)
         raise ValueError(error_message)
 
 
@@ -144,4 +145,3 @@ def deserialize_and_resolve_parameters(params_data: Dict[str, Dict[str, Any]]) -
     resolve_all_parameter_dependencies(new_params)
 
     return new_params
-
