@@ -375,7 +375,6 @@ class TestGlobalObjectIntegration:
         
         # When - Deserialize objects
         new_param = Parameter.from_dict(param_dict)
-        _ = obj_dict['param'].pop('unique_name')  # Avoid duplicate name error
         new_obj = ObjBase.from_dict(obj_dict)
         
         # Then - Should be registered in global map again
