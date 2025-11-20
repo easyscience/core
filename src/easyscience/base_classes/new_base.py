@@ -112,17 +112,13 @@ class NewBase:
         :param obj_dict: dictionary containing the serialized contents (from `SerializerDict`) of an EasyScience object
         :return: Reformed EasyScience object
         """
-        if isinstance(obj_dict, dict):
-            if '@module' in obj_dict and obj_dict['@module'].startswith('easy'):
-                if '@class' in obj_dict and obj_dict['@class'] == cls.__name__:
-                    kwargs = SerializerBase.deserialize_dict(obj_dict)
-                    return cls(**kwargs)
-                else:
-                    raise ValueError(f'Class name not in dictionary or does not match the expected class: {cls.__name__}.')
-            else:
-                raise ValueError('Dictionary does not represent an EasyScience object.')
+        if not SerializerBase._is_serialized_easyscience_object(obj_dict):
+            raise ValueError('Input must be a dictionary representing an EasyScience object.')
+        if obj_dict['@class'] == cls.__name__:
+            kwargs = SerializerBase.deserialize_dict(obj_dict)
+            return cls(**kwargs)
         else:
-            raise TypeError('Input must be a dictionary.')
+            raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')
 
     def __dir__(self) -> Iterable[str]:
         """
