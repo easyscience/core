@@ -59,14 +59,7 @@ class ModelBase(NewBase):
 
         :return: List of `Parameter` objects.
         """
-        params = []
-        for attr_name in dir(self):
-            attr = getattr(self, attr_name)
-            if isinstance(attr, Parameter) and attr.independent:
-                params.append(attr)
-            elif hasattr(attr, 'get_fit_parameters'):
-                params += attr.get_fit_parameters()
-        return params
+        return [param for param in self.get_all_parameters() if isinstance(param, Parameter) and param.independent]
 
     def get_free_parameters(self) -> List[Parameter]:
         """
@@ -74,12 +67,7 @@ class ModelBase(NewBase):
 
         :return: List of `Parameter` objects.
         """
-        params = []
-        for attr_name in dir(self):
-            attr = getattr(self, attr_name)
-            if isinstance(attr, Parameter) and not attr.fixed and attr.independent:
-                params.append(attr)
-        return params
+        return [param for param in self.get_fit_parameters() if not param.fixed]
     
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> None:
@@ -89,24 +77,20 @@ class ModelBase(NewBase):
         :param obj_dict: dictionary containing the serialized contents (from `SerializerDict`) of an EasyScience object
         :return: Reformed EasyScience object
         """
-        if isinstance(obj_dict, dict):
-            if '@module' in obj_dict and obj_dict['@module'].startswith('easy'):
-                if '@class' in obj_dict and obj_dict['@class'] == cls.__name__:
-                    kwargs = SerializerBase._deserialize_dict(obj_dict)
-                    parameter_placeholder = {}
-                    for key, value in kwargs.items():
-                        if isinstance(value, DescriptorNumber):
-                            parameter_placeholder[key] = value
-                            kwargs[key] = value.value
-                    cls_instance = cls(**kwargs)
-                    for key, value in parameter_placeholder.items():
-                        temp_param = getattr(cls_instance, key)
-                        setattr(cls_instance, '_'+key, value)
-                        cls_instance._global_object.map.prune(temp_param.unique_name)
-                    return cls_instance
-                else:
-                    raise ValueError(f'Class name not in dictionary or does not match the expected class: {cls.__name__}.')
-            else:
-                raise ValueError('Dictionary does not represent an EasyScience object.')
+        if not SerializerBase._is_serialized_easyscience_object(obj_dict):
+            raise ValueError('Input must be a dictionary representing an EasyScience object.')
+        if obj_dict['@class'] == cls.__name__:
+            kwargs = SerializerBase._deserialize_dict(obj_dict)
+            parameter_placeholder = {}
+            for key, value in kwargs.items():
+                if isinstance(value, DescriptorNumber):
+                    parameter_placeholder[key] = value
+                    kwargs[key] = value.value
+            cls_instance = cls(**kwargs)
+            for key, value in parameter_placeholder.items():
+                temp_param = getattr(cls_instance, key)
+                setattr(cls_instance, '_'+key, value)
+                cls_instance._global_object.map.prune(temp_param.unique_name)
+            return cls_instance
         else:
-            raise TypeError('Input must be a dictionary.')
+            raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')
