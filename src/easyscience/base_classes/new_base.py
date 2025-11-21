@@ -14,7 +14,8 @@ if TYPE_CHECKING:
     from typing import Optional
     from typing import Set
 
-from ..global_object import global_object
+from easyscience import global_object
+
 from ..global_object.undo_redo import property_stack
 from ..io.serializer_base import SerializerBase
 
@@ -23,7 +24,7 @@ class NewBase:
     """
     This is the new base class for easyscience objects.
     It provides serialization capabilities as well as unique naming and display naming.
-"""
+    """
 
     def __init__(self, unique_name: Optional[str] = None, display_name:  Optional[str] = None):
         self._global_object = global_object
