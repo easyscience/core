@@ -3,28 +3,25 @@ from __future__ import annotations
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-import datetime
 from inspect import getfullargspec
-from typing import Any
-from typing import Dict
-from typing import Iterable
-from typing import List
-from typing import Optional
-from typing import Set
+from typing import TYPE_CHECKING
 
-from pyparsing import MutableSequence
+if TYPE_CHECKING:
+    from typing import Any
+    from typing import Dict
+    from typing import Iterable
+    from typing import List
+    from typing import Optional
+    from typing import Set
 
-import numpy as np
-
-from easyscience import global_object
-
+from ..global_object import global_object
 from ..global_object.undo_redo import property_stack
 from ..io.serializer_base import SerializerBase
 
 
 class NewBase:
     """
-    This is the new base class for library objects.
+    This is the new base class for easyscience objects.
     It provides serialization capabilities as well as unique naming and display naming.
 """
 
