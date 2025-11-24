@@ -53,9 +53,13 @@ Parameters
    **Key Methods:**
 
    .. automethod:: from_dependency
+      :noindex:
    .. automethod:: make_dependent_on
+      :noindex:
    .. automethod:: make_independent
+      :noindex:
    .. automethod:: resolve_pending_dependencies
+      :noindex:
 
 Base Classes for Models
 =======================
@@ -83,7 +87,9 @@ ObjBase
    **Key Methods:**
 
    .. automethod:: get_fit_parameters
+      :noindex:
    .. automethod:: get_parameters
+      :noindex:
    .. automethod:: _add_component
 
 Collections
@@ -97,10 +103,10 @@ Collections
    Mutable sequence container for scientific objects with automatic parameter tracking.
 
 Fitting and Optimization
-========================
+=========================
 
 Fitter
-------
+-------
 
 .. autoclass:: easyscience.fitting.Fitter
    :members:
@@ -110,8 +116,10 @@ Fitter
 
    **Key Methods:**
 
-   .. automethod:: fit
+   .. autoproperty:: fit
+      :noindex:
    .. automethod:: switch_minimizer
+      :noindex:
    .. automethod:: make_model
    .. automethod:: evaluate
 
@@ -134,7 +142,7 @@ Fit Results
    Container for fitting results including parameters, statistics, and diagnostics.
 
 Minimizer Base Classes
----------------------
+----------------------
 
 .. autoclass:: easyscience.fitting.minimizers.MinimizerBase
    :members:
@@ -161,7 +169,7 @@ Minimizer Base Classes
    DFO-LS-based minimizer implementation.
 
 Global State Management
-=======================
+========================
 
 Global Object
 -------------
@@ -184,7 +192,7 @@ Object Map
 Undo/Redo System
 ----------------
 
-.. autoclass:: easyscience.global_object.UndoStack
+.. autoclass:: easyscience.global_object.undo_redo.UndoStack
    :members:
    :show-inheritance:
 
@@ -194,7 +202,7 @@ Serialization and I/O
 =====================
 
 Serializer Components
---------------------
+---------------------
 
 .. autoclass:: easyscience.io.SerializerComponent
    :members:
@@ -215,10 +223,10 @@ Serializer Components
    Base serialization functionality.
 
 Models and Examples
-==================
+===================
 
 Polynomial Model
----------------
+----------------
 
 .. autoclass:: easyscience.models.Polynomial
    :members:
@@ -227,29 +235,29 @@ Polynomial Model
    Built-in polynomial model for demonstration and testing.
 
 Job Management
-=============
+==============
 
 Analysis and Experiments
 ------------------------
 
-.. autoclass:: easyscience.job.Analysis
+.. autoclass:: easyscience.job.AnalysisBase
    :members:
    :show-inheritance:
 
-.. autoclass:: easyscience.job.Experiment
+.. autoclass:: easyscience.job.ExperimentBase
    :members:
    :show-inheritance:
 
-.. autoclass:: easyscience.job.Job
+.. autoclass:: easyscience.job.JobBase
    :members:
    :show-inheritance:
 
-.. autoclass:: easyscience.job.TheoreticalModel
+.. autoclass:: easyscience.job.TheoreticalModelBase
    :members:
    :show-inheritance:
 
 Utility Functions
-================
+=================
 
 Decorators
 ----------
@@ -266,13 +274,13 @@ Class Tools
    Utility for adding logged properties to classes.
 
 String Utilities
----------------
+----------------
 
 .. automodule:: easyscience.utils.string
    :members:
 
 Parameter Dependencies
----------------------
+-----------------------
 
 .. autofunction:: easyscience.variable.parameter_dependency_resolver.resolve_all_parameter_dependencies
 
@@ -283,7 +291,7 @@ Parameter Dependencies
    Find parameters that have unresolved dependencies.
 
 Constants and Enumerations
-==========================
+===========================
 
 .. autodata:: easyscience.global_object
    :annotation: GlobalObject
@@ -291,7 +299,7 @@ Constants and Enumerations
    Global singleton instance managing application state.
 
 Exception Classes
-================
+=================
 
 .. autoclass:: easyscience.fitting.minimizers.FitError
    :show-inheritance:
@@ -304,7 +312,7 @@ Exception Classes
    Exception raised for unit-related errors (from scipp dependency).
 
 Usage Examples
-=============
+==============
 
 For practical usage examples and tutorials, see:
 

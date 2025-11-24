@@ -111,7 +111,7 @@ highlight_language = 'python3'
 html_theme = 'sphinx_book_theme'
 html_logo = os.path.join('_static', 'ec_sidebar_w.png')
 html_favicon = os.path.join('_static', 'favicon.ico')
-html_theme_options = {'logo_only': True}
+html_theme_options = {}
 # html_theme_options = {
 #     'logo': os.path.join('ec_logo_single.png'),
 #     'github_user': project_info['tool']['github']['info']['organization'],
