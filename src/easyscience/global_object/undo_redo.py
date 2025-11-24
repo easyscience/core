@@ -24,7 +24,6 @@ class UndoCommand(metaclass=abc.ABCMeta):
     """
 
     def __init__(self, obj) -> None:
-        from easyscience import global_object  # Local import to avoid circular dependency
         self._obj = obj
         self._text = None
 
