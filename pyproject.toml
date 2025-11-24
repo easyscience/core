@@ -51,7 +51,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "tox-gh-actions"
+    "tox-gh-actions",
+    "jupyterlab"
 ]
 docs = [
     "doc8",

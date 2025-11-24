@@ -131,3 +131,81 @@ class TestNewBase:
         assert obj_dict['@module'] == 'easyscience.base_classes.new_base'
         assert obj_dict['@class'] == 'NewBase'
         assert '@version' in obj_dict
+
+    def test_from_dict(self):
+        # When
+        obj_dict = {
+            '@module': 'easyscience.base_classes.new_base',
+            '@class': 'NewBase',
+            'unique_name': 'from_dict_name',
+            'display_name': 'From Dict Object'
+        }
+        # Then
+        obj = NewBase.from_dict(obj_dict)
+        # Expect
+        assert isinstance(obj, NewBase)
+        assert obj.unique_name == 'from_dict_name'
+        assert obj.display_name == 'From Dict Object'
+        assert global_object.map.get_item_by_key('from_dict_name') is obj
+
+    def test_from_dict_not_easyscience(self):
+        # When
+        obj_dict = {
+            '@module': 'some.other.module',
+            '@class': 'NewBase',
+            'unique_name': 'invalid_from_dict',
+            'display_name': 'Invalid From Dict Object'
+        }
+        # Then Expect
+        with pytest.raises(ValueError, match='Input must be a dictionary representing an EasyScience object.'):
+            NewBase.from_dict(obj_dict)
+
+    def test_from_dict_wrong_class(self):
+        # When
+        obj_dict = {
+            '@module': 'easyscience.base_classes.new_base',
+            '@class': 'SomeOtherClass',
+            'unique_name': 'wrong_class_name',
+            'display_name': 'Wrong Class Object'
+        }
+        # Then Expect
+        with pytest.raises(ValueError, match='Class name in dictionary does not match the expected class: NewBase.'):
+            NewBase.from_dict(obj_dict)
+
+    def test__dir__(self):
+        # When
+        obj = NewBase()
+        dir_list = dir(obj)
+        # Then
+        expected_attributes = [
+            'as_dict',
+            'unique_name',
+            'display_name',
+            'from_dict',
+        ]
+        # Expect
+        for attr in expected_attributes:
+            assert attr in dir_list
+
+    def test_copy(self):
+        # When
+        obj = NewBase(unique_name="original_name", display_name="Original Object")
+        # Then
+        obj_copy = obj.__copy__()
+        # Expect
+        assert isinstance(obj_copy, NewBase)
+        assert obj_copy.unique_name != obj.unique_name
+        assert obj_copy.display_name == obj.display_name
+        assert global_object.map.get_item_by_key(obj_copy.unique_name) is obj_copy
+
+    def test_deepcopy(self):
+        # When
+        obj = NewBase(unique_name="deepcopy_name", display_name="Deep Copy Object")
+        # Then
+        import copy
+        obj_deepcopy = copy.deepcopy(obj)
+        # Expect
+        assert isinstance(obj_deepcopy, NewBase)
+        assert obj_deepcopy.unique_name != obj.unique_name
+        assert obj_deepcopy.display_name == obj.display_name
+        assert global_object.map.get_item_by_key(obj_deepcopy.unique_name) is obj_deepcopy
