@@ -703,6 +703,7 @@ class TestSerializerBase:
         obj = SerializerBase._deserialize_value(serialized_dict)
         # Expect
         SerializerBase._convert_from_dict.assert_called_once_with(serialized_dict)
+        
     def test_deserialize_dict(self, monkeypatch):
         # When
         serialized_dict = {

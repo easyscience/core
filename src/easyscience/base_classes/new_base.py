@@ -30,6 +30,9 @@ class NewBase:
         self._global_object = global_object
         if unique_name is None:
             unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
+            self._default_unique_name = True
+        else:
+            self._default_unique_name = False
         if not isinstance(unique_name, str):
             raise TypeError('Unique name has to be a string.')
         self._unique_name = unique_name
@@ -62,6 +65,7 @@ class NewBase:
             raise TypeError('Unique name has to be a string.')
         self._unique_name = new_unique_name
         self._global_object.map.add_vertex(self)
+        self._default_unique_name = False
 
     @property
     def display_name(self) -> str:
@@ -89,17 +93,18 @@ class NewBase:
 
     def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         """
-        Convert an EasyScience object into a full dictionary using `SerializerDict`.
-        This is a shortcut for ```obj.encode(encoder=SerializerDict)```
+        Convert an EasyScience object into a full dictionary using `SerializerBase`s generic `convert_to_dict` method.
 
         :param skip: List of field names as strings to skip when forming the dictionary
         :return: encoded object containing all information to reform an EasyScience object.
         """
         serializer = SerializerBase()
-        if skip:
-            skip = skip + ['unique_name']
-        else:
-            skip = ['unique_name']
+        if skip is None:
+            skip = []
+        if self._default_unique_name and 'unique_name' not in skip:
+            skip.append('unique_name')
+        if self._display_name is None:
+            skip.append('display_name')
         return serializer._convert_to_dict(self, skip=skip, full_encode=False)
 
     @classmethod
