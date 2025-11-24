@@ -104,3 +104,34 @@ class TestSerializerBase:
         obj = SerializerBase._deserialize_value(serialized_dict)
         # Expect
         SerializerBase._convert_from_dict.assert_called_once_with(serialized_dict)
+
+    def test_deserialize_dict(self, monkeypatch):
+        # When
+        serialized_dict = {
+            '@module': 'easyscience', 
+            '@class': 'ParameterContainer',
+            'param1': {
+                '@module': 'easyscience',
+                '@class': 'Parameter',
+                'name': 'param1',
+                'value': 10.0
+            },
+            'array1': {
+                '@module': 'numpy', 
+                '@class': 'array', 
+                'dtype': 'int64', 
+                'data': [0, 1]
+            }
+        }
+        monkeypatch.setattr(SerializerBase, '_deserialize_value', MagicMock(side_effect=[
+            Parameter(name='param1', value=10.0),
+            np.array([0, 1], dtype=np.int64)
+        ]))
+        # Then
+        result = SerializerBase.deserialize_dict(serialized_dict)
+        # Expect
+        SerializerBase._deserialize_value.assert_any_call(serialized_dict['param1'])
+        SerializerBase._deserialize_value.assert_any_call(serialized_dict['array1'])
+        assert isinstance(result['param1'], Parameter)
+        assert isinstance(result['array1'], np.ndarray)
+        assert result['array1'].dtype == np.int64
