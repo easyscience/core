@@ -37,7 +37,7 @@ class ModelBase(NewBase):
     ```
     """
 
-    def __init__(self, unique_name: Optional[str] = None, display_name:  Optional[str] = None):
+    def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
     def get_all_parameters(self) -> List[DescriptorNumber]:
@@ -70,7 +70,7 @@ class ModelBase(NewBase):
         :return: List of `Parameter` objects.
         """
         return [param for param in self.get_fit_parameters() if not param.fixed]
-    
+
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> None:
         """
@@ -91,7 +91,7 @@ class ModelBase(NewBase):
             cls_instance = cls(**kwargs)
             for key, value in parameter_placeholder.items():
                 temp_param = getattr(cls_instance, key)
-                setattr(cls_instance, '_'+key, value)
+                setattr(cls_instance, '_' + key, value)
                 cls_instance._global_object.map.prune(temp_param.unique_name)
             return cls_instance
         else:

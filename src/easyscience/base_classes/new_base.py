@@ -26,7 +26,7 @@ class NewBase:
     It provides serialization capabilities as well as unique naming and display naming.
     """
 
-    def __init__(self, unique_name: Optional[str] = None, display_name:  Optional[str] = None):
+    def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
         self._global_object = global_object
         if unique_name is None:
             unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
@@ -140,7 +140,6 @@ class NewBase:
 
     def __deepcopy__(self, memo):
         return self.from_dict(self.as_dict())
-    
+
     def __repr__(self) -> str:
         return f'{self.__class__.__name__} `{self.unique_name}`'
-    

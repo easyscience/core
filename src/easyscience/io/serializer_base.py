@@ -265,41 +265,37 @@ class SerializerBase:
         """
         Deserialize a dictionary using from_dict for ES objects and SerializerBase otherwise.
         This method processes constructor arguments, skipping metadata keys starting with '@'.
-        
+
         :param in_dict: dictionary to deserialize
         :return: deserialized dictionary with constructor arguments
         """
-        d = {
-            key: SerializerBase._deserialize_value(value)
-            for key, value in in_dict.items()
-            if not key.startswith('@')
-        }
+        d = {key: SerializerBase._deserialize_value(value) for key, value in in_dict.items() if not key.startswith('@')}
         return d
 
     @staticmethod
     def _deserialize_value(value: Any) -> Any:
         """
         Deserialize a single value, using specialized handling for ES objects.
-        
+
         :param value:
         :return: deserialized value
         """
         if not SerializerBase._is_serialized_easyscience_object(value):
             return SerializerBase._convert_from_dict(value)
-            
+
         module_name = value['@module']
         class_name = value['@class']
-        
+
         try:
             cls = SerializerBase._import_class(module_name, class_name)
-            
+
             # Prefer from_dict() method for ES objects
             if hasattr(cls, 'from_dict'):
                 return cls.from_dict(value)
             else:
                 return SerializerBase._convert_from_dict(value)
-                
-        except (ImportError, ValueError) as e:
+
+        except (ImportError, ValueError):
             # Fallback to generic deserialization if class-specific fails
             return SerializerBase._convert_from_dict(value)
 
@@ -307,22 +303,17 @@ class SerializerBase:
     def _is_serialized_easyscience_object(value: Any) -> bool:
         """
         Check if a value represents a serialized ES object.
-        
-        :param value: 
+
+        :param value:
         :return: True if this is a serialized ES object
         """
-        return (
-            isinstance(value, dict) 
-            and "@module" in value 
-            and value["@module"].startswith("easy") 
-            and '@class' in value
-        )
+        return isinstance(value, dict) and '@module' in value and value['@module'].startswith('easy') and '@class' in value
 
     @staticmethod
     def _import_class(module_name: str, class_name: str):
         """
         Import a class from a module name and class name.
-        
+
         :param module_name: name of the module
         :param class_name: name of the class
         :return: the imported class
@@ -333,10 +324,10 @@ class SerializerBase:
             module = __import__(module_name, globals(), locals(), [class_name], 0)
         except ImportError as e:
             raise ImportError(f'Could not import module {module_name}') from e
-            
+
         if not hasattr(module, class_name):
             raise ValueError(f'Class {class_name} not found in module {module_name}.')
-            
+
         return getattr(module, class_name)
 
     def _recursive_encoder(self, obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs):
