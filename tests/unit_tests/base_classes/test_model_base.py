@@ -9,6 +9,7 @@ from easyscience import Parameter
 from easyscience import DescriptorNumber
 from easyscience.variable import DescriptorStr
 from unittest.mock import MagicMock
+from easyscience.io import SerializerBase
 
 class MockModelComponent(ModelBase):
     """
@@ -48,11 +49,14 @@ class MockModelFull(ModelBase):
     """
     A mock model that contains another model as a component. To test building nested models using the ModelBase class.
     """
-    def __init__(self, display_name=None, unique_name=None, pressure=0, area=1):
+    def __init__(self, component = None, display_name=None, unique_name=None, pressure=0, area=1):
         super().__init__(display_name=display_name, unique_name=unique_name)
         self._pressure = Parameter(name="pressure", value=pressure)
         self._area = Parameter(name="area", value=area)
-        self._component = MockModelComponent(temperature=25, room_temperature=22)
+        if component is not None:
+            self._component = component
+        else:
+            self._component = MockModelComponent(temperature=25, room_temperature=22)
 
     @property
     def pressure(self):
@@ -82,6 +86,11 @@ class TestModelBase:
         model.area.fixed = True
         monkeypatch.setattr(model.component, 'get_all_variables', MagicMock(wraps=model.component.get_all_variables))
         return model
+
+    @pytest.fixture
+    def clear(self):
+        # Clear the global object map before each test
+        global_object.map._clear()
 
     def test_init(self):
         # When Then
@@ -148,3 +157,56 @@ class TestModelBase:
         assert len(free_params) == 1
         assert any(isinstance(p, Parameter) and p.independent and not p.fixed for p in free_params)
         assert nested_model.component.get_all_variables.call_count == 1
+
+    def test_from_dict(self, monkeypatch, clear):
+        # When
+        model = MockModelComponent()
+        obj_dict = model.to_dict() # We only care about deserializing dictorionaries currently created by EasyScience
+        obj_dict['@module'] = 'easyscience.base_classes.model_base'
+        monkeypatch.setattr(SerializerBase, '_import_class', MagicMock(side_effect=lambda module_name, class_name: 
+                                                                       MockModelComponent if class_name == 'MockModelComponent' 
+                                                                       else Parameter if class_name == 'Parameter' 
+                                                                       else DescriptorNumber)
+                                                                       )
+        global_object.map._clear()
+        # Then
+        new_model = MockModelComponent.from_dict(obj_dict)
+        # Expect
+        assert isinstance(new_model, MockModelComponent)
+        assert new_model._temperature.value == 0.0
+        assert new_model._room_temperature.value == 22.0
+        assert isinstance(new_model._temperature, Parameter)
+        assert isinstance(new_model._room_temperature, DescriptorNumber)
+        assert len(global_object.map.vertices()) == 4
+        assert global_object.map.get_item_by_key('Parameter_0') is new_model._temperature
+        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 1
+
+    def test_from_dict_nested(self, monkeypatch, clear):
+        # When
+        model = MockModelFull()
+        model.__class__.__module__ = 'easyscience' # Ensure mock class is seen as easyscience
+        model.component.__class__.__module__ = 'easyscience' # Ensure nested class is also seen as easyscience
+        obj_dict = model.to_dict() # We only care about deserializing dictorionaries currently created by EasyScience
+        monkeypatch.setattr(SerializerBase, '_import_class', MagicMock(side_effect=lambda module_name, class_name: 
+                                                                       MockModelFull if class_name == 'MockModelFull' 
+                                                                       else MockModelComponent if class_name == 'MockModelComponent' 
+                                                                       else Parameter if class_name == 'Parameter' 
+                                                                       else DescriptorNumber)
+                                                                       )
+        global_object.map._clear()
+        # Then
+        new_model = MockModelFull.from_dict(obj_dict)
+        # Expect
+        assert isinstance(new_model, MockModelFull)
+        assert isinstance(new_model.component, MockModelComponent)
+        assert new_model._pressure.value == 0.0
+        assert new_model._area.value == 1.0
+        assert new_model.component._temperature.value == 25.0
+        assert new_model.component._room_temperature.value == 22.0
+        assert isinstance(new_model._pressure, Parameter)
+        assert isinstance(new_model._area, Parameter)
+        assert isinstance(new_model.component._temperature, Parameter)
+        assert isinstance(new_model.component._room_temperature, DescriptorNumber)
+        assert len(global_object.map.vertices()) == 7
+        assert global_object.map.get_item_by_key('Parameter_0') in [new_model._pressure, new_model._area, new_model.component._temperature]
+        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 3

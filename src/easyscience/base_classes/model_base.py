@@ -99,7 +99,7 @@ class ModelBase(NewBase):
         if not SerializerBase._is_serialized_easyscience_object(obj_dict):
             raise ValueError('Input must be a dictionary representing an EasyScience object.')
         if obj_dict['@class'] == cls.__name__:
-            kwargs = SerializerBase._deserialize_dict(obj_dict)
+            kwargs = SerializerBase.deserialize_dict(obj_dict)
             parameter_placeholder = {}
             for key, value in kwargs.items():
                 if isinstance(value, DescriptorNumber):
