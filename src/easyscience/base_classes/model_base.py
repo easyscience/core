@@ -73,13 +73,6 @@ class ModelBase(NewBase):
         """
         return [param for param in self.get_all_parameters() if param.independent]
 
-    def get_fit_parameters(self) -> List[Parameter]:
-        """
-        This is an alias for `get_fittable_parameters`.
-        To be removed when fully moved to new base classes and minimizer can be changed.
-        """
-        return self.get_fittable_parameters()
-
     def get_free_parameters(self) -> List[Parameter]:
         """
         Get all parameters which are currently free to be fitted as a list.
@@ -87,6 +80,13 @@ class ModelBase(NewBase):
         :return: List of `Parameter` objects.
         """
         return [param for param in self.get_fittable_parameters() if not param.fixed]
+    
+    def get_fit_parameters(self) -> List[Parameter]:
+        """
+        This is an alias for `get_free_parameters`.
+        To be removed when fully moved to new base classes and minimizer can be changed.
+        """
+        return self.get_free_parameters()
 
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> None:

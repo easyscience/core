@@ -8,8 +8,12 @@ from easyscience.base_classes import ModelBase
 from easyscience import Parameter
 from easyscience import DescriptorNumber
 from easyscience.variable import DescriptorStr
+from unittest.mock import MagicMock
 
 class MockModelComponent(ModelBase):
+    """
+    A simple mock model component with some parameters and descriptors.
+    """
     def __init__(self, display_name=None, unique_name=None, temperature=0, room_temperature=22):
         super().__init__(display_name=display_name, unique_name=unique_name)
         self._temperature = Parameter(name="temperature", value=temperature)
@@ -41,9 +45,13 @@ class MockModelComponent(ModelBase):
         self._status.value = value
 
 class MockModelFull(ModelBase):
-    def __init__(self, display_name=None, unique_name=None, pressure=0):
+    """
+    A mock model that contains another model as a component. To test building nested models using the ModelBase class.
+    """
+    def __init__(self, display_name=None, unique_name=None, pressure=0, area=1):
         super().__init__(display_name=display_name, unique_name=unique_name)
         self._pressure = Parameter(name="pressure", value=pressure)
+        self._area = Parameter(name="area", value=area)
         self._component = MockModelComponent(temperature=25, room_temperature=22)
 
     @property
@@ -57,8 +65,23 @@ class MockModelFull(ModelBase):
     @property
     def component(self):
         return self._component
+    
+    @property
+    def area(self):
+        return self._area
+    
+    @area.setter
+    def area(self, value):
+        self._area.value = value
 
 class TestModelBase:
+    @pytest.fixture
+    def nested_model(self, monkeypatch):
+        model = MockModelFull(pressure=1)
+        model.pressure.make_dependent_on(dependency_expression="2 * temperature + 5", dependency_map={'temperature': model.component.temperature})
+        model.area.fixed = True
+        monkeypatch.setattr(model.component, 'get_all_variables', MagicMock(wraps=model.component.get_all_variables))
+        return model
 
     def test_init(self):
         # When Then
@@ -67,12 +90,61 @@ class TestModelBase:
         assert model.unique_name == "test_model"
         assert model.display_name == "Test Model"
 
-    # def test_get_all_parameters_flat(self):
-    #     # When
-    #     model = MockModelComponent(temperature=25, room_temperature=22)
-    #     # Then
-    #     params = model.get_all_parameters()
-    #     # Expect
-    #     assert len(params) == 2
-    #     assert any(isinstance(p, Parameter) and p.name == "temperature" for p in params)
-    #     assert any(type(p) is DescriptorNumber and p.name == "room_temperature" for p in params)
+    def test_get_all_variables_flat(self):
+        # When
+        model = MockModelComponent(temperature=25, room_temperature=22)
+        # Then
+        vars = model.get_all_variables()
+        # Expect
+        assert len(vars) == 3
+        assert any(isinstance(p, Parameter) for p in vars)
+        assert any(type(p) is DescriptorNumber for p in vars)
+        assert any(type(p) is DescriptorStr for p in vars)
+
+    def test_get_all_variables_nested(self, nested_model):
+        # When Then
+        vars = nested_model.get_all_variables()
+        # Expect
+        assert len(vars) == 5
+        assert any(isinstance(p, Parameter) and not p.independent for p in vars)
+        assert any(isinstance(p, Parameter) and p.fixed for p in vars)
+        assert any(isinstance(p, Parameter) and p.independent and not p.fixed for p in vars)
+        assert any(type(p) is DescriptorNumber for p in vars)
+        assert any(type(p) is DescriptorStr for p in vars)
+        assert nested_model.component.get_all_variables.call_count == 1
+
+    def test_get_all_parameters_nested(self, nested_model):
+        # When Then
+        params = nested_model.get_all_parameters()
+        # Expect
+        assert len(params) == 3
+        assert any(isinstance(p, Parameter) and not p.independent for p in params)
+        assert any(isinstance(p, Parameter) and p.fixed for p in params)
+        assert any(isinstance(p, Parameter) and p.independent and not p.fixed for p in params)
+        assert nested_model.component.get_all_variables.call_count == 1
+
+    def test_get_fittable_parameters_nested(self, nested_model):
+        # When Then
+        fittable_params = nested_model.get_fittable_parameters()
+        # Expect
+        assert len(fittable_params) == 2
+        assert any(isinstance(p, Parameter) and p.fixed for p in fittable_params)
+        assert any(isinstance(p, Parameter) and p.independent and not p.fixed for p in fittable_params)
+        assert nested_model.component.get_all_variables.call_count == 1
+
+    def test_get_fit_parameters_alias(self, monkeypatch):
+        # When
+        model = MockModelFull(pressure=1)
+        monkeypatch.setattr(model, 'get_free_parameters', MagicMock())
+        # Then
+        fit_params = model.get_fit_parameters()
+        # Expect
+        assert model.get_free_parameters.call_count == 1
+
+    def test_get_free_parameters_nested(self, nested_model):
+        # When Then
+        free_params = nested_model.get_free_parameters()
+        # Expect
+        assert len(free_params) == 1
+        assert any(isinstance(p, Parameter) and p.independent and not p.fixed for p in free_params)
+        assert nested_model.component.get_all_variables.call_count == 1
