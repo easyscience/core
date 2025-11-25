@@ -80,7 +80,7 @@ class ModelBase(NewBase):
         :return: List of `Parameter` objects.
         """
         return [param for param in self.get_fittable_parameters() if not param.fixed]
-    
+
     def get_fit_parameters(self) -> List[Parameter]:
         """
         This is an alias for `get_free_parameters`.

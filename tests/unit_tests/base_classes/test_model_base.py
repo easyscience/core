@@ -210,3 +210,25 @@ class TestModelBase:
         assert len(global_object.map.vertices()) == 7
         assert global_object.map.get_item_by_key('Parameter_0') in [new_model._pressure, new_model._area, new_model.component._temperature]
         assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 3
+
+    def test_from_dict_not_easyscience(self):
+        # When
+        obj_dict = {
+            '@module': 'some.other.module',
+            '@class': 'NotAnEasyScienceObject',
+            'some_property': 42
+        }
+        # Then / Expect
+        with pytest.raises(ValueError, match='Input must be a dictionary representing an EasyScience object.'):
+            MockModelComponent.from_dict(obj_dict)
+
+    def test_from_dict_wrong_class(self):
+        # When
+        obj_dict = {
+            '@module': 'easyscience.base_classes.model_base',
+            '@class': 'SomeOtherClass',
+            'some_property': 42
+        }
+        # Then / Expect
+        with pytest.raises(ValueError, match='Class name in dictionary does not match the expected class: MockModelComponent.'):
+            MockModelComponent.from_dict(obj_dict)
