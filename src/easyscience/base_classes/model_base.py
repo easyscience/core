@@ -5,6 +5,8 @@ from __future__ import annotations
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from typing import TYPE_CHECKING
 
+from easyscience.variable.descriptor_number import DescriptorNumber
+
 if TYPE_CHECKING:
     from typing import Any
     from typing import Dict
@@ -12,8 +14,8 @@ if TYPE_CHECKING:
     from typing import Optional
 
 from ..io import SerializerBase
-from ..variable import DescriptorNumber
 from ..variable import Parameter
+from ..variable.descriptor_base import DescriptorBase
 from .new_base import NewBase
 
 
@@ -40,28 +42,43 @@ class ModelBase(NewBase):
     def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
-    def get_all_parameters(self) -> List[DescriptorNumber]:
+    def get_all_variables(self) -> List[DescriptorBase]:
         """
-        Get all `Parameters` or `DescriptorNumber` objects as a list.
+        Get all `Descriptor` and `Parameter` objects as a list.
 
-        :return: List of `DescriptorNumber` or `Parameter` objects.
+        :return: List of `Descriptor` and `Parameter` objects.
         """
-        params = []
+        vars = []
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if isinstance(attr, DescriptorNumber):
-                params.append(attr)
-            elif hasattr(attr, 'get_all_parameters'):
-                params += attr.get_all_parameters()
-        return params
+            if isinstance(attr, DescriptorBase):
+                vars.append(attr)
+            elif hasattr(attr, 'get_all_variables'):
+                vars += attr.get_all_variables()
+        return vars
 
-    def get_fit_parameters(self) -> List[Parameter]:
+    def get_all_parameters(self) -> List[Parameter]:
+        """
+        Get all `Parameter` objects as a list.
+
+        :return: List of `Parameter` objects.
+        """
+        return [param for param in self.get_all_variables() if isinstance(param, Parameter)]
+
+    def get_fittable_parameters(self) -> List[Parameter]:
         """
         Get all parameters which can be fitted as a list.
 
         :return: List of `Parameter` objects.
         """
-        return [param for param in self.get_all_parameters() if isinstance(param, Parameter) and param.independent]
+        return [param for param in self.get_all_parameters() if param.independent]
+
+    def get_fit_parameters(self) -> List[Parameter]:
+        """
+        This is an alias for `get_fittable_parameters`.
+        To be removed when fully moved to new base classes and minimizer can be changed.
+        """
+        return self.get_fittable_parameters()
 
     def get_free_parameters(self) -> List[Parameter]:
         """
@@ -69,7 +86,7 @@ class ModelBase(NewBase):
 
         :return: List of `Parameter` objects.
         """
-        return [param for param in self.get_fit_parameters() if not param.fixed]
+        return [param for param in self.get_fittable_parameters() if not param.fixed]
 
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> None:

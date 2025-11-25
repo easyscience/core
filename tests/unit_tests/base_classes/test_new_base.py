@@ -93,11 +93,11 @@ class TestNewBase:
         with pytest.raises(TypeError, match='Display name must be a string or None'):
             obj.display_name = 101112
 
-    def test_as_dict_full_params(self):
+    def test_to_dict_full_params(self):
         # When
         obj = NewBase(unique_name="test_name", display_name="Test Object")
         # Then
-        obj_dict = obj.as_dict()
+        obj_dict = obj.to_dict()
         # Expect
         assert isinstance(obj_dict, dict)
         assert obj_dict['unique_name'] == "test_name"
@@ -106,11 +106,11 @@ class TestNewBase:
         assert obj_dict['@class'] == 'NewBase'
         assert '@version' in obj_dict
 
-    def test_as_dict_default_params(self):
+    def test_to_dict_default_params(self):
         # When
         obj = NewBase()
         # Then
-        obj_dict = obj.as_dict()
+        obj_dict = obj.to_dict()
         # Expect
         assert isinstance(obj_dict, dict)
         assert obj_dict['@module'] == 'easyscience.base_classes.new_base'
@@ -119,11 +119,11 @@ class TestNewBase:
         assert 'unique_name' not in obj_dict
         assert 'display_name' not in obj_dict
 
-    def test_as_dict_with_skip(self):
+    def test_to_dict_with_skip(self):
         # When
         obj = NewBase(unique_name="skip_test", display_name="Skip Test Object")
         # Then
-        obj_dict = obj.as_dict(skip=['display_name'])
+        obj_dict = obj.to_dict(skip=['display_name'])
         # Expect
         assert isinstance(obj_dict, dict)
         assert obj_dict['unique_name'] == "skip_test"
@@ -178,7 +178,7 @@ class TestNewBase:
         dir_list = dir(obj)
         # Then
         expected_attributes = [
-            'as_dict',
+            'to_dict',
             'unique_name',
             'display_name',
             'from_dict',

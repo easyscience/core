@@ -91,7 +91,7 @@ class NewBase:
             raise TypeError('Display name must be a string or None')
         self._display_name = name
 
-    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Convert an EasyScience object into a full dictionary using `SerializerBase`s generic `convert_to_dict` method.
 
@@ -134,7 +134,7 @@ class NewBase:
 
     def __copy__(self) -> NewBase:
         """Return a copy of the object."""
-        temp = self.as_dict(skip=['unique_name'])
+        temp = self.to_dict(skip=['unique_name'])
         new_obj = self.__class__.from_dict(temp)
         return new_obj
 
