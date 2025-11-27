@@ -108,7 +108,7 @@ class NewBase:
         return serializer._convert_to_dict(self, skip=skip, full_encode=False)
 
     @classmethod
-    def from_dict(cls, obj_dict: Dict[str, Any]) -> None:
+    def from_dict(cls, obj_dict: Dict[str, Any]) -> NewBase:
         """
         Re-create an EasyScience object from a full encoded dictionary.
 

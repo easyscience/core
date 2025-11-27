@@ -89,7 +89,7 @@ class ModelBase(NewBase):
         return self.get_free_parameters()
 
     @classmethod
-    def from_dict(cls, obj_dict: Dict[str, Any]) -> None:
+    def from_dict(cls, obj_dict: Dict[str, Any]) -> ModelBase:
         """
         Re-create an EasyScience object with DescriptorNumber attributes from a full encoded dictionary.
 
@@ -107,9 +107,13 @@ class ModelBase(NewBase):
                     kwargs[key] = value.value
             cls_instance = cls(**kwargs)
             for key, value in parameter_placeholder.items():
-                temp_param = getattr(cls_instance, key)
-                setattr(cls_instance, '_' + key, value)
-                cls_instance._global_object.map.prune(temp_param.unique_name)
+                try:
+                    temp_param = getattr(cls_instance, key)
+                    setattr(cls_instance, '_' + key, value)
+                    cls_instance._global_object.map.prune(temp_param.unique_name)
+                except Exception as e:
+                    raise SyntaxError(f"""Could not set parameter {key} during `from_dict` with full deserialized variable. \n'
+                            This should be fixed in the class definition. Error: {e}""") from e
             return cls_instance
         else:
             raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')

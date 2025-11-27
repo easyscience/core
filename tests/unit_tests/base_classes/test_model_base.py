@@ -10,6 +10,7 @@ from easyscience import DescriptorNumber
 from easyscience.variable import DescriptorStr
 from unittest.mock import MagicMock
 from easyscience.io import SerializerBase
+import numpy as np
 
 class MockModelComponent(ModelBase):
     """
@@ -231,4 +232,21 @@ class TestModelBase:
         }
         # Then / Expect
         with pytest.raises(ValueError, match='Class name in dictionary does not match the expected class: MockModelComponent.'):
+            MockModelComponent.from_dict(obj_dict)
+
+    def test_from_dict_parameter_setting_failure(self, monkeypatch, clear):
+        # When
+        model = MockModelComponent()
+        model.temperature.min = -100
+        obj_dict = model.to_dict() # We only care about deserializing dictorionaries currently created by EasyScience
+        obj_dict['@module'] = 'easyscience.base_classes.model_base'
+        monkeypatch.setattr(SerializerBase, '_import_class', MagicMock(side_effect=lambda module_name, class_name: 
+                                                                       MockModelComponent if class_name == 'MockModelComponent' 
+                                                                       else Parameter if class_name == 'Parameter' 
+                                                                       else DescriptorNumber)
+                                                                       )
+        monkeypatch.setattr(MockModelComponent, 'temperature', property(lambda self: (_ for _ in ()).throw(Exception("Simulated failure"))))
+        global_object.map._clear()
+        # Then Expect
+        with pytest.raises(SyntaxError, match='Could not set parameter temperature during `from_dict` with full deserialized variable.'):
             MockModelComponent.from_dict(obj_dict)
