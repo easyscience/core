@@ -3,7 +3,7 @@ from __future__ import annotations
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-from inspect import getfullargspec
+from inspect import signature
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -47,9 +47,9 @@ class NewBase:
         This method is used by the serializer to determine which arguments are needed
         by the constructor to deserialize the object.
         """
-        spec = getfullargspec(self.__class__.__init__)
-        names = set(spec.args[1:])
-        return names
+        sign = signature(self.__class__.__init__)
+        names = [param.name for param in sign.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
+        return set(names[1:])
 
     @property
     def unique_name(self) -> str:
