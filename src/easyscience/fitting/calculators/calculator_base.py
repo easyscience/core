@@ -80,7 +80,7 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
                 return computed_values
     """
 
-    name: str = "base"
+    name: str = 'base'
 
     def __init__(
         self,
@@ -109,11 +109,11 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
             Additional calculator-specific options.
         """
         if model is None:
-            raise ValueError("Model cannot be None")
-        
+            raise ValueError('Model cannot be None')
+
         # Initialize NewBase with naming
         super().__init__(unique_name=unique_name, display_name=display_name)
-        
+
         self._model = model
         self._instrumental_parameters = instrumental_parameters
         self._additional_kwargs = kwargs
@@ -146,7 +146,7 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
             If the new model is None.
         """
         if new_model is None:
-            raise ValueError("Model cannot be None")
+            raise ValueError('Model cannot be None')
         self._model = new_model
 
     @property
@@ -250,12 +250,12 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
     def __repr__(self) -> str:
         """Return a string representation of the calculator."""
         model_name = getattr(self._model, 'name', type(self._model).__name__)
-        instr_info = ""
+        instr_info = ''
         if self._instrumental_parameters is not None:
             instr_name = getattr(
                 self._instrumental_parameters,
                 'name',
-                type(self._instrumental_parameters).__name__ # default to class name if no 'name' attribute
+                type(self._instrumental_parameters).__name__,  # default to class name if no 'name' attribute
             )
-            instr_info = f", instrumental_parameters={instr_name}"
-        return f"{self.__class__.__name__}(model={model_name}{instr_info})"
+            instr_info = f', instrumental_parameters={instr_name}'
+        return f'{self.__class__.__name__}(model={model_name}{instr_info})'

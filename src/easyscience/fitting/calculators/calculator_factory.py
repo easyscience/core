@@ -140,7 +140,7 @@ class CalculatorFactoryBase(metaclass=ABCMeta):
 
     def __repr__(self) -> str:
         """Return a string representation of the factory."""
-        return f"{self.__class__.__name__}(available={self.available_calculators})"
+        return f'{self.__class__.__name__}(available={self.available_calculators})'
 
 
 class SimpleCalculatorFactory(CalculatorFactoryBase):
@@ -252,25 +252,20 @@ class SimpleCalculatorFactory(CalculatorFactoryBase):
             If model is None or instrumental_parameters has wrong type.
         """
         if not isinstance(calculator_name, str):
-            raise ValueError(f"calculator_name must be a string, got {type(calculator_name).__name__}")
-        
+            raise ValueError(f'calculator_name must be a string, got {type(calculator_name).__name__}')
+
         if calculator_name not in self._calculators:
-            available = ", ".join(self.available_calculators) if self.available_calculators else "none"
-            raise ValueError(
-                f"Unknown calculator '{calculator_name}'. "
-                f"Available calculators: {available}"
-            )
-        
+            available = ', '.join(self.available_calculators) if self.available_calculators else 'none'
+            raise ValueError(f"Unknown calculator '{calculator_name}'. Available calculators: {available}")
+
         if model is None:
-            raise TypeError("model cannot be None")
-        
+            raise TypeError('model cannot be None')
+
         calculator_class = self._calculators[calculator_name]
         try:
             return calculator_class(model, instrumental_parameters, **kwargs)
         except Exception as e:
-            raise type(e)(
-                f"Failed to create calculator '{calculator_name}': {e}"
-            ) from e
+            raise type(e)(f"Failed to create calculator '{calculator_name}': {e}") from e
 
     def register(self, name: str, calculator_class: Type[CalculatorBase]) -> None:
         """
@@ -289,7 +284,7 @@ class SimpleCalculatorFactory(CalculatorFactoryBase):
             If calculator_class is not a subclass of CalculatorBase.
         ValueError
             If name is empty or not a string.
-        
+
         Warnings
         --------
         If overwriting an existing calculator, a warning is issued.
@@ -300,21 +295,14 @@ class SimpleCalculatorFactory(CalculatorFactoryBase):
         from .calculator_base import CalculatorBase
 
         if not isinstance(name, str) or not name:
-            raise ValueError("Calculator name must be a non-empty string")
+            raise ValueError('Calculator name must be a non-empty string')
 
         if not (isinstance(calculator_class, type) and issubclass(calculator_class, CalculatorBase)):
-            raise TypeError(
-                f"calculator_class must be a subclass of CalculatorBase, "
-                f"got {type(calculator_class).__name__}"
-            )
-        
+            raise TypeError(f'calculator_class must be a subclass of CalculatorBase, got {type(calculator_class).__name__}')
+
         if name in self._calculators:
-            warnings.warn(
-                f"Overwriting existing calculator '{name}' in {self.__class__.__name__}",
-                UserWarning,
-                stacklevel=2
-            )
-        
+            warnings.warn(f"Overwriting existing calculator '{name}' in {self.__class__.__name__}", UserWarning, stacklevel=2)
+
         self._calculators[name] = calculator_class
 
     def unregister(self, name: str) -> None:

@@ -8,8 +8,8 @@ from .calculator_factory import SimpleCalculatorFactory
 from .interface_factory import InterfaceFactoryTemplate
 
 __all__ = [
-    "CalculatorBase",
-    "CalculatorFactoryBase",
-    "SimpleCalculatorFactory",
-    "InterfaceFactoryTemplate",  # Deprecated, kept for backwards compatibility
+    'CalculatorBase',
+    'CalculatorFactoryBase',
+    'SimpleCalculatorFactory',
+    'InterfaceFactoryTemplate',  # Deprecated, kept for backwards compatibility
 ]
