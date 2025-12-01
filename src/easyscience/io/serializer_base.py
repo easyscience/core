@@ -260,6 +260,76 @@ class SerializerBase:
             return [SerializerBase._convert_from_dict(x) for x in d]
         return d
 
+    @staticmethod
+    def deserialize_dict(in_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Deserialize a dictionary using from_dict for ES objects and SerializerBase otherwise.
+        This method processes constructor arguments, skipping metadata keys starting with '@'.
+
+        :param in_dict: dictionary to deserialize
+        :return: deserialized dictionary with constructor arguments
+        """
+        d = {key: SerializerBase._deserialize_value(value) for key, value in in_dict.items() if not key.startswith('@')}
+        return d
+
+    @staticmethod
+    def _deserialize_value(value: Any) -> Any:
+        """
+        Deserialize a single value, using specialized handling for ES objects.
+
+        :param value:
+        :return: deserialized value
+        """
+        if not SerializerBase._is_serialized_easyscience_object(value):
+            return SerializerBase._convert_from_dict(value)
+
+        module_name = value['@module']
+        class_name = value['@class']
+
+        try:
+            cls = SerializerBase._import_class(module_name, class_name)
+
+            # Prefer from_dict() method for ES objects
+            if hasattr(cls, 'from_dict'):
+                return cls.from_dict(value)
+            else:
+                return SerializerBase._convert_from_dict(value)
+
+        except (ImportError, ValueError):
+            # Fallback to generic deserialization if class-specific fails
+            return SerializerBase._convert_from_dict(value)
+
+    @staticmethod
+    def _is_serialized_easyscience_object(value: Any) -> bool:
+        """
+        Check if a value represents a serialized ES object.
+
+        :param value:
+        :return: True if this is a serialized ES object
+        """
+        return isinstance(value, dict) and '@module' in value and value['@module'].startswith('easy') and '@class' in value
+
+    @staticmethod
+    def _import_class(module_name: str, class_name: str):
+        """
+        Import a class from a module name and class name.
+
+        :param module_name: name of the module
+        :param class_name: name of the class
+        :return: the imported class
+        :raises ImportError: if module cannot be imported
+        :raises ValueError: if class is not found in module
+        """
+        try:
+            module = __import__(module_name, globals(), locals(), [class_name], 0)
+        except ImportError as e:
+            raise ImportError(f'Could not import module {module_name}') from e
+
+        if not hasattr(module, class_name):
+            raise ValueError(f'Class {class_name} not found in module {module_name}.')
+
+        return getattr(module, class_name)
+
     def _recursive_encoder(self, obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs):
         """
         Walk through an object encoding it
@@ -271,10 +341,14 @@ class SerializerBase:
             # Is it a core MutableSequence?
             if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
                 return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
+            elif hasattr(obj, 'to_dict') and obj.__class__.__module__.startswith('easy'):
+                return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
             else:
                 return [self._recursive_encoder(it, skip, encoder, full_encode, **kwargs) for it in obj]
         if isinstance(obj, dict):
             return {kk: self._recursive_encoder(vv, skip, encoder, full_encode, **kwargs) for kk, vv in obj.items()}
         if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
+            return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
+        elif hasattr(obj, 'to_dict') and obj.__class__.__module__.startswith('easy'):
             return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
         return obj

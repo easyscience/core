@@ -10,6 +10,7 @@ from easyscience import AvailableMinimizers
 from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience.fitting.minimizers import FitError
+from easyscience.base_classes import ModelBase
 
 # Model and container of parameters for tests
 class AbsSin(ObjBase):
@@ -49,6 +50,31 @@ class AbsSin2DL(AbsSin2D):
         return np.abs(
             np.sin(self.phase.value * X + self.offset.value)
         ) * np.abs(np.sin(self.phase.value * Y + self.offset.value))
+
+class StraightLine(ModelBase):
+    def __init__(self, slope: float, intercept: float):
+        super().__init__()
+        self._slope = Parameter("slope", slope)
+        self._intercept = Parameter("intercept", intercept)
+
+    @property
+    def slope(self) -> Parameter:
+        return self._slope
+    
+    @slope.setter
+    def slope(self, value: float) -> None:
+        self._slope.value = value
+
+    @property
+    def intercept(self) -> Parameter:
+        return self._intercept
+
+    @intercept.setter
+    def intercept(self, value: float) -> None:
+        self._intercept.value = value
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return self.slope.value * x + self.intercept.value
 
 
 def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
@@ -344,3 +370,22 @@ def test_fixed_parameter_does_not_change(fit_engine):
     assert sp_sin.offset.value == pytest.approx(fixed_offset_before, abs=1e-12)
     # Phase should be optimized
     assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
+
+def test_fitter_new_model_base_integration():
+    # WHEN
+    ground_truth = StraightLine(slope=2.0, intercept=1.0)
+    model = StraightLine(slope=0.5, intercept=0.0)
+
+    x = np.linspace(0, 10, 100)
+    weights = np.ones_like(x)
+    y = ground_truth(x)
+
+    # THEN
+    model.slope.fixed = False
+    model.intercept.fixed = False
+    fitter = Fitter(model, model)
+    result = fitter.fit(x=x, y=y, weights=weights)
+
+    # EXPECT
+    assert model.slope.value == pytest.approx(ground_truth.slope.value, rel=1e-3)
+    assert model.intercept.value == pytest.approx(ground_truth.intercept.value, rel=1e-3)
