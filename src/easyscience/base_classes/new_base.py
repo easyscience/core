@@ -81,7 +81,7 @@ class NewBase:
 
     @display_name.setter
     @property_stack
-    def display_name(self, name: str) -> None:
+    def display_name(self, name: str | None) -> None:
         """
         Set the pretty display name.
 
