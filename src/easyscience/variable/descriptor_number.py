@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numbers
+import uuid
 from typing import Any
 from typing import Dict
 from typing import List
@@ -27,12 +28,14 @@ def notify_observers(func):
     :param func: Function to be decorated
     :return: Decorated function
     """
+
     def wrapper(self, *args, **kwargs):
         result = func(self, *args, **kwargs)
         self._notify_observers()
         return result
 
     return wrapper
+
 
 class DescriptorNumber(DescriptorBase):
     """
@@ -50,6 +53,7 @@ class DescriptorNumber(DescriptorBase):
         url: Optional[str] = None,
         display_name: Optional[str] = None,
         parent: Optional[Any] = None,
+        **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
         """Constructor for the DescriptorNumber class
 
@@ -64,6 +68,10 @@ class DescriptorNumber(DescriptorBase):
         .. note:: Undo/Redo functionality is implemented for the attributes `variance`, `error`, `unit` and `value`.
         """
         self._observers: List[DescriptorNumber] = []
+
+        # Extract serializer_id if provided during deserialization
+        if '__serializer_id' in kwargs:
+            self.__serializer_id = kwargs.pop('__serializer_id')
 
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
             raise TypeError(f'{value=} must be a number')
@@ -92,7 +100,6 @@ class DescriptorNumber(DescriptorBase):
         if self.unit is not None:
             self._convert_unit(self._base_unit())
 
-
     @classmethod
     def from_scipp(cls, name: str, full_value: Variable, **kwargs) -> DescriptorNumber:
         """
@@ -112,10 +119,14 @@ class DescriptorNumber(DescriptorBase):
     def _attach_observer(self, observer: DescriptorNumber) -> None:
         """Attach an observer to the descriptor."""
         self._observers.append(observer)
+        if not hasattr(self, '_DescriptorNumber__serializer_id'):
+            self.__serializer_id = str(uuid.uuid4())
 
     def _detach_observer(self, observer: DescriptorNumber) -> None:
         """Detach an observer from the descriptor."""
         self._observers.remove(observer)
+        if not self._observers:
+            del self.__serializer_id
 
     def _notify_observers(self) -> None:
         """Notify all observers of a change."""
@@ -128,9 +139,11 @@ class DescriptorNumber(DescriptorBase):
         :param origin: Unique_name of the origin of this validation check. Used to avoid cyclic depenencies.
         """
         if origin == self.unique_name:
-            raise RuntimeError('\n Cyclic dependency detected!\n' +
-                    f'An update of {self.unique_name} leads to it updating itself.\n' +
-                    'Please check your dependencies.')
+            raise RuntimeError(
+                '\n Cyclic dependency detected!\n'
+                + f'An update of {self.unique_name} leads to it updating itself.\n'
+                + 'Please check your dependencies.'
+            )
         if origin is None:
             origin = self.unique_name
         for observer in self._observers:
@@ -266,7 +279,7 @@ class DescriptorNumber(DescriptorBase):
         try:
             new_scalar = self._scalar.to(unit=new_unit)
         except Exception as e:
-            raise UnitError(f"Failed to convert unit: {e}") from e
+            raise UnitError(f'Failed to convert unit: {e}') from e
 
         # Define the setter function for the undo stack
         def set_scalar(obj, scalar):
@@ -274,7 +287,7 @@ class DescriptorNumber(DescriptorBase):
 
         # Push to undo stack
         self._global_object.stack.push(
-            PropertyStack(self, set_scalar, old_scalar, new_scalar, text=f"Convert unit to {unit_str}")
+            PropertyStack(self, set_scalar, old_scalar, new_scalar, text=f'Convert unit to {unit_str}')
         )
 
         # Update the scalar
@@ -299,7 +312,7 @@ class DescriptorNumber(DescriptorBase):
         string = '<'
         string += self.__class__.__name__ + ' '
         string += f"'{self._name}': "
-        if np.abs(self._scalar.value)>1e4 or (np.abs(self._scalar.value)<1e-4 and self._scalar.value != 0):
+        if np.abs(self._scalar.value) > 1e4 or (np.abs(self._scalar.value) < 1e-4 and self._scalar.value != 0):
             # Use scientific notation for large or small values
             string += f'{self._scalar.value:.3e}'
             if self.variance:
@@ -323,6 +336,8 @@ class DescriptorNumber(DescriptorBase):
         raw_dict['value'] = self._scalar.value
         raw_dict['unit'] = str(self._scalar.unit)
         raw_dict['variance'] = self._scalar.variance
+        if hasattr(self, '_DescriptorNumber__serializer_id'):
+            raw_dict['__serializer_id'] = self.__serializer_id
         return raw_dict
 
     def __add__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:

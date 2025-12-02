@@ -59,8 +59,7 @@ class Polynomial(ObjBase):
             if len(self.coefficients) >= 2:
                 s += [f'{self.coefficients[1].value}x']
                 if len(self.coefficients) >= 3:
-                    s += [f'{c.value}x^{i+2}' for i, c in enumerate(self.coefficients[2:]) if c.value != 0]
+                    s += [f'{c.value}x^{i + 2}' for i, c in enumerate(self.coefficients[2:]) if c.value != 0]
         s.reverse()
         s = ' + '.join(s)
         return 'Polynomial({}, {})'.format(self.name, s)
-

@@ -24,10 +24,10 @@ class _EntryList(list):
             s += ', '.join(self._type)
         else:
             s += 'Undefined'
-        s += '. With'
         if self.finalizer is None:
-            s += 'out'
-        s += 'a finalizer.'
+            s += '. Without a finalizer.'
+        else:
+            s += '. With a finalizer.'
         return s
 
     def __delitem__(self, key):
@@ -261,7 +261,7 @@ class Map:
         return False
 
     def _clear(self):
-        """Reset the map to an empty state."""
+        """Reset the map to an empty state. Only to be used for testing"""
         for vertex in self.vertices():
             self.prune(vertex)
         gc.collect()

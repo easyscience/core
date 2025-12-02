@@ -38,6 +38,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+build = [
+    "hatchling <= 1.21.0",
+    "setuptools-git-versioning",
+    "build"
+]
 dev = [
     "build",
     "codecov",
@@ -46,7 +51,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "tox-gh-actions"
+    "tox-gh-actions",
+    "jupyterlab"
 ]
 docs = [
     "doc8",
@@ -136,6 +142,7 @@ python =
 PLATFORM =
     ubuntu-latest: linux
     macos-latest: macos
+    macos-15-intel: macos-intel
     windows-latest: windows
 [testenv]
 passenv =

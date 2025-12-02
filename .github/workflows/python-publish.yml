@@ -1,5 +1,5 @@
 # This workflow will
-# - build distribution package, pure python wheel
+# - build distribution package, pure python wheel using pixi
 # - publish produced distribution package to PyPI
 #
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
@@ -26,14 +26,11 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
-    - uses: actions/setup-python@v6
-      with:
-        python-version: '3.11'
+    - name: Setup Pixi
+      uses: ./.github/actions/setup-pixi
 
-    - name: Install dependencies and build
-      run: |
-        pip install -e '.[dev]'
-        python -m build
+    - name: Build package
+      run: pixi run build
 
     - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1

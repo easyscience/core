@@ -15,7 +15,7 @@ from typing import Union
 
 import numpy as np
 
-from easyscience import global_object
+# Removed: from easyscience import global_object  # Avoid circular import
 
 
 class UndoCommand(metaclass=abc.ABCMeta):
@@ -53,6 +53,8 @@ T_ = TypeVar('T_', bound=UndoCommand)
 
 def dict_stack_deco(func: Callable) -> Callable:
     def inner(obj, *args, **kwargs):
+        from easyscience import global_object  # Local import to avoid circular dependency
+
         # Only do the work to a NotarizedDict.
         if hasattr(obj, '_stack_enabled') and obj._stack_enabled:
             if not kwargs:
@@ -71,6 +73,8 @@ class NotarizedDict(UserDict):
     """
 
     def __init__(self, **kwargs):
+        from easyscience import global_object  # Local import to avoid circular dependency
+
         super().__init__(**kwargs)
         self._global_object = global_object
         self._stack_enabled = False
@@ -455,6 +459,8 @@ def property_stack(arg: Union[str, Callable], begin_macro: bool = False) -> Call
 
     def make_wrapper(func: Callable, name: str, **kwargs) -> Callable:
         def wrapper(obj, *args) -> NoReturn:
+            from easyscience import global_object  # Local import to avoid circular dependency
+
             old_value = getattr(obj, name)
             new_value = args[0]
             if issubclass(type(old_value), Iterable) or issubclass(type(new_value), Iterable):

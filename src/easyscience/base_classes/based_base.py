@@ -3,8 +3,10 @@ from __future__ import annotations
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-from inspect import getfullargspec
+from inspect import signature
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
@@ -38,9 +40,9 @@ class BasedBase(SerializerComponent):
     @property
     def _arg_spec(self) -> Set[str]:
         base_cls = getattr(self, '__old_class__', self.__class__)
-        spec = getfullargspec(base_cls.__init__)
-        names = set(spec.args[1:])
-        return names
+        sign = signature(base_cls.__init__)
+        names = [param.name for param in sign.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
+        return set(names[1:])
 
     def __reduce__(self):
         """
@@ -195,4 +197,17 @@ class BasedBase(SerializerComponent):
         new_obj = self.__class__.from_dict(temp)
         return new_obj
 
+    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Convert an object into a full dictionary using `SerializerDict`.
+        This is a shortcut for ```obj.encode(encoder=SerializerDict)```
 
+        :param skip: List of field names as strings to skip when forming the dictionary
+        :return: encoded object containing all information to reform an EasyScience object.
+        """
+        # extend skip to include unique_name by default
+        if skip is None:
+            skip = []
+        if 'unique_name' not in skip:
+            skip.append('unique_name')
+        return super().as_dict(skip=skip)

@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from ..io import SerializerComponent
 
 
-
 class ObjBase(BasedBase):
     """
     This is the base class for which all higher level classes are built off of.
@@ -69,17 +68,12 @@ class ObjBase(BasedBase):
         Dynamically add a component to the class. This is an internal method, though can be called remotely.
         The recommended alternative is to use typing, i.e.
 
-        class Foo(Bar):
-            def __init__(self, foo: Parameter, bar: Parameter):
-                super(Foo, self).__init__(bar=bar)
-                self._add_component("foo", foo)
+        .. code-block:: python
 
-        Goes to:
-         class Foo(Bar):
-            foo: ClassVar[Parameter]
-            def __init__(self, foo: Parameter, bar: Parameter):
-                super(Foo, self).__init__(bar=bar)
-                self.foo = foo
+            class Foo(Bar):
+                def __init__(self, foo: Parameter, bar: Parameter):
+                    super(Foo, self).__init__(bar=bar)
+                    self._add_component("foo", foo)
 
         :param key: Name of component to be added
         :param component: Component to be added
@@ -127,7 +121,7 @@ class ObjBase(BasedBase):
                 self.generate_bindings()
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__} `{getattr(self, 'name')}`"
+        return f'{self.__class__.__name__} `{getattr(self, "name")}`'
 
     @staticmethod
     def __getter(key: str) -> Callable[[SerializerComponent], SerializerComponent]:
@@ -139,9 +133,7 @@ class ObjBase(BasedBase):
     @staticmethod
     def __setter(key: str) -> Callable[[SerializerComponent], None]:
         def setter(obj: SerializerComponent, value: float) -> None:
-            if issubclass(obj._kwargs[key].__class__, (DescriptorBase)) and not issubclass(
-                value.__class__, (DescriptorBase)
-            ):
+            if issubclass(obj._kwargs[key].__class__, (DescriptorBase)) and not issubclass(value.__class__, (DescriptorBase)):
                 obj._kwargs[key].value = value
             else:
                 obj._kwargs[key] = value
