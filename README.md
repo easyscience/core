@@ -33,7 +33,7 @@ After installation, launch the test suite:
 
 Documentation can be found at:
 
-[https://easyScience.github.io/EasyScience](https://easyScience.github.io/EasyScience)
+[https://easyScience.github.io/corelib](https://easyScience.github.io/corelib)
 
 ## Contributing
 We absolutely welcome contributions. **EasyScience** is maintained by the ESS and on a volunteer basis and thus we need to foster a community that can support user questions and develop new features to make this software a useful tool for all users while encouraging every member of the community to share their ideas.
