@@ -44,3 +44,4 @@ jobs:
       continue-on-error: true
       with:
         branch: gh-pages
+        force: true
