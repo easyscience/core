@@ -1,0 +1,612 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Welcome to EasyScience’s documentation! &#8212; EasyScience  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <link rel="icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Overview" href="getting-started/overview.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/ec_sidebar_w.png" class="logo__image only-light" alt="EasyScience  documentation - Home"/>
+    <script>document.write(`<img src="_static/ec_sidebar_w.png" class="logo__image only-dark" alt="EasyScience  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting-started/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/installation.html">Installation</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="fitting/introduction.html">Fitting in EasyScience</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="reference/base.html">API Reference</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="base_examples/index.html">Subclassing Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="base_examples/plot_baseclass1.html">Subclassing ObjBase - Simple Pendulum</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="fitting_examples/index.html">Fitting Examples</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/index.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Welcome to EasyScience’s documentation!</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-features">Key Features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-easyscience">Why EasyScience?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open-source-cross-platform">Open Source &amp; Cross-Platform</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#projects-built-with-easyscience">Projects Built with EasyScience</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-guide">Documentation Guide</a><ul class="nav section-nav flex-column">
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#need-help">Need Help?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing">Contributing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="welcome-to-easyscience-s-documentation">
+<h1>Welcome to EasyScience’s documentation!<a class="headerlink" href="#welcome-to-easyscience-s-documentation" title="Link to this heading">#</a></h1>
+<p><strong>EasyScience</strong> is a foundational Python library that provides the building blocks for scientific data simulation, analysis, and fitting.
+It implements a descriptor-based object system with global state management, making it easier to create scientific models with parameters
+that have units, bounds, and dependencies.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easyscience</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">ObjBase</span><span class="p">,</span> <span class="n">Fitter</span>
+
+<span class="c1"># Create a model with scientific parameters</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SineModel</span><span class="p">(</span><span class="n">ObjBase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="n">amp</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;amplitude&quot;</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">)</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">)</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">3.14</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;rad&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;sine_model&quot;</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">frequency</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+<span class="c1"># Fit to experimental data</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">SineModel</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">amplitude</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Allow fitting</span>
+<span class="n">fitter</span> <span class="o">=</span> <span class="n">Fitter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x_data</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt><strong>Scientific Parameters with Units</strong></dt><dd><p>Parameters automatically handle physical units, bounds, and uncertainties using <a class="reference external" href="https://scipp.github.io/">scipp</a> integration.</p>
+</dd>
+<dt><strong>Parameter Dependencies</strong></dt><dd><p>Express mathematical relationships between parameters that update automatically when dependencies change.</p>
+</dd>
+<dt><strong>Multi-Backend Fitting</strong></dt><dd><p>Unified interface to LMFit, Bumps, and DFO-LS optimization engines with easy algorithm comparison.</p>
+</dd>
+<dt><strong>Complete Serialization</strong></dt><dd><p>Save and restore entire model states including parameter relationships and dependencies.</p>
+</dd>
+<dt><strong>Global State Management</strong></dt><dd><p>Automatic tracking of all objects and their relationships with built-in undo/redo capabilities.</p>
+</dd>
+<dt><strong>Developer-Friendly</strong></dt><dd><p>Clean APIs, comprehensive testing utilities, and extensive documentation for building scientific applications.</p>
+</dd>
+</dl>
+</section>
+<section id="why-easyscience">
+<h2>Why EasyScience?<a class="headerlink" href="#why-easyscience" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt><strong>Type Safety &amp; Units</strong></dt><dd><p>Prevent common scientific computing errors with automatic unit checking and strong typing.</p>
+</dd>
+<dt><strong>Reproducible Research</strong></dt><dd><p>Complete state serialization ensures exact reproducibility of scientific analyses.</p>
+</dd>
+<dt><strong>Algorithm Flexibility</strong></dt><dd><p>Compare different optimization approaches without changing your model code.</p>
+</dd>
+<dt><strong>Extensible Architecture</strong></dt><dd><p>Descriptor pattern makes it easy to create new parameter types and model components.</p>
+</dd>
+</dl>
+</section>
+<section id="open-source-cross-platform">
+<h2>Open Source &amp; Cross-Platform<a class="headerlink" href="#open-source-cross-platform" title="Link to this heading">#</a></h2>
+<p>EasyScience is free and open-source software with the source code openly shared on <a class="reference external" href="https://github.com/easyScience/EasyScience">GitHub repository</a>.</p>
+<ul class="simple">
+<li><p><strong>Cross-platform</strong> - Written in Python and available for Windows, macOS, and Linux</p></li>
+<li><p><strong>Well-tested</strong> - Comprehensive test suite ensuring reliability across platforms</p></li>
+<li><p><strong>Community-driven</strong> - Open to contributions and feature requests</p></li>
+<li><p><strong>Production-ready</strong> - Used in multiple scientific applications worldwide</p></li>
+</ul>
+</section>
+<section id="projects-built-with-easyscience">
+<h2>Projects Built with EasyScience<a class="headerlink" href="#projects-built-with-easyscience" title="Link to this heading">#</a></h2>
+<p>EasyScience serves as the foundation for several scientific applications:</p>
+<dl>
+<dt><strong>easyDiffraction</strong></dt><dd><a class="reference external image-reference" href="https://easydiffraction.org"><img alt="https://raw.githubusercontent.com/easyScience/easyDiffractionWww/master/assets/img/card.png" src="https://raw.githubusercontent.com/easyScience/easyDiffractionWww/master/assets/img/card.png" style="width: 300px;" />
+</a>
+<p>Scientific software for modeling and analysis of neutron diffraction data, providing an intuitive interface for crystallographic refinement.</p>
+</dd>
+<dt><strong>easyReflectometry</strong></dt><dd><a class="reference external image-reference" href="https://easyreflectometry.org"><img alt="https://raw.githubusercontent.com/easyScience/easyReflectometryWww/master/assets/img/card.png" src="https://raw.githubusercontent.com/easyScience/easyReflectometryWww/master/assets/img/card.png" style="width: 300px;" />
+</a>
+<p>Scientific software for modeling and analysis of neutron reflectometry data, enabling detailed study of thin film structures.</p>
+</dd>
+<dt><strong>Your Project Here</strong></dt><dd><p>EasyScience’s flexible architecture makes it ideal for building domain-specific scientific applications. The comprehensive API and documentation help you get started quickly.</p>
+</dd>
+</dl>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
+<p>Ready to begin? Here’s how to get started:</p>
+<ol class="arabic simple">
+<li><p><strong>Install EasyScience</strong>: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">easyscience</span></code></p></li>
+<li><p><strong>Read the Overview</strong>: Understand the core concepts and architecture</p></li>
+<li><p><strong>Try the Examples</strong>: Work through practical fitting examples</p></li>
+<li><p><strong>Explore the API</strong>: Dive into the comprehensive reference documentation</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>easyscience
+</pre></div>
+</div>
+<p>Then explore the tutorials and examples to learn the key concepts!</p>
+</section>
+<section id="documentation-guide">
+<h2>Documentation Guide<a class="headerlink" href="#documentation-guide" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/installation.html">Installation</a></li>
+</ul>
+</div>
+<p>New to EasyScience? Start with the <a class="reference internal" href="getting-started/overview.html"><span class="doc">Overview</span></a> to understand the core concepts, then follow the <a class="reference internal" href="getting-started/installation.html"><span class="doc">Installation</span></a> guide.</p>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitting/introduction.html">Fitting in EasyScience</a></li>
+</ul>
+</div>
+<p>Learn how to use EasyScience for scientific modeling and data fitting with comprehensive examples and best practices.</p>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/base.html">API Reference</a></li>
+</ul>
+</div>
+<p>Complete API documentation for all classes, methods, and functions in EasyScience.</p>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="base_examples/index.html">Subclassing Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fitting_examples/index.html">Fitting Examples</a></li>
+</ul>
+</div>
+<p>Practical examples and tutorials demonstrating real-world usage patterns.</p>
+</section>
+<section id="need-help">
+<h2>Need Help?<a class="headerlink" href="#need-help" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>GitHub Issues</strong>: Report bugs or request features on <a class="reference external" href="https://github.com/easyScience/EasyScience/issues">GitHub Issues</a></p></li>
+<li><p><strong>Discussions</strong>: Ask questions in <a class="reference external" href="https://github.com/easyScience/EasyScience/discussions">GitHub Discussions</a></p></li>
+<li><p><strong>API Reference</strong>: Complete documentation of all classes and methods</p></li>
+<li><p><strong>Examples</strong>: Practical tutorials and code samples</p></li>
+</ul>
+</section>
+<section id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h2>
+<p>EasyScience is developed openly and welcomes contributions! Whether you’re fixing bugs, adding features, improving documentation, or sharing usage examples, your contributions help make scientific computing more accessible.</p>
+<p>Visit our <a class="reference external" href="https://github.com/easyScience/EasyScience">GitHub repository</a> to:</p>
+<ul class="simple">
+<li><p>Report issues or suggest features</p></li>
+<li><p>Submit pull requests</p></li>
+<li><p>Join discussions about development</p></li>
+<li><p>Help improve documentation</p></li>
+</ul>
+</section>
+<section id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="getting-started/overview.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Overview</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-features">Key Features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-easyscience">Why EasyScience?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open-source-cross-platform">Open Source &amp; Cross-Platform</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#projects-built-with-easyscience">Projects Built with EasyScience</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-guide">Documentation Guide</a><ul class="nav section-nav flex-column">
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#need-help">Need Help?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing">Contributing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By EasyScience Contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, EasyScience Contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

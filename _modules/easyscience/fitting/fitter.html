@@ -1,0 +1,678 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>easyscience.fitting.fitter &#8212; EasyScience  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/easyscience/fitting/fitter';</script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/ec_sidebar_w.png" class="logo__image only-light" alt="EasyScience  documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/ec_sidebar_w.png" class="logo__image only-dark" alt="EasyScience  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation.html">Installation</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../fitting/introduction.html">Fitting in EasyScience</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/base.html">API Reference</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../base_examples/index.html">Subclassing Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../base_examples/plot_baseclass1.html">Subclassing ObjBase - Simple Pendulum</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fitting_examples/index.html">Fitting Examples</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for easyscience.fitting.fitter</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  SPDX-FileCopyrightText: 2025 EasyScience contributors  &lt;core@easyscience.software&gt;</span>
+<span class="c1">#  SPDX-License-Identifier: BSD-3-Clause</span>
+<span class="c1">#  © 2021-2025 Contributors to the EasyScience project &lt;https://github.com/easyScience/EasyScience</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.available_minimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AvailableMinimizers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.available_minimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">from_string_to_enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.minimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">FitResults</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.minimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinimizerBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.minimizers.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">factory</span>
+
+<span class="n">DEFAULT_MINIMIZER</span> <span class="o">=</span> <span class="n">AvailableMinimizers</span><span class="o">.</span><span class="n">LMFit_leastsq</span>
+
+
+<div class="viewcode-block" id="Fitter">
+<a class="viewcode-back" href="../../../reference/base.html#easyscience.fitting.Fitter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Fitter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fitter is a class which makes it possible to undertake fitting utilizing one of the supported minimizers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fit_object</span><span class="p">,</span> <span class="n">fit_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_object</span> <span class="o">=</span> <span class="n">fit_object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_function</span> <span class="o">=</span> <span class="n">fit_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dependent_dims</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_evaluations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span><span class="p">:</span> <span class="n">MinimizerBase</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># set in _update_minimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enum_current_minimizer</span><span class="p">:</span> <span class="n">AvailableMinimizers</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># set in _update_minimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_minimizer</span><span class="p">(</span><span class="n">DEFAULT_MINIMIZER</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Fitter.make_model">
+<a class="viewcode-back" href="../../../reference/base.html#easyscience.fitting.Fitter.make_model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pars</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span><span class="o">.</span><span class="n">make_model</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Fitter.evaluate">
+<a class="viewcode-back" href="../../../reference/base.html#easyscience.fitting.Fitter.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pars</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_pars_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pars</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span><span class="o">.</span><span class="n">convert_to_pars_obj</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span>
+
+    <span class="c1"># TODO: remove this method when we are ready to adjust the dependent products</span>
+<div class="viewcode-block" id="Fitter.initialize">
+<a class="viewcode-back" href="../../../reference/base.html#easyscience.fitting.Fitter.initialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fit_object</span><span class="p">,</span> <span class="n">fit_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the model and callable in the calculator interface.</span>
+
+<span class="sd">        :param fit_object: The EasyScience model object</span>
+<span class="sd">        :param fit_function: The function to be optimized against.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_object</span> <span class="o">=</span> <span class="n">fit_object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_function</span> <span class="o">=</span> <span class="n">fit_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_minimizer</span><span class="p">(</span><span class="n">DEFAULT_MINIMIZER</span><span class="p">)</span></div>
+
+
+    <span class="c1"># TODO: remove this method when we are ready to adjust the dependent products</span>
+<div class="viewcode-block" id="Fitter.create">
+<a class="viewcode-back" href="../../../reference/base.html#easyscience.fitting.Fitter.create">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minimizer_enum</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">AvailableMinimizers</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_MINIMIZER</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the required minimizer.</span>
+<span class="sd">        :param minimizer_enum: The enum of the minimization engine to create.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minimizer_enum</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;minimizer should be set with enum </span><span class="si">{</span><span class="n">minimizer_enum</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">minimizer_enum</span> <span class="o">=</span> <span class="n">from_string_to_enum</span><span class="p">(</span><span class="n">minimizer_enum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_minimizer</span><span class="p">(</span><span class="n">minimizer_enum</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Fitter.switch_minimizer">
+<a class="viewcode-back" href="../../../reference/base.html#easyscience.fitting.Fitter.switch_minimizer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">switch_minimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minimizer_enum</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">AvailableMinimizers</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Switch minimizer and initialize.</span>
+
+<span class="sd">        :param minimizer_enum: The enum of the minimizer to create and instantiate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minimizer_enum</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;minimizer should be set with enum </span><span class="si">{</span><span class="n">minimizer_enum</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">minimizer_enum</span> <span class="o">=</span> <span class="n">from_string_to_enum</span><span class="p">(</span><span class="n">minimizer_enum</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_minimizer</span><span class="p">(</span><span class="n">minimizer_enum</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_minimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minimizer_enum</span><span class="p">:</span> <span class="n">AvailableMinimizers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span> <span class="o">=</span> <span class="n">factory</span><span class="p">(</span><span class="n">minimizer_enum</span><span class="o">=</span><span class="n">minimizer_enum</span><span class="p">,</span> <span class="n">fit_object</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_fit_object</span><span class="p">,</span> <span class="n">fit_function</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_function</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enum_current_minimizer</span> <span class="o">=</span> <span class="n">minimizer_enum</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">available_minimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a list of the names of available fitting minimizers</span>
+
+<span class="sd">        :return: List of available fitting minimizers</span>
+<span class="sd">        :rtype: List[str]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">minimize</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">minimize</span> <span class="ow">in</span> <span class="n">AvailableMinimizers</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MinimizerBase</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the current fitting minimizer object.</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        :rtype: MinimizerBase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the tolerance for the minimizer.</span>
+
+<span class="sd">        :return: Tolerance for the minimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span>
+
+    <span class="nd">@tolerance</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the tolerance for the minimizer.</span>
+
+<span class="sd">        :param tolerance: Tolerance for the minimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span> <span class="o">=</span> <span class="n">tolerance</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_evaluations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the maximal number of evaluations for the minimizer.</span>
+
+<span class="sd">        :return: Maximal number of steps for the minimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_evaluations</span>
+
+    <span class="nd">@max_evaluations</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_evaluations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_evaluations</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the maximal number of evaluations for the minimizer.</span>
+
+<span class="sd">        :param max_evaluations: Maximal number of steps for the minimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_evaluations</span> <span class="o">=</span> <span class="n">max_evaluations</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit_function</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The raw fit function that the optimizer will call (no wrapping)</span>
+<span class="sd">        :return: Raw fit function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_function</span>
+
+    <span class="nd">@fit_function</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fit_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the raw fit function to a new one.</span>
+<span class="sd">        :param fit_function: New fit function</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_function</span> <span class="o">=</span> <span class="n">fit_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_minimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enum_current_minimizer</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit_object</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The EasyScience object which will be used as a model</span>
+<span class="sd">        :return: EasyScience Model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_object</span>
+
+    <span class="nd">@fit_object</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fit_object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the EasyScience object which wil be used as a model</span>
+<span class="sd">        :param fit_object: New EasyScience object</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_object</span> <span class="o">=</span> <span class="n">fit_object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_minimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enum_current_minimizer</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fit_function_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">real_x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flatten</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Simple fit function which injects the real X (independent) values into the</span>
+<span class="sd">        optimizer function. This will also flatten the results if needed.</span>
+<span class="sd">        :param real_x: Independent x parameters to be injected</span>
+<span class="sd">        :param flatten: Should the result be a flat 1D array?</span>
+<span class="sd">        :return: Wrapped optimizer function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fun</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_function</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fun</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">wrapped_fit_function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">real_x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">real_x</span>
+            <span class="n">dependent</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">flatten</span><span class="p">:</span>
+                <span class="n">dependent</span> <span class="o">=</span> <span class="n">dependent</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">dependent</span>
+
+        <span class="k">return</span> <span class="n">wrapped_fit_function</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Property which wraps the current `fit` function from the fitting interface. This property return a wrapped fit</span>
+<span class="sd">        function which converts the input data into the correct shape for the optimizer, wraps the fit function to</span>
+<span class="sd">        re-constitute the independent variables and once the fit is completed, reshape the inputs to those expected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">inner_fit_callable</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+            <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+            <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">vectorized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FitResults</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            This is a wrapped callable which performs the actual fitting. It is split into</span>
+<span class="sd">            3 sections, PRE/ FIT/ POST.</span>
+<span class="sd">            - PRE = Reshaping the input data into the correct dimensions for the optimizer</span>
+<span class="sd">            - FIT = Wrapping the fit function and performing the fit</span>
+<span class="sd">            - POST = Reshaping the outputs so it is coherent with the inputs.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Precompute - Reshape all independents into the correct dimensionality</span>
+            <span class="n">x_fit</span><span class="p">,</span> <span class="n">x_new</span><span class="p">,</span> <span class="n">y_new</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_precompute_reshaping</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">vectorized</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dependent_dims</span> <span class="o">=</span> <span class="n">dims</span>
+
+            <span class="c1"># Fit</span>
+            <span class="n">fit_fun_org</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_function</span>
+            <span class="n">fit_fun_wrap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_function_wrapper</span><span class="p">(</span><span class="n">x_new</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># This should be wrapped.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fit_function</span> <span class="o">=</span> <span class="n">fit_fun_wrap</span>
+            <span class="n">f_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimizer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+                <span class="n">x_fit</span><span class="p">,</span>
+                <span class="n">y_new</span><span class="p">,</span>
+                <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span>
+                <span class="n">tolerance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span><span class="p">,</span>
+                <span class="n">max_evaluations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_evaluations</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Postcompute</span>
+            <span class="n">fit_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_compute_reshaping</span><span class="p">(</span><span class="n">f_res</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="c1"># Reset the function</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fit_function</span> <span class="o">=</span> <span class="n">fit_fun_org</span>
+            <span class="k">return</span> <span class="n">fit_result</span>
+
+        <span class="k">return</span> <span class="n">inner_fit_callable</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_precompute_reshaping</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">vectorized</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the dimensions of the inputs and reshape if necessary.</span>
+<span class="sd">        :param x: ND matrix of dependent points</span>
+<span class="sd">        :param y: N-1D matrix of independent points</span>
+<span class="sd">        :param kwargs: Additional key-word arguments</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make sure that they are np arrays</span>
+        <span class="n">x_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">y_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="c1"># Get the shape</span>
+        <span class="n">x_shape</span> <span class="o">=</span> <span class="n">x_new</span><span class="o">.</span><span class="n">shape</span>
+        <span class="c1"># Check if the x data is 1D</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># It is ND data</span>
+            <span class="c1"># Check if the data is vectorized. i.e. should x be [NxMx...x Ndims]</span>
+            <span class="k">if</span> <span class="n">vectorized</span><span class="p">:</span>
+                <span class="c1"># Assert that the shapes are the same</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x_shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">y_new</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The shape of the x and y data must be the same&#39;</span><span class="p">)</span>
+                <span class="c1"># If so do nothing but note that the data is vectorized</span>
+                <span class="c1"># x_shape = (-1,) # Should this be done?</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Assert that the shapes are the same</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">x_new</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">y_new</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The number of elements in x and y data must be the same&#39;</span><span class="p">)</span>
+                <span class="c1"># Reshape the data to be [len(NxMx..), Ndims] i.e. flatten to columns</span>
+                <span class="n">x_new</span> <span class="o">=</span> <span class="n">x_new</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Assert that the shapes are the same</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x_shape</span> <span class="o">!=</span> <span class="n">y_new</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The shape of the x and y data must be the same&#39;</span><span class="p">)</span>
+            <span class="c1"># It is 1D data</span>
+            <span class="n">x_new</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="c1"># The optimizer needs a 1D array, flatten the y data</span>
+        <span class="n">y_new</span> <span class="o">=</span> <span class="n">y_new</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="c1"># Make a &#39;dummy&#39; x array for the fit function</span>
+        <span class="n">x_for_fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">y_new</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">x_for_fit</span><span class="p">,</span> <span class="n">x_new</span><span class="p">,</span> <span class="n">y_new</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">x_shape</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_post_compute_reshaping</span><span class="p">(</span><span class="n">fit_result</span><span class="p">:</span> <span class="n">FitResults</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FitResults</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reshape the output of the fitter into the correct dimensions.</span>
+<span class="sd">        :param fit_result: Output from the fitter</span>
+<span class="sd">        :param x: Input x independent</span>
+<span class="sd">        :param y: Input y dependent</span>
+<span class="sd">        :return: Reshaped Fit Results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fit_result</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">fit_result</span><span class="o">.</span><span class="n">y_obs</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">fit_result</span><span class="o">.</span><span class="n">y_calc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">fit_result</span><span class="o">.</span><span class="n">y_calc</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">fit_result</span><span class="o">.</span><span class="n">y_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">fit_result</span><span class="o">.</span><span class="n">y_err</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fit_result</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By EasyScience Contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, EasyScience Contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
