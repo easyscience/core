@@ -674,7 +674,7 @@ class TestDictStackDecorator:
         def test_func(obj, key, value):
             pass  # Don't actually modify
             
-        with patch('easyscience.global_object.undo_redo.global_object') as mock_global:
+        with patch('easyscience.global_object') as mock_global:
             mock_stack = MagicMock()
             mock_global.stack = mock_stack
             

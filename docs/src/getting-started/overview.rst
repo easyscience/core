@@ -8,7 +8,7 @@ It implements a descriptor-based object system with global state management, mak
 that have units, bounds, and dependencies.
 
 What is EasyScience?
--------------------
+--------------------
 
 EasyScience serves as the core foundation for the EasyScience family of projects, offering:
 
@@ -21,10 +21,10 @@ EasyScience serves as the core foundation for the EasyScience family of projects
 * **Global State Management**: Unified tracking of all objects and their relationships
 
 Key Concepts
------------
+------------
 
 Descriptor-Based Architecture
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 EasyScience uses a hierarchical descriptor system:
 
@@ -56,7 +56,7 @@ The hierarchy flows from:
 * ``CollectionBase`` (mutable sequences of scientific objects)
 
 Units and Physical Quantities
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 EasyScience integrates with `scipp <https://scipp.github.io/>`_ for robust unit handling:
 
@@ -74,7 +74,7 @@ EasyScience integrates with `scipp <https://scipp.github.io/>`_ for robust unit 
     area = length * length  # Results in m^2
 
 Parameter Dependencies
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Parameters can depend on other parameters through mathematical expressions:
 
@@ -96,7 +96,7 @@ Parameters can depend on other parameters through mathematical expressions:
     print(volume.value)  # Automatically recalculated
 
 Global State Management
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 All EasyScience objects register with a global map for dependency tracking:
 
@@ -115,7 +115,7 @@ All EasyScience objects register with a global map for dependency tracking:
     global_object.map._clear()
 
 Fitting and Optimization
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 EasyScience provides a unified interface to multiple optimization backends:
 
@@ -135,7 +135,7 @@ EasyScience provides a unified interface to multiple optimization backends:
     result = fitter.fit(x=x_data, y=y_data, weights=weights)
 
 Serialization and Persistence  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Complete model states can be saved and restored:
 
@@ -160,40 +160,40 @@ Complete model states can be saved and restored:
     resolve_all_parameter_dependencies(new_model)
 
 Use Cases
---------
+---------
 
 EasyScience is designed for:
 
 Scientific Modeling
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * Creating physics-based models with parameters that have physical meaning
 * Handling units consistently throughout calculations
 * Managing complex parameter relationships and constraints
 
 Data Fitting and Analysis
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Fitting experimental data to theoretical models
 * Comparing different optimization algorithms
 * Uncertainty quantification and error propagation
 
 Software Development
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * Building domain-specific scientific applications
 * Creating reusable model components
 * Implementing complex scientific workflows
 
 Research and Education
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 * Reproducible scientific computing
 * Teaching scientific programming concepts
 * Collaborative model development
 
 Architecture Benefits
--------------------
+---------------------
 
 **Type Safety**: Strong typing with unit checking prevents common errors
 
@@ -208,7 +208,7 @@ Architecture Benefits
 **Testing**: Global state management with cleanup utilities supports robust testing
 
 Getting Started
---------------
+---------------
 
 The best way to learn EasyScience is through examples:
 

@@ -69,6 +69,7 @@ class Fitter:
     def switch_minimizer(self, minimizer_enum: Union[AvailableMinimizers, str]) -> None:
         """
         Switch minimizer and initialize.
+
         :param minimizer_enum: The enum of the minimizer to create and instantiate.
         """
         if isinstance(minimizer_enum, str):

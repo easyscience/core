@@ -31,13 +31,13 @@ jobs:
       uses: ./.github/actions/setup-pixi
 
     - name: Build documentation
-      run: pixi run docs-build
+      run: pixi run --environment dev docs-build
       
-    - name: Build and Commit
-      uses: sphinx-notes/pages@master
-      with:
-        install_requirements: true
-        documentation_path: docs/src
+    # - name: Build and Commit
+    #   uses: sphinx-notes/pages@master
+    #   with:
+    #     install_requirements: true
+    #     documentation_path: docs/src
         
     - name: Push changes
       uses: ad-m/github-push-action@master

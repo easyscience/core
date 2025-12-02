@@ -19,7 +19,7 @@ Quick Start
 -----------
 
 Basic Parameter and Model Setup
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -65,7 +65,7 @@ Basic Fitting Example
     print(f"Fitted frequency: {fit_model.frequency.value} ± {fit_model.frequency.error}")
 
 Available Minimizers
--------------------
+--------------------
 
 EasyScience supports multiple optimization backends:
 
@@ -79,7 +79,7 @@ EasyScience supports multiple optimization backends:
     # Output: ['LMFit', 'LMFit_leastsq', 'LMFit_powell', 'Bumps', 'Bumps_simplex', 'DFO', 'DFO_leastsq']
 
 Switching Minimizers
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -96,7 +96,7 @@ Switching Minimizers
     result3 = fitter.fit(x=x_data, y=y_data)
 
 Parameter Management
--------------------
+--------------------
 
 Setting Bounds and Constraints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -117,7 +117,7 @@ Setting Bounds and Constraints
     param.max = 8.0
 
 Parameter Dependencies
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Parameters can depend on other parameters through expressions:
 
@@ -139,7 +139,7 @@ Parameters can depend on other parameters through expressions:
     print(area.value)  # Will be 75.0 (15 * 5)
 
 Using make_dependent_on() Method
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can also make an existing parameter dependent on other parameters using the ``make_dependent_on()`` method. This is useful when you want to convert an independent parameter into a dependent one:
 
@@ -177,7 +177,7 @@ You can also make an existing parameter dependent on other parameters using the 
 - You can **revert to independence** using the ``make_independent()`` method if needed
 
 Advanced Fitting Options
------------------------
+------------------------
 
 Setting Tolerances and Limits
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,7 +196,7 @@ Setting Tolerances and Limits
     result = fitter.fit(x=x_data, y=y_data)
 
 Using Weights
-~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -234,7 +234,7 @@ Multidimensional Fitting
     result = fitter.fit(x=x_2d, y=z_data.ravel())
 
 Accessing Fit Results
---------------------
+---------------------
 
 The ``FitResults`` object contains comprehensive information about the fit:
 
@@ -270,7 +270,7 @@ The ``FitResults`` object contains comprehensive information about the fit:
     plt.ylabel('Residuals')
 
 Developer Guidelines
--------------------
+---------------------
 
 Creating Custom Models
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -300,7 +300,7 @@ For developers building scientific components:
             return super().get_fit_parameters()
 
 Best Practices
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 1. **Always set appropriate bounds** on parameters to constrain the search space
 2. **Use meaningful units** for physical parameters
@@ -309,7 +309,7 @@ Best Practices
 5. **Validate results** by checking chi-squared and residuals
 
 Error Handling
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -325,7 +325,7 @@ Error Handling
         print(f"Unexpected error: {e}")
 
 Testing Patterns
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 When writing tests for fitting code:
 
