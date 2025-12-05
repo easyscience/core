@@ -15,9 +15,8 @@ from typing import TypeVar
 from typing import Union
 from typing import overload
 
-from .new_base import NewBase
-
 from ..variable import Parameter
+from .new_base import NewBase
 
 if TYPE_CHECKING:
     from ..fitting.calculators import InterfaceFactoryTemplate
