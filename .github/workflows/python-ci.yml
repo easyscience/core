@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup Pixi
-        uses: easyscience/github/.github/actions/setup-pixi@main
+        uses: easyscience/github/.github/actions/setup-pixi@master
       - name: Run linting
         run: pixi run lint
 
@@ -85,7 +85,7 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: Setup Pixi
-      uses: easyscience/github/.github/actions/setup-pixi@main
+      uses: easyscience/github/.github/actions/setup-pixi@master
 
     - name: Build package
       run: pixi run build
