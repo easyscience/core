@@ -35,15 +35,9 @@ jobs:
 
     - name: Build documentation
       run: pixi run --environment dev docs-build
-      
-    # - name: Build and Commit
-    #   uses: sphinx-notes/pages@master
-    #   with:
-    #     install_requirements: true
-    #     documentation_path: docs/src
         
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_build/html
+        publish_dir: ./site

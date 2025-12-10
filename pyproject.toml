@@ -55,11 +55,10 @@ dev = [
     "jupyterlab"
 ]
 docs = [
-    "doc8",
-    "readme-renderer",
-    "sphinx_autodoc_typehints", 
-    "sphinx_book_theme",
-    "sphinx_gallery",
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "mkdocs-gallery",
     "toml"
 ]
 

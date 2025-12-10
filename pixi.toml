@@ -45,8 +45,9 @@ update-lock = "pixi update"
 tox = "tox"
 
 # Documentation tasks
-docs-build = "sphinx-build -b html docs/src docs/_build/html"
-docs-clean = "rm -rf docs/_build/"
+docs-build = "mkdocs build"
+docs-serve = "mkdocs serve"
+docs-clean = "rm -rf site/"
 
 [pypi-dependencies] # == [feature.default.pypi-dependencies]
 # Editable install of the package itself
