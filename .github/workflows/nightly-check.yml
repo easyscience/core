@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: Setup Pixi
-      uses: easyscience/github/.github/actions/setup-pixi@master
+      uses: easyscience/actions/pixi@master
 
     - name: Update lock file
       run: pixi run update-lock
