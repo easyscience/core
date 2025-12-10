@@ -1,0 +1,84 @@
+site_name: EasyScience
+site_url: https://easyscience.github.io/EasyScience/
+repo_url: https://github.com/EasyScience/EasyScience
+repo_name: EasyScience/EasyScience
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_root_heading: true
+            members_order: source
+            separate_signature: true
+            show_bases: true
+          paths: [src]
+  # Gallery plugin commented out - needs sphinx-gallery integration or alternative
+  # The examples can be manually added to docs/base_examples and docs/fitting_examples
+  # - gallery:
+  #     examples_dirs:
+  #       - Examples/base
+  #       - Examples/fitting
+  #     gallery_dirs:
+  #       - docs/base_examples
+  #       - docs/fitting_examples
+  #     matplotlib_animations: true
+  #     image_scrapers: matplotlib
+  #     abort_on_example_error: false
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.arithmatex:
+      generic: true
+  - attr_list
+  - md_in_html
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Overview: getting-started/overview.md
+    - Installation: getting-started/installation.md
+  - User Guides:
+    - Fitting Introduction: fitting/introduction.md
+  - API Reference:
+    - Base Classes: reference/base.md
+  - Examples:
+    - Base Examples: base_examples/index.md
+    - Fitting Examples: fitting_examples/index.md
