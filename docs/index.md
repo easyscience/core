@@ -88,7 +88,6 @@ Scientific software for modeling and analysis of neutron reflectometry data, ena
 
 [Visit easyReflectometry](https://easyreflectometry.org)
 
-**Your Project Here**
 
 EasyScience's flexible architecture makes it ideal for building domain-specific scientific applications. The comprehensive API and documentation help you get started quickly.
 
