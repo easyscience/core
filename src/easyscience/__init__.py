@@ -14,11 +14,11 @@ from .variable import DescriptorNumber  # noqa: E402
 from .variable import Parameter  # noqa: E402
 
 __all__ = [
-    __version__,
-    global_object,
-    ObjBase,
-    AvailableMinimizers,
-    Fitter,
-    DescriptorNumber,
-    Parameter,
+    '__version__',
+    'global_object',
+    'ObjBase',
+    'AvailableMinimizers',
+    'Fitter',
+    'DescriptorNumber',
+    'Parameter',
 ]

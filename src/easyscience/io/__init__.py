@@ -6,7 +6,7 @@ from .serializer_component import SerializerComponent
 from .serializer_dict import SerializerDict
 
 __all__ = [
-    SerializerBase,
-    SerializerComponent,
-    SerializerDict,
+    'SerializerBase',
+    'SerializerComponent',
+    'SerializerDict',
 ]

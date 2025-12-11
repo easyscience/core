@@ -41,16 +41,16 @@ plugins:
           paths: [src]
   # Gallery plugin commented out - needs sphinx-gallery integration or alternative
   # The examples can be manually added to docs/base_examples and docs/fitting_examples
-  # - gallery:
-  #     examples_dirs:
-  #       - Examples/base
-  #       - Examples/fitting
-  #     gallery_dirs:
-  #       - docs/base_examples
-  #       - docs/fitting_examples
-  #     matplotlib_animations: true
-  #     image_scrapers: matplotlib
-  #     abort_on_example_error: false
+  - gallery:
+      examples_dirs:
+        - Examples/base
+        - Examples/fitting
+      gallery_dirs:
+        - docs/base_examples
+        - docs/fitting_examples
+      matplotlib_animations: true
+      image_scrapers: matplotlib
+      abort_on_example_error: false
 
 markdown_extensions:
   - admonition

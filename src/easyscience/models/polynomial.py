@@ -23,8 +23,8 @@ class Polynomial(ObjBase):
     ----------
     name : str
         The name of the model.
-    degree : int
-        The degree of the polynomial.
+    coefficients : Optional[Union[Iterable[Union[float, Parameter]], CollectionBase]]
+        The coefficients of the polynomial.
     """
 
     coefficients: ClassVar[CollectionBase]
