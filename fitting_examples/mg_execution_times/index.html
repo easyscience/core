@@ -8,13 +8,9 @@
       
       
       
-        <link rel="canonical" href="https://easyscience.github.io/EasyScience/getting-started/installation/">
+        <link rel="canonical" href="https://easyscience.github.io/EasyScience/fitting_examples/mg_execution_times/">
       
       
-        <link rel="prev" href="../overview/">
-      
-      
-        <link rel="next" href="../../fitting/introduction/">
       
       
         
@@ -25,7 +21,7 @@
     
     
       
-        <title>Installation - EasyScience</title>
+        <title>Computation times - EasyScience</title>
       
     
     
@@ -86,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#installation" class="md-skip">
+        <a href="#computation-times" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Installation
+              Computation times
             
           </span>
         </div>
@@ -248,13 +244,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../overview/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../getting-started/overview/" class="md-tabs__link">
           
   
   
@@ -414,31 +408,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -456,7 +447,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -474,7 +465,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../overview/" class="md-nav__link">
+      <a href="../../getting-started/overview/" class="md-nav__link">
         
   
   
@@ -499,37 +490,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -545,48 +509,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#install-via-pip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install via pip
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#install-as-an-easyscience-developer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install as an EasyScience developer
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1010,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../fitting_examples/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -1038,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../fitting_examples/plot_fitting1/" class="md-nav__link">
+      <a href="../plot_fitting1/" class="md-nav__link">
         
   
   
@@ -1094,20 +1016,11 @@
   
 
 
-<h1 id="installation">Installation</h1>
-<p><strong>EasyScience</strong> requires Python 3.11 or above.</p>
-<h2 id="install-via-pip">Install via <code>pip</code></h2>
-<p>The easiest way of obtaining EasyScience and using it in your project is via pip. You can install directly by using:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">$ </span>pip<span class="w"> </span>install<span class="w"> </span>EasyScience
-</code></pre></div>
-<h2 id="install-as-an-easyscience-developer">Install as an EasyScience developer</h2>
-<p>You can obtain the latest development source from our <a href="https://github.com/easyscience/corelib">Github repository</a>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/easyscience/corelib
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>corelib
-</code></pre></div>
-<p>And install via pip:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp">$ </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-</code></pre></div>
+<h1 id="computation-times">Computation times</h1>
+<p><strong>00:02.696</strong> total execution time for <strong>fitting_examples</strong> files:</p>
+<p>+-------------------------------------------------------------------------+-----------+--------+
+| <a href="../plot_fitting1/">plot_fitting1</a> (Examples/fitting/plot_fitting1.py) | 00:02.696 | 0.0 MB |
++-------------------------------------------------------------------------+-----------+--------+</p>
 
 
 

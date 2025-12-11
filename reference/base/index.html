@@ -53,6 +53,14 @@
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../../sg_gallery-dataframe.css">
+    
+      <link rel="stylesheet" href="../../sg_gallery-rendered-html.css">
+    
+      <link rel="stylesheet" href="../../sg_gallery.css">
+    
+      <link rel="stylesheet" href="../../sg_gallery-binder.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -305,6 +313,13 @@
   
     
     
+      
+  
+  
+  
+  
+    
+    
       <li class="md-tabs__item">
         <a href="../../base_examples/" class="md-tabs__link">
           
@@ -314,6 +329,9 @@
 
         </a>
       </li>
+    
+  
+
     
   
 
@@ -6289,6 +6307,60 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Base Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../base_examples/" class="md-nav__link">
         
@@ -6318,6 +6390,96 @@
   
   
     <li class="md-nav__item">
+      <a href="../../base_examples/plot_baseclass1.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subclassing ObjBase - Simple Pendulum
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fitting Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Fitting Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../fitting_examples/" class="md-nav__link">
         
   
@@ -6334,6 +6496,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fitting_examples/plot_fitting1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simple Fitting Example
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -35715,18 +35913,18 @@ This method processes constructor arguments, skipping metadata keys starting wit
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>degree</code>
+                <code>coefficients</code>
             </td>
             <td>
-                  <code><span title="int">int</span></code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[<span title="typing.Iterable">Iterable</span>[<span title="typing.Union">Union</span>[<span title="float">float</span>, <a class="autorefs autorefs-internal" title="easyscience.variable.Parameter" href="#easyscience.variable.Parameter">Parameter</a>]], <a class="autorefs autorefs-internal" title="easyscience.base_classes.CollectionBase" href="#easyscience.base_classes.CollectionBase">CollectionBase</a>]]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The degree of the polynomial.</p>
+                <p>The coefficients of the polynomial.</p>
               </div>
             </td>
             <td>
-                <em>required</em>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -35796,8 +35994,8 @@ This method processes constructor arguments, skipping metadata keys starting wit
 <a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">    ----------</span>
 <a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="sd">    name : str</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="sd">        The name of the model.</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">    degree : int</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">        The degree of the polynomial.</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">    coefficients : Optional[Union[Iterable[Union[float, Parameter]], CollectionBase]]</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">        The coefficients of the polynomial.</span>
 <a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">    &quot;&quot;&quot;</span>
 <a id="__codelineno-0-29" name="__codelineno-0-29"></a>
 <a id="__codelineno-0-30" name="__codelineno-0-30"></a>    <span class="n">coefficients</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">CollectionBase</span><span class="p">]</span>
