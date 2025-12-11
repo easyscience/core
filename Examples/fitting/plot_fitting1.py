@@ -17,12 +17,14 @@ from easyscience.variable import Parameter
 # ----------------
 # We define a simple linear model with parameters `m` (slope) and `c` (intercept).
 
+
 class Line(ObjBase):
     def __init__(self, m: Parameter, c: Parameter):
         super().__init__('line', m=m, c=c)
 
     def __call__(self, x):
         return self.c.value + self.m.value * x
+
 
 # Initialize parameters
 m = Parameter('m', 1)
@@ -34,8 +36,10 @@ b = Line(m, c)
 # ---------------------------
 # The fitting function takes the independent variable `x` and returns the model prediction.
 
+
 def fit_fun(x):
     return b(x)
+
 
 # %%
 # Setup the Fitter
@@ -50,7 +54,7 @@ f = Fitter(b, fit_fun)
 # Create some synthetic data to fit.
 
 x = np.array([1, 2, 3])
-y = np.array([2, 4, 6]) - 1 
+y = np.array([2, 4, 6]) - 1
 # x=1, y=1. x=2, y=3. x=3, y=5.
 # Expected result: m=2, c=-1.
 
@@ -63,10 +67,10 @@ y = np.array([2, 4, 6]) - 1
 weights = np.ones_like(x)
 f_res = f.fit(x, y, weights=weights)
 
-print(f"Goodness of fit (chi2): {f_res.chi2}")
-print(f"Reduced chi2: {f_res.reduced_chi}")
-print(f"Fitted m: {b.m.value}")
-print(f"Fitted c: {b.c.value}")
+print(f'Goodness of fit (chi2): {f_res.chi2}')
+print(f'Reduced chi2: {f_res.reduced_chi}')
+print(f'Fitted m: {b.m.value}')
+print(f'Fitted c: {b.c.value}')
 
 # %%
 # Plot Results
