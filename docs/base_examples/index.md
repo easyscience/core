@@ -4,7 +4,7 @@ This section gathers examples which correspond to subclassing the `easyscience.b
 
 
 
-<div class="mkd-glr-thumbcontainer" tooltip="Imports *******">
+<div class="mkd-glr-thumbcontainer" tooltip="This  example shows how to subclass easyscience.base_classes.ObjBase with parameters from EasyS...">
     <!--div class="figure align-default" id="id1"-->
         <img alt="Subclassing ObjBase - Simple Pendulum" src="images\thumb\mkd_glr_plot_baseclass1_thumb.png" />
         <p class="caption">

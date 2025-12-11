@@ -1,8 +1,7 @@
 """
-Simple Fitting Example
-======================
+# Simple Fitting Example
 
-This example demonstrates a simple fitting procedure using :class:`easyscience.fitting.Fitter`.
+This example demonstrates a simple fitting procedure using `easyscience.fitting.Fitter`.
 """
 
 import numpy as np
@@ -13,8 +12,8 @@ from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 # %%
-# Define the Model
-# ----------------
+# ## Define the Model
+#
 # We define a simple linear model with parameters `m` (slope) and `c` (intercept).
 
 
@@ -32,8 +31,8 @@ c = Parameter('c', 1)
 b = Line(m, c)
 
 # %%
-# Define the Fitting Function
-# ---------------------------
+# ## Define the Fitting Function
+#
 # The fitting function takes the independent variable `x` and returns the model prediction.
 
 
@@ -42,15 +41,15 @@ def fit_fun(x):
 
 
 # %%
-# Setup the Fitter
-# ----------------
+# ## Setup the Fitter
+#
 # Initialize the Fitter with the model object and the fitting function.
 
 f = Fitter(b, fit_fun)
 
 # %%
-# Generate Data
-# -------------
+# ## Generate Data
+#
 # Create some synthetic data to fit.
 
 x = np.array([1, 2, 3])
@@ -59,8 +58,8 @@ y = np.array([2, 4, 6]) - 1
 # Expected result: m=2, c=-1.
 
 # %%
-# Perform Fit
-# -----------
+# ## Perform Fit
+#
 # Run the fit.
 
 # We need to provide weights for the fit. Since we don't have experimental errors, we use equal weights.
@@ -73,8 +72,7 @@ print(f'Fitted m: {b.m.value}')
 print(f'Fitted c: {b.c.value}')
 
 # %%
-# Plot Results
-# ------------
+# ## Plot Results
 
 plt.scatter(x, y, label='Data')
 plt.plot(x, fit_fun(x), label='Fit', color='red')

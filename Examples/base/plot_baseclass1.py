@@ -1,14 +1,14 @@
 """
-Subclassing ObjBase - Simple Pendulum
-=====================================
-This  example shows how to subclass :class:`easyscience.base_classes.ObjBase` with parameters from
-:class:`EasyScience.variable.Parameter`. For this example a simple pendulum will be modeled.
+# Subclassing ObjBase - Simple Pendulum
 
-.. math::
+This  example shows how to subclass `easyscience.base_classes.ObjBase` with parameters from
+`EasyScience.variable.Parameter`. For this example a simple pendulum will be modeled.
+
+$$
     y = A \sin (2 \pi f t + \phi )
+$$
 
-Imports
-*******
+## Imports
 
 Firstly the necessary imports. Notice that we import numpy from easyscience. This is not done for any reason other than
 saving time from multiple imports.
@@ -21,8 +21,8 @@ from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 # %%
-# Subclassing
-# ***********
+# ## Subclassing
+#
 # To include embedded rST, use a line of >= 20 ``#``'s or ``#%%`` between your
 # rST and your code. This separates your example
 # into distinct text and code blocks. You can continue writing code below the
@@ -53,8 +53,8 @@ class Pendulum(ObjBase):
 
 
 # %%
-# Single Example
-# **************
+# ## Single Example
+#
 # To include embedded rST, use a line of >= 20 ``#``'s or ``#%%`` between your
 # rST and your code. This separates your example
 # into distinct text and code blocks. You can continue writing code below the
@@ -82,8 +82,8 @@ p4.plot(t, axis=ax4)
 fig.show()
 
 # %%
-# Multiple Examples
-# *****************
+# ## Multiple Examples
+#
 # To include embedded rST, use a line of >= 20 ``#``'s or ``#%%`` between your
 # rST and your code. This separates your example
 # into distinct text and code blocks. You can continue writing code below the
