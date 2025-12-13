@@ -4,6 +4,7 @@
 
 import gc
 import sys
+import threading
 import weakref
 from typing import List
 from typing import Optional
@@ -73,10 +74,30 @@ class Map:
         self._store = weakref.WeakValueDictionary()
         # A dict with object names as keys and a list of their object types as values, with weak references
         self.__type_dict = {}
+        # Lock for thread-safe access to _store
+        self._lock = threading.RLock()
 
     def vertices(self) -> List[str]:
-        """returns the vertices of a map"""
-        return list(self._store.keys())
+        """Returns the vertices of a map.
+
+        Uses a threading lock to prevent RuntimeError from WeakValueDictionary
+        being modified during iteration.
+        """
+        with self._lock:
+            return list(self._store.keys())
+
+        # --- Option 1: Retry loop ---
+        # """Returns the vertices of a map.
+        #
+        # Uses a retry loop to handle RuntimeError that can occur when the
+        # WeakValueDictionary is modified during iteration (e.g., by garbage collection).
+        # """
+        # while True:
+        #     try:
+        #         return list(self._store.keys())
+        #     except RuntimeError:
+        #         # Dictionary changed size during iteration, retry
+        #         continue
 
     def edges(self):
         """returns the edges of a map"""
@@ -103,13 +124,42 @@ class Map:
         return [key for key, item in self.__type_dict.items() if obj_type in item.type]
 
     def get_item_by_key(self, item_id: str) -> object:
-        if item_id in self._store.keys():
-            return self._store[item_id]
-        raise ValueError('Item not in map.')
+        with self._lock:
+            if item_id in self._store.keys():
+                return self._store[item_id]
+            raise ValueError('Item not in map.')
+
+        # --- Option 1: Retry loop ---
+        # while True:
+        #     try:
+        #         if item_id in self._store.keys():
+        #             return self._store[item_id]
+        #         raise ValueError('Item not in map.')
+        #     except RuntimeError:
+        #         # Dictionary changed size during iteration, retry
+        #         continue
 
     def is_known(self, vertex: object) -> bool:
-        # All objects should have a 'unique_name' attribute
-        return vertex.unique_name in self._store.keys()
+        """Check if a vertex is known in the map.
+
+        All objects should have a 'unique_name' attribute.
+        Uses a threading lock to prevent RuntimeError from WeakValueDictionary.
+        """
+        with self._lock:
+            return vertex.unique_name in self._store.keys()
+
+        # --- Option 1: Retry loop ---
+        # """Check if a vertex is known in the map.
+        #
+        # All objects should have a 'unique_name' attribute.
+        # Uses a retry loop to handle RuntimeError from WeakValueDictionary.
+        # """
+        # while True:
+        #     try:
+        #         return vertex.unique_name in self._store.keys()
+        #     except RuntimeError:
+        #         # Dictionary changed size during iteration, retry
+        #         continue
 
     def find_type(self, vertex: object) -> List[str]:
         if self.is_known(vertex):
@@ -124,13 +174,14 @@ class Map:
             self.__type_dict[obj.unique_name].type = new_type
 
     def add_vertex(self, obj: object, obj_type: str = None):
-        name = obj.unique_name
-        if name in self._store.keys():
-            raise ValueError(f'Object name {name} already exists in the graph.')
-        self._store[name] = obj
-        self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
-        self.__type_dict[name].finalizer = weakref.finalize(self._store[name], self.prune, name)
-        self.__type_dict[name].type = obj_type
+        with self._lock:
+            name = obj.unique_name
+            if name in self._store.keys():
+                raise ValueError(f'Object name {name} already exists in the graph.')
+            self._store[name] = obj
+            self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
+            self.__type_dict[name].finalizer = weakref.finalize(self._store[name], self.prune, name)
+            self.__type_dict[name].type = obj_type
 
     def add_edge(self, start_obj: object, end_obj: object):
         if start_obj.unique_name in self.__type_dict.keys():
@@ -167,9 +218,11 @@ class Map:
             del self.__type_dict[vertex1][self.__type_dict[vertex1].index(vertex2)]
 
     def prune(self, key: str):
-        if key in self.__type_dict.keys():
-            del self.__type_dict[key]
-            del self._store[key]
+        with self._lock:
+            if key in self.__type_dict.keys():
+                del self.__type_dict[key]
+                if key in self._store:
+                    del self._store[key]
 
     def find_isolated_vertices(self) -> list:
         """returns a list of isolated vertices."""
@@ -262,10 +315,11 @@ class Map:
 
     def _clear(self):
         """Reset the map to an empty state. Only to be used for testing"""
-        for vertex in self.vertices():
-            self.prune(vertex)
-        gc.collect()
-        self.__type_dict = {}
+        with self._lock:
+            for vertex in self.vertices():
+                self.prune(vertex)
+            gc.collect()
+            self.__type_dict = {}
 
     def __repr__(self) -> str:
         return f'Map object of {len(self._store)} vertices.'
