@@ -161,10 +161,10 @@ class ModelCollection(NewBase, MutableSequence[T]):
         else:
             if not isinstance(value, NewBase):
                 raise TypeError(f'Items must be NewBase objects, got {type(value)}')
-            
+
             old_item = self._data[idx]
             self._remove_item(old_item)
-            
+
             self._data[idx] = value  # type: ignore[assignment]
             self._global_object.map.add_edge(self, value)
             self._global_object.map.reset_type(value, 'created_internal')
@@ -202,7 +202,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
                     break
             else:
                 raise KeyError(f'No item with name "{idx}" found')
-            
+
             item = self._data[idx]
             self._remove_item(item)
             del self._data[idx]
@@ -224,7 +224,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
         """
         if not isinstance(value, NewBase):
             raise TypeError(f'Items must be NewBase objects, got {type(value)}')
-        
+
         self._data.insert(index, value)  # type: ignore[arg-type]
         self._global_object.map.add_edge(self, value)
         self._global_object.map.reset_type(value, 'created_internal')
