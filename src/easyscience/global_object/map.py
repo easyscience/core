@@ -70,13 +70,13 @@ class _EntryList(list):
 class Map:
     def __init__(self):
         # A dictionary of object names and their corresponding objects
-        self._store = weakref.WeakValueDictionary()
+        self.__store = weakref.WeakValueDictionary()
         # A dict with object names as keys and a list of their object types as values, with weak references
         self.__type_dict = {}
 
     def vertices(self) -> List[str]:
         """returns the vertices of a map"""
-        return list(self._store.keys())
+        return list(self.__store.keys())
 
     def edges(self):
         """returns the edges of a map"""
@@ -103,13 +103,13 @@ class Map:
         return [key for key, item in self.__type_dict.items() if obj_type in item.type]
 
     def get_item_by_key(self, item_id: str) -> object:
-        if item_id in self._store.keys():
-            return self._store[item_id]
+        if item_id in self.__store.keys():
+            return self.__store[item_id]
         raise ValueError('Item not in map.')
 
     def is_known(self, vertex: object) -> bool:
         # All objects should have a 'unique_name' attribute
-        return vertex.unique_name in self._store.keys()
+        return vertex.unique_name in self.__store.keys()
 
     def find_type(self, vertex: object) -> List[str]:
         if self.is_known(vertex):
@@ -125,11 +125,11 @@ class Map:
 
     def add_vertex(self, obj: object, obj_type: str = None):
         name = obj.unique_name
-        if name in self._store.keys():
+        if name in self.__store.keys():
             raise ValueError(f'Object name {name} already exists in the graph.')
-        self._store[name] = obj
+        self.__store[name] = obj
         self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
-        self.__type_dict[name].finalizer = weakref.finalize(self._store[name], self.prune, name)
+        self.__type_dict[name].finalizer = weakref.finalize(self.__store[name], self.prune, name)
         self.__type_dict[name].type = obj_type
 
     def add_edge(self, start_obj: object, end_obj: object):
@@ -169,7 +169,7 @@ class Map:
     def prune(self, key: str):
         if key in self.__type_dict.keys():
             del self.__type_dict[key]
-            del self._store[key]
+            del self.__store[key]
 
     def find_isolated_vertices(self) -> list:
         """returns a list of isolated vertices."""
@@ -268,4 +268,4 @@ class Map:
         self.__type_dict = {}
 
     def __repr__(self) -> str:
-        return f'Map object of {len(self._store)} vertices.'
+        return f'Map object of {len(self.__store)} vertices.'

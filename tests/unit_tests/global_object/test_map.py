@@ -143,29 +143,29 @@ class TestMap:
 
     def test_add_vertex(self, clear, base_object, parameter_object):
         # When Then Expect
-        assert len(global_object.map._store) == 2
+        assert len(global_object.map._Map__store) == 2
         assert len(global_object.map._Map__type_dict) == 2
 
     def test_clear(self, clear, base_object):
         # When
-        assert len(global_object.map._store) == 1
+        assert len(global_object.map._Map__store) == 1
         assert len(global_object.map._Map__type_dict) == 1
         # Then
         global_object.map._clear()
         # Expect
-        assert len(global_object.map._store) == 0
+        assert len(global_object.map._Map__store) == 0
         assert global_object.map._Map__type_dict == {}
 
     def test_weakref(self, clear):
         # When
         test_obj = ObjBase(name="test")
-        assert len(global_object.map._store) == 1
+        assert len(global_object.map._Map__store) == 1
         assert len(global_object.map._Map__type_dict) == 1
         # Then
         del test_obj
         gc.collect()
         # Expect
-        assert len(global_object.map._store) == 0
+        assert len(global_object.map._Map__store) == 0
         assert len(global_object.map._Map__type_dict) == 0
 
     def test_vertices(self, clear, base_object, parameter_object):
