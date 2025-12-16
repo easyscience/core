@@ -19,7 +19,11 @@ from ..variable import Parameter
 from .new_base import NewBase
 
 if TYPE_CHECKING:
+    from ..fitting.calculators import CalculatorFactoryBase
     from ..fitting.calculators import InterfaceFactoryTemplate
+
+# Type alias for interface - supports both legacy and new factory types
+InterfaceType = Union['InterfaceFactoryTemplate', 'CalculatorFactoryBase', None]
 
 T = TypeVar('T', bound=NewBase)
 
@@ -35,7 +39,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
         self,
         name: str,
         *args: NewBase,
-        interface: Optional[InterfaceFactoryTemplate] = None,
+        interface: InterfaceType = None,
         unique_name: Optional[str] = None,
         display_name: Optional[str] = None,
     ):
@@ -51,7 +55,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
         super().__init__(unique_name=unique_name, display_name=display_name)
         self._name = name
         self._data: List[NewBase] = []
-        self._interface: Optional[InterfaceFactoryTemplate] = None
+        self._interface: InterfaceType = None
 
         # Add initial items
         for item in args:
@@ -66,9 +70,14 @@ class ModelCollection(NewBase, MutableSequence[T]):
             self.interface = interface
 
     def _add_item(self, item: Any) -> None:
-        """Add an item to the collection and set up graph edges."""
+        """Add an item to the collection and set up graph edges.
+        
+        Note: Duplicate items (same object reference) are silently ignored.
+        """
         if not isinstance(item, NewBase):
             raise TypeError(f'Items must be NewBase objects, got {type(item)}')
+        if item in self._data:
+            return  # Skip duplicates to avoid multiple graph edges
         self._data.append(item)
         self._global_object.map.add_edge(self, item)
         self._global_object.map.reset_type(item, 'created_internal')
@@ -90,12 +99,12 @@ class ModelCollection(NewBase, MutableSequence[T]):
         self._name = new_name
 
     @property
-    def interface(self) -> Optional[InterfaceFactoryTemplate]:
+    def interface(self) -> InterfaceType:
         """Get the current interface of the collection."""
         return self._interface
 
     @interface.setter
-    def interface(self, new_interface: Optional[InterfaceFactoryTemplate]) -> None:
+    def interface(self, new_interface: InterfaceType) -> None:
         """Set the interface and propagate to all items."""
         self._interface = new_interface
         for item in self._data:

@@ -259,7 +259,7 @@ class SimpleCalculatorFactory(CalculatorFactoryBase):
             raise ValueError(f"Unknown calculator '{calculator_name}'. Available calculators: {available}")
 
         if model is None:
-            raise TypeError('model cannot be None')
+            raise TypeError('Model cannot be None')
 
         calculator_class = self._calculators[calculator_name]
         try:

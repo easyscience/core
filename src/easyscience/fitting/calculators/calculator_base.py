@@ -117,6 +117,9 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
         self._model = model
         self._instrumental_parameters = instrumental_parameters
         self._additional_kwargs = kwargs
+        # Register this calculator and model in the global object map
+        if hasattr(model, 'unique_name'):
+            self._global_object.map.add_edge(self, model)
 
     @property
     def model(self) -> NewBase:
@@ -213,12 +216,14 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
         """
         Get additional keyword arguments passed during initialization.
 
+        Returns a copy to prevent external modification of internal state.
+
         Returns
         -------
         dict
-            Dictionary of additional kwargs passed to __init__.
+            Copy of the dictionary of additional kwargs passed to __init__.
         """
-        return self._additional_kwargs
+        return dict(self._additional_kwargs)
 
     @abstractmethod
     def calculate(self, x: np.ndarray) -> np.ndarray:

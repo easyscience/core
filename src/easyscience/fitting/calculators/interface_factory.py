@@ -3,6 +3,7 @@ from __future__ import annotations
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+import warnings
 from typing import TYPE_CHECKING
 from typing import Callable
 from typing import List
@@ -19,9 +20,19 @@ if TYPE_CHECKING:
 class InterfaceFactoryTemplate:
     """
     This class allows for the creation and transference of interfaces.
+
+    .. deprecated::
+        InterfaceFactoryTemplate is deprecated and will be removed in a future version.
+        Use :class:`CalculatorFactoryBase` or :class:`SimpleCalculatorFactory` instead.
     """
 
     def __init__(self, interface_list: List[ABCMeta], *args, **kwargs):
+        warnings.warn(
+            'InterfaceFactoryTemplate is deprecated and will be removed in a future version. '
+            'Use CalculatorFactoryBase or SimpleCalculatorFactory instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._interfaces: List[ABCMeta] = interface_list
         self._current_interface: ABCMeta
         self.__interface_obj: None = None

@@ -570,7 +570,7 @@ class TestFactoryErrorHandling:
     def test_create_with_none_model_raises_error(self, calculator_class):
         """Test that create with None model raises TypeError."""
         factory = SimpleCalculatorFactory({"test": calculator_class})
-        with pytest.raises(TypeError, match="model cannot be None"):
+        with pytest.raises(TypeError, match="Model cannot be None"):
             factory.create("test", None)
 
     def test_create_unknown_calculator_shows_available_in_error(self, calculator_class):
