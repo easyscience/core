@@ -17,6 +17,7 @@ jobs:
         with:
           secret: ${{ github.TOKEN }}
           prefix: "[scope]"
+          labelSeparator: " "
           addLabel: true
           defaultLabel: "[scope] ⚠️ label needed"
 
@@ -26,6 +27,7 @@ jobs:
         with:
           secret: ${{ github.TOKEN }}
           prefix: "[priority]"
+          labelSeparator: " "
           addLabel: true
           defaultLabel: "[priority] ⚠️ label needed"
 
