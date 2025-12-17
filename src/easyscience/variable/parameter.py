@@ -72,7 +72,7 @@ class Parameter(DescriptorNumber):
         :param display_name: The name of the object as it should be displayed
         :param parent: The object which is the parent to this one
 
-        .. note::
+        Note:
             Undo/Redo functionality is implemented for the attributes `value`, `variance`, `error`, `min`, `max`, `bounds`, `fixed`, `unit`
         """  # noqa: E501
         # Extract and ignore serialization-specific fields from kwargs
@@ -175,10 +175,14 @@ class Parameter(DescriptorNumber):
         Unique names in dependency expressions are defined by quotes, e.g. 'Parameter_0' or "Parameter_0" depending on
         the quotes used for the expression.
 
-        :param dependency_expression: The dependency expression to evaluate. This should be a string which
-        can be evaluated by a python interpreter.
-        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs.
-        This is inserted into the asteval interpreter to resolve dependencies.
+        :param dependency_expression:
+            The dependency expression to evaluate. This should be a string which
+            can be evaluated by a python interpreter.
+
+        :param dependency_map:
+            A dictionary of dependency expression symbol name and dependency object pairs.
+            This is inserted into the asteval interpreter to resolve dependencies.
+
         """  # noqa: E501
         if not isinstance(dependency_expression, str):
             raise TypeError('`dependency_expression` must be a string representing a valid dependency expression.')

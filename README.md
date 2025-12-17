@@ -1,6 +1,7 @@
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 [![PyPI badge](http://img.shields.io/pypi/v/EasyScience.svg)](https://pypi.python.org/pypi/EasyScience)
 [![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
+[![codecov](https://codecov.io/github/EasyScience/corelib/graph/badge.svg?token=wc6Q0j0Q9t)](https://codecov.io/github/EasyScience/corelib)
 
 # Easyscience
 
@@ -33,7 +34,7 @@ After installation, launch the test suite:
 
 Documentation can be found at:
 
-[https://easyScience.github.io/EasyScience](https://easyScience.github.io/EasyScience)
+[https://easyScience.github.io/corelib](https://easyScience.github.io/corelib)
 
 ## Contributing
 We absolutely welcome contributions. **EasyScience** is maintained by the ESS and on a volunteer basis and thus we need to foster a community that can support user questions and develop new features to make this software a useful tool for all users while encouraging every member of the community to share their ideas.

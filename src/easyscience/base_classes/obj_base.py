@@ -68,17 +68,12 @@ class ObjBase(BasedBase):
         Dynamically add a component to the class. This is an internal method, though can be called remotely.
         The recommended alternative is to use typing, i.e.
 
-        class Foo(Bar):
-            def __init__(self, foo: Parameter, bar: Parameter):
-                super(Foo, self).__init__(bar=bar)
-                self._add_component("foo", foo)
+        .. code-block:: python
 
-        Goes to:
-         class Foo(Bar):
-            foo: ClassVar[Parameter]
-            def __init__(self, foo: Parameter, bar: Parameter):
-                super(Foo, self).__init__(bar=bar)
-                self.foo = foo
+            class Foo(Bar):
+                def __init__(self, foo: Parameter, bar: Parameter):
+                    super(Foo, self).__init__(bar=bar)
+                    self._add_component("foo", foo)
 
         :param key: Name of component to be added
         :param component: Component to be added

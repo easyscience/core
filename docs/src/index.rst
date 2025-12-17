@@ -1,6 +1,6 @@
-=========================================
+=======================================
 Welcome to EasyScience's documentation!
-=========================================
+=======================================
 
 **EasyScience** is a foundational Python library that provides the building blocks for scientific data simulation, analysis, and fitting.
 It implements a descriptor-based object system with global state management, making it easier to create scientific models with parameters
@@ -66,7 +66,7 @@ Why EasyScience?
 Open Source & Cross-Platform
 ============================
 
-EasyScience is free and open-source software with the source code openly shared on `GitHub <https://github.com/easyScience/EasyScience>`_.
+EasyScience is free and open-source software with the source code openly shared on `GitHub repository <https://github.com/easyScience/EasyScience>`_.
 
 * **Cross-platform** - Written in Python and available for Windows, macOS, and Linux
 * **Well-tested** - Comprehensive test suite ensuring reliability across platforms  
@@ -113,7 +113,7 @@ Ready to begin? Here's how to get started:
 Then explore the tutorials and examples to learn the key concepts!
 
 Documentation Guide
-==================
+===================
 
 .. toctree::
    :caption: Getting Started
@@ -156,7 +156,7 @@ Practical examples and tutorials demonstrating real-world usage patterns.
 Need Help?
 ==========
 
-* **GitHub Issues**: Report bugs or request features on `GitHub <https://github.com/easyScience/EasyScience/issues>`_
+* **GitHub Issues**: Report bugs or request features on `GitHub Issues <https://github.com/easyScience/EasyScience/issues>`_
 * **Discussions**: Ask questions in `GitHub Discussions <https://github.com/easyScience/EasyScience/discussions>`_  
 * **API Reference**: Complete documentation of all classes and methods
 * **Examples**: Practical tutorials and code samples
