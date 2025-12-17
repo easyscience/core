@@ -82,7 +82,7 @@ class Map:
         """
         while True:
             try:
-                return list(self._store)
+                return list(self.__store)
             except RuntimeError:
                 # Dictionary changed size during iteration, retry
                 continue
@@ -112,8 +112,8 @@ class Map:
         return [key for key, item in self.__type_dict.items() if obj_type in item.type]
 
     def get_item_by_key(self, item_id: str) -> object:
-        if item_id in self._store:
-            return self._store[item_id]
+        if item_id in self.__store:
+            return self.__store[item_id]
         raise ValueError('Item not in map.')
 
     def is_known(self, vertex: object) -> bool:
@@ -121,7 +121,7 @@ class Map:
 
         All objects should have a 'unique_name' attribute.
         """
-        return vertex.unique_name in self._store
+        return vertex.unique_name in self.__store
 
     def find_type(self, vertex: object) -> List[str]:
         if self.is_known(vertex):
@@ -137,13 +137,13 @@ class Map:
 
     def add_vertex(self, obj: object, obj_type: str = None):
         name = obj.unique_name
-        if name in self._store:
+        if name in self.__store:
             raise ValueError(f'Object name {name} already exists in the graph.')
         # Clean up stale entry in __type_dict if the weak reference was collected
         # but the finalizer hasn't run yet
         if name in self.__type_dict:
             del self.__type_dict[name]
-        self._store[name] = obj
+        self.__store[name] = obj
         self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
         self.__type_dict[name].finalizer = weakref.finalize(self.__store[name], self.prune, name)
         self.__type_dict[name].type = obj_type
@@ -185,8 +185,8 @@ class Map:
     def prune(self, key: str):
         if key in self.__type_dict:
             del self.__type_dict[key]
-            if key in self._store:
-                del self._store[key]
+            if key in self.__store:
+                del self.__store[key]
 
     def find_isolated_vertices(self) -> list:
         """returns a list of isolated vertices."""
@@ -279,7 +279,7 @@ class Map:
 
     def _clear(self):
         """Reset the map to an empty state. Only to be used for testing"""
-        self._store.clear()
+        self.__store.clear()
         self.__type_dict.clear()
         gc.collect()
 

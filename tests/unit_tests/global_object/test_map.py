@@ -495,7 +495,7 @@ class TestMap:
         
         # Create a mock _store that raises RuntimeError on first iteration attempt
         call_count = 0
-        original_store = test_map._store
+        original_store = test_map._Map__store
         
         class MockWeakValueDict:
             def __init__(self):
@@ -514,7 +514,7 @@ class TestMap:
                 return len(self.data)
         
         mock_store = MockWeakValueDict()
-        test_map._store = mock_store
+        test_map._Map__store = mock_store
         
         # When
         vertices = test_map.vertices()
@@ -544,7 +544,7 @@ class TestMap:
         test_map.add_vertex(mock_obj, 'created')
         
         # Then - Object should be added successfully
-        assert stale_name in test_map._store
+        assert stale_name in test_map._Map__store
         assert stale_name in test_map._Map__type_dict
         assert test_map._Map__type_dict[stale_name].type == ['created']
 
@@ -571,7 +571,7 @@ class TestMap:
         """Test that prune removes key from both _store and __type_dict."""
         # Given
         unique_name = base_object.unique_name
-        assert unique_name in global_object.map._store
+        assert unique_name in global_object.map._Map__store
         assert unique_name in global_object.map._Map__type_dict
         
         # When
@@ -676,14 +676,14 @@ class TestMap:
     def test_clear_empties_both_dicts(self, clear, base_object, parameter_object):
         """Test that _clear() properly empties both _store and __type_dict."""
         # Given
-        assert len(global_object.map._store) == 2
+        assert len(global_object.map._Map__store) == 2
         assert len(global_object.map._Map__type_dict) == 2
         
         # When
         global_object.map._clear()
         
         # Then
-        assert len(global_object.map._store) == 0
+        assert len(global_object.map._Map__store) == 0
         assert len(global_object.map._Map__type_dict) == 0
 
     def test_entry_list_delitem(self):
