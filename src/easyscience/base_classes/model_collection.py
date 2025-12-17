@@ -71,7 +71,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
 
     def _add_item(self, item: Any) -> None:
         """Add an item to the collection and set up graph edges.
-        
+
         Note: Duplicate items (same object reference) are silently ignored.
         """
         if not isinstance(item, NewBase):
