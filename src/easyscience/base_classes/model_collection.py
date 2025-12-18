@@ -12,10 +12,10 @@ from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import TypeVar
-from typing import Union
 from typing import overload
 
 from ..variable import Parameter
+from .model_base import ModelBase
 from .new_base import NewBase
 
 if TYPE_CHECKING:
@@ -23,12 +23,12 @@ if TYPE_CHECKING:
     from ..fitting.calculators import InterfaceFactoryTemplate
 
 # Type alias for interface - supports both legacy and new factory types
-InterfaceType = Union['InterfaceFactoryTemplate', 'CalculatorFactoryBase', None]
+InterfaceType = 'InterfaceFactoryTemplate | CalculatorFactoryBase | None'
 
 T = TypeVar('T', bound=NewBase)
 
 
-class ModelCollection(NewBase, MutableSequence[T]):
+class ModelCollection(ModelBase, MutableSequence[T]):
     """
     A collection class for NewBase/ModelBase objects.
     This provides list-like functionality while maintaining EasyScience features
@@ -37,7 +37,6 @@ class ModelCollection(NewBase, MutableSequence[T]):
 
     def __init__(
         self,
-        name: str,
         *args: NewBase,
         interface: InterfaceType = None,
         unique_name: Optional[str] = None,
@@ -46,14 +45,12 @@ class ModelCollection(NewBase, MutableSequence[T]):
         """
         Initialize the ModelCollection.
 
-        :param name: Name of this collection
         :param args: Initial items to add to the collection
         :param interface: Optional interface for bindings
         :param unique_name: Optional unique name for the collection
         :param display_name: Optional display name for the collection
         """
         super().__init__(unique_name=unique_name, display_name=display_name)
-        self._name = name
         self._data: List[NewBase] = []
         self._interface: InterfaceType = None
 
@@ -89,23 +86,27 @@ class ModelCollection(NewBase, MutableSequence[T]):
         self._global_object.map.prune_vertex_from_edge(self, item)
 
     @property
-    def name(self) -> str:
-        """Get the name of the collection."""
-        return self._name
-
-    @name.setter
-    def name(self, new_name: str) -> None:
-        """Set the name of the collection."""
-        self._name = new_name
-
-    @property
     def interface(self) -> InterfaceType:
         """Get the current interface of the collection."""
         return self._interface
 
     @interface.setter
     def interface(self, new_interface: InterfaceType) -> None:
-        """Set the interface and propagate to all items."""
+        """Set the interface and propagate to all items.
+        
+        :param new_interface: The interface to set (must be InterfaceFactoryTemplate, CalculatorFactoryBase, or None)
+        :raises TypeError: If the interface is not a valid type
+        """
+        # Import here to avoid circular imports
+        from ..fitting.calculators import CalculatorFactoryBase
+        from ..fitting.calculators import InterfaceFactoryTemplate
+        
+        if new_interface is not None and not isinstance(new_interface, (InterfaceFactoryTemplate, CalculatorFactoryBase)):
+            raise TypeError(
+                f'interface must be InterfaceFactoryTemplate, CalculatorFactoryBase, or None, '
+                f'got {type(new_interface).__name__}'
+            )
+        
         self._interface = new_interface
         for item in self._data:
             if hasattr(item, 'interface'):
@@ -121,7 +122,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
     @overload
     def __getitem__(self, idx: str) -> T: ...
 
-    def __getitem__(self, idx: Union[int, slice, str]) -> Union[T, 'ModelCollection[T]']:
+    def __getitem__(self, idx: int | slice | str) -> T | 'ModelCollection[T]':
         """
         Get an item by index, slice, or name.
 
@@ -130,7 +131,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
         """
         if isinstance(idx, slice):
             start, stop, step = idx.indices(len(self))
-            return self.__class__(self._name, *[self._data[i] for i in range(start, stop, step)])
+            return self.__class__(*[self._data[i] for i in range(start, stop, step)])
         if isinstance(idx, str):
             # Search by name
             for item in self._data:
@@ -146,7 +147,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
     @overload
     def __setitem__(self, idx: slice, value: Iterable[T]) -> None: ...
 
-    def __setitem__(self, idx: Union[int, slice], value: Union[T, Iterable[T]]) -> None:
+    def __setitem__(self, idx: int | slice, value: T | Iterable[T]) -> None:
         """
         Set an item at an index.
 
@@ -187,7 +188,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
     @overload
     def __delitem__(self, idx: str) -> None: ...
 
-    def __delitem__(self, idx: Union[int, slice, str]) -> None:
+    def __delitem__(self, idx: int | slice | str) -> None:
         """
         Delete an item by index, slice, or name.
 
@@ -257,7 +258,7 @@ class ModelCollection(NewBase, MutableSequence[T]):
         self._data.sort(key=mapping, reverse=reverse)  # type: ignore[arg-type]
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__} `{self._name}` of length {len(self)}'
+        return f'{self.__class__.__name__} of length {len(self)}'
 
     def __iter__(self) -> Any:
         return iter(self._data)
@@ -281,15 +282,3 @@ class ModelCollection(NewBase, MutableSequence[T]):
             if hasattr(item, 'get_all_variables'):
                 variables.extend(item.get_all_variables())  # type: ignore[attr-defined]
         return variables
-
-    def get_all_parameters(self) -> List[Any]:
-        """Get all parameters from all items in the collection."""
-        return [var for var in self.get_all_variables() if isinstance(var, Parameter)]
-
-    def get_fit_parameters(self) -> List[Any]:
-        """Get all fittable parameters from all items in the collection."""
-        parameters: List[Any] = []
-        for item in self._data:
-            if hasattr(item, 'get_fit_parameters'):
-                parameters.extend(item.get_fit_parameters())  # type: ignore[attr-defined]
-        return parameters

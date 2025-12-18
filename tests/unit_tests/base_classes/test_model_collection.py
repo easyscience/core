@@ -11,6 +11,7 @@ from easyscience import DescriptorNumber
 from easyscience.base_classes import ModelCollection
 from easyscience.base_classes import ModelBase
 from easyscience.base_classes import NewBase
+from easyscience.fitting.calculators import CalculatorFactoryBase
 
 
 class MockModelItem(ModelBase):
@@ -67,8 +68,7 @@ def sample_items():
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_init_empty(cls, clear_global):
     """Test creating an empty collection."""
-    coll = cls('test_collection')
-    assert coll.name == 'test_collection'
+    coll = cls()
     assert len(coll) == 0
     assert coll.interface is None
 
@@ -76,8 +76,7 @@ def test_ModelCollection_init_empty(cls, clear_global):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_init_with_items(cls, clear_global, sample_items):
     """Test creating a collection with initial items."""
-    coll = cls('test_collection', *sample_items)
-    assert coll.name == 'test_collection'
+    coll = cls(*sample_items)
     assert len(coll) == 3
     for i, item in enumerate(coll):
         assert item.name == sample_items[i].name
@@ -86,21 +85,21 @@ def test_ModelCollection_init_with_items(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_init_with_unique_name(cls, clear_global):
     """Test creating a collection with a custom unique_name."""
-    coll = cls('test_collection', unique_name='custom_unique')
+    coll = cls(unique_name='custom_unique')
     assert coll.unique_name == 'custom_unique'
 
 
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_init_with_display_name(cls, clear_global):
     """Test creating a collection with a custom display_name."""
-    coll = cls('test_collection', display_name='My Display Name')
+    coll = cls(display_name='My Display Name')
     assert coll.display_name == 'My Display Name'
 
 
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_init_with_list_arg(cls, clear_global, sample_items):
     """Test creating a collection with a list of items (should flatten)."""
-    coll = cls('test_collection', sample_items)
+    coll = cls(sample_items)
     assert len(coll) == 3
 
 
@@ -108,26 +107,7 @@ def test_ModelCollection_init_with_list_arg(cls, clear_global, sample_items):
 def test_ModelCollection_init_type_error(cls, clear_global):
     """Test that adding non-NewBase items raises TypeError."""
     with pytest.raises(TypeError):
-        cls('test_collection', 'not_a_newbase_object')
-
-
-# =============================================================================
-# Name Property Tests
-# =============================================================================
-
-@pytest.mark.parametrize('cls', class_constructors)
-def test_ModelCollection_name_getter(cls, clear_global):
-    """Test getting the collection name."""
-    coll = cls('my_collection')
-    assert coll.name == 'my_collection'
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-def test_ModelCollection_name_setter(cls, clear_global):
-    """Test setting the collection name."""
-    coll = cls('old_name')
-    coll.name = 'new_name'
-    assert coll.name == 'new_name'
+        cls('not_a_newbase_object')
 
 
 # =============================================================================
@@ -137,7 +117,7 @@ def test_ModelCollection_name_setter(cls, clear_global):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_interface_default(cls, clear_global):
     """Test that interface defaults to None."""
-    coll = cls('test_collection')
+    coll = cls()
     assert coll.interface is None
 
 
@@ -148,10 +128,16 @@ def test_ModelCollection_interface_propagation(cls, clear_global, sample_items):
     for item in sample_items:
         item.interface = None
 
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
-    class MockInterface:
-        pass
+    class MockInterface(CalculatorFactoryBase):
+        """Mock interface for testing."""
+        @property
+        def available_calculators(self):
+            return []
+        
+        def create(self, calculator_name, *args, **kwargs):
+            pass
 
     mock_interface = MockInterface()
     coll.interface = mock_interface
@@ -161,6 +147,35 @@ def test_ModelCollection_interface_propagation(cls, clear_global, sample_items):
         assert item.interface is mock_interface
 
 
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_interface_type_error(cls, clear_global):
+    """Test that setting an invalid interface type raises TypeError."""
+    coll = cls()
+    
+    with pytest.raises(TypeError, match='interface must be'):
+        coll.interface = 'not_an_interface'
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_interface_type_error_with_object(cls, clear_global):
+    """Test that setting a plain object as interface raises TypeError."""
+    coll = cls()
+    
+    class NotAnInterface:
+        pass
+    
+    with pytest.raises(TypeError, match='interface must be'):
+        coll.interface = NotAnInterface()
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_interface_accepts_none(cls, clear_global, sample_items):
+    """Test that setting interface to None is allowed."""
+    coll = cls(*sample_items)
+    coll.interface = None
+    assert coll.interface is None
+
+
 # =============================================================================
 # __getitem__ Tests
 # =============================================================================
@@ -168,7 +183,7 @@ def test_ModelCollection_interface_propagation(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_getitem_int(cls, clear_global, sample_items):
     """Test getting items by integer index."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     assert coll[0].name == 'item1'
     assert coll[1].name == 'item2'
     assert coll[2].name == 'item3'
@@ -178,7 +193,7 @@ def test_ModelCollection_getitem_int(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_getitem_int_out_of_range(cls, clear_global, sample_items):
     """Test that out of range index raises IndexError."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     with pytest.raises(IndexError):
         _ = coll[100]
 
@@ -186,7 +201,7 @@ def test_ModelCollection_getitem_int_out_of_range(cls, clear_global, sample_item
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_getitem_slice(cls, clear_global, sample_items):
     """Test getting items by slice."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     sliced = coll[0:2]
     assert isinstance(sliced, cls)
     assert len(sliced) == 2
@@ -197,7 +212,7 @@ def test_ModelCollection_getitem_slice(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_getitem_str_by_name(cls, clear_global, sample_items):
     """Test getting items by name string."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     item = coll['item2']
     assert item.name == 'item2'
 
@@ -205,7 +220,7 @@ def test_ModelCollection_getitem_str_by_name(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_getitem_str_by_unique_name(cls, clear_global, sample_items):
     """Test getting items by unique_name string."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     unique_name = sample_items[1].unique_name
     item = coll[unique_name]
     assert item.unique_name == unique_name
@@ -214,7 +229,7 @@ def test_ModelCollection_getitem_str_by_unique_name(cls, clear_global, sample_it
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_getitem_str_not_found(cls, clear_global, sample_items):
     """Test that getting non-existent name raises KeyError."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     with pytest.raises(KeyError):
         _ = coll['nonexistent']
 
@@ -226,7 +241,7 @@ def test_ModelCollection_getitem_str_not_found(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_setitem_int(cls, clear_global, sample_items):
     """Test setting items by integer index."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     new_item = MockModelItem(name='new_item', value=99.0)
     old_item = coll[1]
 
@@ -245,7 +260,7 @@ def test_ModelCollection_setitem_int(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_setitem_type_error(cls, clear_global, sample_items):
     """Test that setting non-NewBase item raises TypeError."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     with pytest.raises(TypeError):
         coll[0] = 'not_a_newbase_object'
 
@@ -253,7 +268,7 @@ def test_ModelCollection_setitem_type_error(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_setitem_slice(cls, clear_global, sample_items):
     """Test setting items by slice."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     new_items = [
         MockModelItem(name='new1', value=10.0),
         MockModelItem(name='new2', value=20.0),
@@ -274,7 +289,7 @@ def test_ModelCollection_setitem_slice(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_delitem_int(cls, clear_global, sample_items):
     """Test deleting items by integer index."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     deleted_item = coll[1]
 
     del coll[1]
@@ -291,7 +306,7 @@ def test_ModelCollection_delitem_int(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_delitem_slice(cls, clear_global, sample_items):
     """Test deleting items by slice."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     del coll[0:2]
 
@@ -302,7 +317,7 @@ def test_ModelCollection_delitem_slice(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_delitem_str_by_name(cls, clear_global, sample_items):
     """Test deleting items by name string."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     del coll['item2']
 
@@ -313,7 +328,7 @@ def test_ModelCollection_delitem_str_by_name(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_delitem_str_not_found(cls, clear_global, sample_items):
     """Test that deleting non-existent name raises KeyError."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     with pytest.raises(KeyError):
         del coll['nonexistent']
 
@@ -327,7 +342,7 @@ def test_ModelCollection_delitem_str_not_found(cls, clear_global, sample_items):
 def test_ModelCollection_len(cls, clear_global, count):
     """Test __len__ returns correct count."""
     items = [MockModelItem(name=f'item{i}', value=float(i)) for i in range(count)]
-    coll = cls('test_collection', *items)
+    coll = cls(*items)
     assert len(coll) == count
 
 
@@ -338,7 +353,7 @@ def test_ModelCollection_len(cls, clear_global, count):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_insert(cls, clear_global, sample_items):
     """Test inserting items at an index."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     new_item = MockModelItem(name='inserted', value=99.0)
 
     coll.insert(1, new_item)
@@ -357,7 +372,7 @@ def test_ModelCollection_insert(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_insert_type_error(cls, clear_global, sample_items):
     """Test that inserting non-NewBase item raises TypeError."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     with pytest.raises(TypeError):
         coll.insert(0, 'not_a_newbase_object')
 
@@ -369,7 +384,7 @@ def test_ModelCollection_insert_type_error(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_append(cls, clear_global, sample_items):
     """Test appending items."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     new_item = MockModelItem(name='appended', value=99.0)
 
     coll.append(new_item)
@@ -389,7 +404,7 @@ def test_ModelCollection_append(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_data_property(cls, clear_global, sample_items):
     """Test that data property returns tuple of items."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     data = coll.data
     assert isinstance(data, tuple)
     assert len(data) == 3
@@ -409,7 +424,7 @@ def test_ModelCollection_sort(cls, clear_global):
         MockModelItem(name='a', value=1.0),
         MockModelItem(name='b', value=2.0),
     ]
-    coll = cls('test_collection', *items)
+    coll = cls(*items)
 
     coll.sort(lambda x: x.value.value)
 
@@ -426,7 +441,7 @@ def test_ModelCollection_sort_reverse(cls, clear_global):
         MockModelItem(name='c', value=3.0),
         MockModelItem(name='b', value=2.0),
     ]
-    coll = cls('test_collection', *items)
+    coll = cls(*items)
 
     coll.sort(lambda x: x.value.value, reverse=True)
 
@@ -442,10 +457,9 @@ def test_ModelCollection_sort_reverse(cls, clear_global):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_repr(cls, clear_global, sample_items):
     """Test string representation."""
-    coll = cls('my_collection', *sample_items)
+    coll = cls(*sample_items)
     repr_str = repr(coll)
     assert cls.__name__ in repr_str
-    assert 'my_collection' in repr_str
     assert '3' in repr_str
 
 
@@ -456,7 +470,7 @@ def test_ModelCollection_repr(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_iter(cls, clear_global, sample_items):
     """Test iteration over collection."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     names = [item.name for item in coll]
     assert names == ['item1', 'item2', 'item3']
@@ -469,7 +483,7 @@ def test_ModelCollection_iter(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_get_all_variables(cls, clear_global, sample_items):
     """Test getting all variables from items."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     variables = coll.get_all_variables()
 
     # Each MockModelItem has one Parameter (value)
@@ -485,7 +499,7 @@ def test_ModelCollection_get_all_variables(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_get_all_parameters(cls, clear_global, sample_items):
     """Test getting all parameters from items."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     parameters = coll.get_all_parameters()
 
     assert len(parameters) == 3
@@ -503,7 +517,7 @@ def test_ModelCollection_get_fit_parameters(cls, clear_global, sample_items):
     # Fix one parameter so we can test filtering
     sample_items[0].value.fixed = True
 
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     fit_params = coll.get_fit_parameters()
 
     # All 3 parameters should be returned (get_fit_parameters on items)
@@ -518,7 +532,7 @@ def test_ModelCollection_get_fit_parameters(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_graph_edges(cls, clear_global, sample_items):
     """Test that graph edges are correctly maintained."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     edges = global_object.map.get_edges(coll)
     assert len(edges) == 3
@@ -530,7 +544,7 @@ def test_ModelCollection_graph_edges(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_graph_edges_after_append(cls, clear_global, sample_items):
     """Test graph edges are updated after append."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     new_item = MockModelItem(name='new', value=99.0)
 
     coll.append(new_item)
@@ -543,7 +557,7 @@ def test_ModelCollection_graph_edges_after_append(cls, clear_global, sample_item
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_graph_edges_after_delete(cls, clear_global, sample_items):
     """Test graph edges are updated after delete."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     deleted_item = sample_items[1]
 
     del coll[1]
@@ -560,7 +574,7 @@ def test_ModelCollection_graph_edges_after_delete(cls, clear_global, sample_item
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_extend(cls, clear_global, sample_items):
     """Test extend method (inherited from MutableSequence)."""
-    coll = cls('test_collection', sample_items[0])
+    coll = cls(sample_items[0])
     coll.extend([sample_items[1], sample_items[2]])
 
     assert len(coll) == 3
@@ -571,7 +585,7 @@ def test_ModelCollection_extend(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_pop(cls, clear_global, sample_items):
     """Test pop method (inherited from MutableSequence)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     popped = coll.pop()
     assert popped.name == 'item3'
@@ -581,7 +595,7 @@ def test_ModelCollection_pop(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_pop_index(cls, clear_global, sample_items):
     """Test pop method with index (inherited from MutableSequence)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     popped = coll.pop(0)
     assert popped.name == 'item1'
@@ -592,7 +606,7 @@ def test_ModelCollection_pop_index(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_remove(cls, clear_global, sample_items):
     """Test remove method (inherited from MutableSequence)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
     item_to_remove = sample_items[1]
 
     coll.remove(item_to_remove)
@@ -604,7 +618,7 @@ def test_ModelCollection_remove(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_clear(cls, clear_global, sample_items):
     """Test clear method (inherited from MutableSequence)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     coll.clear()
 
@@ -614,7 +628,7 @@ def test_ModelCollection_clear(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_reverse(cls, clear_global, sample_items):
     """Test reverse method (inherited from MutableSequence)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     coll.reverse()
 
@@ -626,7 +640,7 @@ def test_ModelCollection_reverse(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_count(cls, clear_global, sample_items):
     """Test count method (inherited from MutableSequence)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     count = coll.count(sample_items[0])
     assert count == 1
@@ -635,7 +649,7 @@ def test_ModelCollection_count(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_index(cls, clear_global, sample_items):
     """Test index method (inherited from MutableSequence)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     idx = coll.index(sample_items[1])
     assert idx == 1
@@ -648,7 +662,7 @@ def test_ModelCollection_index(cls, clear_global, sample_items):
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_contains(cls, clear_global, sample_items):
     """Test __contains__ (in operator)."""
-    coll = cls('test_collection', *sample_items)
+    coll = cls(*sample_items)
 
     assert sample_items[0] in coll
     assert sample_items[1] in coll
