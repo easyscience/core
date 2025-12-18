@@ -14,13 +14,11 @@ from typing import Optional
 from typing import TypeVar
 from typing import overload
 
-from ..variable import Parameter
 from .model_base import ModelBase
 from .new_base import NewBase
 
 if TYPE_CHECKING:
-    from ..fitting.calculators import CalculatorFactoryBase
-    from ..fitting.calculators import InterfaceFactoryTemplate
+    pass
 
 # Type alias for interface - supports both legacy and new factory types
 InterfaceType = 'InterfaceFactoryTemplate | CalculatorFactoryBase | None'
