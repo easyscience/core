@@ -91,20 +91,20 @@ class ModelCollection(ModelBase, MutableSequence[T]):
     @interface.setter
     def interface(self, new_interface: InterfaceType) -> None:
         """Set the interface and propagate to all items.
-        
+
         :param new_interface: The interface to set (must be InterfaceFactoryTemplate, CalculatorFactoryBase, or None)
         :raises TypeError: If the interface is not a valid type
         """
         # Import here to avoid circular imports
         from ..fitting.calculators import CalculatorFactoryBase
         from ..fitting.calculators import InterfaceFactoryTemplate
-        
+
         if new_interface is not None and not isinstance(new_interface, (InterfaceFactoryTemplate, CalculatorFactoryBase)):
             raise TypeError(
                 f'interface must be InterfaceFactoryTemplate, CalculatorFactoryBase, or None, '
                 f'got {type(new_interface).__name__}'
             )
-        
+
         self._interface = new_interface
         for item in self._data:
             if hasattr(item, 'interface'):
