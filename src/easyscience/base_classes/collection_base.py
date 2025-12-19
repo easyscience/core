@@ -18,6 +18,7 @@ from easyscience.global_object.undo_redo import NotarizedDict
 
 from ..variable.descriptor_base import DescriptorBase
 from .based_base import BasedBase
+from .new_base import NewBase
 
 if TYPE_CHECKING:
     from ..fitting.calculators import InterfaceFactoryTemplate
@@ -64,7 +65,7 @@ class CollectionBase(BasedBase, MutableSequence):
                 _kwargs[key] = item
         kwargs = _kwargs
         for item in list(kwargs.values()) + _args:
-            if not issubclass(type(item), (DescriptorBase, BasedBase)):
+            if not issubclass(type(item), (DescriptorBase, BasedBase, NewBase)):
                 raise AttributeError('A collection can only be formed from easyscience objects.')
         args = _args
         _kwargs = {}
