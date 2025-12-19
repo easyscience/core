@@ -70,13 +70,22 @@ class _EntryList(list):
 class Map:
     def __init__(self):
         # A dictionary of object names and their corresponding objects
-        self._store = weakref.WeakValueDictionary()
+        self.__store = weakref.WeakValueDictionary()
         # A dict with object names as keys and a list of their object types as values, with weak references
         self.__type_dict = {}
 
     def vertices(self) -> List[str]:
-        """returns the vertices of a map"""
-        return list(self._store.keys())
+        """Returns the vertices of a map.
+
+        Uses a retry loop to handle RuntimeError that can occur when the
+        WeakValueDictionary is modified during iteration (e.g., by garbage collection).
+        """
+        while True:
+            try:
+                return list(self.__store)
+            except RuntimeError:
+                # Dictionary changed size during iteration, retry
+                continue
 
     def edges(self):
         """returns the edges of a map"""
@@ -103,43 +112,50 @@ class Map:
         return [key for key, item in self.__type_dict.items() if obj_type in item.type]
 
     def get_item_by_key(self, item_id: str) -> object:
-        if item_id in self._store.keys():
-            return self._store[item_id]
+        if item_id in self.__store:
+            return self.__store[item_id]
         raise ValueError('Item not in map.')
 
     def is_known(self, vertex: object) -> bool:
-        # All objects should have a 'unique_name' attribute
-        return vertex.unique_name in self._store.keys()
+        """Check if a vertex is known in the map.
+
+        All objects should have a 'unique_name' attribute.
+        """
+        return vertex.unique_name in self.__store
 
     def find_type(self, vertex: object) -> List[str]:
         if self.is_known(vertex):
             return self.__type_dict[vertex.unique_name].type
 
     def reset_type(self, obj, default_type: str):
-        if obj.unique_name in self.__type_dict.keys():
+        if obj.unique_name in self.__type_dict:
             self.__type_dict[obj.unique_name].reset_type(default_type)
 
     def change_type(self, obj, new_type: str):
-        if obj.unique_name in self.__type_dict.keys():
+        if obj.unique_name in self.__type_dict:
             self.__type_dict[obj.unique_name].type = new_type
 
     def add_vertex(self, obj: object, obj_type: str = None):
         name = obj.unique_name
-        if name in self._store.keys():
+        if name in self.__store:
             raise ValueError(f'Object name {name} already exists in the graph.')
-        self._store[name] = obj
+        # Clean up stale entry in __type_dict if the weak reference was collected
+        # but the finalizer hasn't run yet
+        if name in self.__type_dict:
+            del self.__type_dict[name]
+        self.__store[name] = obj
         self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
-        self.__type_dict[name].finalizer = weakref.finalize(self._store[name], self.prune, name)
+        self.__type_dict[name].finalizer = weakref.finalize(self.__store[name], self.prune, name)
         self.__type_dict[name].type = obj_type
 
     def add_edge(self, start_obj: object, end_obj: object):
-        if start_obj.unique_name in self.__type_dict.keys():
+        if start_obj.unique_name in self.__type_dict:
             self.__type_dict[start_obj.unique_name].append(end_obj.unique_name)
         else:
             raise AttributeError('Start object not in map.')
 
     def get_edges(self, start_obj) -> List[str]:
-        if start_obj.unique_name in self.__type_dict.keys():
+        if start_obj.unique_name in self.__type_dict:
             return list(self.__type_dict[start_obj.unique_name])
         else:
             raise AttributeError
@@ -163,13 +179,14 @@ class Map:
             return
         vertex2 = child_obj.unique_name
 
-        if vertex1 in self.__type_dict.keys() and vertex2 in self.__type_dict[vertex1]:
+        if vertex1 in self.__type_dict and vertex2 in self.__type_dict[vertex1]:
             del self.__type_dict[vertex1][self.__type_dict[vertex1].index(vertex2)]
 
     def prune(self, key: str):
-        if key in self.__type_dict.keys():
+        if key in self.__type_dict:
             del self.__type_dict[key]
-            del self._store[key]
+            if key in self.__store:
+                del self.__store[key]
 
     def find_isolated_vertices(self) -> list:
         """returns a list of isolated vertices."""
@@ -247,7 +264,7 @@ class Map:
         if vertices_encountered is None:
             vertices_encountered = set()
         graph = self.__type_dict
-        vertices = list(graph.keys())
+        vertices = list(graph)
         if not start_vertex:
             # chose a vertex from graph as a starting point
             start_vertex = vertices[0]
@@ -262,10 +279,9 @@ class Map:
 
     def _clear(self):
         """Reset the map to an empty state. Only to be used for testing"""
-        for vertex in self.vertices():
-            self.prune(vertex)
+        self.__store.clear()
+        self.__type_dict.clear()
         gc.collect()
-        self.__type_dict = {}
 
     def __repr__(self) -> str:
-        return f'Map object of {len(self._store)} vertices.'
+        return f'Map object of {len(self.__store)} vertices.'

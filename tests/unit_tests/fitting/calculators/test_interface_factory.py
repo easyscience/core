@@ -2,6 +2,7 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
+import warnings
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -9,6 +10,8 @@ from easyscience.fitting.calculators.interface_factory import InterfaceFactoryTe
 from easyscience import global_object
 
 
+# Mark all tests in this class to filter the deprecation warning since we're testing deprecated functionality
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
 class TestInterfaceFactoryTemplate:
     @pytest.fixture
     def clear(self):
@@ -393,6 +396,54 @@ class TestInterfaceFactoryTemplate:
         
         # Then
         mock_callback.fset.assert_called_once_with(99)
+
+
+class TestInterfaceFactoryTemplateDeprecation:
+    """Test deprecation warning for InterfaceFactoryTemplate."""
+
+    @pytest.fixture
+    def clear(self):
+        """Clear global map to avoid test contamination"""
+        global_object.map._clear()
+        yield
+        global_object.map._clear()
+
+    @pytest.fixture
+    def mock_interface(self):
+        """Create a mock interface class"""
+        class MockInterface:
+            name = "MockInterface"
+
+            def __init__(self, *args, **kwargs):
+                self.args = args
+                self.kwargs = kwargs
+
+            def fit_func(self, *args, **kwargs):
+                return "result"
+
+            def create(self, model):
+                return []
+
+        return MockInterface
+
+    def test_deprecation_warning_on_instantiation(self, clear, mock_interface):
+        """Test that DeprecationWarning is issued when InterfaceFactoryTemplate is instantiated"""
+        # When/Then
+        with pytest.warns(DeprecationWarning, match='InterfaceFactoryTemplate is deprecated'):
+            InterfaceFactoryTemplate([mock_interface])
+
+    def test_deprecation_warning_message_content(self, clear, mock_interface):
+        """Test that the deprecation warning contains helpful migration info"""
+        # When
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            InterfaceFactoryTemplate([mock_interface])
+
+            # Then
+            assert len(w) == 1
+            assert issubclass(w[0].category, DeprecationWarning)
+            assert 'CalculatorFactoryBase' in str(w[0].message)
+            assert 'SimpleCalculatorFactory' in str(w[0].message)
 
 
 class TestItemContainer:

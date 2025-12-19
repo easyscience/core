@@ -1029,7 +1029,8 @@ class Parameter(DescriptorNumber):
 
     def _find_parameter_by_serializer_id(self, serializer_id: str) -> Optional['DescriptorNumber']:
         """Find a parameter by its serializer_id from all parameters in the global map."""
-        for obj in self._global_object.map._store.values():
+        for key in self._global_object.map.vertices():
+            obj = self._global_object.map.get_item_by_key(key)
             if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__serializer_id'):
                 if obj._DescriptorNumber__serializer_id == serializer_id:
                     return obj
