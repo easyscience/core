@@ -18,7 +18,7 @@ from .model_base import ModelBase
 from .new_base import NewBase
 
 if TYPE_CHECKING:
-    from ..fitting.calculators import InterfaceFactoryTemplate
+    pass
 
 # Type alias for interface
 InterfaceType = 'InterfaceFactoryTemplate | None'
@@ -99,10 +99,7 @@ class ModelCollection(ModelBase, MutableSequence[T]):
         from ..fitting.calculators import InterfaceFactoryTemplate
 
         if new_interface is not None and not isinstance(new_interface, InterfaceFactoryTemplate):
-            raise TypeError(
-                f'interface must be InterfaceFactoryTemplate or None, '
-                f'got {type(new_interface).__name__}'
-            )
+            raise TypeError(f'interface must be InterfaceFactoryTemplate or None, got {type(new_interface).__name__}')
 
         self._interface = new_interface
         for item in self._data:
