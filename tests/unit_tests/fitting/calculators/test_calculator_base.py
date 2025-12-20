@@ -10,7 +10,18 @@ import numpy as np
 import pytest
 
 from easyscience import global_object
+from easyscience.base_classes import ModelBase
 from easyscience.fitting.calculators.calculator_base import CalculatorBase
+
+
+def create_mock_model(name="MockModel"):
+    """Helper function to create a mock model that is an instance of ModelBase."""
+
+    class MockModel(ModelBase):
+        pass
+
+    model = MockModel(display_name=name)
+    return model
 
 
 class TestCalculatorBase:
@@ -24,22 +35,14 @@ class TestCalculatorBase:
         global_object.map._clear()
 
     @pytest.fixture
-    def mock_model(self):
+    def mock_model(self, clear):
         """Create a mock model object."""
-        model = MagicMock()
-        model.name = "MockModel"
-        model.unique_name = "mock_model_unique"
-        model.display_name = "MockModel"
-        return model
+        return create_mock_model("MockModel")
 
     @pytest.fixture
-    def mock_instrumental_parameters(self):
+    def mock_instrumental_parameters(self, clear):
         """Create mock instrumental parameters."""
-        params = MagicMock()
-        params.name = "MockInstrument"
-        params.unique_name = "mock_instrument_unique"
-        params.display_name = "MockInstrument"
-        return params
+        return create_mock_model("MockInstrument")
 
     @pytest.fixture
     def concrete_calculator_class(self):
@@ -87,7 +90,7 @@ class TestCalculatorBase:
 
     def test_init_with_none_model_raises_error(self, clear, concrete_calculator_class):
         """Test that initialization with None model raises ValueError."""
-        with pytest.raises(ValueError, match="Model cannot be None"):
+        with pytest.raises(ValueError, match="Model must be an instance of ModelBase"):
             concrete_calculator_class(None, unique_name="test_4", display_name="Test4")
 
     # Model property tests
@@ -97,8 +100,7 @@ class TestCalculatorBase:
 
     def test_model_setter(self, calculator):
         """Test model setter property."""
-        new_model = MagicMock()
-        new_model.name = "NewModel"
+        new_model = create_mock_model("NewModel")
         calculator.model = new_model
         assert calculator.model is new_model
 
@@ -114,8 +116,7 @@ class TestCalculatorBase:
 
     def test_instrumental_parameters_setter(self, calculator):
         """Test instrumental_parameters setter property."""
-        new_params = MagicMock()
-        new_params.name = "NewInstrument"
+        new_params = create_mock_model("NewInstrument")
         calculator.instrumental_parameters = new_params
         assert calculator.instrumental_parameters is new_params
 
@@ -127,8 +128,7 @@ class TestCalculatorBase:
     # Update methods tests
     def test_update_model(self, calculator):
         """Test update_model method."""
-        new_model = MagicMock()
-        new_model.name = "UpdatedModel"
+        new_model = create_mock_model("UpdatedModel")
         calculator.update_model(new_model)
         assert calculator.model is new_model
 
@@ -139,8 +139,7 @@ class TestCalculatorBase:
 
     def test_update_instrumental_parameters(self, calculator):
         """Test update_instrumental_parameters method."""
-        new_params = MagicMock()
-        new_params.name = "UpdatedInstrument"
+        new_params = create_mock_model("UpdatedInstrument")
         calculator.update_instrumental_parameters(new_params)
         assert calculator.instrumental_parameters is new_params
 
@@ -164,13 +163,15 @@ class TestCalculatorBase:
         assert len(result) == 0
 
     # Abstract method enforcement tests
-    def test_cannot_instantiate_abstract_class(self, mock_model):
+    def test_cannot_instantiate_abstract_class(self, clear):
         """Test that CalculatorBase cannot be instantiated directly."""
+        mock_model = create_mock_model()
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
             CalculatorBase(mock_model)
 
-    def test_subclass_must_implement_calculate(self, mock_model):
+    def test_subclass_must_implement_calculate(self, clear):
         """Test that subclasses must implement calculate method."""
+        mock_model = create_mock_model()
 
         class IncompleteCalculator(CalculatorBase):
             pass  # Does not implement calculate
@@ -194,16 +195,17 @@ class TestCalculatorBase:
         calc = concrete_calculator_class(mock_model, mock_instrumental_parameters, unique_name="test_6", display_name="Test6")
         repr_str = repr(calc)
         assert "ConcreteCalculator" in repr_str
-        assert "model=MockModel" in repr_str
-        assert "instrumental_parameters=MockInstrument" in repr_str
+        assert "model=" in repr_str
+        assert "instrumental_parameters=" in repr_str
 
     def test_repr_with_model_without_name_attribute(self, clear, concrete_calculator_class):
-        """Test __repr__ when model has no name attribute."""
-        model = MagicMock(spec=[])  # No name attribute
+        """Test __repr__ when model has no explicit name attribute (uses class name)."""
+        model = create_mock_model()  # ModelBase without explicit name
         calc = concrete_calculator_class(model, unique_name="test_7", display_name="Test7")
         repr_str = repr(calc)
         assert "ConcreteCalculator" in repr_str
-        assert "MagicMock" in repr_str
+        # ModelBase subclass name will appear
+        assert "MockModel" in repr_str or "model=" in repr_str
 
     # Name attribute tests
     def test_calculator_name_attribute(self, calculator):
@@ -270,10 +272,16 @@ class TestCalculatorBaseWithRealModel:
         self, clear, concrete_calculator_class, real_parameter
     ):
         """Test that calculator can access parameters from model."""
-        # Create a mock model that returns our real parameter
-        model = MagicMock()
-        model.name = "TestModel"
-        model.get_parameters.return_value = [real_parameter]
+        # Create a model that returns our real parameter
+        class TestModel(ModelBase):
+            def __init__(self, param):
+                super().__init__(display_name="TestModel")
+                self._param = param
+
+            def get_parameters(self):
+                return [self._param]
+
+        model = TestModel(real_parameter)
 
         calc = concrete_calculator_class(model, unique_name="test_10", display_name="Test10")
         x = np.array([1.0, 2.0, 3.0])

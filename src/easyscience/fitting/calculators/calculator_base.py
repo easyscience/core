@@ -38,10 +38,10 @@ from typing import Optional
 if TYPE_CHECKING:
     import numpy as np
 
-from easyscience.base_classes import NewBase
+from easyscience.base_classes import ModelBase
 
 
-class CalculatorBase(NewBase, metaclass=ABCMeta):
+class CalculatorBase(ModelBase, metaclass=ABCMeta):
     """
     Abstract base class for physics calculators.
 
@@ -56,9 +56,9 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
 
     Parameters
     ----------
-    model : NewBase
+    model : ModelBase
         The physical model (e.g., sample structure) to calculate from.
-    instrumental_parameters : NewBase, optional
+    instrumental_parameters : ModelBase, optional
         Instrumental parameters (e.g., resolution, wavelength) that affect the calculation.
     **kwargs : Any
         Additional calculator-specific configuration options.
@@ -84,8 +84,8 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
 
     def __init__(
         self,
-        model: NewBase,
-        instrumental_parameters: Optional[NewBase] = None,
+        model: ModelBase,
+        instrumental_parameters: Optional[ModelBase] = None,
         unique_name: Optional[str] = None,
         display_name: Optional[str] = None,
         **kwargs: Any,
@@ -95,10 +95,10 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
 
         Parameters
         ----------
-        model : NewBase
+        model : ModelBase
             The physical model to calculate from. This is typically a sample
             or structure definition containing fittable parameters.
-        instrumental_parameters : NewBase, optional
+        instrumental_parameters : ModelBase, optional
             Instrumental parameters that affect the calculation, such as
             resolution, wavelength, or detector settings.
         unique_name : str, optional
@@ -108,39 +108,36 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
         **kwargs : Any
             Additional calculator-specific options.
         """
-        if model is None:
-            raise ValueError('Model cannot be None')
+        if not isinstance(model, ModelBase):
+            raise ValueError('Model must be an instance of ModelBase')
 
-        # Initialize NewBase with naming
+        # Initialize ModelBase with naming
         super().__init__(unique_name=unique_name, display_name=display_name)
 
         self._model = model
         self._instrumental_parameters = instrumental_parameters
         self._additional_kwargs = kwargs
-        # Register this calculator and model in the global object map
-        if hasattr(model, 'unique_name'):
-            self._global_object.map.add_edge(self, model)
 
     @property
-    def model(self) -> NewBase:
+    def model(self) -> ModelBase:
         """
         Get the current physical model.
 
         Returns
         -------
-        NewBase
+        ModelBase
             The physical model used for calculations.
         """
         return self._model
 
     @model.setter
-    def model(self, new_model: NewBase) -> None:
+    def model(self, new_model: ModelBase) -> None:
         """
         Set a new physical model.
 
         Parameters
         ----------
-        new_model : NewBase
+        new_model : ModelBase
             The new physical model to use for calculations.
 
         Raises
@@ -153,31 +150,31 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
         self._model = new_model
 
     @property
-    def instrumental_parameters(self) -> Optional[NewBase]:
+    def instrumental_parameters(self) -> Optional[ModelBase]:
         """
         Get the current instrumental parameters.
 
         Returns
         -------
-        NewBase or None
+        ModelBase or None
             The instrumental parameters, or None if not set.
         """
         return self._instrumental_parameters
 
     @instrumental_parameters.setter
-    def instrumental_parameters(self, new_parameters: Optional[NewBase]) -> None:
+    def instrumental_parameters(self, new_parameters: Optional[ModelBase]) -> None:
         """
         Set new instrumental parameters.
 
         Parameters
         ----------
-        new_parameters : NewBase or None
+        new_parameters : ModelBase or None
             The new instrumental parameters to use for calculations.
             Truly optional, since instrumental parameters may not always be needed.
         """
         self._instrumental_parameters = new_parameters
 
-    def update_model(self, new_model: NewBase) -> None:
+    def update_model(self, new_model: ModelBase) -> None:
         """
         Update the physical model used for calculations.
 
@@ -186,7 +183,7 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
 
         Parameters
         ----------
-        new_model : NewBase
+        new_model : ModelBase
             The new physical model to use.
 
         Raises
@@ -196,7 +193,7 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
         """
         self.model = new_model
 
-    def update_instrumental_parameters(self, new_parameters: Optional[NewBase]) -> None:
+    def update_instrumental_parameters(self, new_parameters: Optional[ModelBase]) -> None:
         """
         Update the instrumental parameters used for calculations.
 
@@ -206,7 +203,7 @@ class CalculatorBase(NewBase, metaclass=ABCMeta):
 
         Parameters
         ----------
-        new_parameters : NewBase or None
+        new_parameters : ModelBase or None
             The new instrumental parameters to use.
         """
         self.instrumental_parameters = new_parameters

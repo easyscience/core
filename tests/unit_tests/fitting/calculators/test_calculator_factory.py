@@ -11,11 +11,21 @@ import numpy as np
 import pytest
 
 from easyscience import global_object
+from easyscience.base_classes import ModelBase
 from easyscience.fitting.calculators.calculator_base import CalculatorBase
 from easyscience.fitting.calculators.calculator_factory import (
     CalculatorFactoryBase,
     SimpleCalculatorFactory,
 )
+
+
+def create_mock_model():
+    """Helper function to create a mock model that is an instance of ModelBase."""
+
+    class MockModel(ModelBase):
+        pass
+
+    return MockModel()
 
 
 class TestCalculatorFactoryBase:
@@ -29,22 +39,22 @@ class TestCalculatorFactoryBase:
         global_object.map._clear()
 
     @pytest.fixture
-    def mock_model(self):
+    def mock_model(self, clear):
         """Create a mock model object."""
-        model = MagicMock()
-        model.name = "MockModel"
-        model.unique_name = "MockModel"
-        model.display_name = "MockModel"
-        return model
+
+        class MockModel(ModelBase):
+            pass
+
+        return MockModel()
 
     @pytest.fixture
-    def mock_instrumental_parameters(self):
+    def mock_instrumental_parameters(self, clear):
         """Create mock instrumental parameters."""
-        params = MagicMock()
-        params.name = "MockInstrument"
-        params.unique_name = "MockInstrument"
-        params.display_name = "MockInstrument"
-        return params
+
+        class MockInstrument(ModelBase):
+            pass
+
+        return MockInstrument()
 
     @pytest.fixture
     def concrete_calculator_class(self):
@@ -62,18 +72,17 @@ class TestCalculatorFactoryBase:
     def concrete_factory_class(self, concrete_calculator_class):
         """Create a concrete factory implementation."""
 
+        calc_class = concrete_calculator_class
+
         class TestFactory(CalculatorFactoryBase):
             def __init__(self):
-                self._calc_class = concrete_calculator_class
-
-            @property
-            def available_calculators(self) -> List[str]:
-                return ["test"]
+                super().__init__()
+                self._available_calculators["test"] = calc_class
 
             def create(self, calculator_name, model, instrumental_parameters=None, **kwargs):
-                if calculator_name != "test":
+                if calculator_name not in self._available_calculators:
                     raise ValueError(f"Unknown calculator: {calculator_name}")
-                return self._calc_class(model, instrumental_parameters, **kwargs)
+                return self._available_calculators[calculator_name](model, instrumental_parameters, **kwargs)
 
         return TestFactory
 
@@ -83,23 +92,11 @@ class TestCalculatorFactoryBase:
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
             CalculatorFactoryBase()
 
-    def test_subclass_must_implement_available_calculators(self, concrete_calculator_class, mock_model):
-        """Test that subclasses must implement available_calculators property."""
-
-        class IncompleteFactory(CalculatorFactoryBase):
-            def create(self, calculator_name, model, instrumental_parameters=None, **kwargs):
-                return concrete_calculator_class(model, instrumental_parameters, **kwargs)
-
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            IncompleteFactory()
-
     def test_subclass_must_implement_create(self):
         """Test that subclasses must implement create method."""
 
         class IncompleteFactory(CalculatorFactoryBase):
-            @property
-            def available_calculators(self):
-                return ["test"]
+            pass
 
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
             IncompleteFactory()
@@ -151,22 +148,22 @@ class TestSimpleCalculatorFactory:
         global_object.map._clear()
 
     @pytest.fixture
-    def mock_model(self):
+    def mock_model(self, clear):
         """Create a mock model object."""
-        model = MagicMock()
-        model.name = "MockModel"
-        model.unique_name = "MockModel"
-        model.display_name = "MockModel"
-        return model
+
+        class MockModel(ModelBase):
+            pass
+
+        return MockModel()
 
     @pytest.fixture
-    def mock_instrumental_parameters(self):
+    def mock_instrumental_parameters(self, clear):
         """Create mock instrumental parameters."""
-        params = MagicMock()
-        params.name = "MockInstrument"
-        params.unique_name = "MockInstrument"
-        params.display_name = "MockInstrument"
-        return params
+
+        class MockInstrument(ModelBase):
+            pass
+
+        return MockInstrument()
 
     @pytest.fixture
     def calculator_class_a(self):
@@ -205,17 +202,6 @@ class TestSimpleCalculatorFactory:
             "b": calculator_class_b,
         })
         assert set(factory.available_calculators) == {"a", "b"}
-
-    def test_class_level_calculators(self, calculator_class_a):
-        """Test using class-level _calculators attribute."""
-
-        class MyFactory(SimpleCalculatorFactory):
-            pass
-
-        # Set class-level calculators
-        MyFactory._calculators = {"my_calc": calculator_class_a}
-        factory = MyFactory()
-        assert "my_calc" in factory.available_calculators
 
     # Available calculators tests
     def test_available_calculators_returns_list(self, calculator_class_a):
@@ -263,12 +249,12 @@ class TestSimpleCalculatorFactory:
         factory.register("b", calculator_class_b)
         assert "b" in factory.available_calculators
 
-    def test_register_overwrites_existing(self, calculator_class_a, calculator_class_b):
+    def test_register_overwrites_existing(self, calculator_class_a, calculator_class_b, clear):
         """Test that registering with existing name overwrites."""
         factory = SimpleCalculatorFactory({"a": calculator_class_a})
         factory.register("a", calculator_class_b)
         # Now "a" should create CalculatorB
-        calc = factory.create("a", MagicMock())
+        calc = factory.create("a", create_mock_model())
         assert calc.name == "calc_b"
 
     def test_register_invalid_class_raises_error(self, calculator_class_a):
@@ -332,7 +318,7 @@ class TestSimpleCalculatorFactory:
         np.testing.assert_array_equal(result, np.array([2.0, 4.0, 6.0]))
 
     def test_create_multiple_calculators_independently(
-        self, calculator_class_a, calculator_class_b, mock_model
+        self, calculator_class_a, calculator_class_b, clear
     ):
         """Test creating multiple independent calculators."""
         factory = SimpleCalculatorFactory({
@@ -340,8 +326,8 @@ class TestSimpleCalculatorFactory:
             "b": calculator_class_b,
         })
 
-        model_a = MagicMock(name="ModelA")
-        model_b = MagicMock(name="ModelB")
+        model_a = create_mock_model()
+        model_b = create_mock_model()
 
         calc_a = factory.create("a", model_a)
         calc_b = factory.create("b", model_b)
@@ -359,6 +345,13 @@ class TestSimpleCalculatorFactory:
 
 class TestFactoryStatelessness:
     """Tests to verify that the factory is truly stateless."""
+
+    @pytest.fixture
+    def clear(self):
+        """Clear global map to avoid test contamination."""
+        global_object.map._clear()
+        yield
+        global_object.map._clear()
 
     @pytest.fixture
     def calculator_class(self):
@@ -380,10 +373,10 @@ class TestFactoryStatelessness:
         CountingCalculator.instance_count = 0
         return CountingCalculator
 
-    def test_factory_does_not_store_calculator_instances(self, calculator_class):
+    def test_factory_does_not_store_calculator_instances(self, calculator_class, clear):
         """Test that factory doesn't store references to created calculators."""
         factory = SimpleCalculatorFactory({"calc": calculator_class})
-        mock_model = MagicMock()
+        mock_model = create_mock_model()
 
         calc1 = factory.create("calc", mock_model)
         calc2 = factory.create("calc", mock_model)
@@ -402,12 +395,12 @@ class TestFactoryStatelessness:
         assert not hasattr(factory, "current_calculator")
         assert not hasattr(factory, "_current")
 
-    def test_multiple_factories_are_independent(self, calculator_class):
+    def test_multiple_factories_are_independent(self, calculator_class, clear):
         """Test that multiple factory instances are independent."""
         factory1 = SimpleCalculatorFactory({"calc": calculator_class})
         factory2 = SimpleCalculatorFactory({"calc": calculator_class})
 
-        mock_model = MagicMock()
+        mock_model = create_mock_model()
 
         calc1 = factory1.create("calc", mock_model)
         calc2 = factory2.create("calc", mock_model)
@@ -470,12 +463,19 @@ class TestFactoryIsolation:
         self, calculator_class_x, calculator_class_y
     ):
         """Test that subclass registries are independent."""
-        
+
+        calc_x = calculator_class_x
+        calc_y = calculator_class_y
+
         class FactoryA(SimpleCalculatorFactory):
-            _calculators = {"x": calculator_class_x}
-        
+            def __init__(self):
+                super().__init__()
+                self._available_calculators["x"] = calc_x
+
         class FactoryB(SimpleCalculatorFactory):
-            _calculators = {"y": calculator_class_y}
+            def __init__(self):
+                super().__init__()
+                self._available_calculators["y"] = calc_y
 
         factory_a = FactoryA()
         factory_b = FactoryB()
@@ -483,26 +483,30 @@ class TestFactoryIsolation:
         # Each should have their own calculators
         assert "x" in factory_a.available_calculators
         assert "y" not in factory_a.available_calculators
-        
+
         assert "y" in factory_b.available_calculators
         assert "x" not in factory_b.available_calculators
 
     def test_class_level_registry_not_modified_by_instance_register(
         self, calculator_class_x, calculator_class_y
     ):
-        """Test that instance.register() doesn't modify class-level registry."""
-        
+        """Test that instance.register() doesn't modify other instances."""
+
+        calc_x = calculator_class_x
+
         class MyFactory(SimpleCalculatorFactory):
-            _calculators = {"x": calculator_class_x}
-        
+            def __init__(self):
+                super().__init__()
+                self._available_calculators["x"] = calc_x
+
         # Create instance and register to it
         factory = MyFactory()
         factory.register("y", calculator_class_y)
-        
+
         # Instance should have both
         assert "x" in factory.available_calculators
         assert "y" in factory.available_calculators
-        
+
         # Create new instance - should NOT have y
         factory2 = MyFactory()
         assert "x" in factory2.available_calculators
@@ -527,6 +531,13 @@ class TestFactoryIsolation:
 
 class TestFactoryErrorHandling:
     """Tests for improved error handling and validation."""
+
+    @pytest.fixture
+    def clear(self):
+        """Clear global map to avoid test contamination."""
+        global_object.map._clear()
+        yield
+        global_object.map._clear()
 
     @pytest.fixture
     def calculator_class(self):
@@ -561,11 +572,11 @@ class TestFactoryErrorHandling:
         with pytest.warns(UserWarning, match="Overwriting existing calculator 'test'"):
             factory.register("test", NewCalc)
 
-    def test_create_with_non_string_name_raises_error(self, calculator_class):
+    def test_create_with_non_string_name_raises_error(self, calculator_class, clear):
         """Test that create with non-string name raises ValueError."""
         factory = SimpleCalculatorFactory({"test": calculator_class})
         with pytest.raises(ValueError, match="must be a string"):
-            factory.create(123, MagicMock())
+            factory.create(123, create_mock_model())
 
     def test_create_with_none_model_raises_error(self, calculator_class):
         """Test that create with None model raises TypeError."""
@@ -573,21 +584,21 @@ class TestFactoryErrorHandling:
         with pytest.raises(TypeError, match="Model cannot be None"):
             factory.create("test", None)
 
-    def test_create_unknown_calculator_shows_available_in_error(self, calculator_class):
+    def test_create_unknown_calculator_shows_available_in_error(self, calculator_class, clear):
         """Test that error message includes available calculators."""
         factory = SimpleCalculatorFactory({"calc1": calculator_class})
         with pytest.raises(ValueError, match="calc1") as exc_info:
-            factory.create("unknown", MagicMock())
+            factory.create("unknown", create_mock_model())
         assert "Available calculators" in str(exc_info.value)
 
-    def test_create_empty_factory_error_shows_none_available(self):
+    def test_create_empty_factory_error_shows_none_available(self, clear):
         """Test error message when factory has no calculators."""
         factory = SimpleCalculatorFactory()
         with pytest.raises(ValueError, match="none") as exc_info:
-            factory.create("anything", MagicMock())
+            factory.create("anything", create_mock_model())
         assert "Available calculators: none" in str(exc_info.value)
 
-    def test_create_wraps_calculator_init_errors(self, calculator_class):
+    def test_create_wraps_calculator_init_errors(self, calculator_class, clear):
         """Test that calculator initialization errors are wrapped."""
         
         class BrokenCalc(CalculatorBase):
@@ -599,11 +610,18 @@ class TestFactoryErrorHandling:
         
         factory = SimpleCalculatorFactory({"broken": BrokenCalc})
         with pytest.raises(RuntimeError, match="Failed to create calculator 'broken'"):
-            factory.create("broken", MagicMock())
+            factory.create("broken", create_mock_model())
 
 
 class TestCalculatorKwargsProperty:
     """Tests for the additional_kwargs property on CalculatorBase."""
+
+    @pytest.fixture
+    def clear(self):
+        """Clear global map to avoid test contamination."""
+        global_object.map._clear()
+        yield
+        global_object.map._clear()
 
     @pytest.fixture
     def calculator_class(self):
@@ -614,10 +632,10 @@ class TestCalculatorKwargsProperty:
                 return x
         return TestCalc
 
-    def test_additional_kwargs_accessible(self, calculator_class):
+    def test_additional_kwargs_accessible(self, calculator_class, clear):
         """Test that additional_kwargs property is accessible."""
         calc = calculator_class(
-            MagicMock(),
+            create_mock_model(),
             custom_param="value",
             another_option=42
         )
@@ -626,19 +644,128 @@ class TestCalculatorKwargsProperty:
         assert kwargs["custom_param"] == "value"
         assert kwargs["another_option"] == 42
 
-    def test_additional_kwargs_empty_when_none_provided(self, calculator_class):
+    def test_additional_kwargs_empty_when_none_provided(self, calculator_class, clear):
         """Test that additional_kwargs is empty dict when no kwargs provided."""
-        calc = calculator_class(MagicMock())
+        calc = calculator_class(create_mock_model())
         assert calc.additional_kwargs == {}
 
-    def test_additional_kwargs_via_factory(self, calculator_class):
+    def test_additional_kwargs_via_factory(self, calculator_class, clear):
         """Test that kwargs passed through factory are accessible."""
         factory = SimpleCalculatorFactory({"test": calculator_class})
         calc = factory.create(
             "test",
-            MagicMock(),
+            create_mock_model(),
             option1="value1",
             option2=123
         )
         assert calc.additional_kwargs["option1"] == "value1"
         assert calc.additional_kwargs["option2"] == 123
+
+
+class TestTryRegisterCalculator:
+    """Tests for the _try_register_calculator method."""
+
+    @pytest.fixture
+    def calculator_class(self):
+        """Simple calculator class for testing."""
+
+        class TestCalc(CalculatorBase):
+            name = "test"
+
+            def calculate(self, x: np.ndarray) -> np.ndarray:
+                return x
+
+        return TestCalc
+
+    @pytest.fixture
+    def concrete_factory(self, calculator_class):
+        """Create a concrete factory for testing."""
+        calc_class = calculator_class
+
+        class TestFactory(CalculatorFactoryBase):
+            def __init__(self):
+                super().__init__()
+
+            def create(self, calculator_name, model, instrumental_parameters=None, **kwargs):
+                if calculator_name not in self._available_calculators:
+                    raise ValueError(f"Unknown calculator: {calculator_name}")
+                return self._available_calculators[calculator_name](model, instrumental_parameters, **kwargs)
+
+        return TestFactory
+
+    def test_try_register_existing_package_succeeds(self, concrete_factory):
+        """Test that registering from an existing package works."""
+        factory = concrete_factory()
+        # json is always available in Python
+        result = factory._try_register_calculator("json_encoder", "json", "JSONEncoder")
+        assert result is True
+        assert "json_encoder" in factory.available_calculators
+
+    def test_try_register_nonexistent_package_returns_false(self, concrete_factory):
+        """Test that registering from non-existent package returns False."""
+        factory = concrete_factory()
+        result = factory._try_register_calculator(
+            "nonexistent", "this_package_does_not_exist_12345", "SomeClass"
+        )
+        assert result is False
+        assert "nonexistent" not in factory.available_calculators
+
+    def test_try_register_nonexistent_class_returns_false(self, concrete_factory):
+        """Test that registering non-existent class returns False."""
+        factory = concrete_factory()
+        result = factory._try_register_calculator(
+            "bad_class", "json", "ThisClassDoesNotExist12345"
+        )
+        assert result is False
+        assert "bad_class" not in factory.available_calculators
+
+    def test_try_register_multiple_calculators(self, concrete_factory):
+        """Test registering multiple calculators with mixed success."""
+        factory = concrete_factory()
+
+        # This should succeed
+        result1 = factory._try_register_calculator("encoder", "json", "JSONEncoder")
+        # This should fail
+        result2 = factory._try_register_calculator("fake", "nonexistent_pkg", "FakeClass")
+        # This should succeed
+        result3 = factory._try_register_calculator("decoder", "json", "JSONDecoder")
+
+        assert result1 is True
+        assert result2 is False
+        assert result3 is True
+
+        assert "encoder" in factory.available_calculators
+        assert "fake" not in factory.available_calculators
+        assert "decoder" in factory.available_calculators
+        assert len(factory.available_calculators) == 2
+
+    def test_try_register_does_not_affect_other_instances(self, concrete_factory):
+        """Test that _try_register on one instance doesn't affect others."""
+        factory1 = concrete_factory()
+        factory2 = concrete_factory()
+
+        factory1._try_register_calculator("encoder", "json", "JSONEncoder")
+
+        assert "encoder" in factory1.available_calculators
+        assert "encoder" not in factory2.available_calculators
+
+    def test_try_register_in_subclass_init(self, calculator_class):
+        """Test using _try_register_calculator in subclass __init__."""
+        calc_class = calculator_class
+
+        class DynamicFactory(CalculatorFactoryBase):
+            def __init__(self):
+                super().__init__()
+                # Register one that exists
+                self._try_register_calculator("encoder", "json", "JSONEncoder")
+                # Register one that doesn't exist - should be silently skipped
+                self._try_register_calculator("fake", "no_such_package", "NoClass")
+
+            def create(self, calculator_name, model, instrumental_parameters=None, **kwargs):
+                if calculator_name not in self._available_calculators:
+                    raise ValueError(f"Unknown calculator: {calculator_name}")
+                return self._available_calculators[calculator_name](model, instrumental_parameters, **kwargs)
+
+        factory = DynamicFactory()
+        assert "encoder" in factory.available_calculators
+        assert "fake" not in factory.available_calculators
