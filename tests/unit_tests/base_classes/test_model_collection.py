@@ -673,3 +673,244 @@ def test_ModelCollection_contains(cls, clear_global, sample_items):
 
     new_item = MockModelItem(name='not_in_collection', value=999.0)
     assert new_item not in coll
+
+@pytest.mark.parametrize('cls', class_constructors)
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+def test_ModelCollection_init_with_interface_propagates_to_items(cls, clear_global, sample_items):
+    """Test that interface passed to __init__ propagates to items."""
+    for item in sample_items:
+        item.interface = None
+
+    class MockInterfaceClass:
+        name = "MockInterface"
+        def __init__(self, *args, **kwargs):
+            pass
+        def fit_func(self, *args, **kwargs):
+            return "result"
+        def create(self, model):
+            return []
+
+    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
+    coll = cls(*sample_items, interface=mock_interface)
+
+    assert coll.interface is mock_interface
+    for item in coll:
+        assert item.interface is mock_interface
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_duplicate_items_silently_ignored(cls, clear_global):
+    """Test that adding the same object twice only stores one copy."""
+    item = MockModelItem(name='dupe', value=1.0)
+
+    coll = cls(item, item)
+
+    assert len(coll) == 1
+    edges = global_object.map.get_edges(coll)
+    assert edges == [item.unique_name]
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_delitem_str_by_unique_name(cls, clear_global, sample_items):
+    """Test deleting items by unique_name string."""
+    coll = cls(*sample_items)
+    unique_name = sample_items[1].unique_name
+
+    del coll[unique_name]
+
+    assert len(coll) == 2
+    assert sample_items[1] not in coll
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+def test_ModelCollection_setitem_int_with_interface_propagation(cls, clear_global, sample_items):
+    """Test that setitem with int propagates interface to new item."""
+    for item in sample_items:
+        item.interface = None
+
+    class MockInterfaceClass:
+        name = "MockInterface"
+        def __init__(self, *args, **kwargs):
+            pass
+        def fit_func(self, *args, **kwargs):
+            return "result"
+        def create(self, model):
+            return []
+
+    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
+    coll = cls(*sample_items)
+    coll.interface = mock_interface
+
+    new_item = MockModelItem(name='new_item', value=99.0)
+    new_item.interface = None
+
+    coll[1] = new_item
+
+    assert new_item.interface is mock_interface
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+def test_ModelCollection_setitem_slice_with_interface_propagation(cls, clear_global, sample_items):
+    """Test that setitem with slice propagates interface to new items."""
+    for item in sample_items:
+        item.interface = None
+
+    class MockInterfaceClass:
+        name = "MockInterface"
+        def __init__(self, *args, **kwargs):
+            pass
+        def fit_func(self, *args, **kwargs):
+            return "result"
+        def create(self, model):
+            return []
+
+    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
+    coll = cls(*sample_items)
+    coll.interface = mock_interface
+
+    new_items = [MockModelItem(name='new1', value=10.0), MockModelItem(name='new2', value=20.0)]
+    for item in new_items:
+        item.interface = None
+
+    coll[0:2] = new_items
+
+    for item in new_items:
+        assert item.interface is mock_interface
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+def test_ModelCollection_insert_with_interface_propagation(cls, clear_global, sample_items):
+    """Test that insert propagates interface to new item."""
+    for item in sample_items:
+        item.interface = None
+
+    class MockInterfaceClass:
+        name = "MockInterface"
+        def __init__(self, *args, **kwargs):
+            pass
+        def fit_func(self, *args, **kwargs):
+            return "result"
+        def create(self, model):
+            return []
+
+    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
+    coll = cls(*sample_items)
+    coll.interface = mock_interface
+
+    new_item = MockModelItem(name='inserted', value=99.0)
+    new_item.interface = None
+
+    coll.insert(1, new_item)
+
+    assert new_item.interface is mock_interface
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_convert_to_dict_with_modify_dict(cls, clear_global, sample_items):
+    """Test _convert_to_dict calls _modify_dict when present."""
+    class DerivedWithModifyDict(cls):
+        def _modify_dict(self, skip=None, **kwargs):
+            return {'extra_key': 'extra_value'}
+
+    coll = DerivedWithModifyDict(*sample_items)
+
+    class DummyEncoder:
+        def _convert_to_dict(self, item, skip=None, **kwargs):
+            return {'name': getattr(item, 'name', 'unknown')}
+
+    encoder = DummyEncoder()
+    result = coll._convert_to_dict({}, encoder)
+
+    assert result['extra_key'] == 'extra_value'
+    assert 'data' in result
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_convert_to_dict_skip_none(cls, clear_global, sample_items):
+    """Test _convert_to_dict handles skip=None correctly."""
+    coll = cls(*sample_items)
+
+    class DummyEncoder:
+        def _convert_to_dict(self, item, skip=None, **kwargs):
+            return {'name': getattr(item, 'name', 'unknown'), 'skip': skip}
+
+    encoder = DummyEncoder()
+    result = coll._convert_to_dict({}, encoder, skip=None)
+
+    assert 'data' in result
+    # skip should default to [] when None is passed
+    for item_dict in result['data']:
+        assert item_dict['skip'] == []
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_get_all_variables_item_without_method(cls, clear_global):
+    """Test get_all_variables skips items without get_all_variables method."""
+    # Create a minimal NewBase subclass without get_all_variables
+    class MinimalItem(NewBase):
+        def __init__(self, name):
+            super().__init__()
+            self._name = name
+
+        @property
+        def name(self):
+            return self._name
+
+    item_with = MockModelItem(name='with_vars', value=1.0)
+    item_without = MinimalItem(name='no_vars')
+
+    coll = cls(item_with, item_without)
+    variables = coll.get_all_variables()
+
+    # Only item_with has variables
+    assert len(variables) == 1
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_getitem_str_item_without_name_attr(cls, clear_global):
+    """Test __getitem__ with string searches by unique_name when item lacks name attr."""
+    # Create item without name property
+    class ItemWithoutName(NewBase):
+        def __init__(self):
+            super().__init__()
+
+    item = ItemWithoutName()
+    coll = cls(item)
+
+    # Should find by unique_name
+    found = coll[item.unique_name]
+    assert found is item
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_delitem_slice_edges_updated(cls, clear_global, sample_items):
+    """Test that deleting by slice updates graph edges correctly."""
+    coll = cls(*sample_items)
+    deleted_items = [sample_items[0], sample_items[2]]
+
+    del coll[::2]  # Delete items at indices 0 and 2
+
+    assert len(coll) == 1
+    edges = global_object.map.get_edges(coll)
+    for item in deleted_items:
+        assert item.unique_name not in edges
+    assert sample_items[1].unique_name in edges
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+def test_ModelCollection_setitem_slice_edges_updated(cls, clear_global, sample_items):
+    """Test that setitem with slice updates graph edges correctly."""
+    coll = cls(*sample_items)
+    old_items = [sample_items[0], sample_items[1]]
+
+    new_items = [MockModelItem(name='new1', value=10.0), MockModelItem(name='new2', value=20.0)]
+    coll[0:2] = new_items
+
+    edges = global_object.map.get_edges(coll)
+    for item in old_items:
+        assert item.unique_name not in edges
+    for item in new_items:
+        assert item.unique_name in edges
