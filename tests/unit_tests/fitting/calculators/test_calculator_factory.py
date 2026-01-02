@@ -769,3 +769,30 @@ class TestTryRegisterCalculator:
         factory = DynamicFactory()
         assert "encoder" in factory.available_calculators
         assert "fake" not in factory.available_calculators
+
+    def test_try_register_generic_exception_returns_false(self, concrete_factory):
+        """Test that generic exceptions during import are handled silently."""
+        from unittest.mock import patch
+
+        factory = concrete_factory()
+
+        # Mock importlib.import_module to raise a generic exception (not ImportError/AttributeError)
+        with patch('importlib.import_module') as mock_import:
+            mock_import.side_effect = RuntimeError('Unexpected error during import')
+            result = factory._try_register_calculator('broken', 'some.module', 'SomeClass')
+
+        assert result is False
+        assert 'broken' not in factory.available_calculators
+
+    def test_try_register_value_error_during_import_returns_false(self, concrete_factory):
+        """Test that ValueError during import is handled silently."""
+        from unittest.mock import patch
+
+        factory = concrete_factory()
+
+        with patch('importlib.import_module') as mock_import:
+            mock_import.side_effect = ValueError('Invalid value during import')
+            result = factory._try_register_calculator('invalid', 'some.module', 'SomeClass')
+
+        assert result is False
+        assert 'invalid' not in factory.available_calculators
