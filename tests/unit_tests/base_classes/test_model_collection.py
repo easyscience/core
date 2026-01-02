@@ -914,3 +914,40 @@ def test_ModelCollection_setitem_slice_edges_updated(cls, clear_global, sample_i
         assert item.unique_name not in edges
     for item in new_items:
         assert item.unique_name in edges
+
+
+@pytest.mark.parametrize('cls', class_constructors)
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+def test_ModelCollection_add_item_propagates_interface(cls, clear_global, sample_items):
+    """Test that _add_item propagates interface to newly added item when collection has interface."""
+    for item in sample_items:
+        item.interface = None
+
+    class MockInterfaceClass:
+        name = 'MockInterface'
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def fit_func(self, *args, **kwargs):
+            return 'result'
+
+        def create(self, model):
+            return []
+
+    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
+
+    # Create collection without interface first
+    coll = cls(*sample_items[:2])
+    # Set interface on the collection
+    coll.interface = mock_interface
+
+    # Create a new item with no interface
+    new_item = MockModelItem(name='new_item', value=99.0)
+    new_item.interface = None
+
+    # Append triggers _add_item which should propagate the interface
+    coll.append(new_item)
+
+    # Verify the interface was propagated via setattr in _add_item
+    assert new_item.interface is mock_interface
