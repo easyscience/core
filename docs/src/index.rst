@@ -153,6 +153,15 @@ Complete API documentation for all classes, methods, and functions in EasyScienc
 
 Practical examples and tutorials demonstrating real-world usage patterns.
 
+.. toctree::
+   :caption: Architecture
+   :maxdepth: 2
+   :titlesonly:
+
+   adr/index
+
+Architecture Decision Records (ADRs) documenting key design decisions and their rationale.
+
 Need Help?
 ==========
 
