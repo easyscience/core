@@ -216,7 +216,7 @@ References
 Notes
 =====
 
-This ADR documents the design decisions made in PR #180 (New collection base). The implementation is currently in draft/review stage. Once merged, this ADR should be updated to "Accepted" status.
+This ADR documents the design decisions made in PR #180 (New collection base). As of 2026-01-05, PR #180 is open and in draft status, awaiting review and approval. Once the PR is merged, this ADR status should be updated from "Proposed" to "Accepted".
 
 Future Considerations
 ---------------------
