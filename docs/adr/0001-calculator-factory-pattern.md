@@ -95,8 +95,8 @@ A concrete factory implementation:
 
 ### Neutral
 
-1. **Code Volume**: The new architecture adds ~600 lines of new code (base classes and factories)
-2. **Test Coverage**: Added ~1100 lines of comprehensive unit tests, improving overall test coverage
+1. **Code Volume**: The new architecture adds significant new code (base classes and factories)
+2. **Test Coverage**: Added comprehensive unit tests, improving overall test coverage
 3. **Learning Curve**: Developers need to understand the factory pattern, though it's simpler than the old approach
 
 ## Implementation
@@ -144,8 +144,8 @@ result = calculator.calculate(x_values)
 
 ## References
 
-- Discussion #160: Original architecture discussion (referenced in PR #181)
-- PR #181: Implementation of the new calculator architecture
+- [Discussion #160](https://github.com/easyscience/corelib/discussions/160): Original architecture discussion (referenced in PR #181)
+- [PR #181](https://github.com/easyscience/corelib/pull/181): Implementation of the new calculator architecture
 - Minimizers factory: Example of the stateless factory pattern already used in EasyScience
 
 ## Notes
