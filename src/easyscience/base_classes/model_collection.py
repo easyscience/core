@@ -66,7 +66,7 @@ class ModelCollection(ModelBase, MutableSequence[T]):
         self._data.append(item)
         self._global_object.map.add_edge(self, item)
         self._global_object.map.reset_type(item, 'created_internal')
- 
+
     def _remove_item(self, item: NewBase) -> None:
         """Remove an item from the collection and clean up graph edges."""
         self._global_object.map.prune_vertex_from_edge(self, item)
