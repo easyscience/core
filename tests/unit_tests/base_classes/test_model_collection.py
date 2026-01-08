@@ -11,8 +11,6 @@ from easyscience import DescriptorNumber
 from easyscience.base_classes import ModelCollection
 from easyscience.base_classes import ModelBase
 from easyscience.base_classes import NewBase
-from easyscience.fitting.calculators import InterfaceFactoryTemplate
-
 
 class MockModelItem(ModelBase):
     """A simple mock model item for testing ModelCollection."""
@@ -70,7 +68,6 @@ def test_ModelCollection_init_empty(cls, clear_global):
     """Test creating an empty collection."""
     coll = cls()
     assert len(coll) == 0
-    assert coll.interface is None
 
 
 @pytest.mark.parametrize('cls', class_constructors)
@@ -108,76 +105,6 @@ def test_ModelCollection_init_type_error(cls, clear_global):
     """Test that adding non-NewBase items raises TypeError."""
     with pytest.raises(TypeError):
         cls('not_a_newbase_object')
-
-
-# =============================================================================
-# Interface Property Tests
-# =============================================================================
-
-@pytest.mark.parametrize('cls', class_constructors)
-def test_ModelCollection_interface_default(cls, clear_global):
-    """Test that interface defaults to None."""
-    coll = cls()
-    assert coll.interface is None
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_interface_propagation(cls, clear_global, sample_items):
-    """Test that setting interface propagates to items."""
-    # Add interface attribute to items for this test
-    for item in sample_items:
-        item.interface = None
-
-    coll = cls(*sample_items)
-
-    # Create a mock interface that inherits from InterfaceFactoryTemplate
-    class MockInterfaceClass:
-        name = "MockInterface"
-        def __init__(self, *args, **kwargs):
-            pass
-        def fit_func(self, *args, **kwargs):
-            return "result"
-        def create(self, model):
-            return []
-
-    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
-    coll.interface = mock_interface
-
-    assert coll.interface is mock_interface
-    for item in coll:
-        assert item.interface is mock_interface
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_interface_type_error(cls, clear_global):
-    """Test that setting an invalid interface type raises TypeError."""
-    coll = cls()
-    
-    with pytest.raises(TypeError, match='interface must be'):
-        coll.interface = 'not_an_interface'
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_interface_type_error_with_object(cls, clear_global):
-    """Test that setting a plain object as interface raises TypeError."""
-    coll = cls()
-    
-    class NotAnInterface:
-        pass
-    
-    with pytest.raises(TypeError, match='interface must be'):
-        coll.interface = NotAnInterface()
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-def test_ModelCollection_interface_accepts_none(cls, clear_global, sample_items):
-    """Test that setting interface to None is allowed."""
-    coll = cls(*sample_items)
-    coll.interface = None
-    assert coll.interface is None
 
 
 # =============================================================================
@@ -674,29 +601,6 @@ def test_ModelCollection_contains(cls, clear_global, sample_items):
     new_item = MockModelItem(name='not_in_collection', value=999.0)
     assert new_item not in coll
 
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_init_with_interface_propagates_to_items(cls, clear_global, sample_items):
-    """Test that interface passed to __init__ propagates to items."""
-    for item in sample_items:
-        item.interface = None
-
-    class MockInterfaceClass:
-        name = "MockInterface"
-        def __init__(self, *args, **kwargs):
-            pass
-        def fit_func(self, *args, **kwargs):
-            return "result"
-        def create(self, model):
-            return []
-
-    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
-    coll = cls(*sample_items, interface=mock_interface)
-
-    assert coll.interface is mock_interface
-    for item in coll:
-        assert item.interface is mock_interface
-
 
 @pytest.mark.parametrize('cls', class_constructors)
 def test_ModelCollection_duplicate_items_silently_ignored(cls, clear_global):
@@ -721,91 +625,6 @@ def test_ModelCollection_delitem_str_by_unique_name(cls, clear_global, sample_it
     assert len(coll) == 2
     assert sample_items[1] not in coll
 
-
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_setitem_int_with_interface_propagation(cls, clear_global, sample_items):
-    """Test that setitem with int propagates interface to new item."""
-    for item in sample_items:
-        item.interface = None
-
-    class MockInterfaceClass:
-        name = "MockInterface"
-        def __init__(self, *args, **kwargs):
-            pass
-        def fit_func(self, *args, **kwargs):
-            return "result"
-        def create(self, model):
-            return []
-
-    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
-    coll = cls(*sample_items)
-    coll.interface = mock_interface
-
-    new_item = MockModelItem(name='new_item', value=99.0)
-    new_item.interface = None
-
-    coll[1] = new_item
-
-    assert new_item.interface is mock_interface
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_setitem_slice_with_interface_propagation(cls, clear_global, sample_items):
-    """Test that setitem with slice propagates interface to new items."""
-    for item in sample_items:
-        item.interface = None
-
-    class MockInterfaceClass:
-        name = "MockInterface"
-        def __init__(self, *args, **kwargs):
-            pass
-        def fit_func(self, *args, **kwargs):
-            return "result"
-        def create(self, model):
-            return []
-
-    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
-    coll = cls(*sample_items)
-    coll.interface = mock_interface
-
-    new_items = [MockModelItem(name='new1', value=10.0), MockModelItem(name='new2', value=20.0)]
-    for item in new_items:
-        item.interface = None
-
-    coll[0:2] = new_items
-
-    for item in new_items:
-        assert item.interface is mock_interface
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_insert_with_interface_propagation(cls, clear_global, sample_items):
-    """Test that insert propagates interface to new item."""
-    for item in sample_items:
-        item.interface = None
-
-    class MockInterfaceClass:
-        name = "MockInterface"
-        def __init__(self, *args, **kwargs):
-            pass
-        def fit_func(self, *args, **kwargs):
-            return "result"
-        def create(self, model):
-            return []
-
-    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
-    coll = cls(*sample_items)
-    coll.interface = mock_interface
-
-    new_item = MockModelItem(name='inserted', value=99.0)
-    new_item.interface = None
-
-    coll.insert(1, new_item)
-
-    assert new_item.interface is mock_interface
 
 
 @pytest.mark.parametrize('cls', class_constructors)
@@ -914,40 +733,3 @@ def test_ModelCollection_setitem_slice_edges_updated(cls, clear_global, sample_i
         assert item.unique_name not in edges
     for item in new_items:
         assert item.unique_name in edges
-
-
-@pytest.mark.parametrize('cls', class_constructors)
-@pytest.mark.filterwarnings('ignore::DeprecationWarning')
-def test_ModelCollection_add_item_propagates_interface(cls, clear_global, sample_items):
-    """Test that _add_item propagates interface to newly added item when collection has interface."""
-    for item in sample_items:
-        item.interface = None
-
-    class MockInterfaceClass:
-        name = 'MockInterface'
-
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def fit_func(self, *args, **kwargs):
-            return 'result'
-
-        def create(self, model):
-            return []
-
-    mock_interface = InterfaceFactoryTemplate([MockInterfaceClass])
-
-    # Create collection without interface first
-    coll = cls(*sample_items[:2])
-    # Set interface on the collection
-    coll.interface = mock_interface
-
-    # Create a new item with no interface
-    new_item = MockModelItem(name='new_item', value=99.0)
-    new_item.interface = None
-
-    # Append triggers _add_item which should propagate the interface
-    coll.append(new_item)
-
-    # Verify the interface was propagated via setattr in _add_item
-    assert new_item.interface is mock_interface

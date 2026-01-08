@@ -20,9 +20,6 @@ from .new_base import NewBase
 if TYPE_CHECKING:
     pass
 
-# Type alias for interface
-InterfaceType = 'InterfaceFactoryTemplate | None'
-
 T = TypeVar('T', bound=NewBase)
 
 
@@ -30,13 +27,12 @@ class ModelCollection(ModelBase, MutableSequence[T]):
     """
     A collection class for NewBase/ModelBase objects.
     This provides list-like functionality while maintaining EasyScience features
-    like serialization and interface bindings.
+    like serialization.
     """
 
     def __init__(
         self,
         *args: NewBase,
-        interface: InterfaceType = None,
         unique_name: Optional[str] = None,
         display_name: Optional[str] = None,
     ):
@@ -44,13 +40,11 @@ class ModelCollection(ModelBase, MutableSequence[T]):
         Initialize the ModelCollection.
 
         :param args: Initial items to add to the collection
-        :param interface: Optional interface for bindings
         :param unique_name: Optional unique name for the collection
         :param display_name: Optional display name for the collection
         """
         super().__init__(unique_name=unique_name, display_name=display_name)
         self._data: List[NewBase] = []
-        self._interface: InterfaceType = None
 
         # Add initial items
         for item in args:
@@ -59,10 +53,6 @@ class ModelCollection(ModelBase, MutableSequence[T]):
                     self._add_item(sub_item)
             else:
                 self._add_item(item)
-
-        # Set interface after adding items so it propagates
-        if interface is not None:
-            self.interface = interface
 
     def _add_item(self, item: Any) -> None:
         """Add an item to the collection and set up graph edges.
@@ -76,35 +66,10 @@ class ModelCollection(ModelBase, MutableSequence[T]):
         self._data.append(item)
         self._global_object.map.add_edge(self, item)
         self._global_object.map.reset_type(item, 'created_internal')
-        if self._interface is not None and hasattr(item, 'interface'):
-            setattr(item, 'interface', self._interface)
-
+ 
     def _remove_item(self, item: NewBase) -> None:
         """Remove an item from the collection and clean up graph edges."""
         self._global_object.map.prune_vertex_from_edge(self, item)
-
-    @property
-    def interface(self) -> InterfaceType:
-        """Get the current interface of the collection."""
-        return self._interface
-
-    @interface.setter
-    def interface(self, new_interface: InterfaceType) -> None:
-        """Set the interface and propagate to all items.
-
-        :param new_interface: The interface to set (must be InterfaceFactoryTemplate or None)
-        :raises TypeError: If the interface is not a valid type
-        """
-        # Import here to avoid circular imports
-        from ..fitting.calculators import InterfaceFactoryTemplate
-
-        if new_interface is not None and not isinstance(new_interface, InterfaceFactoryTemplate):
-            raise TypeError(f'interface must be InterfaceFactoryTemplate or None, got {type(new_interface).__name__}')
-
-        self._interface = new_interface
-        for item in self._data:
-            if hasattr(item, 'interface'):
-                setattr(item, 'interface', new_interface)
 
     # MutableSequence abstract methods
 
@@ -160,8 +125,6 @@ class ModelCollection(ModelBase, MutableSequence[T]):
             for v in values:
                 self._global_object.map.add_edge(self, v)
                 self._global_object.map.reset_type(v, 'created_internal')
-                if self._interface is not None and hasattr(v, 'interface'):
-                    setattr(v, 'interface', self._interface)
         else:
             if not isinstance(value, NewBase):
                 raise TypeError(f'Items must be NewBase objects, got {type(value)}')
@@ -172,8 +135,6 @@ class ModelCollection(ModelBase, MutableSequence[T]):
             self._data[idx] = value  # type: ignore[assignment]
             self._global_object.map.add_edge(self, value)
             self._global_object.map.reset_type(value, 'created_internal')
-            if self._interface is not None and hasattr(value, 'interface'):
-                setattr(value, 'interface', self._interface)
 
     @overload
     def __delitem__(self, idx: int) -> None: ...
@@ -232,8 +193,6 @@ class ModelCollection(ModelBase, MutableSequence[T]):
         self._data.insert(index, value)  # type: ignore[arg-type]
         self._global_object.map.add_edge(self, value)
         self._global_object.map.reset_type(value, 'created_internal')
-        if self._interface is not None and hasattr(value, 'interface'):
-            setattr(value, 'interface', self._interface)
 
     # Additional utility methods
 
