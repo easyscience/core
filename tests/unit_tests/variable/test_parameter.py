@@ -136,6 +136,49 @@ class TestParameter:
         normal_parameter.value == 4
         self.compare_parameters(normal_parameter, 2*independent_parameter)
 
+
+    def test_dependent_parameter_make_dependent_on_with_desired_unit(self, normal_parameter: Parameter):
+        # When
+        independent_parameter = Parameter(name="independent", value=1, unit="m", variance=0.01, min=0, max=10)
+        
+        # Then
+        normal_parameter.make_dependent_on(dependency_expression='2*a', dependency_map={'a': independent_parameter}, unit="cm")
+
+        # Expect
+        assert normal_parameter._independent == False
+        assert normal_parameter.dependency_expression == '2*a'
+        assert normal_parameter.dependency_map == {'a': independent_parameter}
+
+        assert normal_parameter.value == 200*independent_parameter.value
+        assert normal_parameter.unit == "cm"
+        assert normal_parameter.variance == independent_parameter.variance*4*10000  # unit conversion from m to cm squared
+        assert normal_parameter.min == 200*independent_parameter.min
+        assert normal_parameter.max == 200*independent_parameter.max
+        assert normal_parameter._min.unit == "cm"
+        assert normal_parameter._max.unit == "cm"
+
+        # Then
+        independent_parameter.value = 2
+
+        # Expect
+        assert normal_parameter.value == 200*independent_parameter.value
+        assert normal_parameter.unit == "cm"
+        assert normal_parameter.variance == independent_parameter.variance*4*10000  # unit conversion from m to cm squared
+        assert normal_parameter.min == 200*independent_parameter.min
+        assert normal_parameter.max == 200*independent_parameter.max
+        assert normal_parameter._min.unit == "cm"
+        assert normal_parameter._max.unit == "cm"
+
+
+    def test_dependent_parameter_make_dependent_on_with_desired_unit_incompatible_unit_raises(self, normal_parameter: Parameter):
+        # When
+        independent_parameter = Parameter(name="independent", value=1, unit="m", variance=0.01, min=0, max=10)
+        
+        # Then Expect
+        with pytest.raises(UnitError):
+            normal_parameter.make_dependent_on(dependency_expression='2*a', dependency_map={'a': independent_parameter}, unit="s")
+       
+
     def test_parameter_from_dependency(self, normal_parameter: Parameter):
         # When Then
         dependent_parameter = Parameter.from_dependency(
@@ -158,6 +201,57 @@ class TestParameter:
 
         # Expect
         self.compare_parameters(dependent_parameter, 2*normal_parameter)
+
+
+    def test_parameter_from_dependency_with_desired_unit(self, normal_parameter: Parameter):
+        # When Then
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*a', 
+            dependency_map={'a': normal_parameter},
+            display_name='display_name',
+            unit = "cm",
+        )
+
+        # Expect
+        assert dependent_parameter._independent == False
+        assert dependent_parameter.dependency_expression == '2*a'
+        assert dependent_parameter.dependency_map == {'a': normal_parameter}
+        assert dependent_parameter.name == 'dependent'
+        assert dependent_parameter.display_name == 'display_name'
+
+        assert dependent_parameter.value == 200*normal_parameter.value
+        assert dependent_parameter.unit == "cm"
+        assert dependent_parameter.variance == normal_parameter.variance*4*10000  # unit conversion from m to cm squared
+        assert dependent_parameter.min == 200*normal_parameter.min
+        assert dependent_parameter.max == 200*normal_parameter.max
+        assert dependent_parameter._min.unit == "cm"
+        assert dependent_parameter._max.unit == "cm"
+
+        # Then
+        normal_parameter.value = 2
+
+        # Expect
+        assert dependent_parameter.value == 200*normal_parameter.value
+        assert dependent_parameter.unit == "cm"
+        assert dependent_parameter.variance == normal_parameter.variance*4*10000  # unit conversion from m to cm squared
+        assert dependent_parameter.min == 200*normal_parameter.min
+        assert dependent_parameter.max == 200*normal_parameter.max
+        assert dependent_parameter._min.unit == "cm"
+        assert dependent_parameter._max.unit == "cm"
+
+
+    def test_parameter_from_dependency_with_desired_unit_incompatible_unit_raises(self, normal_parameter: Parameter):
+        # When Then Expect
+        with pytest.raises(UnitError):
+            dependent_parameter = Parameter.from_dependency(
+                name = 'dependent', 
+                dependency_expression='2*a', 
+                dependency_map={'a': normal_parameter},
+                display_name='display_name',
+                unit = "s",
+            )
+
 
     def test_dependent_parameter_with_unique_name(self, clear, normal_parameter: Parameter):
         # When Then
@@ -471,6 +565,7 @@ class TestParameter:
         with pytest.raises(AttributeError):
             dependent_parameter.dependency_map = {'a': normal_parameter}
 
+
     def test_min(self, parameter: Parameter):
         # When Then Expect
         assert parameter.min == 0
@@ -534,6 +629,53 @@ class TestParameter:
         assert parameter._min.unit == "mm"
         assert parameter._max.value == 10000
         assert parameter._max.unit == "mm"
+
+    def test_set_desired_unit(self, normal_parameter: Parameter):
+       # When Then
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*a', 
+            dependency_map={'a': normal_parameter},
+            display_name='display_name',
+        )
+
+        # Then
+        dependent_parameter.set_desired_unit("cm")
+
+        # Expect
+
+        assert dependent_parameter.value == 200*normal_parameter.value
+        assert dependent_parameter.unit == "cm"
+        assert dependent_parameter.variance == normal_parameter.variance*4*10000  # unit conversion from m to cm squared
+        assert dependent_parameter.min == 200*normal_parameter.min
+        assert dependent_parameter.max == 200*normal_parameter.max
+        assert dependent_parameter._min.unit == "cm"
+        assert dependent_parameter._max.unit == "cm"
+
+        # Then
+        normal_parameter.value = 2
+
+        # Expect
+        assert dependent_parameter.value == 200*normal_parameter.value
+        assert dependent_parameter.unit == "cm"
+        assert dependent_parameter.variance == normal_parameter.variance*4*10000  # unit conversion from m to cm squared
+        assert dependent_parameter.min == 200*normal_parameter.min
+        assert dependent_parameter.max == 200*normal_parameter.max
+        assert dependent_parameter._min.unit == "cm"
+        assert dependent_parameter._max.unit == "cm"
+
+    def test_set_desired_unit_incompatible_units_raises(self, normal_parameter: Parameter):
+        # When Then
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*a', 
+            dependency_map={'a': normal_parameter},
+            display_name='display_name',
+        )
+
+        # Then Expect
+        with pytest.raises(UnitError):
+            dependent_parameter.set_desired_unit("s")
 
     def test_set_fixed(self, parameter: Parameter):
         # When Then 

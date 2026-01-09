@@ -121,7 +121,12 @@ class Parameter(DescriptorNumber):
 
     @classmethod
     def from_dependency(
-        cls, name: str, dependency_expression: str, dependency_map: Optional[dict] = None, **kwargs
+        cls,
+        name: str,
+        dependency_expression: str,
+        dependency_map: Optional[dict] = None,
+        unit: str | sc.Unit | None = None,
+        **kwargs,
     ) -> Parameter:  # noqa: E501
         """
         Create a dependent Parameter directly from a dependency expression.
@@ -129,15 +134,16 @@ class Parameter(DescriptorNumber):
         :param name: The name of the parameter
         :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by the ASTEval interpreter.
         :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies.
+        :param unit: The desired unit of the dependent parameter.
         :param kwargs: Additional keyword arguments to pass to the Parameter constructor.
         :return: A new dependent Parameter object.
         """  # noqa: E501
         # Set default values for required parameters for the constructor, they get overwritten by the dependency anyways
-        default_kwargs = {'value': 0.0, 'unit': '', 'variance': 0.0, 'min': -np.inf, 'max': np.inf}
+        default_kwargs = {'value': 0.0, 'variance': 0.0, 'min': -np.inf, 'max': np.inf}
         # Update with user-provided kwargs, to avoid errors.
         default_kwargs.update(kwargs)
         parameter = cls(name=name, **default_kwargs)
-        parameter.make_dependent_on(dependency_expression=dependency_expression, dependency_map=dependency_map)
+        parameter.make_dependent_on(dependency_expression=dependency_expression, dependency_map=dependency_map, unit=unit)
         return parameter
 
     def _update(self) -> None:
@@ -158,11 +164,19 @@ class Parameter(DescriptorNumber):
             )  # noqa: E501
             self._min.unit = temporary_parameter.unit
             self._max.unit = temporary_parameter.unit
+
+            if self._desired_unit is not None:
+                try:
+                    self._convert_unit(self._desired_unit)
+                except Exception as e:
+                    raise UnitError(f'Failed to convert unit from {temporary_parameter.unit} to {self._desired_unit}: {e}')
             self._notify_observers()
         else:
             warnings.warn('This parameter is not dependent. It cannot be updated.')
 
-    def make_dependent_on(self, dependency_expression: str, dependency_map: Optional[dict] = None) -> None:
+    def make_dependent_on(
+        self, dependency_expression: str, dependency_map: Optional[dict] = None, unit: str | sc.Unit | None = None
+    ) -> None:
         """
         Make this parameter dependent on another parameter. This will overwrite the current value, unit, variance, min and max.
 
@@ -182,6 +196,9 @@ class Parameter(DescriptorNumber):
         :param dependency_map:
             A dictionary of dependency expression symbol name and dependency object pairs.
             This is inserted into the asteval interpreter to resolve dependencies.
+
+        :param unit:
+            The desired unit of the dependent parameter. If None, the unit of the dependency expression result is used.
 
         """  # noqa: E501
         if not isinstance(dependency_expression, str):
@@ -219,6 +236,8 @@ class Parameter(DescriptorNumber):
         self._independent = False
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
+        # TODO: checks
+        self._desired_unit = unit
         # List of allowed python constructs for the asteval interpreter
         asteval_config = {
             'import': False,
@@ -306,6 +325,7 @@ class Parameter(DescriptorNumber):
             del self._dependency_interpreter
             del self._dependency_string
             del self._clean_dependency_string
+            del self._desired_unit
         else:
             raise AttributeError('This parameter is already independent.')
 
@@ -469,6 +489,18 @@ class Parameter(DescriptorNumber):
         :return: None
         """
         self._convert_unit(unit_str)
+
+    def set_desired_unit(self, unit_str: str) -> None:
+        """
+        Set the desired unit for a dependent Parameter. This will convert the parameter to the desired unit.
+
+        :param unit_str: The desired unit as a string.
+        """
+
+        if self._independent:
+            raise AttributeError('This is an independent parameter, desired unit can only be set for dependent parameters.')
+        self._desired_unit = unit_str
+        self._update()
 
     @property
     def min(self) -> numbers.Number:
