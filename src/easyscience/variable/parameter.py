@@ -236,7 +236,6 @@ class Parameter(DescriptorNumber):
         self._independent = False
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
-        # TODO: checks
         self._desired_unit = unit
         # List of allowed python constructs for the asteval interpreter
         asteval_config = {
