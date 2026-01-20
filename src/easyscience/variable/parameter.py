@@ -166,10 +166,8 @@ class Parameter(DescriptorNumber):
             self._max.unit = temporary_parameter.unit
 
             if self._desired_unit is not None:
-                try:
-                    self._convert_unit(self._desired_unit)
-                except Exception as e:
-                    raise UnitError(f'Failed to convert unit from {temporary_parameter.unit} to {self._desired_unit}: {e}')
+                self._convert_unit(self._desired_unit)
+
             self._notify_observers()
         else:
             warnings.warn('This parameter is not dependent. It cannot be updated.')
@@ -307,6 +305,13 @@ class Parameter(DescriptorNumber):
             raise error
         # Update the parameter with the dependency result
         self._fixed = False
+
+        if self._desired_unit is not None:
+            try:
+                dependency_result._convert_unit(self._desired_unit)
+            except Exception as e:
+                raise UnitError(f'Failed to convert unit from {dependency_result.unit} to {self._desired_unit}: {e}')
+
         self._update()
 
     def make_independent(self) -> None:
@@ -498,6 +503,8 @@ class Parameter(DescriptorNumber):
 
         if self._independent:
             raise AttributeError('This is an independent parameter, desired unit can only be set for dependent parameters.')
+        if not isinstance(unit_str, str):
+            raise TypeError('`unit_str` must be a string representing a valid unit.')
         self._desired_unit = unit_str
         self._update()
 
