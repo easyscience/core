@@ -505,6 +505,7 @@ class Parameter(DescriptorNumber):
             raise AttributeError('This is an independent parameter, desired unit can only be set for dependent parameters.')
         if not isinstance(unit_str, str):
             raise TypeError('`unit_str` must be a string representing a valid unit.')
+
         self._desired_unit = unit_str
         self._update()
 

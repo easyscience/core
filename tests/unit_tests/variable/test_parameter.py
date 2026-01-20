@@ -677,6 +677,25 @@ class TestParameter:
         with pytest.raises(UnitError):
             dependent_parameter.set_desired_unit("s")
 
+    def test_set_desired_unit_independent_parameter_raises(self, normal_parameter: Parameter):
+        # When Then Expect
+        with pytest.raises(AttributeError, match="This is an independent parameter, desired unit can only be set for dependent parameters."):
+            normal_parameter.set_desired_unit("cm")
+
+    def test_set_desired_unit_incorrect_unit_type_raises(self, normal_parameter: Parameter):
+        # When Then
+        dependent_parameter = Parameter.from_dependency(
+            name = 'dependent', 
+            dependency_expression='2*a', 
+            dependency_map={'a': normal_parameter},
+            display_name='display_name',
+        )
+
+        # Then Expect
+        with pytest.raises(TypeError, match="must be a string"):
+            dependent_parameter.set_desired_unit(5)
+
+
     def test_set_fixed(self, parameter: Parameter):
         # When Then 
         parameter.fixed = True
