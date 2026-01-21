@@ -877,7 +877,6 @@ class Parameter(DescriptorNumber):
                     combinations = [self.min / other.min, self.max / other.max, self.min / other.max, self.max / other.min]
             else:
                 combinations = [self.min / other.value, self.max / other.value]
-            other.value = other_value
         else:
             return NotImplemented
         min_value = min(combinations)
@@ -926,7 +925,6 @@ class Parameter(DescriptorNumber):
         parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
         parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
-        self.value = original_self
         return parameter
 
     def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:

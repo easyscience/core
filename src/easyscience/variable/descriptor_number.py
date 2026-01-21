@@ -423,16 +423,13 @@ class DescriptorNumber(DescriptorBase):
 
     def __truediv__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
-            original_other = other
             if other == 0:
                 raise ZeroDivisionError('Cannot divide by zero')
             new_value = self.full_value / other
         elif type(other) is DescriptorNumber:
-            original_other = other.value
-            if original_other == 0:
+            if other.value == 0:
                 raise ZeroDivisionError('Cannot divide by zero')
             new_value = self.full_value / other.full_value
-            other.value = original_other
         else:
             return NotImplemented
         descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
