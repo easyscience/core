@@ -234,6 +234,8 @@ class Parameter(DescriptorNumber):
         self._independent = False
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
+        if unit is not None and not (isinstance(unit, str) or isinstance(unit, sc.Unit)):
+            raise TypeError('`unit` must be a string representing a valid unit.')
         self._desired_unit = unit
         # List of allowed python constructs for the asteval interpreter
         asteval_config = {
@@ -310,7 +312,11 @@ class Parameter(DescriptorNumber):
             try:
                 dependency_result._convert_unit(self._desired_unit)
             except Exception as e:
-                raise UnitError(f'Failed to convert unit from {dependency_result.unit} to {self._desired_unit}: {e}')
+                desired_unit_for_error_message = self._desired_unit
+                self._revert_dependency()  # also deletes self._desired_unit
+                raise UnitError(
+                    f'Failed to convert unit from {dependency_result.unit} to {desired_unit_for_error_message}: {e}'
+                )
 
         self._update()
 
@@ -494,7 +500,7 @@ class Parameter(DescriptorNumber):
         """
         self._convert_unit(unit_str)
 
-    def set_desired_unit(self, unit_str: str) -> None:
+    def set_desired_unit(self, unit_str: str | sc.Unit | None) -> None:
         """
         Set the desired unit for a dependent Parameter. This will convert the parameter to the desired unit.
 
@@ -503,7 +509,7 @@ class Parameter(DescriptorNumber):
 
         if self._independent:
             raise AttributeError('This is an independent parameter, desired unit can only be set for dependent parameters.')
-        if not isinstance(unit_str, str):
+        if not (isinstance(unit_str, str) or isinstance(unit_str, sc.Unit) or unit_str is None):
             raise TypeError('`unit_str` must be a string representing a valid unit.')
 
         self._desired_unit = unit_str

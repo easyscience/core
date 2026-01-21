@@ -169,6 +169,34 @@ class TestParameter:
         assert normal_parameter._min.unit == "cm"
         assert normal_parameter._max.unit == "cm"
 
+        # Then # Change the dependency expression and unit again
+        normal_parameter.make_dependent_on(dependency_expression='3*a', dependency_map={'a': independent_parameter}, unit="mm")
+
+        # Expect
+        assert normal_parameter._independent == False
+        assert normal_parameter.dependency_expression == '3*a'
+        assert normal_parameter.dependency_map == {'a': independent_parameter}
+
+        assert normal_parameter.value == 3000*independent_parameter.value
+        assert normal_parameter.unit == "mm"
+        assert normal_parameter.variance == independent_parameter.variance*9*1000000  # unit conversion from m to mm squared
+        assert normal_parameter.min == 3000*independent_parameter.min
+        assert normal_parameter.max == 3000*independent_parameter.max
+        assert normal_parameter._min.unit == "mm"
+        assert normal_parameter._max.unit == "mm"
+
+        # Then
+        independent_parameter.value = 2
+
+        # Expect
+        assert normal_parameter.value == 3000*independent_parameter.value
+        assert normal_parameter.unit == "mm"
+        assert normal_parameter.variance == independent_parameter.variance*9*1000000  # unit conversion from m to mm squared
+        assert normal_parameter.min == 3000*independent_parameter.min
+        assert normal_parameter.max == 3000*independent_parameter.max
+        assert normal_parameter._min.unit == "mm"
+        assert normal_parameter._max.unit == "mm"        
+
 
     def test_dependent_parameter_make_dependent_on_with_desired_unit_incompatible_unit_raises(self, normal_parameter: Parameter):
         # When
