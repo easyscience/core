@@ -205,7 +205,15 @@ class TestParameter:
         # Then Expect
         with pytest.raises(UnitError):
             normal_parameter.make_dependent_on(dependency_expression='2*a', dependency_map={'a': independent_parameter}, unit="s")
-       
+
+    def test_dependent_parameter_make_dependent_on_with_incorrect_unit_raises(self, normal_parameter: Parameter):
+        # When
+        independent_parameter = Parameter(name="independent", value=1, unit="m", variance=0.01, min=0, max=10)
+        
+        # Then Expect
+        with pytest.raises(TypeError):
+            normal_parameter.make_dependent_on(dependency_expression='2*a', dependency_map={'a': independent_parameter}, unit=123)
+              
 
     def test_parameter_from_dependency(self, normal_parameter: Parameter):
         # When Then
