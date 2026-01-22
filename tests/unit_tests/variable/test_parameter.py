@@ -391,7 +391,7 @@ class TestParameter:
     def test_dependent_parameter_division_expression_order(self):
         """Test that division expressions work regardless of operand order.
         
-        This is a regression test for https://github.com/easyscience/corelib/issues/XXX
+        This is a regression test for https://github.com/easyscience/corelib/issues/190
         where 'a / b' would fail with an observer notification error while '1/b * a'
         would work correctly.
         """
