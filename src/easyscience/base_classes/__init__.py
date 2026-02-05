@@ -1,5 +1,6 @@
 from .based_base import BasedBase
 from .collection_base import CollectionBase
+from .easy_list import EasyList
 from .model_base import ModelBase
 from .model_collection import ModelCollection
 from .new_base import NewBase
@@ -12,4 +13,5 @@ __all__ = [
     ModelBase,
     ModelCollection,
     NewBase,
+    EasyList,
 ]
