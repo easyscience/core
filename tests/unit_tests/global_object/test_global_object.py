@@ -40,7 +40,7 @@ class TestGlobalObject:
 
     @pytest.fixture
     def clear_global_map(self):
-        """Clear global map before and after each test"""
+        """Clear global map and name counters before and after each test"""
         global_object.map._clear()
         yield
         global_object.map._clear()
@@ -153,6 +153,37 @@ class TestGlobalObject:
         # Test retrieval
         retrieved1 = global_obj.map.get_item_by_key(param1.unique_name)
         assert retrieved1 is param1
+
+    def test_unique_names_not_reused_after_gc(self, clear_global_map):
+        """Test that unique names are never reused after objects are garbage collected."""
+        import gc
+
+        # Given
+        global_obj = GlobalObject()
+
+        # Create parameters and record their unique names
+        param1 = Parameter(name="a", value=1.0)
+        param2 = Parameter(name="b", value=2.0)
+        name1 = param1.unique_name
+        name2 = param2.unique_name
+        assert name1 != name2
+
+        # Delete the parameters so they get GC'd from the WeakValueDictionary
+        del param1, param2
+        gc.collect()
+
+        # The map should no longer contain the old names (weak refs collected)
+        assert name1 not in global_obj.map.vertices()
+        assert name2 not in global_obj.map.vertices()
+
+        # Create new parameters — they must NOT reuse the old names
+        param3 = Parameter(name="c", value=3.0)
+        param4 = Parameter(name="d", value=4.0)
+        assert param3.unique_name != name1
+        assert param3.unique_name != name2
+        assert param4.unique_name != name1
+        assert param4.unique_name != name2
+        assert param3.unique_name != param4.unique_name
 
     def test_script_manager_access(self):
         """Test that script manager is accessible"""

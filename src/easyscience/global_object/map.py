@@ -73,6 +73,9 @@ class Map:
         self._store = weakref.WeakValueDictionary()
         # A dict with object names as keys and a list of their object types as values, with weak references
         self.__type_dict = {}
+        # Per-prefix monotonic counters for unique name generation.
+        # These only ever increase, ensuring names are never reused after GC.
+        self._name_counters: dict = {}
 
     def vertices(self) -> List[str]:
         """Returns the vertices of a map.
@@ -281,6 +284,7 @@ class Map:
         """Reset the map to an empty state. Only to be used for testing"""
         self._store.clear()
         self.__type_dict.clear()
+        self._name_counters.clear()
         gc.collect()
 
     def __repr__(self) -> str:

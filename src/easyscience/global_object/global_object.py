@@ -46,20 +46,28 @@ class GlobalObject:
 
     def generate_unique_name(self, name_prefix: str) -> str:
         """
-        Generate a generic unique name for the object using the class name and a global iterator.
+        Generate a generic unique name for the object using the class name and a monotonic counter.
         Names are in the format `name_prefix_0`, `name_prefix_1`, `name_prefix_2`, etc.
+
+        The counter for each prefix only ever increases, ensuring that names are never
+        reused even after objects are garbage-collected from the map.
 
         :param name_prefix: The prefix to be used for the name
         """
+        # Get the stored counter for this prefix (-1 means no name generated yet)
+        current_counter = self.map._name_counters.get(name_prefix, -1)
+
+        # Also check existing map entries to handle explicitly named objects
+        # (e.g. created with a user-supplied unique_name or deserialized)
+        max_from_map = -1
         names_with_prefix = [name for name in self.map.vertices() if name.startswith(name_prefix + '_')]
-        if names_with_prefix:
-            name_with_prefix_count = [0]
-            for name in names_with_prefix:
-                # Strip away the prefix and trailing _
-                name_without_prefix = name.replace(name_prefix + '_', '')
-                if name_without_prefix.isdecimal():
-                    name_with_prefix_count.append(int(name_without_prefix))
-            unique_name = f'{name_prefix}_{max(name_with_prefix_count) + 1}'
-        else:
-            unique_name = f'{name_prefix}_0'
-        return unique_name
+        for name in names_with_prefix:
+            name_without_prefix = name.replace(name_prefix + '_', '')
+            if name_without_prefix.isdecimal():
+                max_from_map = max(max_from_map, int(name_without_prefix))
+
+        # Take the maximum of counter and map, then increment
+        next_counter = max(current_counter, max_from_map) + 1
+        self.map._name_counters[name_prefix] = next_counter
+
+        return f'{name_prefix}_{next_counter}'
