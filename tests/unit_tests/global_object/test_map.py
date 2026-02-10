@@ -239,6 +239,24 @@ class TestMap:
         unknown_obj.unique_name = "unknown"
         
         # When/Then
+
+    def test_returned_objs_access_safe_under_modification(self, clear):
+        """Ensure accessing returned_objs doesn't raise when entries change size during iteration."""
+        objs = [ObjBase(name=f"race_{i}") for i in range(8)]
+        # Mark all as returned
+        for o in objs:
+            global_object.map.change_type(o, 'returned')
+
+        # Repeatedly access returned_objs while deleting objects and forcing GC to
+        # try to trigger concurrent modification. This used to raise RuntimeError.
+        for _ in range(200):
+            _ = global_object.map.returned_objs  # should not raise
+            if _ and objs:
+                # delete one object and collect to trigger finalizer/prune
+                del objs[0]
+                gc.collect()
+        # If we got here without exceptions, consider the access safe
+        assert True
         result = global_object.map.find_type(unknown_obj)
         assert result is None
         
