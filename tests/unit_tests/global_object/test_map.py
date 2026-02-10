@@ -239,6 +239,8 @@ class TestMap:
         unknown_obj.unique_name = "unknown"
         
         # When/Then
+        result = global_object.map.find_type(unknown_obj)
+        assert result is None
 
     def test_returned_objs_access_safe_under_modification(self, clear):
         """Ensure accessing returned_objs doesn't raise when entries change size during iteration."""
@@ -257,8 +259,6 @@ class TestMap:
                 gc.collect()
         # If we got here without exceptions, consider the access safe
         assert True
-        result = global_object.map.find_type(unknown_obj)
-        assert result is None
         
     def test_reset_type(self, clear, base_object):
         """Test resetting object type"""
