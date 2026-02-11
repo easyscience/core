@@ -165,10 +165,13 @@ class Map:
         # but the finalizer hasn't run yet
         if name in self.__type_dict:
             del self.__type_dict[name]
+
         self._store[name] = obj
-        self.__type_dict[name] = _EntryList()  # Add objects type to the list of types
-        self.__type_dict[name].finalizer = weakref.finalize(self._store[name], self.prune, name)
-        self.__type_dict[name].type = obj_type
+
+        entry_list = _EntryList()
+        entry_list.finalizer = weakref.finalize(obj, self.prune, name)
+        entry_list.type = obj_type
+        self.__type_dict[name] = entry_list  # Add objects type to the list of types
 
     def add_edge(self, start_obj: object, end_obj: object):
         if start_obj.unique_name in self.__type_dict:
