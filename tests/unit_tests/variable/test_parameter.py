@@ -388,6 +388,51 @@ class TestParameter:
         assert dependent_parameter.min == 2*descriptor_number.value
         assert dependent_parameter.max == 2*descriptor_number.value
 
+    def test_dependent_parameter_division_expression_order(self):
+        """Test that division expressions work regardless of operand order.
+
+        This is a regression test for https://github.com/easyscience/corelib/issues/190
+        where 'a / b' would fail with an observer notification error while '1/b * a'
+        would work correctly.
+        """
+        # When
+        angstrom = DescriptorNumber("angstrom", 1e-10, unit="m")
+        jump_length = Parameter(
+            name="jump_length",
+            value=float(1.0),
+            fixed=False,
+            unit="angstrom",
+        )
+
+        expression = "jump_length / angstrom"
+        dependency_map = {
+            "jump_length": jump_length,
+            "angstrom": angstrom,
+        }
+
+        # Calculate the expected result from direct division
+        expected_result = jump_length / angstrom
+        expected_value = expected_result.value
+
+        # Then - This should not raise an error
+        dependent_param = Parameter(name='a', value=1.0)
+        dependent_param.make_dependent_on(
+            dependency_expression=expression,
+            dependency_map=dependency_map,
+        )
+
+        # Expect - The dependent parameter should have the same value as the direct division
+        assert dependent_param.value == pytest.approx(expected_value)
+
+        # Also test the alternative expression that previously worked
+        expression_alt = "1/angstrom * jump_length"
+        dependent_param_alt = Parameter(name='b', value=1.0)
+        dependent_param_alt.make_dependent_on(
+            dependency_expression=expression_alt,
+            dependency_map=dependency_map,
+        )
+        assert dependent_param_alt.value == pytest.approx(expected_value)
+
     def test_dependent_parameter_overwrite_dependency(self, normal_parameter: Parameter):
         # When
         dependent_parameter = Parameter.from_dependency(
