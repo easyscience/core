@@ -90,7 +90,7 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         elif isinstance(idx, slice):
             return self.__class__(self._data[idx], protected_types=self._protected_types)
         elif isinstance(idx, str):
-            element = next((r for r in self._data if r.unique_name == idx), None)
+            element = next((r for r in self._data if self._get_key(r) == idx), None)
             if element is not None:
                 return element
             raise KeyError(f'No item with unique name "{idx}" found')
@@ -133,7 +133,7 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
             del self._data[idx]
         elif isinstance(idx, str):
             for i, item in enumerate(self._data):
-                if item.unique_name == idx:
+                if self._get_key(item) == idx:
                     del self._data[i]
                     return
             raise KeyError(f'No item with unique name "{idx}" found')
@@ -158,6 +158,17 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
 
         self._data.insert(index, value)
 
+    def _get_key(self, object, attribute='unique_name') -> str:
+        """
+        Get the unique name of an object.
+        Can be overridden to use a different attribute as the key.
+        :param object: Object to get the key for
+        :param attribute: Attribute to use as the key (default is 'unique_name')
+        :return: The key of the object
+        :rtype: str
+        """
+        return getattr(object, attribute)
+
     # Overwriting methods
 
     def sort(self, mapping: Callable[[ProtectedType_], Any], reverse: bool = False) -> None:
@@ -177,13 +188,13 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
 
     def __contains__(self, item: ProtectedType_ | str) -> bool:
         if isinstance(item, str):
-            return any(r.unique_name == item for r in self._data)
+            return any(self._get_key(r) == item for r in self._data)
         return item in self._data
 
     def index(self, value: ProtectedType_ | str, start: int = 0, stop: int = ...) -> int:
         if isinstance(value, str):
             for i in range(start, min(stop, len(self._data))):
-                if self._data[i].unique_name == value:
+                if self._get_key(self._data[i]) == value:
                     return i
             raise ValueError(f'{value} is not in EasyList')
         return self._data.index(value, start, stop)
@@ -209,7 +220,7 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
             return self._data.pop(index)
         elif isinstance(index, str):
             for i, item in enumerate(self._data):
-                if item.unique_name == index:
+                if self._get_key(item) == index:
                     return self._data.pop(i)
             raise KeyError(f'No item with unique name "{index}" found')
         else:
