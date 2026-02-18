@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import MutableSequence
 from typing import TYPE_CHECKING
 from typing import Any
@@ -112,6 +113,9 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         if isinstance(idx, int):
             if not isinstance(value, tuple(self._protected_types)):
                 raise TypeError(f'Items must be one of {self._protected_types}, got {type(value)}')
+            if value in self:
+                warnings.warn(f'Item with unique name "{self._get_key(value)}" already in EasyList, it will be ignored')
+                return
             self._data[idx] = value
         elif isinstance(idx, slice):
             if not isinstance(value, Iterable):
@@ -119,6 +123,9 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
             for v in value:
                 if not isinstance(v, tuple(self._protected_types)):
                     raise TypeError(f'Items must be one of {self._protected_types}, got {type(v)}')
+                if v in self:
+                    warnings.warn(f'Item with unique name "{self._get_key(v)}" already in EasyList, it will be ignored')
+                    return
             self._data[idx] = list(value)  # type: ignore[arg-type]
         else:
             raise TypeError('Index must be an int or slice')
@@ -155,19 +162,20 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
             raise TypeError('Index must be an integer')
         elif not isinstance(value, tuple(self._protected_types)):
             raise TypeError(f'Items must be one of {self._protected_types}, got {type(value)}')
-
+        if value in self:
+            warnings.warn(f'Item with unique name "{self._get_key(value)}" already in EasyList, it will be ignored')
+            return
         self._data.insert(index, value)
 
-    def _get_key(self, object, attribute='unique_name') -> str:
+    def _get_key(self, object) -> str:
         """
         Get the unique name of an object.
         Can be overridden to use a different attribute as the key.
         :param object: Object to get the key for
-        :param attribute: Attribute to use as the key (default is 'unique_name')
         :return: The key of the object
         :rtype: str
         """
-        return getattr(object, attribute)
+        return object.unique_name
 
     # Overwriting methods
 
@@ -207,6 +215,9 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         """
         if not isinstance(value, tuple(self._protected_types)):
             raise TypeError(f'Items must be one of {self._protected_types}, got {type(value)}')
+        if value in self:
+            warnings.warn(f'Item with unique name "{self._get_key(value)}" already in EasyList, it will be ignored')
+            return
         self._data.append(value)
 
     def pop(self, index: int | str = -1) -> ProtectedType_:
