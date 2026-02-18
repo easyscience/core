@@ -26,7 +26,7 @@ class DFO(MinimizerBase):
     This is a wrapper to Derivative Free Optimisation for Least Square: https://numericalalgorithmsgroup.github.io/dfols/
     """
 
-    package = 'dfo'
+    package = "dfo"
 
     def __init__(
         self,
@@ -44,16 +44,18 @@ class DFO(MinimizerBase):
                             keyword/value pairs
         :type fit_function: Callable
         """
-        super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
+        super().__init__(
+            obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum
+        )
         self._p_0 = {}
 
     @staticmethod
     def supported_methods() -> List[str]:
-        return ['leastsq']
+        return ["leastsq"]
 
     @staticmethod
     def all_methods() -> List[str]:
-        return ['leastsq']
+        return ["leastsq"]
 
     def fit(
         self,
@@ -74,7 +76,7 @@ class DFO(MinimizerBase):
         :type x: np.ndarray
         :param y: measured points
         :type y: np.ndarray
-        :param weights: Weights for supplied measured points
+        :param weights: Weights for supplied measured points.
         :type weights: np.ndarray
         :param model: Optional Model which is being fitted to
         :type model: lmModel
@@ -85,20 +87,24 @@ class DFO(MinimizerBase):
         :type method: str
         :return: Fit results
         :rtype: ModelResult
+
+        For standard least squares, the weights should be 1/sigma, where
+        sigma is the standard deviation of the measurement. For
+        unweighted least squares, these should be 1.
         """
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
         if y.shape != x.shape:
-            raise ValueError('x and y must have the same shape.')
+            raise ValueError("x and y must have the same shape.")
 
         if weights.shape != x.shape:
-            raise ValueError('Weights must have the same shape as x and y.')
+            raise ValueError("Weights must have the same shape as x and y.")
 
         if not np.isfinite(weights).all():
-            raise ValueError('Weights cannot be NaN or infinite.')
+            raise ValueError("Weights cannot be NaN or infinite.")
 
         if (weights <= 0).any():
-            raise ValueError('Weights must be strictly positive and non-zero.')
+            raise ValueError("Weights must be strictly positive and non-zero.")
 
         if model is None:
             model_function = self._make_model(parameters=parameters)
@@ -107,7 +113,9 @@ class DFO(MinimizerBase):
         self._cached_model.x = x
         self._cached_model.y = y
 
-        self._p_0 = {f'p{key}': self._cached_pars[key].value for key in self._cached_pars.keys()}
+        self._p_0 = {
+            f"p{key}": self._cached_pars[key].value for key in self._cached_pars.keys()
+        }
 
         # Why do we do this? Because a fitting template has to have global_object instantiated outside pre-runtime
         from easyscience import global_object
@@ -158,12 +166,14 @@ class DFO(MinimizerBase):
                         dfo_pars[MINIMIZER_PARAMETER_PREFIX + str(name)] = par.value
                 else:
                     for par in parameters:
-                        dfo_pars[MINIMIZER_PARAMETER_PREFIX + par.unique_name] = par.value
+                        dfo_pars[MINIMIZER_PARAMETER_PREFIX + par.unique_name] = (
+                            par.value
+                        )
 
                 def _residuals(pars_values: List[float]) -> np.ndarray:
                     for idx, par_name in enumerate(dfo_pars.keys()):
                         dfo_pars[par_name] = pars_values[idx]
-                    return (y - fit_func(x, **dfo_pars)) / weights
+                    return (y - fit_func(x, **dfo_pars)) * weights
 
                 return _residuals
 
@@ -171,7 +181,9 @@ class DFO(MinimizerBase):
 
         return _outer(self)
 
-    def _set_parameter_fit_result(self, fit_result, stack_status, ci: float = 0.95) -> None:
+    def _set_parameter_fit_result(
+        self, fit_result, stack_status, ci: float = 0.95
+    ) -> None:
         """
         Update parameters to their final values and assign a std error to them.
 
@@ -188,9 +200,11 @@ class DFO(MinimizerBase):
                 pars[name].value = self._cached_pars_vals[name][0]
                 pars[name].error = self._cached_pars_vals[name][1]
             global_object.stack.enabled = True
-            global_object.stack.beginMacro('Fitting routine')
+            global_object.stack.beginMacro("Fitting routine")
 
-        error_matrix = self._error_from_jacobian(fit_result.jacobian, fit_result.resid, ci)
+        error_matrix = self._error_from_jacobian(
+            fit_result.jacobian, fit_result.resid, ci
+        )
         for idx, par in enumerate(pars.values()):
             par.value = fit_result.x[idx]
             par.error = error_matrix[idx, idx]
@@ -215,7 +229,7 @@ class DFO(MinimizerBase):
 
         pars = {}
         for p_name, par in self._cached_pars.items():
-            pars[f'p{p_name}'] = par.value
+            pars[f"p{p_name}"] = par.value
         results.p = pars
 
         results.p0 = self._p_0
@@ -257,21 +271,25 @@ class DFO(MinimizerBase):
         # https://numericalalgorithmsgroup.github.io/dfols/build/html/userguide.html
         if not np.isinf(bounds).any():
             # It is only possible to scale (normalize) variables if they are bound (different from inf)
-            kwargs['scaling_within_bounds'] = True
+            kwargs["scaling_within_bounds"] = True
 
         results = dfols.solve(model, pars_values, bounds=bounds, **kwargs)
 
-        if 'Success' not in results.msg:
-            raise FitError(f'Fit failed with message: {results.msg}')
+        if "Success" not in results.msg:
+            raise FitError(f"Fit failed with message: {results.msg}")
 
         return results
 
     @staticmethod
-    def _prepare_kwargs(tolerance: Optional[float] = None, max_evaluations: Optional[int] = None, **kwargs) -> dict[str:str]:
+    def _prepare_kwargs(
+        tolerance: Optional[float] = None,
+        max_evaluations: Optional[int] = None,
+        **kwargs,
+    ) -> dict[str:str]:
         if max_evaluations is not None:
-            kwargs['maxfun'] = max_evaluations  # max number of function evaluations
+            kwargs["maxfun"] = max_evaluations  # max number of function evaluations
         if tolerance is not None:
             if 0.1 < tolerance:  # dfo module throws errer if larger value
-                raise ValueError('Tolerance must be equal or smaller than 0.1')
-            kwargs['rhoend'] = tolerance  # size of the trust region
+                raise ValueError("Tolerance must be equal or smaller than 0.1")
+            kwargs["rhoend"] = tolerance  # size of the trust region
         return kwargs
