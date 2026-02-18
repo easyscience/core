@@ -30,7 +30,7 @@ class LMFit(MinimizerBase):  # noqa: S101
     It allows for the lmfit fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.
     """
 
-    package = "lmfit"
+    package = 'lmfit'
 
     def __init__(
         self,
@@ -48,35 +48,33 @@ class LMFit(MinimizerBase):  # noqa: S101
         :param method: Method to be used by the minimizer
         :type method: str
         """
-        super().__init__(
-            obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum
-        )
+        super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
 
     @staticmethod
     def all_methods() -> List[str]:
         return [
-            "least_squares",
-            "leastsq",
-            "differential_evolution",
-            "basinhopping",
-            "ampgo",
-            "nelder",
-            "lbfgsb",
-            "powell",
-            "cg",
-            "newton",
-            "cobyla",
-            "bfgs",
+            'least_squares',
+            'leastsq',
+            'differential_evolution',
+            'basinhopping',
+            'ampgo',
+            'nelder',
+            'lbfgsb',
+            'powell',
+            'cg',
+            'newton',
+            'cobyla',
+            'bfgs',
         ]
 
     @staticmethod
     def supported_methods() -> List[str]:
         return [
-            "least_squares",
-            "leastsq",
-            "differential_evolution",
-            "powell",
-            "cobyla",
+            'least_squares',
+            'leastsq',
+            'differential_evolution',
+            'powell',
+            'cobyla',
         ]
 
     def fit(
@@ -122,16 +120,16 @@ class LMFit(MinimizerBase):  # noqa: S101
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
         if y.shape != x.shape:
-            raise ValueError("x and y must have the same shape.")
+            raise ValueError('x and y must have the same shape.')
 
         if weights.shape != x.shape:
-            raise ValueError("Weights must have the same shape as x and y.")
+            raise ValueError('Weights must have the same shape as x and y.')
 
         if not np.isfinite(weights).all():
-            raise ValueError("Weights cannot be NaN or infinite.")
+            raise ValueError('Weights cannot be NaN or infinite.')
 
         if (weights <= 0).any():
-            raise ValueError("Weights must be strictly positive and non-zero.")
+            raise ValueError('Weights must be strictly positive and non-zero.')
 
         if engine_kwargs is None:
             engine_kwargs = {}
@@ -167,21 +165,17 @@ class LMFit(MinimizerBase):  # noqa: S101
             raise FitError(e)
         return results
 
-    def _get_fit_kws(
-        self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]
-    ) -> dict[str:str]:
+    def _get_fit_kws(self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]) -> dict[str:str]:
         if minimizer_kwargs is None:
             minimizer_kwargs = {}
         if tolerance is not None:
-            if method in [None, "least_squares", "leastsq"]:
-                minimizer_kwargs["ftol"] = tolerance
-            if method in ["differential_evolution", "powell", "cobyla"]:
-                minimizer_kwargs["tol"] = tolerance
+            if method in [None, 'least_squares', 'leastsq']:
+                minimizer_kwargs['ftol'] = tolerance
+            if method in ['differential_evolution', 'powell', 'cobyla']:
+                minimizer_kwargs['tol'] = tolerance
         return minimizer_kwargs
 
-    def convert_to_pars_obj(
-        self, parameters: Optional[List[Parameter]] = None
-    ) -> LMParameters:
+    def convert_to_pars_obj(self, parameters: Optional[List[Parameter]] = None) -> LMParameters:
         """
         Create an lmfit compatible container with the `Parameters` converted from the base object.
 
@@ -191,9 +185,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         if parameters is None:
             # Assume that we have a ObjBase for which we can obtain a list
             parameters = self._object.get_fit_parameters()
-        lm_parameters = LMParameters().add_many(
-            [self.convert_to_par_object(parameter) for parameter in parameters]
-        )
+        lm_parameters = LMParameters().add_many([self.convert_to_par_object(parameter) for parameter in parameters])
         return lm_parameters
 
     @staticmethod
@@ -233,7 +225,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         # Create the model
         model = LMModel(
             fit_func,
-            independent_vars=["x"],
+            independent_vars=['x'],
             param_names=[MINIMIZER_PARAMETER_PREFIX + str(key) for key in pars.keys()],
         )
         # Assign values from the `Parameter` to the model
@@ -270,15 +262,11 @@ class LMFit(MinimizerBase):  # noqa: S101
                 pars[name].value = self._cached_pars_vals[name][0]
                 pars[name].error = self._cached_pars_vals[name][1]
             global_object.stack.enabled = True
-            global_object.stack.beginMacro("Fitting routine")
+            global_object.stack.beginMacro('Fitting routine')
         for name in pars.keys():
-            pars[name].value = fit_result.params[
-                MINIMIZER_PARAMETER_PREFIX + str(name)
-            ].value
+            pars[name].value = fit_result.params[MINIMIZER_PARAMETER_PREFIX + str(name)].value
             if fit_result.errorbars:
-                pars[name].error = fit_result.params[
-                    MINIMIZER_PARAMETER_PREFIX + str(name)
-                ].stderr
+                pars[name].error = fit_result.params[MINIMIZER_PARAMETER_PREFIX + str(name)].stderr
             else:
                 pars[name].error = 0.0
         if stack_status:
@@ -302,7 +290,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         results.success = fit_results.success
         results.y_obs = fit_results.data
         # results.residual = fit_results.residual
-        results.x = fit_results.userkws["x"]
+        results.x = fit_results.userkws['x']
         results.p = fit_results.values
         results.p0 = fit_results.init_values
         # results.goodness_of_fit = fit_results.chisqr

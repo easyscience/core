@@ -26,7 +26,7 @@ from .utils import FitResults
 
 FIT_AVAILABLE_IDS_FILTERED = copy.copy(FIT_AVAILABLE_IDS)
 # Considered experimental
-FIT_AVAILABLE_IDS_FILTERED.remove("pt")
+FIT_AVAILABLE_IDS_FILTERED.remove('pt')
 
 
 class Bumps(MinimizerBase):
@@ -35,7 +35,7 @@ class Bumps(MinimizerBase):
     It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.
     """
 
-    package = "bumps"
+    package = 'bumps'
 
     def __init__(
         self,
@@ -53,9 +53,7 @@ class Bumps(MinimizerBase):
                             keyword/value pairs
         :type fit_function: Callable
         """
-        super().__init__(
-            obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum
-        )
+        super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
         self._p_0 = {}
 
     @staticmethod
@@ -65,7 +63,7 @@ class Bumps(MinimizerBase):
     @staticmethod
     def supported_methods() -> List[str]:
         # only a small subset
-        methods = ["amoeba", "newton", "lm"]
+        methods = ['amoeba', 'newton', 'lm']
         return methods
 
     def fit(
@@ -111,16 +109,16 @@ class Bumps(MinimizerBase):
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
         if y.shape != x.shape:
-            raise ValueError("x and y must have the same shape.")
+            raise ValueError('x and y must have the same shape.')
 
         if weights.shape != x.shape:
-            raise ValueError("Weights must have the same shape as x and y.")
+            raise ValueError('Weights must have the same shape as x and y.')
 
         if not np.isfinite(weights).all():
-            raise ValueError("Weights cannot be NaN or infinite.")
+            raise ValueError('Weights cannot be NaN or infinite.')
 
         if (weights <= 0).any():
-            raise ValueError("Weights must be strictly positive and non-zero.")
+            raise ValueError('Weights must be strictly positive and non-zero.')
 
         if engine_kwargs is None:
             engine_kwargs = {}
@@ -130,23 +128,17 @@ class Bumps(MinimizerBase):
         minimizer_kwargs.update(engine_kwargs)
 
         if tolerance is not None:
-            minimizer_kwargs["ftol"] = (
-                tolerance  # tolerance for change in function value
-            )
-            minimizer_kwargs["xtol"] = (
-                tolerance  # tolerance for change in parameter value, could be an independent value
-            )
+            minimizer_kwargs['ftol'] = tolerance  # tolerance for change in function value
+            minimizer_kwargs['xtol'] = tolerance  # tolerance for change in parameter value, could be an independent value
         if max_evaluations is not None:
-            minimizer_kwargs["steps"] = max_evaluations
+            minimizer_kwargs['steps'] = max_evaluations
 
         if model is None:
             model_function = self._make_model(parameters=parameters)
             model = model_function(x, y, weights)
         self._cached_model = model
 
-        self._p_0 = {
-            f"p{key}": self._cached_pars[key].value for key in self._cached_pars.keys()
-        }
+        self._p_0 = {f'p{key}': self._cached_pars[key].value for key in self._cached_pars.keys()}
 
         problem = FitProblem(model)
         # Why do we do this? Because a fitting template has to have global_object instantiated outside pre-runtime
@@ -156,12 +148,8 @@ class Bumps(MinimizerBase):
         global_object.stack.enabled = False
 
         try:
-            model_results = bumps_fit(
-                problem, **method_dict, **minimizer_kwargs, **kwargs
-            )
-            self._set_parameter_fit_result(
-                model_results, stack_status, problem._parameters
-            )
+            model_results = bumps_fit(problem, **method_dict, **minimizer_kwargs, **kwargs)
+            self._set_parameter_fit_result(model_results, stack_status, problem._parameters)
             results = self._gen_fit_results(model_results)
         except Exception as e:
             for key in self._cached_pars.keys():
@@ -169,9 +157,7 @@ class Bumps(MinimizerBase):
             raise FitError(e)
         return results
 
-    def convert_to_pars_obj(
-        self, par_list: Optional[List] = None
-    ) -> List[BumpsParameter]:
+    def convert_to_pars_obj(self, par_list: Optional[List] = None) -> List[BumpsParameter]:
         """
         Create a container with the `Parameters` converted from the base object.
 
@@ -205,9 +191,7 @@ class Bumps(MinimizerBase):
             fixed=obj.fixed,
         )
 
-    def _make_model(
-        self, parameters: Optional[List[BumpsParameter]] = None
-    ) -> Callable:
+    def _make_model(self, parameters: Optional[List[BumpsParameter]] = None) -> Callable:
         """
         Generate a bumps model from the supplied `fit_function` and parameters in the base object.
         Note that this makes a callable as it needs to be initialized with *x*, *y*, *weights*
@@ -224,23 +208,17 @@ class Bumps(MinimizerBase):
                 bumps_pars = {}
                 if not parameters:
                     for name, par in obj._cached_pars.items():
-                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + str(name)] = (
-                            obj.convert_to_par_object(par)
-                        )
+                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + str(name)] = obj.convert_to_par_object(par)
                 else:
                     for par in parameters:
-                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + par.unique_name] = (
-                            obj.convert_to_par_object(par)
-                        )
+                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + par.unique_name] = obj.convert_to_par_object(par)
                 return Curve(fit_func, x, y, dy=1 / weights, **bumps_pars)
 
             return _make_func
 
         return _outer(self)
 
-    def _set_parameter_fit_result(
-        self, fit_result, stack_status: bool, par_list: List[BumpsParameter]
-    ):
+    def _set_parameter_fit_result(self, fit_result, stack_status: bool, par_list: List[BumpsParameter]):
         """
         Update parameters to their final values and assign a std error to them.
 
@@ -257,7 +235,7 @@ class Bumps(MinimizerBase):
                 pars[name].value = self._cached_pars_vals[name][0]
                 pars[name].error = self._cached_pars_vals[name][1]
             global_object.stack.enabled = True
-            global_object.stack.beginMacro("Fitting routine")
+            global_object.stack.beginMacro('Fitting routine')
 
         for index, name in enumerate([par.name for par in par_list]):
             dict_name = name[len(MINIMIZER_PARAMETER_PREFIX) :]
