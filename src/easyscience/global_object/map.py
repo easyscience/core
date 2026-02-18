@@ -169,7 +169,7 @@ class Map:
         self._store[name] = obj
 
         entry_list = _EntryList()
-        entry_list.finalizer = weakref.finalize(obj, self.prune, name)
+        entry_list.finalizer = weakref.finalize(obj, self.prune_type_dict, name)
         entry_list.type = obj_type
         self.__type_dict[name] = entry_list  # Add objects type to the list of types
 
@@ -209,6 +209,10 @@ class Map:
 
         if vertex1 in self.__type_dict and vertex2 in self.__type_dict[vertex1]:
             del self.__type_dict[vertex1][self.__type_dict[vertex1].index(vertex2)]
+
+    def prune_type_dict(self, key: str):
+        if key in self.__type_dict:
+            del self.__type_dict[key]
 
     def prune(self, key: str):
         if key in self.__type_dict:
