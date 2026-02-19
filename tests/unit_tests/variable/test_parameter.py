@@ -230,7 +230,7 @@ class TestParameter:
         )
 
         # Then Expect
-        with pytest.raises(UnitError):
+        with pytest.raises(UnitError, match="Failed to convert unit from m to s."):
             normal_parameter.make_dependent_on(
                 dependency_expression="2*a",
                 dependency_map={"a": independent_parameter},
@@ -246,7 +246,9 @@ class TestParameter:
         )
 
         # Then Expect
-        with pytest.raises(TypeError):
+        with pytest.raises(
+            TypeError, match="`desired_unit` must be a string representing a valid unit"
+        ):
             normal_parameter.make_dependent_on(
                 dependency_expression="2*a",
                 dependency_map={"a": independent_parameter},
@@ -861,8 +863,31 @@ class TestParameter:
         )
 
         # Then Expect
-        with pytest.raises(UnitError):
+        with pytest.raises(
+            UnitError,
+            match="Failed to convert unit from m to s.",
+        ):
             dependent_parameter.set_desired_unit("s")
+
+    def test_set_desired_unit_None(self, normal_parameter: Parameter):
+        # When Then
+        dependent_parameter = Parameter.from_dependency(
+            name="dependent",
+            dependency_expression="2*a",
+            dependency_map={"a": normal_parameter},
+            display_name="display_name",
+            desired_unit="cm",
+        )
+
+        # EXPECT
+        assert dependent_parameter.unit == "cm"
+
+        # Then
+        dependent_parameter.set_desired_unit(None)
+
+        # EXPECT
+        assert dependent_parameter.value == 2 * normal_parameter.value
+        assert dependent_parameter.unit == "m"
 
     def test_set_desired_unit_independent_parameter_raises(
         self, normal_parameter: Parameter
