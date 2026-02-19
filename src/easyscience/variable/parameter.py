@@ -640,6 +640,9 @@ class Parameter(DescriptorNumber):
             # Save the dependency expression
             raw_dict['_dependency_string'] = self._clean_dependency_string
 
+            if self._desired_unit is not None:
+                raw_dict['_desired_unit'] = self._desired_unit
+
             # Mark that this parameter is dependent
             raw_dict['_independent'] = self._independent
 
@@ -708,6 +711,7 @@ class Parameter(DescriptorNumber):
         dependency_string = raw_dict.pop('_dependency_string', None)
         dependency_map_serializer_ids = raw_dict.pop('_dependency_map_serializer_ids', None)
         is_independent = raw_dict.pop('_independent', True)
+        desired_unit = raw_dict.pop('_desired_unit', None)
         # Note: Keep _serializer_id in the dict so it gets passed to __init__
 
         # Create the parameter using the base class method (serializer_id is now handled in __init__)
@@ -719,6 +723,7 @@ class Parameter(DescriptorNumber):
             param._pending_dependency_map_serializer_ids = dependency_map_serializer_ids
             # Keep parameter as independent initially - will be made dependent after all objects are loaded
             param._independent = True
+            param._pending_desired_unit = desired_unit
 
         return param
 
@@ -1085,6 +1090,7 @@ class Parameter(DescriptorNumber):
                 self.make_dependent_on(
                     dependency_expression=dependency_string,
                     dependency_map=dependency_map,
+                    desired_unit=self._pending_desired_unit,
                 )
             except Exception as e:
                 raise ValueError(f"Error establishing dependency '{dependency_string}': {e}")
@@ -1092,6 +1098,7 @@ class Parameter(DescriptorNumber):
             # Clean up temporary attributes
             delattr(self, '_pending_dependency_string')
             delattr(self, '_pending_dependency_map_serializer_ids')
+            delattr(self, '_pending_desired_unit')
 
     def _find_parameter_by_serializer_id(self, serializer_id: str) -> Optional['DescriptorNumber']:
         """Find a parameter by its serializer_id from all parameters in the global map."""

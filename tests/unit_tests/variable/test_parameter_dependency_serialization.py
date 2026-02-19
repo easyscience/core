@@ -178,6 +178,7 @@ class TestParameterDependencySerialization:
 
         # After resolution, c should be dependent and functional
         assert new_params["c"].independent is False
+        assert new_params["c"]._desired_unit == "cm"  # Desired unit should be preserved
         assert new_params["c"].value == 5.0 * 100  # Still 2 + 3, converted to cm
 
         # Test that dependency still works
