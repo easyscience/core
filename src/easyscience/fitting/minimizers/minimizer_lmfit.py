@@ -111,6 +111,11 @@ class LMFit(MinimizerBase):  # noqa: S101
         :param kwargs: Additional arguments for the fitting function.
         :return: Fit results
         :rtype: ModelResult
+
+        For standard least squares, the weights should be 1/sigma, where
+        sigma is the standard deviation of the measurement. For
+        unweighted least squares, these should be 1.
+
         """
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
@@ -230,7 +235,12 @@ class LMFit(MinimizerBase):  # noqa: S101
             else:
                 value = item.value
 
-            model.set_param_hint(MINIMIZER_PARAMETER_PREFIX + str(name), value=value, min=item.min, max=item.max)
+            model.set_param_hint(
+                MINIMIZER_PARAMETER_PREFIX + str(name),
+                value=value,
+                min=item.min,
+                max=item.max,
+            )
 
         # Cache the model for later reference
         self._cached_model = model
