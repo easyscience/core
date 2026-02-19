@@ -1062,7 +1062,6 @@ class Parameter(DescriptorNumber):
                     ]
             else:
                 combinations = [self.min / other.value, self.max / other.value]
-            other.value = other_value
         else:
             return NotImplemented
         min_value = min(combinations)
@@ -1121,7 +1120,6 @@ class Parameter(DescriptorNumber):
         )
         parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
-        self.value = original_self
         return parameter
 
     def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
