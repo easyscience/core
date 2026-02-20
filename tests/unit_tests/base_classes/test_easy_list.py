@@ -169,6 +169,48 @@ class TestEasyList:
         assert el[0].unique_name == 'a3'
         assert el[1].unique_name == 'a4'
 
+    def test_setitem_self_replacement_int(self):
+        """e[0] = e[0] should work without warning."""
+        a1 = Alpha(unique_name='a1')
+        a2 = Alpha(unique_name='a2')
+        el = EasyList(a1, a2, protected_types=Alpha)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            el[0] = el[0]
+            assert len(w) == 0
+        assert el[0].unique_name == 'a1'
+        assert len(el) == 2
+
+    def test_setitem_self_replacement_slice(self):
+        """e[0:2] = e[0:2] should work without warning."""
+        a1 = Alpha(unique_name='a1')
+        a2 = Alpha(unique_name='a2')
+        el = EasyList(a1, a2, protected_types=Alpha)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            el[0:2] = [el[0], el[1]]
+            assert len(w) == 0
+        assert el[0].unique_name == 'a1'
+        assert el[1].unique_name == 'a2'
+
+    def test_setitem_slice_partial_self_replacement(self):
+        """e[0:2] = [e[0], new] should only warn about the new item."""
+        a1 = Alpha(unique_name='a1')
+        a2 = Alpha(unique_name='a2')
+        a3 = Alpha(unique_name='a3')
+        el = EasyList(a1, a2, protected_types=Alpha)
+        el[0:2] = [el[0], a3]
+        assert el[0].unique_name == 'a1'
+        assert el[1].unique_name == 'a3'
+
+    def test_setitem_slice_length_mismatch_raises(self):
+        a1 = Alpha(unique_name='a1')
+        a2 = Alpha(unique_name='a2')
+        a3 = Alpha(unique_name='a3')
+        el = EasyList(a1, a2, protected_types=Alpha)
+        with pytest.raises(ValueError, match='Length of new values must match the length of the slice being replaced'):
+            el[0:2] = [a3]  # Only one item provided for a slice of length 2
+
     def test_setitem_invalid_index_type(self):
         a1 = Alpha(unique_name='a1')
         el = EasyList(a1, protected_types=Alpha)
@@ -247,12 +289,16 @@ class TestEasyList:
         a1 = Alpha(unique_name='a1')
         a2 = Alpha(unique_name='a2')
         a3 = Alpha(unique_name='a3')
+        a4 = Alpha(unique_name='a4')
         el = EasyList(a1, a2, a3, protected_types=Alpha)
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            el[0:1] = [a3]  # a3 already at index 2
+            el[0:3] = [a1, a3, a4]  # a3 already at index 2
             assert len(w) == 1
             assert 'already in EasyList' in str(w[0].message)
+        assert el[0].unique_name == 'a1'
+        assert el[1].unique_name == 'a2'  # a3 should not replace a2 because it's a duplicate
+        assert el[2].unique_name == 'a4'
 
     # --- insert ---
 

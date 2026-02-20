@@ -111,20 +111,24 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         if isinstance(idx, int):
             if not isinstance(value, tuple(self._protected_types)):
                 raise TypeError(f'Items must be one of {self._protected_types}, got {type(value)}')
-            if value in self:
+            if value is not self._data[idx] and value in self:
                 warnings.warn(f'Item with unique name "{self._get_key(value)}" already in EasyList, it will be ignored')
                 return
             self._data[idx] = value
         elif isinstance(idx, slice):
             if not isinstance(value, Iterable):
                 raise TypeError('Value must be an iterable for slice assignment')
-            for v in value:
+            replaced = self._data[idx]
+            new_values = list(value)
+            if len(new_values) != len(replaced):
+                raise ValueError('Length of new values must match the length of the slice being replaced')
+            for i, v in enumerate(new_values):
                 if not isinstance(v, tuple(self._protected_types)):
                     raise TypeError(f'Items must be one of {self._protected_types}, got {type(v)}')
-                if v in self:
-                    warnings.warn(f'Item with unique name "{self._get_key(v)}" already in EasyList, it will be ignored')
-                    return
-            self._data[idx] = list(value)  # type: ignore[arg-type]
+                if v in self and replaced[i] is not v:
+                    warnings.warn(f'Item with unique name "{v.unique_name}" already in EasyList, it will be ignored')
+                    new_values[i] = replaced[i]  # Keep the original value if the new one is a duplicate
+            self._data[idx] = new_values
         else:
             raise TypeError('Index must be an int or slice')
 
