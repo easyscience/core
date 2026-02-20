@@ -74,7 +74,7 @@ class DFO(MinimizerBase):
         :type x: np.ndarray
         :param y: measured points
         :type y: np.ndarray
-        :param weights: Weights for supplied measured points
+        :param weights: Weights for supplied measured points.
         :type weights: np.ndarray
         :param model: Optional Model which is being fitted to
         :type model: lmModel
@@ -85,6 +85,10 @@ class DFO(MinimizerBase):
         :type method: str
         :return: Fit results
         :rtype: ModelResult
+
+        For standard least squares, the weights should be 1/sigma, where
+        sigma is the standard deviation of the measurement. For
+        unweighted least squares, these should be 1.
         """
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
@@ -163,7 +167,7 @@ class DFO(MinimizerBase):
                 def _residuals(pars_values: List[float]) -> np.ndarray:
                     for idx, par_name in enumerate(dfo_pars.keys()):
                         dfo_pars[par_name] = pars_values[idx]
-                    return (y - fit_func(x, **dfo_pars)) / weights
+                    return (y - fit_func(x, **dfo_pars)) * weights
 
                 return _residuals
 
@@ -267,7 +271,11 @@ class DFO(MinimizerBase):
         return results
 
     @staticmethod
-    def _prepare_kwargs(tolerance: Optional[float] = None, max_evaluations: Optional[int] = None, **kwargs) -> dict[str:str]:
+    def _prepare_kwargs(
+        tolerance: Optional[float] = None,
+        max_evaluations: Optional[int] = None,
+        **kwargs,
+    ) -> dict[str:str]:
         if max_evaluations is not None:
             kwargs['maxfun'] = max_evaluations  # max number of function evaluations
         if tolerance is not None:

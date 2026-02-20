@@ -98,6 +98,11 @@ class Bumps(MinimizerBase):
         :type method: str
         :return: Fit results
         :rtype: ModelResult
+
+        For standard least squares, the weights should be 1/sigma, where
+        sigma is the standard deviation of the measurement. For
+        unweighted least squares, these should be 1.
+
         """
         method_dict = self._get_method_kwargs(method)
 
@@ -191,6 +196,8 @@ class Bumps(MinimizerBase):
         Generate a bumps model from the supplied `fit_function` and parameters in the base object.
         Note that this makes a callable as it needs to be initialized with *x*, *y*, *weights*
 
+        Weights are converted to dy (standard deviation of y).
+
         :return: Callable to make a bumps Curve model
         :rtype: Callable
         """
@@ -205,7 +212,7 @@ class Bumps(MinimizerBase):
                 else:
                     for par in parameters:
                         bumps_pars[MINIMIZER_PARAMETER_PREFIX + par.unique_name] = obj.convert_to_par_object(par)
-                return Curve(fit_func, x, y, dy=weights, **bumps_pars)
+                return Curve(fit_func, x, y, dy=1 / weights, **bumps_pars)
 
             return _make_func
 
