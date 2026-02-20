@@ -184,11 +184,13 @@ class TestEasyList:
     # --- __delitem__ ---
 
     def test_delitem_int(self, populated_list):
+        assert len(populated_list) == 3
         del populated_list[0]
         assert len(populated_list) == 2
         assert populated_list[0].unique_name == 'a2'
 
     def test_delitem_slice(self, populated_list):
+        assert len(populated_list) == 3
         del populated_list[0:2]
         assert len(populated_list) == 1
         assert populated_list[0].unique_name == 'a3'
@@ -297,11 +299,20 @@ class TestEasyList:
         el = EasyList(a1, protected_types=Alpha)
         assert 'nonexistent' not in el
 
+    # --- reverse ---
+    def test_reverse(self):
+        a1 = Alpha(unique_name='a1')
+        a2 = Alpha(unique_name='a2')
+        el = EasyList(a1, a2, protected_types=Alpha)
+        reversed_el = list(reversed(el))
+        assert reversed_el[0].unique_name == 'a2'
+        assert reversed_el[1].unique_name == 'a1'
+
     # --- index ---
 
     def test_index_by_object(self, populated_list):
         item = populated_list[1]
-        assert populated_list.index(item, 0, len(populated_list)) == 1
+        assert populated_list.index(item) == 1
 
     def test_index_by_str(self, populated_list):
         assert populated_list.index('a2', 0, 3) == 1
@@ -314,6 +325,10 @@ class TestEasyList:
         other = Alpha(unique_name='other')
         with pytest.raises(ValueError):
             populated_list.index(other, 0, len(populated_list))
+
+    def test_index_not_in_range(self, populated_list):
+        with pytest.raises(ValueError):
+            populated_list.index('a2', 2, 3)
 
     # --- pop ---
 
@@ -387,6 +402,7 @@ class TestEasyList:
         assert 'Alpha' in r
 
     # --- MutableSequence behavior ---
+    # If we were to inherit from List instead of MutableSequence, we would have to implement all of these manually.
 
     def test_extend(self):
         a1 = Alpha(unique_name='a1')
@@ -395,12 +411,11 @@ class TestEasyList:
         el.extend([a1, a2])
         assert len(el) == 2
 
-    def test_remove_via_del(self):
-        """Test removing an item by name using del (remove relies on index which has a default stop=Ellipsis bug)."""
+    def test_remove(self):
         a1 = Alpha(unique_name='a1')
         a2 = Alpha(unique_name='a2')
         el = EasyList(a1, a2, protected_types=Alpha)
-        del el['a1']
+        el.remove(a1)
         assert len(el) == 1
         assert el[0].unique_name == 'a2'
 
@@ -411,20 +426,23 @@ class TestEasyList:
         el += [a2]
         assert len(el) == 2
 
-    def test_reverse_via_sort(self):
-        """Test reversing using sort (MutableSequence.reverse uses __setitem__ which triggers
-        uniqueness guard, so we test reverse ordering via sort instead)."""
+    def test_iadd_easylist(self):
         a1 = Alpha(unique_name='a1')
         a2 = Alpha(unique_name='a2')
-        el = EasyList(a1, a2, protected_types=Alpha)
-        el.sort(mapping=lambda x: x.unique_name, reverse=True)
-        assert el[0].unique_name == 'a2'
-        assert el[1].unique_name == 'a1'
+        el = EasyList(a1, protected_types=Alpha)
+        el += EasyList(a2, protected_types=Alpha)
+        assert len(el) == 2
 
     def test_count(self):
         a1 = Alpha(unique_name='a1')
         el = EasyList(a1, protected_types=Alpha)
         assert el.count(a1) == 1
+
+    def test_clear(self):
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, protected_types=Alpha)
+        el.clear()
+        assert len(el) == 0
 
     # --- Serialization ---
 

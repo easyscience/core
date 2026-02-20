@@ -29,6 +29,8 @@ ProtectedType_ = TypeVar('ProtectedType', bound=NewBase)
 
 
 class EasyList(NewBase, MutableSequence[ProtectedType_]):
+    # If we were to inherit from List instead of MutableSequence, 
+    # we would have to overwrite "extend", "remove", "__iadd__", "count" and "clear"
     def __init__(
         self,
         *args: ProtectedType_ | list[ProtectedType_],
@@ -179,15 +181,6 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
 
     # Overwriting methods
 
-    def sort(self, mapping: Callable[[ProtectedType_], Any], reverse: bool = False) -> None:
-        """
-        Sort the collection according to the given mapping.
-
-        :param mapping: Mapping function to sort by
-        :param reverse: Whether to reverse the sort
-        """
-        self._data.sort(key=mapping, reverse=reverse)  # type: ignore[arg-type]
-
     def __repr__(self) -> str:
         return f'{self.__class__.__name__} of length {len(self)} of type(s) {self._protected_types}'
 
@@ -198,8 +191,22 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         if isinstance(item, str):
             return any(self._get_key(r) == item for r in self._data)
         return item in self._data
+    
+    def __reversed__(self):
+        return self._data.__reversed__()
 
-    def index(self, value: ProtectedType_ | str, start: int = 0, stop: int = ...) -> int:
+    def sort(self, mapping: Callable[[ProtectedType_], Any], reverse: bool = False) -> None:
+        """
+        Sort the collection according to the given mapping.
+
+        :param mapping: Mapping function to sort by
+        :param reverse: Whether to reverse the sort
+        """
+        self._data.sort(key=mapping, reverse=reverse)  # type: ignore[arg-type]
+
+    def index(self, value: ProtectedType_ | str, start: int = 0, stop: int = None) -> int:
+        if stop is None:
+            stop = len(self._data)
         if isinstance(value, str):
             for i in range(start, min(stop, len(self._data))):
                 if self._get_key(self._data[i]) == value:
