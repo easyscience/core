@@ -4,11 +4,12 @@
 
 from __future__ import annotations
 
+import copy
 import warnings
 from collections.abc import MutableSequence
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
@@ -16,21 +17,16 @@ from typing import Type
 from typing import TypeVar
 from typing import overload
 
-from pyparsing import Dict
-
 from easyscience.io.serializer_base import SerializerBase
 
 from .new_base import NewBase
-
-if TYPE_CHECKING:
-    pass
 
 ProtectedType_ = TypeVar('ProtectedType', bound=NewBase)
 
 
 class EasyList(NewBase, MutableSequence[ProtectedType_]):
-    # If we were to inherit from List instead of MutableSequence, 
-    # we would have to overwrite "extend", "remove", "__iadd__", "count" and "clear"
+    # If we were to inherit from List instead of MutableSequence,
+    # we would have to overwrite "extend", "remove", "__iadd__", "count", "append", "__iter__" and "clear"
     def __init__(
         self,
         *args: ProtectedType_ | list[ProtectedType_],
@@ -169,7 +165,7 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
             return
         self._data.insert(index, value)
 
-    def _get_key(self, object) -> str:
+    def _get_key(self, obj) -> str:
         """
         Get the unique name of an object.
         Can be overridden to use a different attribute as the key.
@@ -177,32 +173,29 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         :return: The key of the object
         :rtype: str
         """
-        return object.unique_name
+        return obj.unique_name
 
     # Overwriting methods
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__} of length {len(self)} of type(s) {self._protected_types}'
 
-    def __iter__(self) -> Any:
-        return iter(self._data)
-
     def __contains__(self, item: ProtectedType_ | str) -> bool:
         if isinstance(item, str):
             return any(self._get_key(r) == item for r in self._data)
         return item in self._data
-    
+
     def __reversed__(self):
         return self._data.__reversed__()
 
-    def sort(self, mapping: Callable[[ProtectedType_], Any], reverse: bool = False) -> None:
+    def sort(self, key: Callable[[ProtectedType_], Any] = None, reverse: bool = False) -> None:
         """
-        Sort the collection according to the given mapping.
+        Sort the collection according to the given key function.
 
-        :param mapping: Mapping function to sort by
+        :param key: Mapping function to sort by
         :param reverse: Whether to reverse the sort
         """
-        self._data.sort(key=mapping, reverse=reverse)  # type: ignore[arg-type]
+        self._data.sort(reverse=reverse, key=key)
 
     def index(self, value: ProtectedType_ | str, start: int = 0, stop: int = None) -> int:
         if stop is None:
@@ -213,19 +206,6 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
                     return i
             raise ValueError(f'{value} is not in EasyList')
         return self._data.index(value, start, stop)
-
-    def append(self, value: ProtectedType_) -> None:
-        """
-        Append an item to the end of the collection.
-
-        :param value: Item to append
-        """
-        if not isinstance(value, tuple(self._protected_types)):
-            raise TypeError(f'Items must be one of {self._protected_types}, got {type(value)}')
-        if value in self:
-            warnings.warn(f'Item with unique name "{self._get_key(value)}" already in EasyList, it will be ignored')
-            return
-        self._data.append(value)
 
     def pop(self, index: int | str = -1) -> ProtectedType_:
         """
@@ -270,9 +250,10 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         """
         if not SerializerBase._is_serialized_easyscience_object(obj_dict):
             raise ValueError('Input must be a dictionary representing an EasyScience EasyList object.')
-        if obj_dict['@class'] == cls.__name__:
-            if 'protected_types' in obj_dict:
-                protected_types = obj_dict.pop('protected_types')
+        temp_dict = copy.deepcopy(obj_dict)  # Make a copy to avoid mutating the input
+        if temp_dict['@class'] == cls.__name__:
+            if 'protected_types' in temp_dict:
+                protected_types = temp_dict.pop('protected_types')
                 for i, type_dict in enumerate(protected_types):
                     if '@module' in type_dict and '@class' in type_dict:
                         modname = type_dict['@module']
@@ -289,7 +270,7 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
                         )  # noqa: E501
             else:
                 protected_types = None
-            kwargs = SerializerBase.deserialize_dict(obj_dict)
+            kwargs = SerializerBase.deserialize_dict(temp_dict)
             data = kwargs.pop('data', [])
             return cls(data, protected_types=protected_types, **kwargs)
         else:

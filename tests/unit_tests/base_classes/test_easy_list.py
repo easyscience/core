@@ -362,7 +362,7 @@ class TestEasyList:
         a1 = Alpha(unique_name='a')
         a2 = Alpha(unique_name='b')
         el = EasyList(a3, a1, a2, protected_types=Alpha)
-        el.sort(mapping=lambda x: x.unique_name)
+        el.sort(key=lambda x: x.unique_name)
         assert el[0].unique_name == 'a'
         assert el[1].unique_name == 'b'
         assert el[2].unique_name == 'c'
@@ -372,19 +372,12 @@ class TestEasyList:
         a2 = Alpha(unique_name='b')
         a3 = Alpha(unique_name='c')
         el = EasyList(a1, a2, a3, protected_types=Alpha)
-        el.sort(mapping=lambda x: x.unique_name, reverse=True)
+        el.sort(key=lambda x: x.unique_name, reverse=True)
         assert el[0].unique_name == 'c'
         assert el[1].unique_name == 'b'
         assert el[2].unique_name == 'a'
 
     # --- __iter__ / __len__ ---
-
-    def test_iter(self):
-        a1 = Alpha(unique_name='a1')
-        a2 = Alpha(unique_name='a2')
-        el = EasyList(a1, a2, protected_types=Alpha)
-        names = [item.unique_name for item in el]
-        assert names == ['a1', 'a2']
 
     def test_len(self):
         el = EasyList(protected_types=Alpha)
@@ -403,6 +396,13 @@ class TestEasyList:
 
     # --- MutableSequence behavior ---
     # If we were to inherit from List instead of MutableSequence, we would have to implement all of these manually.
+
+    def test_iter(self):
+        a1 = Alpha(unique_name='a1')
+        a2 = Alpha(unique_name='a2')
+        el = EasyList(a1, a2, protected_types=Alpha)
+        names = [item.unique_name for item in el]
+        assert names == ['a1', 'a2']
 
     def test_extend(self):
         a1 = Alpha(unique_name='a1')
@@ -473,3 +473,4 @@ class TestEasyList:
         assert len(el2) == 2
         assert el2[0].unique_name == 'a1'
         assert el2[1].unique_name == 'a2'
+        assert d == el2.to_dict()  # The dicts should be the same after round trip

@@ -5,11 +5,4 @@ from .model_base import ModelBase
 from .new_base import NewBase
 from .obj_base import ObjBase
 
-__all__ = [
-    BasedBase,
-    CollectionBase,
-    ObjBase,
-    ModelBase,
-    NewBase,
-    EasyList
-]
+__all__ = [BasedBase, CollectionBase, ObjBase, ModelBase, NewBase, EasyList]
