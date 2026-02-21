@@ -192,3 +192,258 @@ class TestNewBase:
             parent.add_child(child)
 
         parent.dispose()
+
+
+class TestSessionIsolation:
+    """Test that sessions provide proper isolation."""
+
+    def test_session_isolation_same_names(self):
+        """Test that different sessions can have objects with identical names."""
+        session1 = Session()
+        session2 = Session()
+
+        obj1 = NewBase(unique_name='test_obj', session=session1)
+        obj2 = NewBase(unique_name='test_obj', session=session2)
+
+        assert obj1.unique_name == 'test_obj'
+        assert obj2.unique_name == 'test_obj'
+        assert obj1.session is session1
+        assert obj2.session is session2
+        assert obj1 is not obj2
+
+        # Can retrieve from correct session
+        assert NewBase.by_name('test_obj', session=session1) is obj1
+        assert NewBase.by_name('test_obj', session=session2) is obj2
+
+    def test_session_isolation_different_names(self):
+        """Test that sessions maintain separate name registries."""
+        session1 = Session()
+        session2 = Session()
+
+        obj1 = NewBase(unique_name='obj1', session=session1)
+        obj2 = NewBase(unique_name='obj2', session=session2)
+
+        assert session1.all_names() == ['obj1']
+        assert session2.all_names() == ['obj2']
+
+        # Cross-session lookup should fail
+        with pytest.raises(KeyError):
+            NewBase.by_name('obj1', session=session2)
+        with pytest.raises(KeyError):
+            NewBase.by_name('obj2', session=session1)
+
+    def test_session_isolation_auto_naming(self):
+        """Test that auto-generated names are isolated per session."""
+        session1 = Session()
+        session2 = Session()
+
+        obj1a = NewBase(session=session1)
+        obj1b = NewBase(session=session1)
+        obj2a = NewBase(session=session2)
+        obj2b = NewBase(session=session2)
+
+        assert obj1a.unique_name == 'NewBase_0'
+        assert obj1b.unique_name == 'NewBase_1'
+        assert obj2a.unique_name == 'NewBase_0'
+        assert obj2b.unique_name == 'NewBase_1'
+
+        assert session1.all_names() == ['NewBase_0', 'NewBase_1']
+        assert session2.all_names() == ['NewBase_0', 'NewBase_1']
+
+    def test_session_isolation_duplicate_names_within_session(self):
+        """Test that duplicate names within the same session are rejected."""
+        session = Session()
+        NewBase(unique_name='dup', session=session)
+
+        with pytest.raises(ValueError, match="Duplicate unique_name 'dup'"):
+            NewBase(unique_name='dup', session=session)
+
+    def test_session_isolation_duplicate_names_across_sessions_allowed(self):
+        """Test that duplicate names across different sessions are allowed."""
+        session1 = Session()
+        session2 = Session()
+
+        obj1 = NewBase(unique_name='same_name', session=session1)
+        obj2 = NewBase(unique_name='same_name', session=session2)
+
+        assert obj1.unique_name == 'same_name'
+        assert obj2.unique_name == 'same_name'
+        assert obj1.session is not obj2.session
+
+
+class TestDisposal:
+    """Comprehensive tests for object disposal functionality."""
+
+    def test_disposal_removes_from_session(self):
+        """Test that disposal removes object from session registry."""
+        session = Session()
+        obj = NewBase(unique_name='to_dispose', session=session)
+
+        assert 'to_dispose' in session
+        assert session.all_names() == ['to_dispose']
+
+        obj.dispose()
+
+        assert 'to_dispose' not in session
+        assert session.all_names() == []
+
+    def test_disposal_with_children(self):
+        """Test that disposing parent also cleans up child relationships."""
+        session = Session()
+        parent = NewBase(unique_name='parent', session=session)
+        child = NewBase(unique_name='child', session=session)
+
+        parent.add_child(child)
+        assert parent.get_children() == [child]
+        assert child.get_parent() is parent
+
+        parent.dispose()
+
+        # Parent should be gone
+        assert 'parent' not in session
+        # Child should still exist but parent relationship should be cleaned up
+        assert 'child' in session
+        assert child.get_parent() is None
+
+    def test_disposal_with_parent_reference(self):
+        """Test that disposing child cleans up parent references."""
+        session = Session()
+        parent = NewBase(unique_name='parent', session=session)
+        child = NewBase(unique_name='child', session=session)
+
+        parent.add_child(child)
+        child.dispose()
+
+        # Child should be gone
+        assert 'child' not in session
+        # Parent should still exist but child reference should be cleaned up
+        assert 'parent' in session
+        assert parent.get_children() == []
+
+    def test_disposal_prevents_modification(self):
+        """Test that disposed objects cannot be modified."""
+        obj = NewBase(unique_name='disposed_obj')
+
+        obj.dispose()
+
+        with pytest.raises(RuntimeError, match="Object 'disposed_obj' has been disposed"):
+            obj.unique_name = 'new_name'
+
+        with pytest.raises(RuntimeError, match="Object 'disposed_obj' has been disposed"):
+            obj.display_name = 'new_display'
+
+        with pytest.raises(RuntimeError, match="Object 'disposed_obj' has been disposed"):
+            obj.add_child(NewBase())
+
+    def test_disposal_idempotent(self):
+        """Test that disposal can be called multiple times safely."""
+        obj = NewBase(unique_name='idempotent')
+
+        obj.dispose()
+        obj.dispose()  # Should not raise
+
+        assert 'idempotent' not in obj.session
+
+    def test_disposal_lookup_fails(self):
+        """Test that disposed objects cannot be looked up."""
+        obj = NewBase(unique_name='lookup_test')
+
+        obj.dispose()
+
+        with pytest.raises(KeyError, match="No object with unique_name 'lookup_test'"):
+            NewBase.by_name('lookup_test')
+
+
+class TestInteractionWithExistingCode:
+    """Test interaction with existing EasyScience code."""
+
+    def test_serialization_preserves_session(self):
+        """Test that serialization/deserialization works with sessions."""
+        session = Session()
+        obj = NewBase(unique_name='serialized', display_name='Test', session=session)
+
+        # Serialize
+        data = obj.to_dict()
+
+        obj.dispose()  # Dispose original
+
+        # Deserialize with same session
+        restored = NewBase.from_dict(data, session=session)
+
+        assert restored.unique_name == 'serialized'
+        assert restored.display_name == 'Test'
+        assert restored.session is session
+
+    def test_serialization_without_session_uses_default(self):
+        """Test that deserialization without explicit session uses default."""
+        obj = NewBase(unique_name='default_session_test')
+
+        data = obj.to_dict()
+        obj.dispose()  # Dispose original to free the name
+        restored = NewBase.from_dict(data)  # No session specified
+
+        assert restored.unique_name == 'default_session_test'
+        # Should be in default session
+        assert NewBase.by_name('default_session_test') is restored
+
+    def test_copy_preserves_session(self):
+        """Test that copying preserves the session."""
+        session = Session()
+        obj = NewBase(unique_name='original', session=session)
+
+        copied = obj.__copy__()
+
+        assert copied.session is session
+        assert copied.unique_name != 'original'  # Should get new name
+        assert copied.display_name == obj.display_name
+
+    def test_deepcopy_preserves_session(self):
+        """Test that deep copying preserves the session."""
+        session = Session()
+        obj = NewBase(unique_name='deep_original', session=session)
+
+        deep_copied = copy.deepcopy(obj)
+
+        assert deep_copied.session is session
+        assert deep_copied.unique_name != 'deep_original'
+        assert deep_copied.display_name == obj.display_name
+
+    def test_relationships_across_sessions_not_allowed(self):
+        """Test that parent-child relationships cannot span sessions."""
+        session1 = Session()
+        session2 = Session()
+
+        parent = NewBase(unique_name='parent', session=session1)
+        child = NewBase(unique_name='child', session=session2)
+
+        # This should raise an error
+        with pytest.raises(ValueError, match="Cannot add child from different session"):
+            parent.add_child(child)
+
+    def test_session_thread_safety(self):
+        """Test that session operations are thread-safe."""
+        import threading
+        import time
+
+        session = Session()
+        errors = []
+
+        def create_objects(thread_id):
+            try:
+                for i in range(10):
+                    obj = NewBase(session=session)
+                    time.sleep(0.001)  # Small delay to encourage race conditions
+            except Exception as e:
+                errors.append(f"Thread {thread_id}: {e}")
+
+        threads = []
+        for i in range(5):
+            t = threading.Thread(target=create_objects, args=(i,))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        assert len(errors) == 0, f"Thread safety errors: {errors}"
+        assert len(session.all_names()) == 50  # 5 threads * 10 objects each

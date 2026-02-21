@@ -220,11 +220,15 @@ class NewBase:
     def add_child(self, child: NewBase) -> None:
         self._ensure_not_disposed()
         child._ensure_not_disposed()
+        if child.session is not self.session:
+            raise ValueError("Cannot add child from different session.")
         self._session.add_child(self._unique_name, child.unique_name)
 
     def remove_child(self, child: NewBase) -> None:
         self._ensure_not_disposed()
         child._ensure_not_disposed()
+        if child.session is not self.session:
+            raise ValueError("Cannot remove child from different session.")
         self._session.remove_child(self._unique_name, child.unique_name)
 
     def get_parent(self) -> NewBase | None:
@@ -285,8 +289,9 @@ class NewBase:
         return sorted(k for k in dir(self.__class__) if not k.startswith('_'))
 
     def __copy__(self) -> NewBase:
-        temp = self.to_dict(skip=['unique_name'])
-        return self.__class__.from_dict(temp, session=self._session)
+        copied = self.__class__.from_dict(self.to_dict(skip=['unique_name']), session=self._session)
+        copied.display_name = self.display_name
+        return copied
 
     def __deepcopy__(self, memo: dict) -> NewBase:
         return self.__copy__()
