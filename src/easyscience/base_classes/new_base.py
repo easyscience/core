@@ -60,7 +60,7 @@ class Session:
             for child in self._children.pop(name, []):
                 self._parent[child] = None
 
-    def rename(self, old_name: str, new_name: str, obj: NewBase) -> bool:
+    def rename(self, old_name: str, new_name: str, obj: NewBase) -> None:
         with self._lock:
             if new_name in self._registry and self._registry[new_name] is not obj:
                 raise ValueError(
@@ -83,7 +83,6 @@ class Session:
                 self._children[new_name] = children
                 for child in children:
                     self._parent[child] = new_name
-            return True
 
     def get(self, name: str) -> NewBase:
         try:
@@ -192,9 +191,9 @@ class NewBase:
         old_name = self._unique_name
         if old_name == new_name:
             return
-        if self._session.rename(old_name, new_name, self):
-            self._unique_name = new_name
-            self._default_unique_name = False
+        self._session.rename(old_name, new_name, self)
+        self._unique_name = new_name
+        self._default_unique_name = False
 
     @property
     def display_name(self) -> str:
