@@ -110,7 +110,7 @@ class ModelBase(NewBase):
                 try:
                     temp_param = getattr(cls_instance, key)
                     setattr(cls_instance, '_' + key, value)
-                    cls_instance._global_object.map.prune(temp_param.unique_name)
+                    # Removed global map pruning - no longer needed with session-based approach
                 except Exception as e:
                     raise SyntaxError(f"""Could not set parameter {key} during `from_dict` with full deserialized variable. \n'
                             This should be fixed in the class definition. Error: {e}""") from e

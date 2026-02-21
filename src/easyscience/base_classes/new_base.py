@@ -8,8 +8,6 @@ import threading
 from inspect import signature
 from typing import TYPE_CHECKING
 
-from easyscience import global_object
-
 if TYPE_CHECKING:
     from typing import Any
     from typing import Dict
@@ -143,6 +141,13 @@ def set_default_session(session: Session) -> None:
         _default_session = session
 
 
+def reset_default_session() -> None:
+    """Reset the default session to a new empty session. Mainly for testing."""
+    global _default_session
+    with _default_session_lock:
+        _default_session = None
+
+
 class NewBase:
     """
     New base class with session-backed name registry and ownership tracking.
@@ -154,11 +159,7 @@ class NewBase:
         display_name: Optional[str] = None,
         session: Session | None = None,
     ) -> None:
-        self._global_object = global_object
-
         if session is None:
-            if not self._global_object.map._store and get_default_session().all_names():
-                set_default_session(Session())
             session = get_default_session()
 
         self._session: Session = session
@@ -179,11 +180,6 @@ class NewBase:
             raise TypeError('display_name must be a string or None.')
         self._display_name: str | None = display_name
 
-        try:
-            self._global_object.map.add_vertex(self, obj_type='created')
-        except ValueError:
-            pass
-
     @property
     def unique_name(self) -> str:
         return self._unique_name
@@ -199,10 +195,6 @@ class NewBase:
         if self._session.rename(old_name, new_name, self):
             self._unique_name = new_name
             self._default_unique_name = False
-        try:
-            self._global_object.map.add_vertex(self)
-        except ValueError:
-            pass
 
     @property
     def display_name(self) -> str:
@@ -257,7 +249,6 @@ class NewBase:
         name = self.unique_name
         self._session.release_name(name)
         self._disposed = True
-        self._global_object.map.prune(name)
 
     def _ensure_not_disposed(self) -> None:
         if self._disposed:

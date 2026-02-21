@@ -178,9 +178,10 @@ class TestModelBase:
         assert new_model._room_temperature.value == 22.0
         assert isinstance(new_model._temperature, Parameter)
         assert isinstance(new_model._room_temperature, DescriptorNumber)
-        assert len(global_object.map.vertices()) == 4
+        # ModelBase no longer registers with global map, so only Parameters/DescriptorNumbers are counted
+        assert len(global_object.map.vertices()) == 5
         assert global_object.map.get_item_by_key('Parameter_0') is new_model._temperature
-        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 1
+        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 2
 
     def test_from_dict_nested(self, monkeypatch, clear):
         # When
@@ -208,9 +209,9 @@ class TestModelBase:
         assert isinstance(new_model._area, Parameter)
         assert isinstance(new_model.component._temperature, Parameter)
         assert isinstance(new_model.component._room_temperature, DescriptorNumber)
-        assert len(global_object.map.vertices()) == 7
+        assert len(global_object.map.vertices()) == 9
         assert global_object.map.get_item_by_key('Parameter_0') in [new_model._pressure, new_model._area, new_model.component._temperature]
-        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 3
+        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 6
 
     def test_from_dict_not_easyscience(self):
         # When

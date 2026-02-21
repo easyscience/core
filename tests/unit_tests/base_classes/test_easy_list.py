@@ -8,7 +8,7 @@ import pytest
 
 from easyscience import global_object
 from easyscience.base_classes.easy_list import EasyList
-from easyscience.base_classes.new_base import NewBase
+from easyscience.base_classes.new_base import NewBase, Session, set_default_session
 
 
 class Alpha(NewBase):
@@ -27,6 +27,7 @@ class TestEasyList:
     @pytest.fixture(autouse=True)
     def clear(self):
         global_object.map._clear()
+        set_default_session(Session())
 
     @pytest.fixture
     def populated_list(self):
@@ -513,8 +514,9 @@ class TestEasyList:
         a2 = Alpha(unique_name='a2')
         el = EasyList(a1, a2, unique_name='my_list', protected_types=Alpha)
         d = el.to_dict()
-        # Clear the global map so deserialized objects can reuse the same unique names
-        global_object.map._clear()
+        # Dispose of original objects so deserialized objects can reuse the same unique names
+        a1.dispose()
+        a2.dispose()
         el2 = EasyList.from_dict(d)
         assert len(el2) == 2
         assert el2[0].unique_name == 'a1'
