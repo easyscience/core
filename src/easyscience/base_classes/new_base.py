@@ -3,8 +3,12 @@ from __future__ import annotations
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+
+import threading
 from inspect import signature
 from typing import TYPE_CHECKING
+
+from easyscience import global_object
 
 if TYPE_CHECKING:
     from typing import Any
@@ -12,134 +16,289 @@ if TYPE_CHECKING:
     from typing import Iterable
     from typing import List
     from typing import Optional
-    from typing import Set
 
-from easyscience import global_object
 
-from ..global_object.undo_redo import property_stack
-from ..io.serializer_base import SerializerBase
+class Session:
+    """
+    Holds all mutable-state for NewBase.
+    """
+
+    def __init__(self) -> None:
+        self._lock: threading.RLock = threading.RLock()
+        self._registry: dict[str, NewBase] = {}
+        self._name_counters: dict[str, int] = {}
+        self._children: dict[str, list[str]] = {}
+        self._parent: dict[str, str | None] = {}
+
+    def generate_unique_name(self, prefix: str) -> str:
+        with self._lock:
+            n = self._name_counters.get(prefix, 0)
+            while f'{prefix}_{n}' in self._registry:
+                n += 1
+            name = f'{prefix}_{n}'
+            self._name_counters[prefix] = n + 1
+            return name
+
+    def reserve_name(self, name: str, obj: NewBase) -> None:
+        with self._lock:
+            if name in self._registry:
+                existing = self._registry[name]
+                if existing is obj:
+                    return
+                raise ValueError(
+                    f"Duplicate unique_name '{name}': already registered for {existing!r}."
+                )
+            self._registry[name] = obj
+
+    def release_name(self, name: str) -> None:
+        with self._lock:
+            self._registry.pop(name, None)
+            parent = self._parent.pop(name, None)
+            if parent is not None and parent in self._children:
+                try:
+                    self._children[parent].remove(name)
+                except ValueError:
+                    pass
+            for child in self._children.pop(name, []):
+                self._parent[child] = None
+
+    def rename(self, old_name: str, new_name: str, obj: NewBase) -> bool:
+        with self._lock:
+            if new_name in self._registry and self._registry[new_name] is not obj:
+                raise ValueError(
+                    f"Cannot rename '{old_name}' to '{new_name}': name is already registered."
+                )
+            self._registry.pop(old_name, None)
+            self._registry[new_name] = obj
+
+            parent = self._parent.pop(old_name, None)
+            self._parent[new_name] = parent
+            if parent is not None and parent in self._children:
+                try:
+                    idx = self._children[parent].index(old_name)
+                    self._children[parent][idx] = new_name
+                except ValueError:
+                    pass
+
+            children = self._children.pop(old_name, [])
+            if children:
+                self._children[new_name] = children
+                for child in children:
+                    self._parent[child] = new_name
+            return True
+
+    def get(self, name: str) -> NewBase:
+        try:
+            return self._registry[name]
+        except KeyError:
+            raise KeyError(f"No object with unique_name '{name}' in this session") from None
+
+    def __contains__(self, name: str) -> bool:
+        return name in self._registry
+
+    def all_names(self) -> list[str]:
+        with self._lock:
+            return list(self._registry)
+
+    def add_child(self, parent_name: str, child_name: str) -> None:
+        with self._lock:
+            self._children.setdefault(parent_name, [])
+            if child_name not in self._children[parent_name]:
+                self._children[parent_name].append(child_name)
+            self._parent[child_name] = parent_name
+
+    def remove_child(self, parent_name: str, child_name: str) -> None:
+        with self._lock:
+            if parent_name in self._children:
+                try:
+                    self._children[parent_name].remove(child_name)
+                except ValueError:
+                    pass
+            if self._parent.get(child_name) == parent_name:
+                self._parent[child_name] = None
+
+    def children(self, name: str) -> list[str]:
+        return list(self._children.get(name, []))
+
+    def parent(self, name: str) -> str | None:
+        return self._parent.get(name)
+
+
+_default_session: Session | None = None
+_default_session_lock = threading.Lock()
+
+
+def get_default_session() -> Session:
+    global _default_session
+    if _default_session is None:
+        with _default_session_lock:
+            if _default_session is None:
+                _default_session = Session()
+    return _default_session
+
+
+def set_default_session(session: Session) -> None:
+    global _default_session
+    with _default_session_lock:
+        _default_session = session
 
 
 class NewBase:
     """
-    This is the new base class for easyscience objects.
-    It provides serialization capabilities as well as unique naming and display naming.
+    New base class with session-backed name registry and ownership tracking.
     """
 
-    def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
+    def __init__(
+        self,
+        unique_name: Optional[str] = None,
+        display_name: Optional[str] = None,
+        session: Session | None = None,
+    ) -> None:
         self._global_object = global_object
+
+        if session is None:
+            if not self._global_object.map._store and get_default_session().all_names():
+                set_default_session(Session())
+            session = get_default_session()
+
+        self._session: Session = session
+
         if unique_name is None:
-            unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
+            unique_name = self._session.generate_unique_name(self.__class__.__name__)
             self._default_unique_name = True
         else:
+            if not isinstance(unique_name, str):
+                raise TypeError('unique_name must be a string.')
             self._default_unique_name = False
-        if not isinstance(unique_name, str):
-            raise TypeError('Unique name has to be a string.')
-        self._unique_name = unique_name
-        self._global_object.map.add_vertex(self, obj_type='created')
-        if display_name is not None and not isinstance(display_name, str):
-            raise TypeError('Display name must be a string or None')
-        self._display_name = display_name
 
-    @property
-    def _arg_spec(self) -> Set[str]:
-        """
-        This method is used by the serializer to determine which arguments are needed
-        by the constructor to deserialize the object.
-        """
-        sign = signature(self.__class__.__init__)
-        names = [param.name for param in sign.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
-        return set(names[1:])
+        self._unique_name: str = unique_name
+        self._session.reserve_name(unique_name, self)
+        self._disposed = False
+
+        if display_name is not None and not isinstance(display_name, str):
+            raise TypeError('display_name must be a string or None.')
+        self._display_name: str | None = display_name
+
+        try:
+            self._global_object.map.add_vertex(self, obj_type='created')
+        except ValueError:
+            pass
 
     @property
     def unique_name(self) -> str:
-        """Get the unique name of the object."""
         return self._unique_name
 
     @unique_name.setter
-    def unique_name(self, new_unique_name: str):
-        """Set a new unique name for the object. The old name is still kept in the map.
-
-        :param new_unique_name: New unique name for the object"""
-        if not isinstance(new_unique_name, str):
-            raise TypeError('Unique name has to be a string.')
-        self._unique_name = new_unique_name
-        self._global_object.map.add_vertex(self)
-        self._default_unique_name = False
+    def unique_name(self, new_name: str) -> None:
+        self._ensure_not_disposed()
+        if not isinstance(new_name, str):
+            raise TypeError('unique_name must be a string.')
+        old_name = self._unique_name
+        if old_name == new_name:
+            return
+        if self._session.rename(old_name, new_name, self):
+            self._unique_name = new_name
+            self._default_unique_name = False
+        try:
+            self._global_object.map.add_vertex(self)
+        except ValueError:
+            pass
 
     @property
     def display_name(self) -> str:
-        """
-        Get a pretty display name.
-
-        :return: The pretty display name.
-        """
-        display_name = self._display_name
-        if display_name is None:
-            display_name = self.unique_name
-        return display_name
+        return self._display_name if self._display_name is not None else self._unique_name
 
     @display_name.setter
-    @property_stack
     def display_name(self, name: str | None) -> None:
-        """
-        Set the pretty display name.
-
-        :param name: Pretty display name of the object.
-        """
+        self._ensure_not_disposed()
         if name is not None and not isinstance(name, str):
-            raise TypeError('Display name must be a string or None')
+            raise TypeError('display_name must be a string or None.')
         self._display_name = name
 
-    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Convert an EasyScience object into a full dictionary using `SerializerBase`s generic `convert_to_dict` method.
+    @property
+    def session(self) -> Session:
+        return self._session
 
-        :param skip: List of field names as strings to skip when forming the dictionary
-        :return: encoded object containing all information to reform an EasyScience object.
-        """
+    @property
+    def _arg_spec(self) -> set[str]:
+        sign = signature(self.__class__.__init__)
+        names = [p.name for p in sign.parameters.values() if p.kind == p.POSITIONAL_OR_KEYWORD]
+        return set(names[1:])
+
+    def add_child(self, child: NewBase) -> None:
+        self._ensure_not_disposed()
+        child._ensure_not_disposed()
+        self._session.add_child(self._unique_name, child.unique_name)
+
+    def remove_child(self, child: NewBase) -> None:
+        self._ensure_not_disposed()
+        child._ensure_not_disposed()
+        self._session.remove_child(self._unique_name, child.unique_name)
+
+    def get_parent(self) -> NewBase | None:
+        self._ensure_not_disposed()
+        parent_name = self._session.parent(self._unique_name)
+        if parent_name is None:
+            return None
+        return self._session.get(parent_name)
+
+    def get_children(self) -> list[NewBase]:
+        self._ensure_not_disposed()
+        return [self._session.get(n) for n in self._session.children(self._unique_name)]
+
+    @classmethod
+    def by_name(cls, name: str, session: Session | None = None) -> NewBase:
+        s = session if session is not None else get_default_session()
+        return s.get(name)
+
+    def dispose(self) -> None:
+        if self._disposed:
+            return
+        name = self.unique_name
+        self._session.release_name(name)
+        self._disposed = True
+        self._global_object.map.prune(name)
+
+    def _ensure_not_disposed(self) -> None:
+        if self._disposed:
+            raise RuntimeError(f"Object '{self._unique_name}' has been disposed.")
+
+    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        from ..io.serializer_base import SerializerBase
+
         serializer = SerializerBase()
         if skip is None:
             skip = []
         if self._default_unique_name and 'unique_name' not in skip:
             skip.append('unique_name')
-        if self._display_name is None:
+        if self._display_name is None and 'display_name' not in skip:
             skip.append('display_name')
+        if 'session' not in skip:
+            skip.append('session')
         return serializer._convert_to_dict(self, skip=skip, full_encode=False)
 
     @classmethod
-    def from_dict(cls, obj_dict: Dict[str, Any]) -> NewBase:
-        """
-        Re-create an EasyScience object from a full encoded dictionary.
+    def from_dict(cls, obj_dict: Dict[str, Any], session: Session | None = None) -> NewBase:
+        from ..io.serializer_base import SerializerBase
 
-        :param obj_dict: dictionary containing the serialized contents (from `SerializerDict`) of an EasyScience object
-        :return: Reformed EasyScience object
-        """
         if not SerializerBase._is_serialized_easyscience_object(obj_dict):
             raise ValueError('Input must be a dictionary representing an EasyScience object.')
-        if obj_dict['@class'] == cls.__name__:
-            kwargs = SerializerBase.deserialize_dict(obj_dict)
-            return cls(**kwargs)
-        else:
-            raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')
+        if obj_dict['@class'] != cls.__name__:
+            raise ValueError(f'Class name in dictionary does not match {cls.__name__}.')
+        kwargs = SerializerBase.deserialize_dict(obj_dict)
+        if session is not None:
+            kwargs['session'] = session
+        return cls(**kwargs)
 
     def __dir__(self) -> Iterable[str]:
-        """
-        This creates auto-completion and helps out in iPython notebooks.
-
-        :return: list of function and parameter names for auto-completion
-        """
-        new_class_objs = list(k for k in dir(self.__class__) if not k.startswith('_'))
-        return sorted(new_class_objs)
+        return sorted(k for k in dir(self.__class__) if not k.startswith('_'))
 
     def __copy__(self) -> NewBase:
-        """Return a copy of the object."""
         temp = self.to_dict(skip=['unique_name'])
-        new_obj = self.__class__.from_dict(temp)
-        return new_obj
+        return self.__class__.from_dict(temp, session=self._session)
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: dict) -> NewBase:
         return self.__copy__()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__} `{self.unique_name}`'
+        return f'{self.__class__.__name__} `{self._unique_name}`'

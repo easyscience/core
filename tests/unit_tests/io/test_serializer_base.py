@@ -683,7 +683,10 @@ class TestSerializerBase:
             '@class': 'NewBase', 
             'display_name': 'test', 
             }
-        monkeypatch.delattr(NewBase, 'from_dict')
+        class DummyNoFromDict:
+            pass
+
+        monkeypatch.setattr(SerializerBase, '_import_class', MagicMock(return_value=DummyNoFromDict))
         monkeypatch.setattr(SerializerBase, '_convert_from_dict', MagicMock())
         # Then
         obj = SerializerBase._deserialize_value(serialized_dict)
