@@ -417,7 +417,7 @@ class TestInteractionWithExistingCode:
         child = NewBase(unique_name='child', session=session2)
 
         # This should raise an error
-        with pytest.raises(ValueError, match="Cannot add child from different session"):
+        with pytest.raises(ValueError, match='Cannot add child from different session'):
             parent.add_child(child)
 
     def test_session_thread_safety(self):
@@ -434,7 +434,7 @@ class TestInteractionWithExistingCode:
                     obj = NewBase(session=session)
                     time.sleep(0.001)  # Small delay to encourage race conditions
             except Exception as e:
-                errors.append(f"Thread {thread_id}: {e}")
+                errors.append(f'Thread {thread_id}: {e}')
 
         threads = []
         for i in range(5):
@@ -445,5 +445,5 @@ class TestInteractionWithExistingCode:
         for t in threads:
             t.join()
 
-        assert len(errors) == 0, f"Thread safety errors: {errors}"
+        assert len(errors) == 0, f'Thread safety errors: {errors}'
         assert len(session.all_names()) == 50  # 5 threads * 10 objects each

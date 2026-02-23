@@ -1,30 +1,26 @@
-import pytest
-
-from unittest.mock import MagicMock
-
 from inspect import Parameter as InspectParameter
 from inspect import Signature
 from inspect import _empty
+from unittest.mock import MagicMock
 
+import pytest
+
+from easyscience import Parameter
 from easyscience.fitting.minimizers.minimizer_base import MinimizerBase
 from easyscience.fitting.minimizers.utils import FitError
-from easyscience import Parameter
 
-class TestMinimizerBase():
+
+class TestMinimizerBase:
     @pytest.fixture
     def minimizer(self):
         # This avoids the error: TypeError: Can't instantiate abstract class with abstract methods __init__
         MinimizerBase.__abstractmethods__ = set()
         MinimizerBase.supported_methods = MagicMock(return_value=['method'])
 
-        self._mock_minimizer_enum = MagicMock(package='package', method='method') 
-        minimizer = MinimizerBase(
-            obj='obj',
-            fit_function='fit_function',
-            minimizer_enum=self._mock_minimizer_enum
-        )
+        self._mock_minimizer_enum = MagicMock(package='package', method='method')
+        minimizer = MinimizerBase(obj='obj', fit_function='fit_function', minimizer_enum=self._mock_minimizer_enum)
         return minimizer
-    
+
     def test_init_exception(self):
         # When Then
         MinimizerBase.__abstractmethods__ = set()
@@ -33,9 +29,7 @@ class TestMinimizerBase():
         # Expect
         with pytest.raises(FitError):
             MinimizerBase(
-                obj='obj',
-                fit_function='fit_function', 
-                minimizer_enum=MagicMock(package='package', method='not_a_method')
+                obj='obj', fit_function='fit_function', minimizer_enum=MagicMock(package='package', method='not_a_method')
             )
 
     def test_init(self, minimizer: MinimizerBase):
@@ -46,7 +40,7 @@ class TestMinimizerBase():
         assert minimizer._cached_pars_vals == {}
         assert minimizer._cached_model == None
         assert minimizer._fit_function == None
-    
+
     def test_enum(self, minimizer: MinimizerBase):
         assert minimizer.enum == self._mock_minimizer_enum
 
@@ -60,7 +54,9 @@ class TestMinimizerBase():
 
         # Expect
         assert result == 'fit_function_return'
-        minimizer._fit_function.assert_called_once_with('x', prepared_parms_key='prepared_parms_val', kwargs={'kwargs_key': 'kwargs_val'})
+        minimizer._fit_function.assert_called_once_with(
+            'x', prepared_parms_key='prepared_parms_val', kwargs={'kwargs_key': 'kwargs_val'}
+        )
         minimizer._prepare_parameters.assert_called_once_with({'parms_key': 'parms_val'})
 
     def test_evaluate_no_fit_function(self, minimizer: MinimizerBase):
@@ -74,7 +70,9 @@ class TestMinimizerBase():
         minimizer.evaluate('x', minimizer_parameters={'parms_key': 'parms_val'}, kwargs={'kwargs_key': 'kwargs_val'})
 
         # Expect
-        mock_fit_function.assert_called_once_with('x', prepared_parms_key='prepared_parms_val', kwargs={'kwargs_key': 'kwargs_val'})
+        mock_fit_function.assert_called_once_with(
+            'x', prepared_parms_key='prepared_parms_val', kwargs={'kwargs_key': 'kwargs_val'}
+        )
         minimizer._prepare_parameters.assert_called_once_with({'parms_key': 'parms_val'})
 
     def test_evaluate_no_parameters(self, minimizer: MinimizerBase):
@@ -99,16 +97,9 @@ class TestMinimizerBase():
 
     def test_prepare_parameters(self, minimizer: MinimizerBase):
         # When
-        parameters = {
-            'pa': 1,
-            'pb': 2
-        }
+        parameters = {'pa': 1, 'pb': 2}
 
-        minimizer._cached_pars = {
-            'a': MagicMock(),
-            'b': MagicMock(),
-            'c': MagicMock()
-        }
+        minimizer._cached_pars = {'a': MagicMock(), 'b': MagicMock(), 'c': MagicMock()}
         minimizer._cached_pars['a'].value = 3
         minimizer._cached_pars['b'].value = 4
         minimizer._cached_pars['c'].value = 5
@@ -117,11 +108,7 @@ class TestMinimizerBase():
         parameters = minimizer._prepare_parameters(parameters)
 
         # Expect
-        assert parameters == {
-            'pa': 1,
-            'pb': 2,
-            'pc': 5
-        }
+        assert parameters == {'pa': 1, 'pb': 2, 'pc': 5}
 
     def test_generate_fit_function(self, minimizer: MinimizerBase) -> None:
         # When
@@ -159,12 +146,12 @@ class TestMinimizerBase():
 
         # Then
         signature = minimizer._create_signature(pars)
-        
+
         # Expect
         wrapped_parameters = [
             InspectParameter('x', InspectParameter.POSITIONAL_OR_KEYWORD, annotation=_empty),
             InspectParameter('p1', InspectParameter.POSITIONAL_OR_KEYWORD, annotation=_empty, default=1.0),
-            InspectParameter('p2', InspectParameter.POSITIONAL_OR_KEYWORD, annotation=_empty, default=2.0)
+            InspectParameter('p2', InspectParameter.POSITIONAL_OR_KEYWORD, annotation=_empty, default=2.0),
         ]
         expected_signature = Signature(wrapped_parameters)
         assert signature == expected_signature
@@ -177,7 +164,7 @@ class TestMinimizerBase():
         assert result == {'method': 'method'}
 
     def test_get_method_dict_no_self(self, minimizer: MinimizerBase) -> None:
-        # When 
+        # When
         minimizer._method = None
 
         # Then
@@ -203,4 +190,3 @@ class TestMinimizerBase():
         # Then Expect
         with pytest.raises(FitError):
             result = minimizer._get_method_kwargs('not_supported_method')
-

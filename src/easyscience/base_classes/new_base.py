@@ -3,7 +3,6 @@ from __future__ import annotations
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
-
 import threading
 from inspect import signature
 from typing import TYPE_CHECKING
@@ -43,9 +42,7 @@ class Session:
                 existing = self._registry[name]
                 if existing is obj:
                     return
-                raise ValueError(
-                    f"Duplicate unique_name '{name}': already registered for {existing!r}."
-                )
+                raise ValueError(f"Duplicate unique_name '{name}': already registered for {existing!r}.")
             self._registry[name] = obj
 
     def release_name(self, name: str) -> None:
@@ -63,9 +60,7 @@ class Session:
     def rename(self, old_name: str, new_name: str, obj: NewBase) -> None:
         with self._lock:
             if new_name in self._registry and self._registry[new_name] is not obj:
-                raise ValueError(
-                    f"Cannot rename '{old_name}' to '{new_name}': name is already registered."
-                )
+                raise ValueError(f"Cannot rename '{old_name}' to '{new_name}': name is already registered.")
             self._registry.pop(old_name, None)
             self._registry[new_name] = obj
 
@@ -220,14 +215,14 @@ class NewBase:
         self._ensure_not_disposed()
         child._ensure_not_disposed()
         if child.session is not self.session:
-            raise ValueError("Cannot add child from different session.")
+            raise ValueError('Cannot add child from different session.')
         self._session.add_child(self._unique_name, child.unique_name)
 
     def remove_child(self, child: NewBase) -> None:
         self._ensure_not_disposed()
         child._ensure_not_disposed()
         if child.session is not self.session:
-            raise ValueError("Cannot remove child from different session.")
+            raise ValueError('Cannot remove child from different session.')
         self._session.remove_child(self._unique_name, child.unique_name)
 
     def get_parent(self) -> NewBase | None:

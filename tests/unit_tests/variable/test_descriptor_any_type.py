@@ -1,43 +1,43 @@
-import pytest
 import numpy as np
+import pytest
 
-from easyscience.variable import DescriptorAnyType
 from easyscience import global_object
+from easyscience.variable import DescriptorAnyType
+
 
 class TestDescriptorAnyType:
     @pytest.fixture
     def descriptor(self):
         descriptor = DescriptorAnyType(
-            name="name",
-            value="string",
-            description="description",
-            url="url",
-            display_name="display_name",
+            name='name',
+            value='string',
+            description='description',
+            url='url',
+            display_name='display_name',
             parent=None,
         )
         return descriptor
-    
+
     @pytest.fixture
     def clear(self):
         global_object.map._clear()
 
     def test_init(self, descriptor: DescriptorAnyType):
         # When Then Expect
-        assert descriptor._value == "string"
+        assert descriptor._value == 'string'
 
         # From super
-        assert descriptor._name == "name"
-        assert descriptor._description == "description"
-        assert descriptor._url == "url"
-        assert descriptor._display_name == "display_name"
+        assert descriptor._name == 'name'
+        assert descriptor._description == 'description'
+        assert descriptor._url == 'url'
+        assert descriptor._display_name == 'display_name'
 
     def test_value(self, descriptor: DescriptorAnyType):
         # When Then Expect
-        assert descriptor.value == "string"
+        assert descriptor.value == 'string'
 
-    
-    @pytest.mark.parametrize("value", [True, "new_string", 1.0, np.array([1, 2, 3]),{"key": "value"}])
-    def test_set_value(self, descriptor: DescriptorAnyType,value):
+    @pytest.mark.parametrize('value', [True, 'new_string', 1.0, np.array([1, 2, 3]), {'key': 'value'}])
+    def test_set_value(self, descriptor: DescriptorAnyType, value):
         # When Then
         descriptor.value = value
 
@@ -48,14 +48,14 @@ class TestDescriptorAnyType:
             assert descriptor._value == value
 
     @pytest.mark.parametrize(
-        "value, expected",
+        'value, expected',
         [
-            (True, "True"),
-            ("new_string", "'new_string'"),
-            (1.0, "1.0"),
-            (np.array([1, 2, 3]), "array([1, 2, 3])"),
-            ({"key": "value"}, "{'key': 'value'}")
-        ]
+            (True, 'True'),
+            ('new_string', "'new_string'"),
+            (1.0, '1.0'),
+            (np.array([1, 2, 3]), 'array([1, 2, 3])'),
+            ({'key': 'value'}, "{'key': 'value'}"),
+        ],
     )
     def test_repr(self, descriptor: DescriptorAnyType, value, expected):
         # Set the descriptor value

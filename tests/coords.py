@@ -1,5 +1,7 @@
-__author__ = "https://github.com/materialsproject/pymatgen/blob/d45fdc1d9930d7952a26de51aab0d5b92fd27236/pymatgen/util/coord.py"
-__version__ = "0.1.0"
+__author__ = (
+    'https://github.com/materialsproject/pymatgen/blob/d45fdc1d9930d7952a26de51aab0d5b92fd27236/pymatgen/util/coord.py'
+)
+__version__ = '0.1.0'
 
 
 #  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
@@ -19,7 +21,7 @@ import math
 import numpy as np
 import pyximport
 
-pyximport.install(setup_args={"include_dirs": np.get_include()})
+pyximport.install(setup_args={'include_dirs': np.get_include()})
 from . import coord_cython as cuc
 
 # array size threshold for looping instead of broadcasting
@@ -92,17 +94,13 @@ def coord_list_mapping(subset, superset, atol=1e-8):
     """
     c1 = np.array(subset)
     c2 = np.array(superset)
-    inds = np.where(
-        np.all(np.isclose(c1[:, None, :], c2[None, :, :], atol=atol), axis=2)
-    )[1]
+    inds = np.where(np.all(np.isclose(c1[:, None, :], c2[None, :, :], atol=atol), axis=2))[1]
     result = c2[inds]
     if not np.allclose(c1, result, atol=atol):
         if not is_coord_subset(subset, superset):
-            raise ValueError("subset is not a subset of superset")
+            raise ValueError('subset is not a subset of superset')
     if not result.shape == c1.shape:
-        raise ValueError(
-            "Something wrong with the inputs, likely duplicates " "in superset"
-        )
+        raise ValueError('Something wrong with the inputs, likely duplicates in superset')
     return inds
 
 
@@ -141,7 +139,7 @@ def get_linear_interpolated_value(x_values, y_values, x):
     ind = np.where(a[:, 0] >= x)[0]
 
     if len(ind) == 0 or ind[0] == 0:
-        raise ValueError("x is out of range of provided x_values")
+        raise ValueError('x is out of range of provided x_values')
 
     i = ind[0]
     x1, x2 = a[i - 1][0], a[i][0]
@@ -313,9 +311,7 @@ def lattice_points_in_supercell(supercell_matrix):
 
     frac_points = np.dot(all_points, np.linalg.inv(supercell_matrix))
 
-    tvects = frac_points[
-        np.all(frac_points < 1 - 1e-10, axis=1) & np.all(frac_points >= -1e-10, axis=1)
-    ]
+    tvects = frac_points[np.all(frac_points < 1 - 1e-10, axis=1) & np.all(frac_points >= -1e-10, axis=1)]
     assert len(tvects) == round(abs(np.linalg.det(supercell_matrix)))
     return tvects
 
@@ -341,7 +337,7 @@ def barycentric_coords(coords, simplex):
     return np.append(all_but_one, last_coord, axis=-1)
 
 
-def get_angle(v1, v2, units="degrees"):
+def get_angle(v1, v2, units='degrees'):
     """
     Calculates the angle between two vectors.
 
@@ -357,11 +353,11 @@ def get_angle(v1, v2, units="degrees"):
     d = min(d, 1)
     d = max(d, -1)
     angle = math.acos(d)
-    if units == "degrees":
+    if units == 'degrees':
         return math.degrees(angle)
-    if units == "radians":
+    if units == 'radians':
         return angle
-    raise ValueError("Invalid units {}".format(units))
+    raise ValueError('Invalid units {}'.format(units))
 
 
 class Simplex:
@@ -411,7 +407,7 @@ class Simplex:
         try:
             return np.dot(np.concatenate([point, [1]]), self._aug_inv)
         except AttributeError:
-            raise ValueError("Simplex is not full-dimensional")
+            raise ValueError('Simplex is not full-dimensional')
 
     def point_from_bary_coords(self, bary_coords):
         """
@@ -424,7 +420,7 @@ class Simplex:
         try:
             return np.dot(bary_coords, self._aug[:, :-1])
         except AttributeError:
-            raise ValueError("Simplex is not full-dimensional")
+            raise ValueError('Simplex is not full-dimensional')
 
     def in_simplex(self, point, tolerance=1e-8):
         """
@@ -486,12 +482,12 @@ class Simplex:
 
     def __repr__(self):
         output = [
-            "{}-simplex in {}D space".format(self.simplex_dim, self.space_dim),
-            "Vertices:",
+            '{}-simplex in {}D space'.format(self.simplex_dim, self.space_dim),
+            'Vertices:',
         ]
         for coord in self._coords:
-            output.append("\t({})".format(", ".join(map(str, coord))))
-        return "\n".join(output)
+            output.append('\t({})'.format(', '.join(map(str, coord))))
+        return '\n'.join(output)
 
     def __str__(self):
         return self.__repr__()

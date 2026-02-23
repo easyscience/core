@@ -8,7 +8,9 @@ import pytest
 
 from easyscience import global_object
 from easyscience.base_classes.easy_list import EasyList
-from easyscience.base_classes.new_base import NewBase, Session, set_default_session
+from easyscience.base_classes.new_base import NewBase
+from easyscience.base_classes.new_base import Session
+from easyscience.base_classes.new_base import set_default_session
 
 
 class Alpha(NewBase):
@@ -17,11 +19,13 @@ class Alpha(NewBase):
     def __init__(self, unique_name=None, display_name=None):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
+
 class Beta(NewBase):
     """Another concrete subclass of NewBase for testing."""
 
     def __init__(self, unique_name=None, display_name=None):
         super().__init__(unique_name=unique_name, display_name=display_name)
+
 
 class TestEasyList:
     @pytest.fixture(autouse=True)
