@@ -2,6 +2,7 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
+import warnings
 from typing import Callable
 from typing import Dict
 from typing import List
@@ -129,6 +130,8 @@ class DFO(MinimizerBase):
             for key in self._cached_pars.keys():
                 self._cached_pars[key].value = self._cached_pars_vals[key][0]
             raise FitError(e)
+        if not results.success:
+                warnings.warn('Fit did not converge successfully. Consider adjusting the tolerance or increasing the maximum number of evaluations.')
         return results
 
     def convert_to_pars_obj(self, par_list: Optional[list] = None):
@@ -232,6 +235,7 @@ class DFO(MinimizerBase):
 
         results.minimizer_engine = self.__class__
         results.fit_args = None
+        results.iterations = fit_results.nfev
         # results.check_sanity()
 
         return results

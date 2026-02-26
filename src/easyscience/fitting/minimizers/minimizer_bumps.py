@@ -3,12 +3,14 @@
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import copy
+import warnings
 from typing import Callable
 from typing import List
 from typing import Optional
 
 import numpy as np
 from bumps.fitters import FIT_AVAILABLE_IDS
+from bumps.fitters import FITTERS
 from bumps.fitters import fit as bumps_fit
 from bumps.names import Curve
 from bumps.names import FitProblem
@@ -155,6 +157,22 @@ class Bumps(MinimizerBase):
             for key in self._cached_pars.keys():
                 self._cached_pars[key].value = self._cached_pars_vals[key][0]
             raise FitError(e)
+        
+        # See: https://github.com/bumps/bumps/blob/master/bumps/fitters.py#L625 for the rationale behind this code.
+        if max_evaluations is None:
+            for bumps_fitter in FITTERS:
+                if bumps_fitter.id == self._method:
+                    max_evaluations = bumps_fitter.settings[0][1] # This is the default number of steps for the method
+                    break
+        if tolerance is None:
+            for bumps_fitter in FITTERS:
+                if bumps_fitter.id == self._method:
+                    tolerance = min(bumps_fitter.settings[1][1], bumps_fitter.settings[2][1]) # These are ftol and xtol
+                    break
+        if results.iterations == max_evaluations-1:
+            warnings.warn(f'Fit did not reach the desired tolerance of {tolerance} within the maximum number of evaluations of {max_evaluations}. '  # noqa: E501
+                          f'Consider increasing the maximum number of evaluations or adjusting the tolerance.')
+            results.success = False
         return results
 
     def convert_to_pars_obj(self, par_list: Optional[List] = None) -> List[BumpsParameter]:
@@ -276,5 +294,6 @@ class Bumps(MinimizerBase):
         results.minimizer_engine = self.__class__
         results.fit_args = None
         results.engine_result = fit_results
+        results.iterations = fit_results.nit
         # results.check_sanity()
         return results

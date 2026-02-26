@@ -19,6 +19,7 @@ class FitResults:
         'y_err',
         'engine_result',
         'total_results',
+        'iterations',
     ]
 
     def __init__(self):
@@ -34,6 +35,7 @@ class FitResults:
         self.y_err = np.ndarray([])
         self.engine_result = None
         self.total_results = None
+        self.iterations = 0
 
     @property
     def n_pars(self):
