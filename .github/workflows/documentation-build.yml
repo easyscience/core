@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
         
     - name: Setup Pixi
-      uses: easyscience/actions/pixi@master
+      uses: prefix-dev/setup-pixi@v0.9.0
 
     - name: Build documentation
       run: pixi run --environment dev docs-build
