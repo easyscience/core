@@ -2,4 +2,8 @@ from .global_object import GlobalObject  # noqa: F401
 from .hugger.hugger import ScriptManager  # noqa: F401
 from .logger import Logger  # noqa: F401
 from .map import Map  # noqa: F401
+from .session import Session  # noqa: F401
+from .session import get_default_session  # noqa: F401
+from .session import reset_default_session  # noqa: F401
+from .session import set_default_session  # noqa: F401
 from .undo_redo import UndoStack  # noqa: F401

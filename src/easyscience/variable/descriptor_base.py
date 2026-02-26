@@ -9,6 +9,8 @@ from typing import Any
 from typing import Optional
 
 from easyscience import global_object
+from easyscience.global_object.session import Session
+from easyscience.global_object.session import get_default_session
 from easyscience.global_object.undo_redo import property_stack
 from easyscience.io import SerializerComponent
 
@@ -24,7 +26,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
     state of an object.
     """
 
-    _global_object = global_object
     # Used by serializer
     _REDIRECT = {'parent': None}
 
@@ -36,6 +37,8 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         url: Optional[str] = None,
         display_name: Optional[str] = None,
         parent: Optional[Any] = None,
+        session: Optional[Session] = None,
+        domain: str = Session._DEFAULT_DOMAIN,
     ):
         """
         This is the base of variables for models. It contains all information to describe a single
@@ -49,12 +52,16 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         :param url: Lookup url for documentation/information
         :param display_name: A pretty name for the object
         :param parent: The object which this descriptor is attached to
+        :param session: The session to register in (defaults to global session)
+        :param domain: The domain within the session (defaults to '__default__')
 
         .. note:: Undo/Redo functionality is implemented for the attributes `name` and `display name`.
         """
+        self._session = session if session is not None else get_default_session()
+        self._domain = domain
 
         if unique_name is None:
-            unique_name = global_object.generate_unique_name(self.__class__.__name__)
+            unique_name = self._session.generate_unique_name(self.__class__.__name__, domain=self._domain)
         self._unique_name = unique_name
 
         if not isinstance(name, str):
@@ -77,11 +84,14 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
             url = ''
         self._url: str = url
 
-        # Let the collective know we've been assimilated
+        # Register object in session
         self._parent = parent
-        global_object.map.add_vertex(self, obj_type='created')
+        self._session.register(self, domain=self._domain)
+        # Also register in global_object.map for backward compatibility
+        global_object.map._add_vertex_no_warn(self, obj_type='created')
         # Make the connection between self and parent
         if parent is not None:
+            self._session.add_child(parent.unique_name, self._unique_name)
             global_object.map.add_edge(parent, self)
 
     @property
@@ -180,13 +190,16 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
 
     @unique_name.setter
     def unique_name(self, new_unique_name: str):
-        """Set a new unique name for the object. The old name is still kept in the map.
+        """Set a new unique name for the object.
 
         :param new_unique_name: New unique name for the object"""
         if not isinstance(new_unique_name, str):
             raise TypeError('Unique name has to be a string.')
+        old_name = self._unique_name
         self._unique_name = new_unique_name
-        global_object.map.add_vertex(self)
+        self._session.rename(old_name, new_unique_name, self, domain=self._domain)
+        # Also update in global_object.map for backward compatibility
+        global_object.map._add_vertex_no_warn(self)
 
     @property
     @abc.abstractmethod

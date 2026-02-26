@@ -22,8 +22,8 @@ from easyscience.global_object.undo_redo import property_stack
 class MockUndoCommand(UndoCommand):
     """Mock implementation for testing"""
 
-    def __init__(self, obj, text=None):
-        super().__init__(obj)
+    def __init__(self, text=None):
+        super().__init__()
         if text:
             self.text = text
         self.undo_called = False
@@ -41,15 +41,13 @@ class TestUndoCommand:
 
     def test_init(self):
         """Test UndoCommand initialization"""
-        obj = MagicMock()
-        cmd = MockUndoCommand(obj)
+        cmd = MockUndoCommand()
 
-        assert cmd._obj is obj
         assert cmd._text is None
 
     def test_text_property(self):
         """Test text property getter/setter"""
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         # Test getter
         assert cmd.text is None
@@ -60,7 +58,7 @@ class TestUndoCommand:
 
     def test_abstract_methods(self):
         """Test that abstract methods are implemented"""
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         # Should not raise NotImplementedError
         cmd.undo()
@@ -87,7 +85,7 @@ class TestCommandHolder:
     def test_append_and_pop(self):
         """Test appending and popping commands"""
         holder = CommandHolder()
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         holder.append(cmd)
         assert len(holder) == 1
@@ -100,8 +98,8 @@ class TestCommandHolder:
     def test_iteration(self):
         """Test iteration over commands"""
         holder = CommandHolder()
-        cmd1 = MockUndoCommand(MagicMock(), 'cmd1')
-        cmd2 = MockUndoCommand(MagicMock(), 'cmd2')
+        cmd1 = MockUndoCommand('cmd1')
+        cmd2 = MockUndoCommand('cmd2')
 
         holder.append(cmd1)
         holder.append(cmd2)
@@ -115,16 +113,16 @@ class TestCommandHolder:
         holder = CommandHolder()
         assert not holder.is_macro
 
-        holder.append(MockUndoCommand(MagicMock()))
+        holder.append(MockUndoCommand())
         assert not holder.is_macro
 
-        holder.append(MockUndoCommand(MagicMock()))
+        holder.append(MockUndoCommand())
         assert holder.is_macro
 
     def test_text_property_with_commands(self):
         """Test text property with commands"""
         holder = CommandHolder()
-        cmd = MockUndoCommand(MagicMock(), 'command text')
+        cmd = MockUndoCommand('command text')
         holder.append(cmd)
 
         assert holder.text == 'command text'
@@ -132,7 +130,7 @@ class TestCommandHolder:
     def test_text_property_override(self):
         """Test text property with override"""
         holder = CommandHolder('override text')
-        cmd = MockUndoCommand(MagicMock(), 'command text')
+        cmd = MockUndoCommand('command text')
         holder.append(cmd)
 
         assert holder.text == 'override text'
@@ -190,7 +188,7 @@ class TestUndoStack:
 
     def test_push_disabled_stack(self, stack):
         """Test pushing command to disabled stack"""
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         stack.push(cmd)
 
@@ -200,7 +198,7 @@ class TestUndoStack:
     def test_push_enabled_stack(self, stack):
         """Test pushing command to enabled stack"""
         stack.enabled = True
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         stack.push(cmd)
 
@@ -213,8 +211,8 @@ class TestUndoStack:
         stack.enabled = True
         stack.beginMacro('test macro')
 
-        cmd1 = MockUndoCommand(MagicMock())
-        cmd2 = MockUndoCommand(MagicMock())
+        cmd1 = MockUndoCommand()
+        cmd2 = MockUndoCommand()
 
         stack.push(cmd1)
         stack.push(cmd2)
@@ -225,8 +223,8 @@ class TestUndoStack:
     def test_push_clears_future(self, stack):
         """Test that push clears future stack"""
         stack.enabled = True
-        cmd1 = MockUndoCommand(MagicMock())
-        cmd2 = MockUndoCommand(MagicMock())
+        cmd1 = MockUndoCommand()
+        cmd2 = MockUndoCommand()
 
         stack.push(cmd1)
         stack.undo()
@@ -238,7 +236,7 @@ class TestUndoStack:
     def test_pop(self, stack):
         """Test popping last command"""
         stack.enabled = True
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         stack.push(cmd)
         popped = stack.pop()
@@ -251,8 +249,8 @@ class TestUndoStack:
         stack.enabled = True
         stack.beginMacro('test')
 
-        cmd1 = MockUndoCommand(MagicMock())
-        cmd2 = MockUndoCommand(MagicMock())
+        cmd1 = MockUndoCommand()
+        cmd2 = MockUndoCommand()
 
         stack.push(cmd1)
         stack.push(cmd2)
@@ -264,7 +262,7 @@ class TestUndoStack:
     def test_clear(self, stack):
         """Test clearing the stack"""
         stack.enabled = True
-        stack.push(MockUndoCommand(MagicMock()))
+        stack.push(MockUndoCommand())
         stack.beginMacro('test')
 
         stack.clear()
@@ -276,7 +274,7 @@ class TestUndoStack:
     def test_undo_success(self, stack):
         """Test successful undo operation"""
         stack.enabled = True
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         stack.push(cmd)
         stack.undo()
@@ -301,7 +299,7 @@ class TestUndoStack:
             def redo(self):
                 pass
 
-        cmd = FailingCommand(MagicMock())
+        cmd = FailingCommand()
         stack.push(cmd)
 
         # Should not raise, just print error
@@ -310,7 +308,7 @@ class TestUndoStack:
     def test_redo_success(self, stack):
         """Test successful redo operation"""
         stack.enabled = True
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
 
         stack.push(cmd)
         stack.undo()
@@ -332,8 +330,8 @@ class TestUndoStack:
         stack.beginMacro('test macro')
         assert stack._macro_running
 
-        cmd1 = MockUndoCommand(MagicMock())
-        cmd2 = MockUndoCommand(MagicMock())
+        cmd1 = MockUndoCommand()
+        cmd2 = MockUndoCommand()
         stack.push(cmd1)
         stack.push(cmd2)
 
@@ -366,7 +364,7 @@ class TestUndoStack:
         assert not stack.canRedo()
 
         stack.enabled = True
-        cmd = MockUndoCommand(MagicMock())
+        cmd = MockUndoCommand()
         stack.push(cmd)
 
         assert stack.canUndo()
@@ -379,7 +377,7 @@ class TestUndoStack:
     def test_can_undo_redo_during_macro(self, stack):
         """Test canUndo/canRedo during macro"""
         stack.enabled = True
-        stack.push(MockUndoCommand(MagicMock()))
+        stack.push(MockUndoCommand())
 
         stack.beginMacro('test')
         assert not stack.canUndo()  # Cannot undo during macro
@@ -388,7 +386,7 @@ class TestUndoStack:
     def test_undo_redo_text(self, stack):
         """Test undo/redo text retrieval"""
         stack.enabled = True
-        cmd = MockUndoCommand(MagicMock(), 'test command')
+        cmd = MockUndoCommand('test command')
 
         stack.push(cmd)
         assert stack.undoText() == 'test command'

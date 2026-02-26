@@ -18,12 +18,13 @@ from easyscience import DescriptorNumber
 from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 from easyscience.io import SerializerDict
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def clear():
-    global_object.map._clear()
+    reset_default_session()
 
 
 @pytest.fixture
@@ -106,9 +107,9 @@ def test_ObjBase_get(setup_pars: dict):
     }
     obj = ObjBase(name, **kwargs)
     with not_raises(AttributeError):
-        p1: Parameter = obj.p1
+        p1: Parameter = obj.p1  # noqa: F841
     with not_raises(AttributeError):
-        p2: Parameter = obj.p2
+        p2: Parameter = obj.p2  # noqa: F841
 
 
 def test_ObjBase_set(setup_pars: dict):
@@ -166,8 +167,8 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
         'des1': {
             '@module': DescriptorNumber.__module__,
             '@class': DescriptorNumber.__name__,
-            '@module': DescriptorNumber.__module__,
-            '@class': DescriptorNumber.__name__,
+            '@module': DescriptorNumber.__module__,  # noqa: F601
+            '@class': DescriptorNumber.__name__,  # noqa: F601
             '@version': easyscience.__version__,
             'name': 'd1',
             'value': 0.1,
@@ -191,8 +192,8 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
         'des2': {
             '@module': DescriptorNumber.__module__,
             '@class': DescriptorNumber.__name__,
-            '@module': DescriptorNumber.__module__,
-            '@class': DescriptorNumber.__name__,
+            '@module': DescriptorNumber.__module__,  # noqa: F601
+            '@class': DescriptorNumber.__name__,  # noqa: F601
             '@version': easyscience.__version__,
             'name': 'd2',
             'value': 0.1,
@@ -219,8 +220,8 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
         if isinstance(check, dict) and isinstance(item, dict):
             if '@module' in item.keys():
                 with not_raises([ValueError, AttributeError]):
-                    global_object.map._clear()
-                    this_obj = SerializerDict().decode(item)
+                    reset_default_session()
+                    this_obj = SerializerDict().decode(item)  # noqa: F841
 
             for key in check.keys():
                 assert key in item.keys()
@@ -239,7 +240,7 @@ def test_ObjBase_dict_roundtrip(clear, setup_pars: dict):
     obj = ObjBase(name, **setup_pars, unique_name='special_name')
     obj_dict = obj.as_dict()
 
-    global_object.map._clear()
+    reset_default_session()
 
     # Then
     new_obj = ObjBase.from_dict(obj_dict)
@@ -280,7 +281,7 @@ def test_ObjBase_dir(setup_pars):
     assert len(set(expected).difference(set(obtained))) == 0
 
 
-def test_ObjBase_get_parameters(setup_pars):
+def test_ObjBase_get_parameters(setup_pars):  # noqa: F811
     name = setup_pars['name']
     del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
@@ -359,7 +360,7 @@ def test_Base_GETSET():
     a_start = 5
     a_end = 10
     a = A.from_pars(a_start)
-    graph = a._global_object.map
+    graph = global_object.map
 
     assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
@@ -369,11 +370,11 @@ def test_Base_GETSET():
     assert len(graph.get_edges(a)) == 1
 
 
-def test_Base_GETSET():
+def test_Base_GETSET():  # noqa: F811
     class A(ObjBase):
         def __init__(self, a: Parameter):
             super(A, self).__init__('a', a=a)
-            b = 0
+            b = 0  # noqa: F841
 
         @classmethod
         def from_pars(cls, a: float):
@@ -399,7 +400,7 @@ def test_Base_GETSET_v2():
     a_start = 5
     a_end = 10
     a = A.from_pars(a_start)
-    graph = a._global_object.map
+    graph = global_object.map
 
     assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
@@ -423,7 +424,7 @@ def test_Base_GETSET_v3():
     a_start = 5
     a_end = 10
     a = A.from_pars(a_start)
-    graph = a._global_object.map
+    graph = global_object.map
 
     assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1

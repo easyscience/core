@@ -198,7 +198,7 @@ def test_basic_max_evaluations(fit_engine):
             pytest.skip(msg=f'{fit_engine} is not installed')
     f.max_evaluations = 3
     try:
-        result = f.fit(x=x, y=y, weights=weights)
+        result = f.fit(x=x, y=y, weights=weights)  # noqa: F841
         # Result should not be the same as the reference
         assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
         assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
@@ -234,7 +234,7 @@ def test_basic_tolerance(fit_engine, tolerance):
         except AttributeError:
             pytest.skip(msg=f'{fit_engine} is not installed')
     f.tolerance = tolerance
-    result = f.fit(x=x, y=y, weights=weights)
+    result = f.fit(x=x, y=y, weights=weights)  # noqa: F841
     # Result should not be the same as the reference
     assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
     assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
@@ -412,7 +412,7 @@ def test_fixed_parameter_does_not_change(fit_engine):
         except AttributeError:
             pytest.skip(msg=f'{fit_engine} is not installed')
 
-    result = f.fit(x=x, y=y, weights=weights)
+    result = f.fit(x=x, y=y, weights=weights)  # noqa: F841
 
     # EXPECT
     # Offset should remain unchanged
@@ -434,7 +434,7 @@ def test_fitter_new_model_base_integration():
     model.slope.fixed = False
     model.intercept.fixed = False
     fitter = Fitter(model, model)
-    result = fitter.fit(x=x, y=y, weights=weights)
+    result = fitter.fit(x=x, y=y, weights=weights)  # noqa: F841
 
     # EXPECT
     assert model.slope.value == pytest.approx(ground_truth.slope.value, rel=1e-3)

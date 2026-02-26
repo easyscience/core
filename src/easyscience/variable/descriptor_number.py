@@ -13,6 +13,7 @@ import scipp as sc
 from scipp import UnitError
 from scipp import Variable
 
+from easyscience import global_object
 from easyscience.global_object.undo_redo import PropertyStack
 from easyscience.global_object.undo_redo import property_stack
 
@@ -286,9 +287,7 @@ class DescriptorNumber(DescriptorBase):
             obj._scalar = scalar
 
         # Push to undo stack
-        self._global_object.stack.push(
-            PropertyStack(self, set_scalar, old_scalar, new_scalar, text=f'Convert unit to {unit_str}')
-        )
+        global_object.stack.push(PropertyStack(self, set_scalar, old_scalar, new_scalar, text=f'Convert unit to {unit_str}'))
 
         # Update the scalar
         self._scalar = new_scalar

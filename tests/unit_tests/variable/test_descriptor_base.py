@@ -1,16 +1,22 @@
 import pytest
 
 from easyscience import global_object
+from easyscience.global_object.session import get_default_session
+from easyscience.global_object.session import reset_default_session
 from easyscience.variable.descriptor_base import DescriptorBase
 
 
 class TestDesciptorBase:
+    @pytest.fixture(autouse=True)
+    def clear(self):
+        reset_default_session()
+
     @pytest.fixture
     def descriptor(self):
         # This avoids the error: TypeError: Can't instantiate abstract class DescriptorBase with abstract methods __init__
         DescriptorBase.__abstractmethods__ = set()
         DescriptorBase.__repr__ = lambda x: 'DescriptorBase'
-        self.objs_before_new_descriptor = len(global_object.map.created_objs)
+        self.objs_before_new_descriptor = len(get_default_session().all_names())
         descriptor = DescriptorBase(
             name='name',
             description='description',
@@ -19,10 +25,6 @@ class TestDesciptorBase:
             parent=None,
         )
         return descriptor
-
-    @pytest.fixture
-    def clear(self):
-        global_object.map._clear()
 
     @pytest.mark.parametrize(
         'name',
@@ -63,7 +65,7 @@ class TestDesciptorBase:
         assert descriptor._description == 'description'
         assert descriptor._url == 'url'
         assert descriptor._display_name == 'display_name'
-        assert len(global_object.map.created_objs) - self.objs_before_new_descriptor == 1
+        assert len(get_default_session().all_names()) - self.objs_before_new_descriptor == 1
 
     def test_display_name(self, descriptor: DescriptorBase):
         # When Then Expect
@@ -152,7 +154,7 @@ class TestDesciptorBase:
         descriptor_copy = descriptor.__copy__()
 
         # Expect
-        assert type(descriptor_copy) == DescriptorBase
+        assert type(descriptor_copy) is DescriptorBase
         assert descriptor_copy._name == descriptor._name
         assert descriptor_copy._description == descriptor._description
         assert descriptor_copy._url == descriptor._url
@@ -160,16 +162,20 @@ class TestDesciptorBase:
 
     def test_unique_name_generator(self, clear, descriptor: DescriptorBase):
         # When
-        second_descriptor = DescriptorBase(name='test', unique_name='DescriptorBase_2')
+        # Manually set unique_name to 'DescriptorBase_2', which will be skipped by the counter
+        second_descriptor = DescriptorBase(name='test', unique_name='DescriptorBase_2')  # noqa: F841
 
-        # Then
+        # Then - auto-generated names use monotonic counter, skipping collisions
         third_descriptor = DescriptorBase(name='test2')
         fourth_descriptor = DescriptorBase(name='test3')
 
-        # Expect
+        # Expect:
+        # - descriptor (from fixture) got DescriptorBase_0 (counter starts at 0)
+        # - third_descriptor gets DescriptorBase_1 (next counter value)
+        # - fourth_descriptor tries DescriptorBase_2 but it's taken, so gets DescriptorBase_3
         assert descriptor.unique_name == 'DescriptorBase_0'
-        assert third_descriptor.unique_name == 'DescriptorBase_3'
-        assert fourth_descriptor.unique_name == 'DescriptorBase_4'
+        assert third_descriptor.unique_name == 'DescriptorBase_1'
+        assert fourth_descriptor.unique_name == 'DescriptorBase_3'
 
     def test_unique_name_change(self, clear, descriptor: DescriptorBase):
         # When Then

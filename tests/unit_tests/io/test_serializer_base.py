@@ -17,6 +17,7 @@ from easyscience import DescriptorNumber
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import NewBase
+from easyscience.global_object.session import reset_default_session
 from easyscience.io import SerializerBase
 from easyscience.io import SerializerComponent
 
@@ -80,11 +81,11 @@ class TestSerializerBase:
     @pytest.fixture
     def clear(self):
         """Clear everything before and after each test"""
-        global_object.map._clear()
+        reset_default_session()
         if global_object.stack:
             global_object.stack.clear()
         yield
-        global_object.map._clear()
+        reset_default_session()
         if global_object.stack:
             global_object.stack.clear()
 
@@ -529,7 +530,7 @@ class TestSerializerBase:
         assert encoded['value'] == 100
 
         # Test decode
-        global_object.map._clear()  # Clear before decode
+        reset_default_session()  # Clear before decode
         decoded = ConcreteSerializer.decode(encoded)
         assert isinstance(decoded, MockSerializerComponent)
         assert decoded.name == 'concrete_test'
@@ -621,7 +622,7 @@ class TestSerializerBase:
         }
         monkeypatch.setattr(NewBase, 'from_dict', MagicMock())
         # Then
-        obj = SerializerBase._deserialize_value(serialized_dict)
+        obj = SerializerBase._deserialize_value(serialized_dict)  # noqa: F841
         # Expect
         NewBase.from_dict.assert_called_once_with(serialized_dict)
 
@@ -639,7 +640,7 @@ class TestSerializerBase:
         monkeypatch.setattr(SerializerBase, '_import_class', MagicMock(return_value=DummyNoFromDict))
         monkeypatch.setattr(SerializerBase, '_convert_from_dict', MagicMock())
         # Then
-        obj = SerializerBase._deserialize_value(serialized_dict)
+        obj = SerializerBase._deserialize_value(serialized_dict)  # noqa: F841
         # Expect
         SerializerBase._convert_from_dict.assert_called_once_with(serialized_dict)
 
@@ -653,7 +654,7 @@ class TestSerializerBase:
         monkeypatch.setattr(SerializerBase, '_import_class', MagicMock(side_effect=ImportError()))
         monkeypatch.setattr(SerializerBase, '_convert_from_dict', MagicMock())
         # Then
-        obj = SerializerBase._deserialize_value(serialized_dict)
+        obj = SerializerBase._deserialize_value(serialized_dict)  # noqa: F841
         # Expect
         SerializerBase._convert_from_dict.assert_called_once_with(serialized_dict)
 

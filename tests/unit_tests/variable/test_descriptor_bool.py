@@ -1,6 +1,6 @@
 import pytest
 
-from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 from easyscience.variable import DescriptorBool
 
 
@@ -19,11 +19,11 @@ class TestDescriptorBool:
 
     @pytest.fixture
     def clear(self):
-        global_object.map._clear()
+        reset_default_session()
 
     def test_init(self, descriptor: DescriptorBool):
         # When Then Expect
-        assert descriptor._bool_value == True
+        assert descriptor._bool_value == True  # noqa: E712
 
         # From super
         assert descriptor._name == 'name'
@@ -46,14 +46,14 @@ class TestDescriptorBool:
 
     def test_value(self, descriptor: DescriptorBool):
         # When Then Expect
-        assert descriptor.value == True
+        assert descriptor.value == True  # noqa: E712
 
     def test_set_value(self, descriptor: DescriptorBool):
         # When Then
         descriptor.value = False
 
         # Expect
-        assert descriptor._bool_value == False
+        assert descriptor._bool_value == False  # noqa: E712
 
     @pytest.mark.parametrize('bool_value', ['string', 0, 0.0])
     def test_set_value_type_exception(self, descriptor: DescriptorBool, bool_value):
@@ -73,5 +73,5 @@ class TestDescriptorBool:
         descriptor_copy = descriptor.__copy__()
 
         # Expect
-        assert type(descriptor_copy) == DescriptorBool
+        assert type(descriptor_copy) is DescriptorBool
         assert descriptor_copy._bool_value == descriptor._bool_value

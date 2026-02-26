@@ -10,6 +10,13 @@ from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import CollectionBase
+from easyscience.global_object.session import reset_default_session
+
+
+@pytest.fixture(autouse=True)
+def clear_session():
+    reset_default_session()
+
 
 test_dict = {
     '@module': 'easyscience.base_classes',
@@ -101,7 +108,7 @@ def test_CollectionBase_create_fail(cls, setup_pars, value):
     setup_pars['to_fail'] = value
 
     with pytest.raises(AttributeError):
-        coll = cls(name, **setup_pars)
+        coll = cls(name, **setup_pars)  # noqa: F841
 
 
 @pytest.mark.parametrize('cls', class_constructors)
@@ -112,7 +119,7 @@ def test_CollectionBase_create_fail2(cls, setup_pars, key):
     setup_pars[key] = DescriptorNumber('fail_name', 0)
 
     with pytest.raises(AttributeError):
-        coll = cls(name, **setup_pars)
+        coll = cls(name, **setup_pars)  # noqa: F841
 
 
 @pytest.mark.parametrize('cls', class_constructors)
@@ -169,7 +176,7 @@ def test_CollectionBase_getItem_type_fail(cls, setup_pars, value):
     coll = cls(name, **setup_pars)
 
     with pytest.raises((IndexError, TypeError)):
-        get_item = coll[value]
+        get_item = coll[value]  # noqa: F841
 
 
 @pytest.mark.parametrize('cls', class_constructors)
@@ -373,7 +380,7 @@ def test_CollectionBase_as_dict(cls):
 
 @pytest.mark.parametrize('cls', class_constructors)
 def test_CollectionBase_from_dict(cls):
-    global_object.map._clear()  # TODO: figure out why this test fails without this line
+    reset_default_session()
     name = 'testing'
     kwargs = {'p1': DescriptorNumber('par1', 1)}
     expected = cls.from_dict(test_dict)
@@ -414,7 +421,7 @@ def test_CollectionBase_iterator(cls):
 
 @pytest.mark.parametrize('cls', class_constructors)
 def test_CollectionBase_iterator_dict(cls):
-    global_object.map._clear()  # TODO: figure out why this test fails without this line
+    reset_default_session()
     name = 'test'
     p1 = Parameter('p1', 1)
     p2 = Parameter('p2', 2)
@@ -425,7 +432,7 @@ def test_CollectionBase_iterator_dict(cls):
 
     obj = cls(name, *l_object)
     d = obj.as_dict()
-    global_object.map._clear()
+    reset_default_session()
     obj2 = cls.from_dict(d)
 
     for index, item in enumerate(obj2):
@@ -434,7 +441,7 @@ def test_CollectionBase_iterator_dict(cls):
 
 @pytest.mark.parametrize('cls', class_constructors)
 def test_CollectionBase_sameName(cls):
-    global_object.map._clear()  # TODO: figure out why this test fails without this line
+    reset_default_session()
     name = 'test'
     p1 = Parameter('p1', 1)
     p2 = Parameter('p1', 2)
@@ -468,7 +475,7 @@ def test_CollectionBase_set_index(cls):
     assert obj[idx] == p2
     obj[idx] = p4
     assert obj[idx] == p4
-    edges = obj._global_object.map.get_edges(obj)
+    edges = global_object.map.get_edges(obj)
     assert len(edges) == len(obj)
     for item in obj:
         assert item.unique_name in edges
@@ -492,7 +499,7 @@ def test_CollectionBase_set_index_based(cls):
     assert obj[idx] == p4
     obj[idx] = d
     assert obj[idx] == d
-    edges = obj._global_object.map.get_edges(obj)
+    edges = global_object.map.get_edges(obj)
     assert len(edges) == len(obj)
     for item in obj:
         assert item.unique_name in edges
@@ -538,7 +545,7 @@ def test_CollectionBaseGraph(cls):
     bb = cls(name, *p)
     bb_id = bb.unique_name
     b = Beta('b', bb=bb)
-    b_id = b.unique_name
+    b_id = b.unique_name  # noqa: F841
     for _id in p_id:
         assert _id in G.get_edges(bb)
     assert len(p) == len(G.get_edges(bb))

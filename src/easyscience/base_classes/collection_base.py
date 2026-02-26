@@ -14,6 +14,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+from easyscience import global_object
 from easyscience.base_classes.new_base import NewBase
 from easyscience.global_object.undo_redo import NotarizedDict
 
@@ -82,8 +83,8 @@ class CollectionBase(BasedBase, MutableSequence):
             if key in self.__dict__.keys() or key in self.__slots__:
                 raise AttributeError(f'Given kwarg: `{key}`, is an internal attribute. Please rename.')
             if kwargs[key]:  # Might be None (empty tuple or list)
-                self._global_object.map.add_edge(self, kwargs[key])
-                self._global_object.map.reset_type(kwargs[key], 'created_internal')
+                global_object.map.add_edge(self, kwargs[key])
+                global_object.map.reset_type(kwargs[key], 'created_internal')
                 if interface is not None:
                     kwargs[key].interface = interface
             # TODO wrap getter and setter in Logger
@@ -112,8 +113,8 @@ class CollectionBase(BasedBase, MutableSequence):
             values.insert(index, value)
             self._kwargs.reorder(**{k: v for k, v in zip(update_key, values)})
             # ADD EDGE
-            self._global_object.map.add_edge(self, value)
-            self._global_object.map.reset_type(value, 'created_internal')
+            global_object.map.add_edge(self, value)
+            global_object.map.reset_type(value, 'created_internal')
             value.interface = self.interface
         else:
             raise AttributeError('Only EasyScience objects can be put into an EasyScience group')
@@ -172,11 +173,11 @@ class CollectionBase(BasedBase, MutableSequence):
             update_dict = {update_key[key]: value}
             self._kwargs.update(update_dict)
             # ADD EDGE
-            self._global_object.map.add_edge(self, value)
-            self._global_object.map.reset_type(value, 'created_internal')
+            global_object.map.add_edge(self, value)
+            global_object.map.reset_type(value, 'created_internal')
             value.interface = self.interface
             # REMOVE EDGE
-            self._global_object.map.prune_vertex_from_edge(self, old_item)
+            global_object.map.prune_vertex_from_edge(self, old_item)
         else:
             raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.')
 
@@ -191,7 +192,7 @@ class CollectionBase(BasedBase, MutableSequence):
         """
         keys = list(self._kwargs.keys())
         item = self._kwargs[keys[key]]
-        self._global_object.map.prune_vertex_from_edge(self, item)
+        global_object.map.prune_vertex_from_edge(self, item)
         del self._kwargs[keys[key]]
 
     def __len__(self) -> int:

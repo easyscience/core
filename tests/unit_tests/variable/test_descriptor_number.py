@@ -3,7 +3,7 @@ import scipp as sc
 from scipp import UnitError
 
 from easyscience import DescriptorNumber
-from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 
 
 class TestDescriptorNumber:
@@ -23,7 +23,7 @@ class TestDescriptorNumber:
 
     @pytest.fixture
     def clear(self):
-        global_object.map._clear()
+        reset_default_session()
 
     def test_init(self, descriptor: DescriptorNumber):
         # When Then Expect
@@ -115,7 +115,7 @@ class TestDescriptorNumber:
         # Expect
         assert descriptor._scalar.value == 1
         assert descriptor._scalar.unit == 'm'
-        assert descriptor._scalar.variance == None
+        assert descriptor._scalar.variance == None  # noqa: E711
 
     @pytest.mark.parametrize(
         'full_value',
@@ -199,7 +199,7 @@ class TestDescriptorNumber:
         descriptor_copy = descriptor.__copy__()
 
         # Expect
-        assert type(descriptor_copy) == DescriptorNumber
+        assert type(descriptor_copy) is DescriptorNumber
         assert descriptor_copy._scalar.value == descriptor._scalar.value
         assert descriptor_copy._scalar.unit == descriptor._scalar.unit
 
@@ -239,7 +239,7 @@ class TestDescriptorNumber:
         result = test + descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -256,13 +256,13 @@ class TestDescriptorNumber:
         result_reverse = 1.0 + descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == 2.0
         assert result.unit == 'dimensionless'
         assert result.variance == 0.1
 
-        assert type(result_reverse) == DescriptorNumber
+        assert type(result_reverse) is DescriptorNumber
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == 2.0
         assert result_reverse.unit == 'dimensionless'
@@ -283,9 +283,9 @@ class TestDescriptorNumber:
     def test_addition_exception(self, descriptor: DescriptorNumber, test):
         # When Then Expect
         with pytest.raises(UnitError):
-            result = descriptor + test
+            result = descriptor + test  # noqa: F841
         with pytest.raises(UnitError):
-            result_reverse = test + descriptor
+            result_reverse = test + descriptor  # noqa: F841
 
     @pytest.mark.parametrize(
         'test, expected',
@@ -308,7 +308,7 @@ class TestDescriptorNumber:
         result = test - descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -325,13 +325,13 @@ class TestDescriptorNumber:
         result_reverse = 1.0 - descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == 1.0
         assert result.unit == 'dimensionless'
         assert result.variance == 0.1
 
-        assert type(result_reverse) == DescriptorNumber
+        assert type(result_reverse) is DescriptorNumber
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == -1.0
         assert result_reverse.unit == 'dimensionless'
@@ -352,9 +352,9 @@ class TestDescriptorNumber:
     def test_subtraction_exception(self, descriptor: DescriptorNumber, test):
         # When Then Expect
         with pytest.raises(UnitError):
-            result = test - descriptor
+            result = test - descriptor  # noqa: F841
         with pytest.raises(UnitError):
-            result_reverse = descriptor - test
+            result_reverse = descriptor - test  # noqa: F841
 
     @pytest.mark.parametrize(
         'test, expected',
@@ -377,7 +377,7 @@ class TestDescriptorNumber:
         result = test * descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -389,13 +389,13 @@ class TestDescriptorNumber:
         result_reverse = 2.0 * descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == 2.0
         assert result.unit == 'm'
         assert result.variance == 0.4
 
-        assert type(result_reverse) == DescriptorNumber
+        assert type(result_reverse) is DescriptorNumber
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == 2.0
         assert result_reverse.unit == 'm'
@@ -424,13 +424,13 @@ class TestDescriptorNumber:
         result_reverse = test / descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
         assert result.variance == pytest.approx(expected.variance)
 
-        assert type(result_reverse) == DescriptorNumber
+        assert type(result_reverse) is DescriptorNumber
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == expected_reverse.value
         assert result_reverse.unit == expected_reverse.unit
@@ -440,7 +440,7 @@ class TestDescriptorNumber:
     def test_division_exception(self, descriptor: DescriptorNumber, test):
         # When Then Expect
         with pytest.raises(ZeroDivisionError):
-            result = descriptor / test
+            result = descriptor / test  # noqa: F841
 
     def test_division_exception_reverse(self):
         # When
@@ -448,7 +448,7 @@ class TestDescriptorNumber:
 
         # Then Expect
         with pytest.raises(ZeroDivisionError):
-            result = 2 / descriptor
+            result = 2 / descriptor  # noqa: F841
 
     @pytest.mark.parametrize(
         'test, expected',
@@ -467,7 +467,7 @@ class TestDescriptorNumber:
         result = descriptor**test
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -481,7 +481,7 @@ class TestDescriptorNumber:
         result = descriptor**0.5
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == 1.4142135623730951
         assert result.unit == 'dimensionless'
@@ -500,7 +500,7 @@ class TestDescriptorNumber:
     def test_power_of_descriptor_exceptions(self, descriptor, exponent, exception):
         # When Then Expect
         with pytest.raises(exception):
-            result = descriptor**exponent
+            result = descriptor**exponent  # noqa: F841
 
     def test_descriptor_as_exponentiation(self):
         # When
@@ -520,7 +520,7 @@ class TestDescriptorNumber:
     def test_descriptor_as_exponentiation_exception(self, exponent, exception):
         # When Then Expect
         with pytest.raises(exception):
-            result = 2**exponent
+            result = 2**exponent  # noqa: F841
 
     def test_negation(self):
         # When
@@ -530,7 +530,7 @@ class TestDescriptorNumber:
         result = -descriptor
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == -2
         assert result.unit == 'm'
@@ -544,7 +544,7 @@ class TestDescriptorNumber:
         result = abs(descriptor)
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == 2
         assert result.unit == 'm'

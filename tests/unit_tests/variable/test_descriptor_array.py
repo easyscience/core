@@ -5,7 +5,7 @@ from scipp import UnitError
 from scipp.testing import assert_identical
 
 from easyscience import DescriptorNumber
-from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 from easyscience.variable import DescriptorArray
 
 
@@ -40,7 +40,7 @@ class TestDescriptorArray:
 
     @pytest.fixture
     def clear(self):
-        global_object.map._clear()
+        reset_default_session()
 
     def test_init(self, descriptor: DescriptorArray):
         # When Then Expect
@@ -129,9 +129,9 @@ class TestDescriptorArray:
         # Expect
         assert np.array_equal(descriptor._array.values, [[1, 2], [3, 4]])
         assert descriptor._array.unit == 'm'
-        assert descriptor._array.variances == None
+        assert descriptor._array.variances == None  # noqa: E711
 
-    # @pytest.mark.parametrize("full_value", [sc.array(values=[1,2], dimensions=["x"]), sc.array(values=[[1], [2]], dims=["x","y"]), object(), 1, "string"], ids=["1D", "2D", "object", "int", "string"])
+    # @pytest.mark.parametrize("full_value", [sc.array(values=[1,2], dimensions=["x"]), sc.array(values=[[1], [2]], dims=["x","y"]), object(), 1, "string"], ids=["1D", "2D", "object", "int", "string"])  # noqa: E501
     # def test_from_scipp_type_exception(self, full_value):
     #     # When Then Expect
     #     with pytest.raises(TypeError):
@@ -211,7 +211,7 @@ class TestDescriptorArray:
         descriptor_copy = descriptor.__copy__()
 
         # Expect
-        assert type(descriptor_copy) == DescriptorArray
+        assert type(descriptor_copy) is DescriptorArray
         assert np.array_equal(descriptor_copy._array.values, descriptor._array.values)
         assert descriptor_copy._array.unit == descriptor._array.unit
 
@@ -266,7 +266,7 @@ class TestDescriptorArray:
         else:
             result = descriptor + test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -295,7 +295,7 @@ class TestDescriptorArray:
         # When Then
         result = descriptor_dimensionless + test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.array_equal(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -336,7 +336,7 @@ class TestDescriptorArray:
         else:
             result = test + descriptor
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -365,7 +365,7 @@ class TestDescriptorArray:
         # When Then
         result = test + descriptor_dimensionless
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.array_equal(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -406,7 +406,7 @@ class TestDescriptorArray:
         else:
             result = descriptor - test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -435,7 +435,7 @@ class TestDescriptorArray:
         # When Then
         result = descriptor_dimensionless - test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.array_equal(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -482,7 +482,7 @@ class TestDescriptorArray:
         else:
             result = test - descriptor
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -511,7 +511,7 @@ class TestDescriptorArray:
         # When Then
         result = test - descriptor_dimensionless
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.array_equal(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -584,7 +584,7 @@ class TestDescriptorArray:
         else:
             result = descriptor * test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -616,7 +616,7 @@ class TestDescriptorArray:
         # When Then
         result = descriptor_dimensionless * test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.array_equal(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -693,7 +693,7 @@ class TestDescriptorArray:
         else:
             result = test * descriptor
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -725,7 +725,7 @@ class TestDescriptorArray:
         # When Then
         result = test * descriptor_dimensionless
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.array_equal(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -836,7 +836,7 @@ class TestDescriptorArray:
         else:
             result = descriptor / test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.allclose(result.value, expected.value)
         assert result.unit == expected.unit
@@ -871,7 +871,7 @@ class TestDescriptorArray:
         # When Then
         result = descriptor_dimensionless / test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.allclose(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -979,7 +979,7 @@ class TestDescriptorArray:
         else:
             result = test / descriptor
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.allclose(result.value, expected.value)
         assert result.unit == expected.unit
@@ -1022,7 +1022,7 @@ class TestDescriptorArray:
         # When Then
         result = test / descriptor_dimensionless
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert np.allclose(result.value, expected.value)
         assert np.allclose(result.variance, expected.variance)
         assert descriptor_dimensionless.unit == 'dimensionless'
@@ -1084,7 +1084,7 @@ class TestDescriptorArray:
         # When Then
         result = descriptor**test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -1123,7 +1123,7 @@ class TestDescriptorArray:
         # When Then
         result = descriptor_dimensionless**test
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.allclose(result.value, expected.value)
         assert result.unit == expected.unit
@@ -1145,7 +1145,7 @@ class TestDescriptorArray:
     def test_power_exception(self, descriptor: DescriptorArray, test, exception):
         # When Then
         with pytest.raises(exception):
-            result = descriptor**2**test
+            result = descriptor**2**test  # noqa: F841
         with pytest.raises(ValueError):
             # Exponentiation with an array does not make sense
             test**descriptor
@@ -1158,9 +1158,9 @@ class TestDescriptorArray:
     def test_addition_exception(self, descriptor: DescriptorArray, test):
         # When Then Expect
         with pytest.raises(UnitError):
-            result = descriptor + test
+            result = descriptor + test  # noqa: F841
         with pytest.raises(UnitError):
-            result_reverse = test + descriptor
+            result_reverse = test + descriptor  # noqa: F841
 
     @pytest.mark.parametrize(
         'test',
@@ -1170,9 +1170,9 @@ class TestDescriptorArray:
     def test_sub_exception(self, descriptor: DescriptorArray, test):
         # When Then Expect
         with pytest.raises(UnitError):
-            result = descriptor - test
+            result = descriptor - test  # noqa: F841
         with pytest.raises(UnitError):
-            result_reverse = test - descriptor
+            result_reverse = test - descriptor  # noqa: F841
 
     @pytest.mark.parametrize(
         'function', [np.sin, np.cos, np.exp, np.add, np.multiply], ids=['sin', 'cos', 'exp', 'add', 'multiply']
@@ -1203,7 +1203,7 @@ class TestDescriptorArray:
             display_name='display_name',
             parent=None,
         )
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -1227,7 +1227,7 @@ class TestDescriptorArray:
         result = abs(negated)
 
         # Expect
-        assert type(result) == DescriptorArray
+        assert type(result) is DescriptorArray
         assert result.name == result.unique_name
         assert np.array_equal(result.value, descriptor.value)
         assert result.unit == descriptor.unit
@@ -1271,7 +1271,7 @@ class TestDescriptorArray:
     )
     def test_trace(self, test: DescriptorArray, expected: DescriptorNumber):
         result = test.trace()
-        assert type(result) == type(expected)
+        assert type(result) is type(expected)
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -1295,7 +1295,7 @@ class TestDescriptorArray:
     )
     def test_trace_select_dimensions(self, test: DescriptorArray, expected: DescriptorNumber, dimensions):
         result = test.trace(dimension1=dimensions[0], dimension2=dimensions[1])
-        assert type(result) == type(expected)
+        assert type(result) is type(expected)
         assert result.name == result.unique_name
         assert np.array_equal(result.value.shape, expected.value.shape)
         assert np.array_equal(result.value, expected.value)
@@ -1335,9 +1335,9 @@ class TestDescriptorArray:
         second_array = descriptor['dim1', :]
 
         # Then
-        assert type(first_value) == DescriptorArray
-        assert type(last_value) == DescriptorArray
-        assert type(second_array) == DescriptorArray
+        assert type(first_value) is DescriptorArray
+        assert type(last_value) is DescriptorArray
+        assert type(second_array) is DescriptorArray
 
         assert first_value.name != descriptor.unique_name
         assert last_value.name != descriptor.unique_name
@@ -1388,7 +1388,7 @@ class TestDescriptorArray:
     )
     def test_sum(self, test, expected):
         result = test.sum()
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit
@@ -1405,7 +1405,7 @@ class TestDescriptorArray:
     )
     def test_sum_over_subset(self, descriptor, expected, dim):
         result = descriptor.sum(dim)
-        assert type(result) == type(expected)
+        assert type(result) is type(expected)
         assert result.name == result.unique_name
         assert np.array_equal(result.value, expected.value)
         assert result.unit == expected.unit

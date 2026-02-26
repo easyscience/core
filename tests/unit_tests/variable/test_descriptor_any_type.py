@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 from easyscience.variable import DescriptorAnyType
 
 
@@ -20,7 +20,7 @@ class TestDescriptorAnyType:
 
     @pytest.fixture
     def clear(self):
-        global_object.map._clear()
+        reset_default_session()
 
     def test_init(self, descriptor: DescriptorAnyType):
         # When Then Expect
@@ -74,5 +74,5 @@ class TestDescriptorAnyType:
         descriptor_copy = descriptor.__copy__()
 
         # Expect
-        assert type(descriptor_copy) == DescriptorAnyType
+        assert type(descriptor_copy) is DescriptorAnyType
         assert descriptor_copy._value == descriptor._value

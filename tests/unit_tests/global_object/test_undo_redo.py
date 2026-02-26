@@ -155,7 +155,7 @@ def test_ObjBaseUndoRedo():
     objs = {obj.name: obj for obj in [createSingleObjs(idx) for idx in range(5)]}
     name = 'test'
     obj = ObjBase(name, **objs)
-    name2 = 'best'
+    name2 = 'best'  # noqa: F841
 
     # Test name
     # assert not doUndoRedo(obj, 'name', name2)
@@ -170,7 +170,7 @@ def test_CollectionBaseUndoRedo():
     objs = [createSingleObjs(idx) for idx in range(5)]
     name = 'test'
     obj = CollectionBase(name, *objs)
-    name2 = 'best'
+    name2 = 'best'  # noqa: F841
 
     # assert not doUndoRedo(obj, 'name', name2)
 

@@ -4,6 +4,7 @@
 
 import gc
 import sys
+import warnings
 import weakref
 from typing import List
 from typing import Optional
@@ -157,7 +158,11 @@ class Map:
         if obj.unique_name in self.__type_dict:
             self.__type_dict[obj.unique_name].type = new_type
 
-    def add_vertex(self, obj: object, obj_type: str = None):
+    def _add_vertex_no_warn(self, obj: object, obj_type: str = None):
+        """
+        Internal method to add an object to the map without deprecation warning.
+        Used by library code during the transition period for backward compatibility.
+        """
         name = obj.unique_name
         if name in self._store:
             raise ValueError(f'Object name {name} already exists in the graph.')
@@ -172,6 +177,21 @@ class Map:
         entry_list.finalizer = weakref.finalize(obj, self.prune_type_dict, name)
         entry_list.type = obj_type
         self.__type_dict[name] = entry_list  # Add objects type to the list of types
+
+    def add_vertex(self, obj: object, obj_type: str = None):
+        """
+        Add an object to the map.
+
+        .. deprecated::
+            Use ``session.register()`` from
+            ``easyscience.global_object.session`` instead.
+        """
+        warnings.warn(
+            'Map.add_vertex() is deprecated. Use session.register() from easyscience.global_object.session instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._add_vertex_no_warn(obj, obj_type)
 
     def add_edge(self, start_obj: object, end_obj: object):
         if start_obj.unique_name in self.__type_dict:
@@ -308,11 +328,29 @@ class Map:
             return True
         return False
 
-    def _clear(self):
-        """Reset the map to an empty state. Only to be used for testing"""
+    def _clear_no_warn(self):
+        """
+        Reset the map to an empty state without deprecation warning.
+        Internal method used by reset_default_session().
+        """
         self._store.clear()
         self.__type_dict.clear()
         gc.collect()
+
+    def _clear(self):
+        """
+        Reset the map to an empty state. Only to be used for testing.
+
+        .. deprecated::
+            Use ``reset_default_session()`` from
+            ``easyscience.global_object.session`` instead.
+        """
+        warnings.warn(
+            'Map._clear() is deprecated. Use reset_default_session() from easyscience.global_object.session instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._clear_no_warn()
 
     def __repr__(self) -> str:
         return f'Map object of {len(self._store)} vertices.'

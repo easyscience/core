@@ -6,18 +6,18 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from easyscience import global_object
 from easyscience.fitting.calculators.interface_factory import InterfaceFactoryTemplate
 from easyscience.fitting.calculators.interface_factory import ItemContainer
+from easyscience.global_object.session import reset_default_session
 
 
 class TestInterfaceFactoryTemplate:
     @pytest.fixture
     def clear(self):
         """Clear global map to avoid test contamination"""
-        global_object.map._clear()
+        reset_default_session()
         yield
-        global_object.map._clear()
+        reset_default_session()
 
     @pytest.fixture
     def mock_interface1(self):
@@ -332,7 +332,7 @@ class TestInterfaceFactoryTemplate:
     def test_state_restore_static_method_implementation_issue(self, clear, mock_interface1, mock_interface2):
         """Test __state_restore__ static method - demonstrates implementation issue"""
         # Given
-        original_factory = InterfaceFactoryTemplate([mock_interface1, mock_interface2])
+        original_factory = InterfaceFactoryTemplate([mock_interface1, mock_interface2])  # noqa: F841
 
         # When/Then - this implementation has a bug where it tries to call cls() without arguments
         # which would fail since the constructor requires interface_list parameter

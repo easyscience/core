@@ -15,6 +15,7 @@ import scipp as sc
 from scipp import UnitError
 from scipp import Variable
 
+from easyscience import global_object
 from easyscience.global_object.undo_redo import PropertyStack
 from easyscience.global_object.undo_redo import property_stack
 
@@ -305,9 +306,7 @@ class DescriptorArray(DescriptorBase):
             obj._array = scalar
 
         # Push to undo stack
-        self._global_object.stack.push(
-            PropertyStack(self, set_array, old_array, new_array, text=f'Convert unit to {unit_str}')
-        )
+        global_object.stack.push(PropertyStack(self, set_array, old_array, new_array, text=f'Convert unit to {unit_str}'))
 
         # Update the array
         self._array = new_array

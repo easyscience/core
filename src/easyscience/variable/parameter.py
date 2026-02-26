@@ -617,7 +617,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             self._fixed = fixed
         else:
-            if self._global_object.stack.enabled:
+            if global_object.stack.enabled:
                 # Remove the recorded change from the stack
                 global_object.stack.pop()
             raise AttributeError('This is a dependent parameter, dependent parameters cannot be fixed.')
@@ -681,7 +681,7 @@ class Parameter(DescriptorNumber):
         inputted_unique_names += re.findall('(".+?")', dependency_expression)
 
         clean_dependency_string = dependency_expression
-        existing_unique_names = self._global_object.map.vertices()
+        existing_unique_names = self._session.all_names(domain=self._domain)
         # Add the unique names of the parameters to the ASTEVAL interpreter
         for name in inputted_unique_names:
             stripped_name = name.strip('\'"')
@@ -689,7 +689,7 @@ class Parameter(DescriptorNumber):
                 raise ValueError(
                     f'A Parameter with unique_name {stripped_name} does not exist. Please check your dependency expression.'
                 )  # noqa: E501
-            dependent_parameter = self._global_object.map.get_item_by_key(stripped_name)
+            dependent_parameter = self._session.get(stripped_name, domain=self._domain)
             if isinstance(dependent_parameter, DescriptorNumber):
                 self._dependency_map['__' + stripped_name + '__'] = dependent_parameter
                 clean_dependency_string = clean_dependency_string.replace(name, '__' + stripped_name + '__')
@@ -1101,9 +1101,10 @@ class Parameter(DescriptorNumber):
             delattr(self, '_pending_desired_unit')
 
     def _find_parameter_by_serializer_id(self, serializer_id: str) -> Optional['DescriptorNumber']:
-        """Find a parameter by its serializer_id from all parameters in the global map."""
-        for obj in self._global_object.map._store.values():
-            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__serializer_id'):
+        """Find a parameter by its serializer_id from all parameters in the session."""
+        for name in self._session.all_names(domain=self._domain):
+            obj = self._session.get(name, domain=self._domain)
+            if obj is not None and isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__serializer_id'):
                 if obj._DescriptorNumber__serializer_id == serializer_id:
                     return obj
         return None

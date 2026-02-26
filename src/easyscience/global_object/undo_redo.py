@@ -23,8 +23,7 @@ class UndoCommand(metaclass=abc.ABCMeta):
     The Command interface pattern
     """
 
-    def __init__(self, obj) -> None:
-        self._obj = obj
+    def __init__(self) -> None:
         self._text = None
 
     @abc.abstractmethod
@@ -322,7 +321,7 @@ class PropertyStack(UndoCommand):
 
     def __init__(self, parent, func: Callable, old_value: Any, new_value: Any, text: str = None):
         # self.setText("Setting {} to {}".format(func.__name__, new_value))
-        super().__init__(self)
+        super().__init__()
         self._parent = parent
         self._old_value = old_value
         self._new_value = new_value
@@ -340,7 +339,7 @@ class PropertyStack(UndoCommand):
 
 class FunctionStack(UndoCommand):
     def __init__(self, parent, set_func: Callable, unset_func: Callable, text: str = None):
-        super().__init__(self)
+        super().__init__()
         self._parent = parent
         self._old_fn = set_func
         self._new_fn = unset_func
@@ -357,7 +356,7 @@ class FunctionStack(UndoCommand):
 
 class DictStack(UndoCommand):
     def __init__(self, in_dict: NotarizedDict, *args):
-        super().__init__(self)
+        super().__init__()
         self._parent = in_dict
 
         self._deletion = False
@@ -416,7 +415,7 @@ class DictStack(UndoCommand):
 
 class DictStackReCreate(UndoCommand):
     def __init__(self, in_dict: NotarizedDict, **kwargs):
-        super().__init__(self)
+        super().__init__()
         self._parent = in_dict
         self._old_value = in_dict.data.copy()
         self._new_value = kwargs

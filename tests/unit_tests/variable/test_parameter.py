@@ -8,10 +8,14 @@ from scipp import UnitError
 from easyscience import DescriptorNumber
 from easyscience import ObjBase
 from easyscience import Parameter
-from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 
 
 class TestParameter:
+    @pytest.fixture(autouse=True)
+    def clear(self):
+        reset_default_session()
+
     @pytest.fixture
     def parameter(self) -> Parameter:
         self.mock_callback = MagicMock()
@@ -42,10 +46,6 @@ class TestParameter:
         )
         return parameter
 
-    @pytest.fixture
-    def clear(self):
-        global_object.map._clear()
-
     def compare_parameters(self, parameter1: Parameter, parameter2: Parameter):
         assert parameter1.value == parameter2.value
         assert parameter1.unit == parameter2.unit
@@ -62,7 +62,7 @@ class TestParameter:
         assert parameter._max.value == 10
         assert parameter._max.unit == 'm'
         assert parameter._callback == self.mock_callback
-        assert parameter._independent == True
+        assert parameter._independent == True  # noqa: E712
 
         # From super
         assert parameter._scalar.value == 1
@@ -72,7 +72,7 @@ class TestParameter:
         assert parameter._description == 'description'
         assert parameter._url == 'url'
         assert parameter._display_name == 'display_name'
-        assert parameter._fixed == False
+        assert parameter._fixed == False  # noqa: E712
         assert parameter._observers == []
 
     def test_init_value_min_exception(self):
@@ -125,7 +125,7 @@ class TestParameter:
         normal_parameter.make_dependent_on(dependency_expression='2*a', dependency_map={'a': independent_parameter})
 
         # Expect
-        assert normal_parameter._independent == False
+        assert normal_parameter._independent == False  # noqa: E712
         assert normal_parameter.dependency_expression == '2*a'
         assert normal_parameter.dependency_map == {'a': independent_parameter}
         self.compare_parameters(normal_parameter, 2 * independent_parameter)
@@ -149,7 +149,7 @@ class TestParameter:
         )
 
         # Expect
-        assert normal_parameter._independent == False
+        assert normal_parameter._independent == False  # noqa: E712
         assert normal_parameter.dependency_expression == '2*a'
         assert normal_parameter.dependency_map == {'a': independent_parameter}
 
@@ -181,7 +181,7 @@ class TestParameter:
         )
 
         # Expect
-        assert normal_parameter._independent == False
+        assert normal_parameter._independent == False  # noqa: E712
         assert normal_parameter.dependency_expression == '3*a'
         assert normal_parameter.dependency_map == {'a': independent_parameter}
 
@@ -245,7 +245,7 @@ class TestParameter:
         )
 
         # Expect
-        assert dependent_parameter._independent == False
+        assert dependent_parameter._independent == False  # noqa: E712
         assert dependent_parameter.dependency_expression == '2*a'
         assert dependent_parameter.dependency_map == {'a': normal_parameter}
         assert dependent_parameter.name == 'dependent'
@@ -269,7 +269,7 @@ class TestParameter:
         )
 
         # Expect
-        assert dependent_parameter._independent == False
+        assert dependent_parameter._independent == False  # noqa: E712
         assert dependent_parameter.dependency_expression == '2*a'
         assert dependent_parameter.dependency_map == {'a': normal_parameter}
         assert dependent_parameter.name == 'dependent'
@@ -298,7 +298,7 @@ class TestParameter:
     def test_parameter_from_dependency_with_desired_unit_incompatible_unit_raises(self, normal_parameter: Parameter):
         # When Then Expect
         with pytest.raises(UnitError):
-            dependent_parameter = Parameter.from_dependency(
+            dependent_parameter = Parameter.from_dependency(  # noqa: F841
                 name='dependent',
                 dependency_expression='2*a',
                 dependency_map={'a': normal_parameter},
@@ -390,12 +390,14 @@ class TestParameter:
     def test_process_dependency_unique_names_exception_not_a_descriptorNumber(self, clear, normal_parameter: Parameter):
         # When
         normal_parameter._dependency_map = {}
-        base_obj = ObjBase(name='ObjBase', unique_name='base_obj')
+        # ObjBase is a BasedBase subclass, so it is now registered in session
+        # but it's not a DescriptorNumber, so dependency will fail
+        base_obj = ObjBase(name='ObjBase', unique_name='base_obj')  # noqa: F841
 
-        # Then Expect
+        # Then Expect - ObjBase is found but is not a valid dependency target
         with pytest.raises(
             ValueError,
-            match='The object with unique_name base_obj is not a Parameter or DescriptorNumber. Please check your dependency expression.',
+            match='The object with unique_name base_obj is not a Parameter or DescriptorNumber. Please check your dependency expression.',  # noqa: E501
         ):
             normal_parameter._process_dependency_unique_names(dependency_expression='2*"base_obj"')
 
@@ -457,7 +459,7 @@ class TestParameter:
             )
         # Check that everything is properly cleaned up
         assert normal_parameter._observers == []
-        assert dependent_parameter.independent == False
+        assert dependent_parameter.independent == False  # noqa: E712
         assert dependent_parameter.dependency_expression == 'best'
         assert dependent_parameter.dependency_map == {'best': independent_parameter}
         independent_parameter.value = 50
@@ -475,7 +477,7 @@ class TestParameter:
             )
         # Check that everything is properly cleaned up
         assert normal_parameter._observers == []
-        assert independent_parameter.independent == True
+        assert independent_parameter.independent == True  # noqa: E712
         normal_parameter.value = 50
         assert independent_parameter.value == 10
 
@@ -549,7 +551,7 @@ class TestParameter:
             normal_parameter.make_dependent_on(dependency_expression='2*c', dependency_map={'c': dependent_parameter_2})
         # Check that everything is properly cleaned up
         assert dependent_parameter_2._observers == []
-        assert normal_parameter.independent == True
+        assert normal_parameter.independent == True  # noqa: E712
         assert normal_parameter.value == 1
         normal_parameter.value = 50
         self.compare_parameters(dependent_parameter_2, 4 * normal_parameter)
@@ -659,7 +661,7 @@ class TestParameter:
             dependency_expression='2*a',
             dependency_map={'a': normal_parameter},
         )
-        assert dependent_parameter.independent == False
+        assert dependent_parameter.independent == False  # noqa: E712
         self.compare_parameters(dependent_parameter, 2 * normal_parameter)
 
         # Then
@@ -667,7 +669,7 @@ class TestParameter:
         normal_parameter.value = 5
 
         # Expect
-        assert dependent_parameter.independent == True
+        assert dependent_parameter.independent == True  # noqa: E712
         assert normal_parameter._observers == []
         assert dependent_parameter.value == 2
 
@@ -875,7 +877,7 @@ class TestParameter:
         parameter.fixed = True
 
         # Expect
-        assert parameter.fixed == True
+        assert parameter.fixed == True  # noqa: E712
 
     def test_set_fixed_dependent_parameter(self, normal_parameter: Parameter):
         # When
@@ -1005,7 +1007,7 @@ class TestParameter:
         parameter_copy = parameter.__copy__()
 
         # Expect
-        assert type(parameter_copy) == Parameter
+        assert type(parameter_copy) is Parameter
         assert id(parameter_copy._scalar) != id(parameter._scalar)
         assert isinstance(parameter_copy._callback, property)
 
@@ -1104,7 +1106,7 @@ class TestParameter:
         result_reverse = descriptor_number + parameter
 
         # Expect
-        assert type(result) == Parameter
+        assert type(result) is Parameter
         assert result.name == result.unique_name
         assert result.value == 1.01
         assert result.unit == 'm'
@@ -1112,7 +1114,7 @@ class TestParameter:
         assert result.min == 0.01
         assert result.max == 10.01
 
-        assert type(result_reverse) == Parameter
+        assert type(result_reverse) is Parameter
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == 101.0
         assert result_reverse.unit == 'cm'
@@ -1138,9 +1140,9 @@ class TestParameter:
     def test_addition_exception(self, parameter: Parameter, test):
         # When Then Expect
         with pytest.raises(UnitError):
-            result = parameter + test
+            result = parameter + test  # noqa: F841
         with pytest.raises(UnitError):
-            result_reverse = test + parameter
+            result_reverse = test + parameter  # noqa: F841
 
     @pytest.mark.parametrize(
         'test, expected, expected_reverse',
@@ -1251,7 +1253,7 @@ class TestParameter:
         result_reverse = descriptor_number - parameter
 
         # Expect
-        assert type(result) == Parameter
+        assert type(result) is Parameter
         assert result.name == result.unique_name
         assert result.value == 0.99
         assert result.unit == 'm'
@@ -1259,7 +1261,7 @@ class TestParameter:
         assert result.min == -0.01
         assert result.max == 9.99
 
-        assert type(result_reverse) == Parameter
+        assert type(result_reverse) is Parameter
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == -99.0
         assert result_reverse.unit == 'cm'
@@ -1285,9 +1287,9 @@ class TestParameter:
     def test_subtraction_exception(self, parameter: Parameter, test):
         # When Then Expect
         with pytest.raises(UnitError):
-            result = parameter - test
+            result = parameter - test  # noqa: F841
         with pytest.raises(UnitError):
-            result_reverse = test - parameter
+            result_reverse = test - parameter  # noqa: F841
 
     @pytest.mark.parametrize(
         'test, expected, expected_reverse',
@@ -1403,7 +1405,7 @@ class TestParameter:
         result_reverse = test * parameter
 
         # Expect
-        assert type(result) == type(expected)
+        assert type(result) is type(expected)
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -1412,7 +1414,7 @@ class TestParameter:
             assert result.min == expected.min
             assert result.max == expected.max
 
-        assert type(result_reverse) == type(expected_reverse)
+        assert type(result_reverse) is type(expected_reverse)
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == expected_reverse.value
         assert result_reverse.unit == expected_reverse.unit
@@ -1446,7 +1448,7 @@ class TestParameter:
         result_reverse = test * parameter
 
         # Expect
-        assert type(result) == type(expected)
+        assert type(result) is type(expected)
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -1493,7 +1495,7 @@ class TestParameter:
         result_reverse = test / parameter
 
         # Expect
-        assert type(result) == Parameter
+        assert type(result) is Parameter
         assert result.name == result.unique_name
         assert result.value == pytest.approx(expected.value)
         assert result.unit == expected.unit
@@ -1501,7 +1503,7 @@ class TestParameter:
         assert result.min == expected.min
         assert result.max == expected.max
 
-        assert type(result) == Parameter
+        assert type(result) is Parameter
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == pytest.approx(expected_reverse.value)
         assert result_reverse.unit == expected_reverse.unit
@@ -1571,7 +1573,7 @@ class TestParameter:
         result_reverse = test / parameter
 
         # Expect
-        assert type(result) == Parameter
+        assert type(result) is Parameter
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -1579,7 +1581,7 @@ class TestParameter:
         assert result.min == expected.min
         assert result.max == expected.max
 
-        assert type(result_reverse) == Parameter
+        assert type(result_reverse) is Parameter
         assert result_reverse.name == result_reverse.unique_name
         assert result_reverse.value == expected_reverse.value
         assert result_reverse.unit == expected_reverse.unit
@@ -1606,7 +1608,7 @@ class TestParameter:
         result = test / parameter
 
         # Expect
-        assert type(result) == DescriptorNumber
+        assert type(result) is DescriptorNumber
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -1672,7 +1674,7 @@ class TestParameter:
 
         # Then Expect
         with pytest.raises(ZeroDivisionError):
-            result = parameter / test
+            result = parameter / test  # noqa: F841
 
     def test_divide_by_zero_value_parameter(self):
         # When
@@ -1681,7 +1683,7 @@ class TestParameter:
 
         # Then Expect
         with pytest.raises(ZeroDivisionError):
-            result = descriptor / parameter
+            result = descriptor / parameter  # noqa: F841
 
     @pytest.mark.parametrize(
         'test, expected',
@@ -1713,7 +1715,7 @@ class TestParameter:
         result = parameter**test
 
         # Expect
-        assert type(result) == type(expected)
+        assert type(result) is type(expected)
         assert result.name == result.unique_name
         assert result.value == expected.value
         assert result.unit == expected.unit
@@ -1816,7 +1818,7 @@ class TestParameter:
     def test_power_exceptions(self, parameter, exponent, expected):
         # When Then Expect
         with pytest.raises(expected):
-            result = parameter**exponent
+            result = parameter**exponent  # noqa: F841
 
     def test_negation(self):
         # When

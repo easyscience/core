@@ -182,7 +182,7 @@ class TestBumpsFit:
         # Expect
         assert domain_fit_results == mock_domain_fit_results
         assert domain_fit_results.kwargs_set_key == 'kwargs_set_val'
-        assert domain_fit_results.success == True
+        assert domain_fit_results.success == True  # noqa: E712
         assert domain_fit_results.y_obs == 'y'
         assert domain_fit_results.x == 'x'
         assert domain_fit_results.p == {'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}

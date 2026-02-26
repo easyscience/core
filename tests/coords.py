@@ -15,14 +15,14 @@ boundary conditions or otherwise. Many of these are heavily vectorized in
 numpy for performance.
 """
 
-import itertools
-import math
+import itertools  # noqa: E402
+import math  # noqa: E402
 
-import numpy as np
-import pyximport
+import numpy as np  # noqa: E402
+import pyximport  # noqa: E402
 
 pyximport.install(setup_args={'include_dirs': np.get_include()})
-from . import coord_cython as cuc
+from . import coord_cython as cuc  # noqa: E402
 
 # array size threshold for looping instead of broadcasting
 LOOP_THRESHOLD = 1e6
@@ -312,7 +312,7 @@ def lattice_points_in_supercell(supercell_matrix):
     frac_points = np.dot(all_points, np.linalg.inv(supercell_matrix))
 
     tvects = frac_points[np.all(frac_points < 1 - 1e-10, axis=1) & np.all(frac_points >= -1e-10, axis=1)]
-    assert len(tvects) == round(abs(np.linalg.det(supercell_matrix)))
+    assert len(tvects) == round(abs(np.linalg.det(supercell_matrix)))  # noqa: S101
     return tvects
 
 
@@ -450,7 +450,7 @@ class Simplex:
         """
         b1 = self.bary_coords(point1)
         b2 = self.bary_coords(point2)
-        l = b1 - b2
+        l = b1 - b2  # noqa: E741
         # don't use barycentric dimension where line is parallel to face
         valid = np.abs(l) > 1e-10
         # array of all the barycentric coordinates on the line where
@@ -468,7 +468,7 @@ class Simplex:
                         break
                 if not found:
                     barys.append(p)
-        assert len(barys) < 3
+        assert len(barys) < 3  # noqa: S101
         return [self.point_from_bary_coords(b) for b in barys]
 
     def __eq__(self, other):

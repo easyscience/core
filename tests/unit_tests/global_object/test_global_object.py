@@ -1,8 +1,8 @@
 import pytest
 
 from easyscience import Parameter
-from easyscience import global_object
 from easyscience.global_object.global_object import GlobalObject
+from easyscience.global_object.session import reset_default_session
 from easyscience.variable import DescriptorBool
 
 
@@ -29,9 +29,9 @@ class TestGlobalObject:
         # When
         global_object = GlobalObject()
         # Block the other_name_prefix_2 name
-        keep_due_toweakref_1 = DescriptorBool(name='test', value=True, unique_name='other_name_prefix_2')
-        keep_due_toweakref_2 = DescriptorBool(name='test', value=True, unique_name='other_name_prefix_a_3')
-        keep_due_toweakref_3 = DescriptorBool(name='test', value=True, unique_name='almost_other_name_prefix_3')
+        keep_due_toweakref_1 = DescriptorBool(name='test', value=True, unique_name='other_name_prefix_2')  # noqa: F841
+        keep_due_toweakref_2 = DescriptorBool(name='test', value=True, unique_name='other_name_prefix_a_3')  # noqa: F841
+        keep_due_toweakref_3 = DescriptorBool(name='test', value=True, unique_name='almost_other_name_prefix_3')  # noqa: F841
 
         # Then
         name = global_object.generate_unique_name('other_name_prefix')
@@ -42,9 +42,9 @@ class TestGlobalObject:
     @pytest.fixture
     def clear_global_map(self):
         """Clear global map before and after each test"""
-        global_object.map._clear()
+        reset_default_session()
         yield
-        global_object.map._clear()
+        reset_default_session()
 
     def test_singleton_behavior(self):
         """Test that GlobalObject is truly a singleton"""
@@ -100,9 +100,9 @@ class TestGlobalObject:
         # Given
         global_obj = GlobalObject()
         # Create objects with non-sequential names
-        keep1 = DescriptorBool(name='test', value=True, unique_name='prefix_0')
-        keep2 = DescriptorBool(name='test', value=True, unique_name='prefix_2')
-        keep3 = DescriptorBool(name='test', value=True, unique_name='prefix_5')
+        keep1 = DescriptorBool(name='test', value=True, unique_name='prefix_0')  # noqa: F841
+        keep2 = DescriptorBool(name='test', value=True, unique_name='prefix_2')  # noqa: F841
+        keep3 = DescriptorBool(name='test', value=True, unique_name='prefix_5')  # noqa: F841
 
         # When
         name = global_obj.generate_unique_name('prefix')
@@ -114,8 +114,8 @@ class TestGlobalObject:
         """Test that non-numeric suffixes are ignored"""
         # Given
         global_obj = GlobalObject()
-        keep1 = DescriptorBool(name='test', value=True, unique_name='prefix_abc')
-        keep2 = DescriptorBool(name='test', value=True, unique_name='prefix_1')
+        keep1 = DescriptorBool(name='test', value=True, unique_name='prefix_abc')  # noqa: F841
+        keep2 = DescriptorBool(name='test', value=True, unique_name='prefix_1')  # noqa: F841
 
         # When
         name = global_obj.generate_unique_name('prefix')
@@ -127,8 +127,8 @@ class TestGlobalObject:
         """Test that similar but different prefixes don't interfere"""
         # Given
         global_obj = GlobalObject()
-        keep1 = DescriptorBool(name='test', value=True, unique_name='test_param_5')
-        keep2 = DescriptorBool(name='test', value=True, unique_name='test_parameter_10')
+        keep1 = DescriptorBool(name='test', value=True, unique_name='test_param_5')  # noqa: F841
+        keep2 = DescriptorBool(name='test', value=True, unique_name='test_parameter_10')  # noqa: F841
 
         # When
         name1 = global_obj.generate_unique_name('test_param')

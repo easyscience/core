@@ -12,6 +12,7 @@ from easyscience import Parameter
 from easyscience import global_object
 from easyscience.global_object.map import Map
 from easyscience.global_object.map import _EntryList
+from easyscience.global_object.session import reset_default_session
 
 
 class TestEntryList:
@@ -134,7 +135,7 @@ class TestEntryList:
 class TestMap:
     @pytest.fixture
     def clear(self):
-        global_object.map._clear()
+        reset_default_session()
 
     @pytest.fixture
     def base_object(self):
@@ -154,7 +155,7 @@ class TestMap:
         assert len(global_object.map._store) == 1
         assert len(global_object.map._Map__type_dict) == 1
         # Then
-        global_object.map._clear()
+        reset_default_session()
         # Expect
         assert len(global_object.map._store) == 0
         assert global_object.map._Map__type_dict == {}
@@ -183,10 +184,10 @@ class TestMap:
     @pytest.mark.parametrize('cls, kwargs', [(ObjBase, {}), (Parameter, {'value': 2.0})])
     def test_identical_unique_names_exception(self, clear, cls, kwargs):
         # When
-        test_obj = cls(name='test', unique_name='test', **kwargs)
+        test_obj = cls(name='test', unique_name='test', **kwargs)  # noqa: F841
         # Then Expect
         with pytest.raises(ValueError):
-            test_obj2 = cls(name='test2', unique_name='test', **kwargs)
+            test_obj2 = cls(name='test2', unique_name='test', **kwargs)  # noqa: F841
 
     def test_unique_name_change_still_in_map(self, clear, base_object, parameter_object):
         # When
@@ -206,7 +207,7 @@ class TestMap:
         # When/Then
         with pytest.raises(ValueError, match='already exists'):
             # Try to add another object with same unique_name
-            duplicate_obj = ObjBase(name='duplicate', unique_name=base_object.unique_name)
+            duplicate_obj = ObjBase(name='duplicate', unique_name=base_object.unique_name)  # noqa: F841
 
     def test_add_vertex_with_object_type(self, clear):
         """Test adding vertex with specific object type"""
@@ -487,11 +488,11 @@ class TestMap:
     def test_clear_with_finalizers(self, clear):
         """Test clearing map properly calls finalizers"""
         # Given
-        obj = ObjBase(name='test')
-        original_count = len(global_object.map.vertices())
+        obj = ObjBase(name='test')  # noqa: F841
+        original_count = len(global_object.map.vertices())  # noqa: F841
 
         # When
-        global_object.map._clear()
+        reset_default_session()
 
         # Then
         assert len(global_object.map.vertices()) == 0
@@ -515,8 +516,8 @@ class TestMap:
         test_map = Map()
 
         # Create a mock _store that raises RuntimeError on first iteration attempt
-        call_count = 0
-        original_store = test_map._store
+        call_count = 0  # noqa: F841
+        original_store = test_map._store  # noqa: F841
 
         class MockWeakValueDict:
             def __init__(self):
@@ -701,7 +702,7 @@ class TestMap:
         assert len(global_object.map._Map__type_dict) == 2
 
         # When
-        global_object.map._clear()
+        reset_default_session()
 
         # Then
         assert len(global_object.map._store) == 0

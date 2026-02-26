@@ -2,15 +2,14 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
+import gc
 import warnings
 
 import pytest
 
-from easyscience import global_object
 from easyscience.base_classes.easy_list import EasyList
 from easyscience.base_classes.new_base import NewBase
-from easyscience.base_classes.new_base import Session
-from easyscience.base_classes.new_base import set_default_session
+from easyscience.global_object.session import reset_default_session
 
 
 class Alpha(NewBase):
@@ -30,8 +29,7 @@ class Beta(NewBase):
 class TestEasyList:
     @pytest.fixture(autouse=True)
     def clear(self):
-        global_object.map._clear()
-        set_default_session(Session())
+        reset_default_session()
 
     @pytest.fixture
     def populated_list(self):
@@ -518,9 +516,11 @@ class TestEasyList:
         a2 = Alpha(unique_name='a2')
         el = EasyList(a1, a2, unique_name='my_list', protected_types=Alpha)
         d = el.to_dict()
-        # Dispose of original objects so deserialized objects can reuse the same unique names
-        a1.dispose()
-        a2.dispose()
+        # Delete original objects so deserialized objects can reuse the same unique names
+        del a1
+        del a2
+        del el
+        gc.collect()
         el2 = EasyList.from_dict(d)
         assert len(el2) == 2
         assert el2[0].unique_name == 'a1'

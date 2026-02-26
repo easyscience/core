@@ -5,7 +5,7 @@ import pytest
 
 from easyscience import DescriptorNumber
 from easyscience import ObjBase
-from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 from easyscience.io.serializer_dict import SerializerDict
 
 from .test_serializer_component import check_dict
@@ -69,7 +69,7 @@ def test_variable_SerializerDict_decode(dp_kwargs: dict, dp_cls: Type[Descriptor
     obj = dp_cls(**data_dict)
 
     enc = obj.encode(encoder=SerializerDict)
-    global_object.map._clear()
+    reset_default_session()
     dec = dp_cls.decode(enc, decoder=SerializerDict)
 
     for k in data_dict.keys():
@@ -86,7 +86,7 @@ def test_variable_SerializerDict_from_dict(dp_kwargs: dict, dp_cls: Type[Descrip
     obj = dp_cls(**data_dict)
 
     enc = obj.encode(encoder=SerializerDict)
-    global_object.map._clear()
+    reset_default_session()
     dec = dp_cls.from_dict(enc)
 
     for k in data_dict.keys():

@@ -10,6 +10,7 @@ from easyscience import DescriptorNumber
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import ModelBase
+from easyscience.global_object.session import reset_default_session
 from easyscience.io import SerializerBase
 from easyscience.variable import DescriptorStr
 
@@ -99,7 +100,7 @@ class TestModelBase:
     @pytest.fixture
     def clear(self):
         # Clear the global object map before each test
-        global_object.map._clear()
+        reset_default_session()
 
     def test_init(self):
         # When Then
@@ -155,7 +156,7 @@ class TestModelBase:
         model = MockModelFull(pressure=1)
         monkeypatch.setattr(model, 'get_free_parameters', MagicMock())
         # Then
-        fit_params = model.get_fit_parameters()
+        fit_params = model.get_fit_parameters()  # noqa: F841
         # Expect
         assert model.get_free_parameters.call_count == 1
 
@@ -183,7 +184,7 @@ class TestModelBase:
                 else DescriptorNumber
             ),
         )
-        global_object.map._clear()
+        reset_default_session()
         # Then
         new_model = MockModelComponent.from_dict(obj_dict)
         # Expect
@@ -193,9 +194,9 @@ class TestModelBase:
         assert isinstance(new_model._temperature, Parameter)
         assert isinstance(new_model._room_temperature, DescriptorNumber)
         # ModelBase no longer registers with global map, so only Parameters/DescriptorNumbers are counted
-        assert len(global_object.map.vertices()) == 5
+        assert len(global_object.map.vertices()) == 3
         assert global_object.map.get_item_by_key('Parameter_0') is new_model._temperature
-        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 2
+        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 1
 
     def test_from_dict_nested(self, monkeypatch, clear):
         # When
@@ -216,7 +217,7 @@ class TestModelBase:
                 else DescriptorNumber
             ),
         )
-        global_object.map._clear()
+        reset_default_session()
         # Then
         new_model = MockModelFull.from_dict(obj_dict)
         # Expect
@@ -230,13 +231,13 @@ class TestModelBase:
         assert isinstance(new_model._area, Parameter)
         assert isinstance(new_model.component._temperature, Parameter)
         assert isinstance(new_model.component._room_temperature, DescriptorNumber)
-        assert len(global_object.map.vertices()) == 9
+        assert len(global_object.map.vertices()) == 5
         assert global_object.map.get_item_by_key('Parameter_0') in [
             new_model._pressure,
             new_model._area,
             new_model.component._temperature,
         ]
-        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 6
+        assert len([param for param in global_object.map.vertices() if param.startswith('Parameter')]) == 3
 
     def test_from_dict_not_easyscience(self):
         # When
@@ -274,7 +275,7 @@ class TestModelBase:
         monkeypatch.setattr(
             MockModelComponent, 'temperature', property(lambda self: (_ for _ in ()).throw(Exception('Simulated failure')))
         )
-        global_object.map._clear()
+        reset_default_session()
         # Then Expect
         with pytest.raises(
             SyntaxError, match='Could not set parameter temperature during `from_dict` with full deserialized variable.'

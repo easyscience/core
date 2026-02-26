@@ -38,8 +38,8 @@ class TestMinimizerBase:
         assert minimizer._method == 'method'
         assert minimizer._cached_pars == {}
         assert minimizer._cached_pars_vals == {}
-        assert minimizer._cached_model == None
-        assert minimizer._fit_function == None
+        assert minimizer._cached_model == None  # noqa: E711
+        assert minimizer._fit_function == None  # noqa: E711
 
     def test_enum(self, minimizer: MinimizerBase):
         assert minimizer.enum == self._mock_minimizer_enum
@@ -189,4 +189,4 @@ class TestMinimizerBase:
 
         # Then Expect
         with pytest.raises(FitError):
-            result = minimizer._get_method_kwargs('not_supported_method')
+            result = minimizer._get_method_kwargs('not_supported_method')  # noqa: F841

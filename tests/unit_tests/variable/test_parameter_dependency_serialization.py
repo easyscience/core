@@ -3,14 +3,14 @@ import json
 import pytest
 
 from easyscience import Parameter
-from easyscience import global_object
+from easyscience.global_object.session import reset_default_session
 from easyscience.variable.parameter_dependency_resolver import deserialize_and_resolve_parameters
 from easyscience.variable.parameter_dependency_resolver import get_parameters_with_pending_dependencies
 from easyscience.variable.parameter_dependency_resolver import resolve_all_parameter_dependencies
 
 
 class TestParameterDependencySerialization:
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def clear_global_map(self):
         """This fixture pattern:
           - Clears the map before each test (clean slate)
@@ -25,10 +25,10 @@ class TestParameterDependencySerialization:
         """
         # The global map uses weakref.WeakValueDictionary() for object storage,
         # but also maintains strong references in __type_dict that need explicit cleanup.
-        global_object.map._clear()
+        reset_default_session()
         yield
         # final cleanup after test
-        global_object.map._clear()
+        reset_default_session()
 
     def test_independent_parameter_serialization(self, clear_global_map):
         """Test that independent parameters serialize normally without dependency info."""
@@ -43,7 +43,7 @@ class TestParameterDependencySerialization:
         assert '_independent' not in serialized
 
         # Deserialize
-        global_object.map._clear()
+        reset_default_session()
         new_param = Parameter.from_dict(serialized)
 
         # Should be identical
@@ -69,7 +69,7 @@ class TestParameterDependencySerialization:
         assert serialized['_independent'] is False
 
         # Deserialize
-        global_object.map._clear()
+        reset_default_session()
         new_b = Parameter.from_dict(serialized)
 
         # Should have pending dependency info
@@ -98,7 +98,7 @@ class TestParameterDependencySerialization:
         params_data = {'a': a.as_dict(), 'b': b.as_dict(), 'c': c.as_dict()}
 
         # Clear and deserialize (manual approach)
-        global_object.map._clear()
+        reset_default_session()
         new_params = {}
         for name, data in params_data.items():
             new_params[name] = Parameter.from_dict(data)
@@ -143,7 +143,7 @@ class TestParameterDependencySerialization:
         params_data = {'a': a.as_dict(), 'b': b.as_dict(), 'c': c.as_dict()}
 
         # Clear and deserialize (manual approach)
-        global_object.map._clear()
+        reset_default_session()
         new_params = {}
         for name, data in params_data.items():
             new_params[name] = Parameter.from_dict(data)
@@ -190,8 +190,8 @@ class TestParameterDependencySerialization:
         assert b_serialized['_dependency_map_serializer_ids']['__Parameter_0__'] == a._DescriptorNumber__serializer_id
 
         # Deserialize both and resolve
-        global_object.map._clear()
-        c = Parameter(name='c', value=0.0)  # Dummy to occupy unique name, to force new unique_names
+        reset_default_session()
+        c = Parameter(name='c', value=0.0)  # Dummy to occupy unique name, to force new unique_names  # noqa: F841
 
         # Remove unique_name from serialized data to force generation of new unique names
         a_serialized.pop('unique_name', None)
@@ -228,7 +228,7 @@ class TestParameterDependencySerialization:
         json_str = json.dumps(params_data, default=str)
 
         # Deserialize from JSON
-        global_object.map._clear()
+        reset_default_session()
         loaded_data = json.loads(json_str)
         new_params = {}
         for name, data in loaded_data.items():
@@ -266,7 +266,7 @@ class TestParameterDependencySerialization:
         params_data = {'x': x.as_dict(), 'y': y.as_dict(), 'z': z.as_dict()}
 
         # Deserialize and resolve
-        global_object.map._clear()
+        reset_default_session()
         new_params = {}
         for name, data in params_data.items():
             new_params[name] = Parameter.from_dict(data)
@@ -303,7 +303,7 @@ class TestParameterDependencySerialization:
         # Serialize all
         params_data = {'x': x.as_dict(), 'y': y.as_dict(), 'z': z.as_dict()}
         # Deserialize and resolve
-        global_object.map._clear()
+        reset_default_session()
         new_params = {}
         for name, data in params_data.items():
             if name == 'x':
@@ -331,7 +331,7 @@ class TestParameterDependencySerialization:
 
         # Serialize and deserialize
         params_data = {'a': a.as_dict(), 'b': b.as_dict()}
-        global_object.map._clear()
+        reset_default_session()
         new_params = {}
         for name, data in params_data.items():
             new_params[name] = Parameter.from_dict(data)
@@ -357,7 +357,7 @@ class TestParameterDependencySerialization:
         b_data = b.as_dict()
 
         # Deserialize without a in the global map
-        global_object.map._clear()
+        reset_default_session()
         new_b = Parameter.from_dict(b_data)
 
         # Should raise error when trying to resolve
@@ -374,7 +374,7 @@ class TestParameterDependencySerialization:
 
         # Use base serializer path (SerializerDict.decode)
         serialized = b.encode(encoder=SerializerDict)
-        global_object.map._clear()
+        reset_default_session()
 
         # This should not raise the "_independent" error anymore
         deserialized = SerializerDict.decode(serialized)
@@ -425,7 +425,7 @@ class TestParameterDependencySerialization:
         assert '_dependency_map_serializer_ids' in params_data['z']
 
         # THEN
-        global_object.map._clear()
+        reset_default_session()
         new_params = {}
 
         # Load in the specified order
@@ -471,7 +471,7 @@ class TestParameterDependencySerialization:
         params_data = {'a': a.as_dict(), 'b': b.as_dict(), 'c': c.as_dict()}
 
         # Clear global map
-        global_object.map._clear()
+        reset_default_session()
 
         # Use the helper function instead of manual deserialization + resolution
         new_params = deserialize_and_resolve_parameters(params_data)

@@ -219,7 +219,7 @@ class TestEntryListComprehensive:
         assert regular_list == entry
 
         # But not the same type
-        assert type(entry) != type(regular_list)
+        assert type(entry) is not type(regular_list)
         assert isinstance(entry, _EntryList)
         assert isinstance(entry, list)
 
@@ -294,7 +294,7 @@ class TestEntryListComprehensive:
         pickled = pickle.dumps(entry)
 
         # Deserialize
-        unpickled = pickle.loads(pickled)
+        unpickled = pickle.loads(pickled)  # noqa: S301
 
         # Should preserve data and types
         assert unpickled == entry

@@ -1,4 +1,8 @@
 from .global_object import GlobalObject
+from .global_object.session import Session
+from .global_object.session import get_default_session
+from .global_object.session import reset_default_session
+from .global_object.session import set_default_session
 
 # Must be executed before any other imports
 global_object = GlobalObject()
@@ -21,4 +25,8 @@ __all__ = [
     Fitter,
     DescriptorNumber,
     Parameter,
+    Session,
+    get_default_session,
+    set_default_session,
+    reset_default_session,
 ]

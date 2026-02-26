@@ -35,7 +35,7 @@ class TestDFOFit:
         # When Then Expect
         assert minimizer.supported_methods() == ['leastsq']
 
-    def test_supported_methods(self, minimizer: DFO) -> None:
+    def test_supported_methods(self, minimizer: DFO) -> None:  # noqa: F811
         # When Then Expect
         assert minimizer.supported_methods() == ['leastsq']
 
@@ -197,7 +197,7 @@ class TestDFOFit:
         # Expect
         assert domain_fit_results == mock_domain_fit_results
         assert domain_fit_results.kwargs_set_key == 'kwargs_set_val'
-        assert domain_fit_results.success == True
+        assert domain_fit_results.success == True  # noqa: E712
         assert domain_fit_results.y_obs == 'y'
         assert domain_fit_results.x == 'x'
         assert domain_fit_results.p == {

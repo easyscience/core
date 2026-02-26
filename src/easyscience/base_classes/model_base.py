@@ -108,7 +108,7 @@ class ModelBase(NewBase):
             cls_instance = cls(**kwargs)
             for key, value in parameter_placeholder.items():
                 try:
-                    temp_param = getattr(cls_instance, key)
+                    temp_param = getattr(cls_instance, key)  # noqa: F841
                     setattr(cls_instance, '_' + key, value)
                     # Removed global map pruning - no longer needed with session-based approach
                 except Exception as e:

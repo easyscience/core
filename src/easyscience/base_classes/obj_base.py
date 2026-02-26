@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 from typing import Callable
 from typing import Optional
 
+from easyscience import global_object
+
 from ..utils.classTools import addLoggedProp
 from ..variable.descriptor_base import DescriptorBase
 from .based_base import BasedBase
@@ -51,8 +53,8 @@ class ObjBase(BasedBase):
             if issubclass(type(kwargs[key]), (BasedBase, DescriptorBase)) or 'CollectionBase' in [
                 c.__name__ for c in type(kwargs[key]).__bases__
             ]:
-                self._global_object.map.add_edge(self, kwargs[key])
-                self._global_object.map.reset_type(kwargs[key], 'created_internal')
+                global_object.map.add_edge(self, kwargs[key])
+                global_object.map.reset_type(kwargs[key], 'created_internal')
             addLoggedProp(
                 self,
                 key,
@@ -80,8 +82,8 @@ class ObjBase(BasedBase):
         :return: None
         """
         self._kwargs[key] = component
-        self._global_object.map.add_edge(self, component)
-        self._global_object.map.reset_type(component, 'created_internal')
+        global_object.map.add_edge(self, component)
+        global_object.map.reset_type(component, 'created_internal')
         addLoggedProp(
             self,
             key,
@@ -106,13 +108,13 @@ class ObjBase(BasedBase):
         ):
             if issubclass(type(getattr(self, key, None)), (BasedBase, DescriptorBase)):
                 old_obj = self.__getattribute__(key)
-                self._global_object.map.prune_vertex_from_edge(self, old_obj)
+                global_object.map.prune_vertex_from_edge(self, old_obj)
             self._add_component(key, value)
         else:
             if hasattr(self, key) and issubclass(type(value), (BasedBase, DescriptorBase)):
                 old_obj = self.__getattribute__(key)
-                self._global_object.map.prune_vertex_from_edge(self, old_obj)
-                self._global_object.map.add_edge(self, value)
+                global_object.map.prune_vertex_from_edge(self, old_obj)
+                global_object.map.add_edge(self, value)
         super(ObjBase, self).__setattr__(key, value)
         # Update the interface bindings if something changed (BasedBase and Descriptor)
         if old_obj is not None:

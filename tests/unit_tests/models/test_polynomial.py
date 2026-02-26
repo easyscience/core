@@ -6,8 +6,8 @@
 import numpy as np
 import pytest
 
-from easyscience import global_object
 from easyscience.base_classes import CollectionBase
+from easyscience.global_object.session import reset_default_session
 from easyscience.models.polynomial import Polynomial
 from easyscience.variable import Parameter
 
@@ -15,7 +15,7 @@ from easyscience.variable import Parameter
 @pytest.fixture
 def clear():
     """Clear global object map before each test."""
-    global_object.map._clear()
+    reset_default_session()
 
 
 poly_test_cases = (

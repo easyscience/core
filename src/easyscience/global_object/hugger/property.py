@@ -61,7 +61,7 @@ class LoggedProperty(property):
             if global_object.map.is_known(item_to_be_resulted):
                 global_object.map.change_type(item_to_be_resulted, 'returned')
             else:
-                global_object.map.add_vertex(item_to_be_resulted, obj_type='returned')
+                global_object.map._add_vertex_no_warn(item_to_be_resulted, obj_type='returned')
 
         if not test and self._get_id is not None and self._my_self is not None:
             if not isinstance(res, list):

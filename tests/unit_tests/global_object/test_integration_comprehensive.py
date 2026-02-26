@@ -11,6 +11,7 @@ from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.global_object.global_object import GlobalObject
+from easyscience.global_object.session import reset_default_session
 from easyscience.variable import DescriptorBool
 
 
@@ -20,11 +21,11 @@ class TestGlobalObjectIntegration:
     @pytest.fixture
     def clear_all(self):
         """Clear everything before and after each test"""
-        global_object.map._clear()
+        reset_default_session()
         if global_object.stack:
             global_object.stack.clear()
         yield
-        global_object.map._clear()
+        reset_default_session()
         if global_object.stack:
             global_object.stack.clear()
 
@@ -61,14 +62,14 @@ class TestGlobalObjectIntegration:
 
         # When - Delete parameter
         param_name = param.unique_name
-        original_count = len(global_obj.map.vertices())
+        original_count = len(global_obj.map.vertices())  # noqa: F841
         del param
         gc.collect()
 
         # Then - Should be removed from global map (via weak references)
         # Note: garbage collection timing can vary, so we check count decrease
         # or explicit cleanup
-        final_count = len(global_obj.map.vertices())
+        final_count = len(global_obj.map.vertices())  # noqa: F841
         if param_name in global_obj.map.vertices():
             # If still present, manually clean up for test consistency
             global_obj.map.prune(param_name)
@@ -110,7 +111,7 @@ class TestGlobalObjectIntegration:
     def test_unique_name_generation_integration(self, clear_all):
         """Test unique name generation across different object types"""
         # Given
-        global_obj = GlobalObject()
+        global_obj = GlobalObject()  # noqa: F841
 
         # When - Create multiple objects of same type
         params = []
@@ -280,14 +281,14 @@ class TestGlobalObjectIntegration:
         # When - Create connected objects
         param1 = Parameter(name='connected1', value=1.0)
         param2 = Parameter(name='connected2', value=2.0)
-        container = ObjBase(name='container', p1=param1, p2=param2)
+        container = ObjBase(name='container', p1=param1, p2=param2)  # noqa: F841
 
         # Then - Map should be connected
         # TODO: Depending on implementation, connectivity might vary
         # assert global_obj.map.is_connected()
 
         # When - Create isolated object
-        isolated = Parameter(name='isolated', value=99.0)
+        isolated = Parameter(name='isolated', value=99.0)  # noqa: F841
         # Remove its automatic connection by clearing edges
         # (In real usage, isolated objects would be rare)
 
@@ -307,7 +308,7 @@ class TestGlobalObjectIntegration:
 
         # When - Try to add object with duplicate name
         param1 = Parameter(name='test', value=1.0)
-        param1_name = param1.unique_name
+        param1_name = param1.unique_name  # noqa: F841
 
         # Create another with same unique name (should fail in add_vertex)
         with pytest.raises(ValueError, match='already exists'):
@@ -359,7 +360,7 @@ class TestGlobalObjectIntegration:
         param = Parameter(name='test_param', value=123.45, unit='kg')
         obj = ObjBase(name='test_obj', param=param)
 
-        original_vertex_count = len(global_obj.map.vertices())
+        original_vertex_count = len(global_obj.map.vertices())  # noqa: F841
 
         # When - Serialize objects
         param_dict = param.as_dict()
@@ -367,6 +368,7 @@ class TestGlobalObjectIntegration:
 
         # Clear global state
         global_obj.map._clear()
+        reset_default_session()
         assert len(global_obj.map.vertices()) == 0
 
         # When - Deserialize objects
@@ -401,7 +403,7 @@ class TestGlobalObjectIntegration:
             param = Parameter(name='debug_test', value=1.0)
 
             # This should trigger debug output in property_stack decorator
-            with patch('builtins.print') as mock_print:
+            with patch('builtins.print') as mock_print:  # noqa: F841
                 param.value = 2.0
 
                 # Should have printed debug info (if debug mode works)

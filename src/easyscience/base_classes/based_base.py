@@ -13,6 +13,8 @@ from typing import Optional
 from typing import Set
 
 from easyscience import global_object
+from easyscience.global_object.session import Session
+from easyscience.global_object.session import get_default_session
 
 from ..io import SerializerComponent
 from ..variable import Parameter
@@ -23,17 +25,31 @@ if TYPE_CHECKING:
 
 
 class BasedBase(SerializerComponent):
-    __slots__ = ['_name', '_global_object', 'user_data', '_kwargs']
+    __slots__ = ['_name', '_session', '_domain', 'user_data', '_kwargs']
 
     _REDIRECT = {}
 
-    def __init__(self, name: str, interface: Optional[InterfaceFactoryTemplate] = None, unique_name: Optional[str] = None):
-        self._global_object = global_object
+    def __init__(
+        self,
+        name: str,
+        interface: Optional[InterfaceFactoryTemplate] = None,
+        unique_name: Optional[str] = None,
+        session: Optional[Session] = None,
+        domain: str = Session._DEFAULT_DOMAIN,
+    ):
+        self._session = session if session is not None else get_default_session()
+        self._domain = domain
+
         if unique_name is None:
-            unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
+            unique_name = self._session.generate_unique_name(self.__class__.__name__, domain=self._domain)
         self._unique_name = unique_name
         self._name = name
-        self._global_object.map.add_vertex(self, obj_type='created')
+
+        # Register in session
+        self._session.register(self, domain=self._domain)
+        # Also register in global_object.map for backward compatibility
+        global_object.map._add_vertex_no_warn(self, obj_type='created')
+
         self.interface = interface
         self.user_data: dict = {}
 
@@ -63,13 +79,16 @@ class BasedBase(SerializerComponent):
 
     @unique_name.setter
     def unique_name(self, new_unique_name: str):
-        """Set a new unique name for the object. The old name is still kept in the map.
+        """Set a new unique name for the object.
 
         :param new_unique_name: New unique name for the object"""
         if not isinstance(new_unique_name, str):
             raise TypeError('Unique name has to be a string.')
+        old_name = self._unique_name
         self._unique_name = new_unique_name
-        self._global_object.map.add_vertex(self)
+        self._session.rename(old_name, new_unique_name, self, domain=self._domain)
+        # Also update in global_object.map for backward compatibility
+        global_object.map._add_vertex_no_warn(self)
 
     @property
     def name(self) -> str:
@@ -122,11 +141,11 @@ class BasedBase(SerializerComponent):
             raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
         interfaceable_children = [
             key
-            for key in self._global_object.map.get_edges(self)
-            if issubclass(type(self._global_object.map.get_item_by_key(key)), BasedBase)
+            for key in global_object.map.get_edges(self)
+            if issubclass(type(global_object.map.get_item_by_key(key)), BasedBase)
         ]
         for child_key in interfaceable_children:
-            child = self._global_object.map.get_item_by_key(child_key)
+            child = global_object.map.get_item_by_key(child_key)
             child.interface = self.interface
         self.interface.generate_bindings(self)
 
