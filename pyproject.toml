@@ -33,7 +33,8 @@ dependencies = [
     "bumps",
     "DFO-LS",
     "lmfit",
-    "numpy",  
+    "numpy",
+    "ruff",
     "uncertainties",
     "scipp"
 ]
@@ -51,7 +52,6 @@ dev = [
     "matplotlib",
     "pytest",
     "pytest-cov",
-    "ruff",
     "tox-gh-actions",
     "jupyterlab"
 ]
