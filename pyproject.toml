@@ -177,10 +177,10 @@ testpaths = ['tests']
 # https://docs.astral.sh/ruff/rules/
 
 [tool.ruff]
-exclude = ['tmp']
+exclude = ['legacy', 'tests']
 indent-width = 4
 line-length = 99
-preview = true    # Enable new rules that are not yet stable, like DOC
+preview = true                # Enable new rules that are not yet stable, like DOC
 
 [tool.ruff.format]
 docstring-code-format = true    # Whether to format code snippets in docstrings
@@ -193,12 +193,12 @@ quote-style = 'single'          # But double quotes in docstrings (PEP 8, PEP 25
 [tool.ruff.lint]
 select = [
   #  'E',   # General PEP 8 style errors
-  #  'E9',  # Runtime errors (e.g., syntax errors, undefined names)
+  'E9', # Runtime errors (e.g., syntax errors, undefined names)
   #  'F',   # Pyflakes-specific checks (e.g., unused variables, imports)
-  #  'F63', # Issues related to invalid escape sequences in strings
-  #  'F7',  # Type-related errors (e.g., mismatched argument types, unsupported operations)
-  #  'F82', # Import-related errors (e.g., unresolved imports, reimported modules)
-  #  'I',   # Import sorting issues (e.g., unsorted imports)
+  'F63', # Issues related to invalid escape sequences in strings
+  'F7',  # Type-related errors (e.g., mismatched argument types, unsupported operations)
+  'F82', # Import-related errors (e.g., unresolved imports, reimported modules)
+  'I',   # Import sorting issues (e.g., unsorted imports)
   #  'S',   # Security-related issues (e.g., use of insecure functions or libraries)
   #  'W',   # General PEP 8 warnings (e.g., lines too long, trailing whitespace)
 ]
