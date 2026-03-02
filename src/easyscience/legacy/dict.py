@@ -1,9 +1,10 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
 __author__ = 'https://github.com/materialsvirtuallab/monty/blob/master/monty/json.py'
 __version__ = '3.0.0'
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
@@ -22,8 +23,8 @@ _KNOWN_CORE_TYPES = ('Descriptor', 'Parameter')
 
 
 class DictSerializer(BaseEncoderDecoder):
-    """
-    This is a serializer that can encode and decode EasyScience objects to a JSON encoded dictionary.
+    """This is a serializer that can encode and decode EasyScience
+    objects to a JSON encoded dictionary.
     """
 
     def encode(
@@ -33,14 +34,17 @@ class DictSerializer(BaseEncoderDecoder):
         full_encode: bool = False,
         **kwargs,
     ):
-        """
-        Convert an EasyScience object to a JSON encoded dictionary
+        """Convert an EasyScience object to a JSON encoded dictionary.
 
         :param obj: Object to be encoded.
-        :param skip: List of field names as strings to skip when forming the encoded object
-        :param full_encode: Should the data also be JSON encoded (default False)
-        :param kwargs: Any additional key word arguments to be passed to the encoder
-        :return: object encoded to dictionary containing all information to reform an EasyScience object.
+        :param skip: List of field names as strings to skip when forming
+            the encoded object
+        :param full_encode: Should the data also be JSON encoded
+            (default False)
+        :param kwargs: Any additional key word arguments to be passed to
+            the encoder
+        :return: object encoded to dictionary containing all information
+            to reform an EasyScience object.
         """
 
         return self._convert_to_dict(obj, skip=skip, full_encode=full_encode, **kwargs)
@@ -64,8 +68,8 @@ class DictSerializer(BaseEncoderDecoder):
 
 
 class DataDictSerializer(DictSerializer):
-    """
-    This is a serializer that can encode the data in an EasyScience object to a JSON encoded dictionary.
+    """This is a serializer that can encode the data in an EasyScience
+    object to a JSON encoded dictionary.
     """
 
     def encode(
@@ -75,13 +79,16 @@ class DataDictSerializer(DictSerializer):
         full_encode: bool = False,
         **kwargs,
     ) -> Dict[str, Any]:
-        """
-        Convert an EasyScience object to a JSON encoded data dictionary
+        """Convert an EasyScience object to a JSON encoded data
+        dictionary.
 
         :param obj: Object to be encoded.
-        :param skip: List of field names as strings to skip when forming the encoded object
-        :param full_encode: Should the data also be JSON encoded (default False)
-        :param kwargs: Any additional key word arguments to be passed to the encoder
+        :param skip: List of field names as strings to skip when forming
+            the encoded object
+        :param full_encode: Should the data also be JSON encoded
+            (default False)
+        :param kwargs: Any additional key word arguments to be passed to
+            the encoder
         :return: object encoded to data dictionary.
         """
 
@@ -96,18 +103,18 @@ class DataDictSerializer(DictSerializer):
 
     @classmethod
     def decode(cls, d: Dict[str, Any]) -> ComponentSerializer:
-        """
-        This function is not implemented as a data dictionary does not contain the necessary information to re-form an
-        EasyScience object.
+        """This function is not implemented as a data dictionary does
+        not contain the necessary information to re-form an EasyScience
+        object.
         """
 
-        raise NotImplementedError('It is not possible to reconstitute objects from data only dictionary.')
+        raise NotImplementedError(
+            'It is not possible to reconstitute objects from data only dictionary.'
+        )
 
     @staticmethod
     def _parse_dict(in_dict: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Strip out any non-data from a dictionary
-        """
+        """Strip out any non-data from a dictionary."""
 
         out_dict = dict()
         for key in in_dict.keys():
@@ -119,5 +126,8 @@ class DataDictSerializer(DictSerializer):
             if isinstance(in_dict[key], dict):
                 out_dict[key] = DataDictSerializer._parse_dict(in_dict[key])
             elif isinstance(in_dict[key], list):
-                out_dict[key] = [DataDictSerializer._parse_dict(x) if isinstance(x, dict) else x for x in in_dict[key]]
+                out_dict[key] = [
+                    DataDictSerializer._parse_dict(x) if isinstance(x, dict) else x
+                    for x in in_dict[key]
+                ]
         return out_dict

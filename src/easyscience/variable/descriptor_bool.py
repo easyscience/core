@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
 from typing import Any
@@ -9,9 +12,7 @@ from .descriptor_base import DescriptorBase
 
 
 class DescriptorBool(DescriptorBase):
-    """
-    A `Descriptor` for boolean values.
-    """
+    """A `Descriptor` for boolean values."""
 
     def __init__(
         self,
@@ -39,8 +40,7 @@ class DescriptorBool(DescriptorBase):
 
     @property
     def value(self) -> bool:
-        """
-        Get the value of self.
+        """Get the value of self.
 
         :return: Value of self
         """
@@ -49,8 +49,7 @@ class DescriptorBool(DescriptorBase):
     @value.setter
     @property_stack
     def value(self, value: bool) -> None:
-        """
-        Set the value of self.
+        """Set the value of self.
 
         :param value: New value of self
         :return: None

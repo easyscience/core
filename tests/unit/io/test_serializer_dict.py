@@ -1,17 +1,19 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from copy import deepcopy
 from typing import Type
 
 import pytest
 
-from easyscience.io.serializer_dict import SerializerDict
 from easyscience import DescriptorNumber
 from easyscience import ObjBase
+from easyscience import global_object
+from easyscience.io.serializer_dict import SerializerDict
 
 from .test_serializer_component import check_dict
 from .test_serializer_component import dp_param_dict
 from .test_serializer_component import skip_dict
-from easyscience import global_object
 
 
 def recursive_remove(d, remove_keys: list) -> dict:
@@ -36,7 +38,7 @@ def recursive_remove(d, remove_keys: list) -> dict:
 @pytest.mark.parametrize(**skip_dict)
 @pytest.mark.parametrize(**dp_param_dict)
 def test_variable_SerializerDict(dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
+    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != '@'}
 
     obj = dp_cls(**data_dict)
 
@@ -59,12 +61,13 @@ def test_variable_SerializerDict(dp_kwargs: dict, dp_cls: Type[DescriptorNumber]
 
     check_dict(dp_kwargs, enc)
 
+
 ########################################################################################################################
 # TESTING DECODING
 ########################################################################################################################
 @pytest.mark.parametrize(**dp_param_dict)
 def test_variable_SerializerDict_decode(dp_kwargs: dict, dp_cls: Type[DescriptorNumber]):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
+    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != '@'}
 
     obj = dp_cls(**data_dict)
 
@@ -76,12 +79,12 @@ def test_variable_SerializerDict_decode(dp_kwargs: dict, dp_cls: Type[Descriptor
         if hasattr(obj, k) and hasattr(dec, k):
             assert getattr(obj, k) == getattr(dec, k)
         else:
-            raise AttributeError(f"{k} not found in decoded object")
+            raise AttributeError(f'{k} not found in decoded object')
 
 
 @pytest.mark.parametrize(**dp_param_dict)
 def test_variable_SerializerDict_from_dict(dp_kwargs: dict, dp_cls: Type[DescriptorNumber]):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
+    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != '@'}
 
     obj = dp_cls(**data_dict)
 
@@ -93,25 +96,26 @@ def test_variable_SerializerDict_from_dict(dp_kwargs: dict, dp_cls: Type[Descrip
         if hasattr(obj, k) and hasattr(dec, k):
             assert getattr(obj, k) == getattr(dec, k)
         else:
-            raise AttributeError(f"{k} not found in decoded object")
+            raise AttributeError(f'{k} not found in decoded object')
+
 
 def test_group_encode():
-    d0 = DescriptorNumber("a", 0)
-    d1 = DescriptorNumber("b", 1)
+    d0 = DescriptorNumber('a', 0)
+    d1 = DescriptorNumber('b', 1)
 
     from easyscience.base_classes import CollectionBase
 
-    b = CollectionBase("test", d0, d1)
+    b = CollectionBase('test', d0, d1)
     d = b.as_dict()
-    assert isinstance(d["data"], list)
+    assert isinstance(d['data'], list)
 
 
 def test_group_encode2():
-    d0 = DescriptorNumber("a", 0)
-    d1 = DescriptorNumber("b", 1)
+    d0 = DescriptorNumber('a', 0)
+    d1 = DescriptorNumber('b', 1)
 
     from easyscience.base_classes import CollectionBase
 
-    b = ObjBase("outer", b=CollectionBase("test", d0, d1))
+    b = ObjBase('outer', b=CollectionBase('test', d0, d1))
     d = b.as_dict()
-    assert isinstance(d["b"], dict)
+    assert isinstance(d['b'], dict)

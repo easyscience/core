@@ -1,9 +1,12 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 import numpy as np
 
 
 class FitResults:
-    """
-    At the moment this is just a dummy way of unifying the returned fit parameters.
+    """At the moment this is just a dummy way of unifying the returned
+    fit parameters.
     """
 
     __slots__ = [

@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import abc
@@ -19,9 +20,7 @@ import numpy as np
 
 
 class UndoCommand(metaclass=abc.ABCMeta):
-    """
-    The Command interface pattern
-    """
+    """The Command interface pattern."""
 
     def __init__(self, obj) -> None:
         self._obj = obj
@@ -29,15 +28,11 @@ class UndoCommand(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def undo(self) -> NoReturn:
-        """
-        Undo implementation which should be overwritten
-        """
+        """Undo implementation which should be overwritten."""
 
     @abc.abstractmethod
     def redo(self) -> NoReturn:
-        """
-        Redo implementation which should be overwritten
-        """
+        """Redo implementation which should be overwritten."""
 
     @property
     def text(self) -> str:
@@ -68,8 +63,9 @@ def dict_stack_deco(func: Callable) -> Callable:
 
 
 class NotarizedDict(UserDict):
-    """
-    A simple dict drop in for EasyScience group classes. This is used as it wraps the get/set methods
+    """A simple dict drop in for EasyScience group classes.
+
+    This is used as it wraps the get/set methods
     """
 
     def __init__(self, **kwargs):
@@ -101,8 +97,8 @@ class NotarizedDict(UserDict):
 
 
 class CommandHolder:
-    """
-    A holder for one or more commands which are added to the stack
+    """A holder for one or more commands which are added to the
+    stack.
     """
 
     def __init__(self, text: str = None):
@@ -149,9 +145,7 @@ class CommandHolder:
 
 
 class UndoStack:
-    """
-    Implement a version of QUndoStack without the QT
-    """
+    """Implement a version of QUndoStack without the QT."""
 
     def __init__(self, max_history: Union[int, type(None)] = None):
         self._history = deque(maxlen=max_history)
@@ -183,9 +177,7 @@ class UndoStack:
         return self._future
 
     def push(self, command: T_) -> NoReturn:
-        """
-        Add a command to the history stack
-        """
+        """Add a command to the history stack."""
         # If we're not enabled, then what are we doing!
         if not self.enabled or self._command_running:
             # Do the command and leave.
@@ -220,17 +212,13 @@ class UndoStack:
         return popped
 
     def clear(self) -> None:  # NoReturn:
-        """
-        Remove any commands on the stack and reset the state
-        """
+        """Remove any commands on the stack and reset the state."""
         self._history = deque(maxlen=self._max_history)
         self._future = deque(maxlen=self._max_history)
         self._macro_running = False
 
     def undo(self) -> NoReturn:
-        """
-        Undo the last change to the stack
-        """
+        """Undo the last change to the stack."""
         if self.canUndo():
             # Move the command from the past to the future
             this_command_stack = self._history.popleft()
@@ -247,9 +235,7 @@ class UndoStack:
                     self._command_running = False
 
     def redo(self) -> NoReturn:
-        """
-        Redo the last `undo` command on the stack
-        """
+        """Redo the last `undo` command on the stack."""
         if self.canRedo():
             # Move from the future to the past
             this_command_stack = self._future.popleft()
@@ -267,8 +253,8 @@ class UndoStack:
                     self._command_running = False
 
     def beginMacro(self, text: str) -> NoReturn:
-        """
-        Start a bulk update i.e. multiple commands under one undo/redo command
+        """Start a bulk update i.e. multiple commands under one
+        undo/redo command.
         """
         if self._macro_running:
             raise AssertionError('Cannot start a macro when one is already running')
@@ -277,38 +263,30 @@ class UndoStack:
         self._macro_running = True
 
     def endMacro(self) -> NoReturn:
-        """
-        End a bulk update i.e. multiple commands under one undo/redo command
+        """End a bulk update i.e. multiple commands under one undo/redo
+        command.
         """
         if not self._macro_running:
             raise AssertionError('Cannot end a macro when one is not running')
         self._macro_running = False
 
     def canUndo(self) -> bool:
-        """
-        Can the last command be undone?
-        """
+        """Can the last command be undone?"""
         return len(self._history) > 0 and not self._macro_running
 
     def canRedo(self) -> bool:
-        """
-        Can we redo a command?
-        """
+        """Can we redo a command?"""
         return len(self._future) > 0 and not self._macro_running
 
     def redoText(self) -> str:
-        """
-        Text associated with a redo item.
-        """
+        """Text associated with a redo item."""
         text = ''
         if self.canRedo():
             text = self.future[0].text
         return text
 
     def undoText(self) -> str:
-        """
-        Text associated with a undo item.
-        """
+        """Text associated with a undo item."""
         text = ''
         if self.canUndo():
             text = self.history[0].text
@@ -316,9 +294,7 @@ class UndoStack:
 
 
 class PropertyStack(UndoCommand):
-    """
-    Stack operator for when a property setter is wrapped.
-    """
+    """Stack operator for when a property setter is wrapped."""
 
     def __init__(self, parent, func: Callable, old_value: Any, new_value: Any, text: str = None):
         # self.setText("Setting {} to {}".format(func.__name__, new_value))

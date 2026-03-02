@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
@@ -16,8 +17,7 @@ from ..variable import Parameter
 
 
 class Polynomial(ObjBase):
-    """
-    A polynomial model.
+    """A polynomial model.
 
     Parameters
     ----------
@@ -59,7 +59,11 @@ class Polynomial(ObjBase):
             if len(self.coefficients) >= 2:
                 s += [f'{self.coefficients[1].value}x']
                 if len(self.coefficients) >= 3:
-                    s += [f'{c.value}x^{i + 2}' for i, c in enumerate(self.coefficients[2:]) if c.value != 0]
+                    s += [
+                        f'{c.value}x^{i + 2}'
+                        for i, c in enumerate(self.coefficients[2:])
+                        if c.value != 0
+                    ]
         s.reverse()
         s = ' + '.join(s)
         return 'Polynomial({}, {})'.format(self.name, s)

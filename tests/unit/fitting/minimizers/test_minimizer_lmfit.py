@@ -1,22 +1,25 @@
-import pytest
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from unittest.mock import MagicMock
 
-import easyscience.fitting.minimizers.minimizer_lmfit
-from easyscience.fitting.minimizers.minimizer_lmfit import LMFit
-from easyscience import Parameter
-from lmfit import Parameter as LMParameter
-from easyscience.fitting.minimizers.utils import FitError
 import numpy as np
+import pytest
+from lmfit import Parameter as LMParameter
+
+import easyscience.fitting.minimizers.minimizer_lmfit
+from easyscience import Parameter
+from easyscience.fitting.minimizers.minimizer_lmfit import LMFit
+from easyscience.fitting.minimizers.utils import FitError
 
 
-class TestLMFit():
+class TestLMFit:
     @pytest.fixture
     def minimizer(self) -> LMFit:
         minimizer = LMFit(
             obj='obj',
-            fit_function='fit_function', 
-            minimizer_enum=MagicMock(package='lm', method='leastsq')
+            fit_function='fit_function',
+            minimizer_enum=MagicMock(package='lm', method='leastsq'),
         )
         return minimizer
 
@@ -27,11 +30,22 @@ class TestLMFit():
         with pytest.raises(FitError):
             LMFit(
                 obj='obj',
-                fit_function='fit_function', 
-                minimizer_enum=MagicMock(package='dfo', method='not_leastsq')
+                fit_function='fit_function',
+                minimizer_enum=MagicMock(package='dfo', method='not_leastsq'),
             )
 
-    @pytest.mark.parametrize("weights", [np.array([1, 2, 3, 4]), np.array([[1, 2, 3], [4, 5, 6]]), np.repeat(np.nan,3), np.zeros(3), np.repeat(np.inf,3), -np.ones(3)], ids=["wrong_length", "multidimensional", "NaNs", "zeros", "Infs", "negative"])
+    @pytest.mark.parametrize(
+        'weights',
+        [
+            np.array([1, 2, 3, 4]),
+            np.array([[1, 2, 3], [4, 5, 6]]),
+            np.repeat(np.nan, 3),
+            np.zeros(3),
+            np.repeat(np.inf, 3),
+            -np.ones(3),
+        ],
+        ids=['wrong_length', 'multidimensional', 'NaNs', 'zeros', 'Infs', 'negative'],
+    )
     def test_fit_weight_exceptions(self, minimizer: LMFit, weights) -> None:
         # When Then Expect
         with pytest.raises(ValueError):
@@ -41,7 +55,9 @@ class TestLMFit():
         # When
         mock_lm_model = MagicMock()
         mock_LMModel = MagicMock(return_value=mock_lm_model)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_lmfit, "LMModel", mock_LMModel)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_lmfit, 'LMModel', mock_LMModel
+        )
         minimizer._generate_fit_function = MagicMock(return_value='model')
         mock_parm_1 = MagicMock(LMParameter)
         mock_parm_1.value = 1.0
@@ -55,10 +71,12 @@ class TestLMFit():
 
         # Then
         model = minimizer._make_model(pars=pars)
-        
+
         # Expect
         minimizer._generate_fit_function.assert_called_once_with()
-        mock_LMModel.assert_called_once_with('model', independent_vars=['x'], param_names=['pkey_1', 'pkey_2'])
+        mock_LMModel.assert_called_once_with(
+            'model', independent_vars=['x'], param_names=['pkey_1', 'pkey_2']
+        )
         mock_lm_model.set_param_hint.assert_called_with('pkey_2', value=2.0, min=-20.0, max=20.0)
         assert mock_lm_model.set_param_hint.call_count == 2
         assert model == mock_lm_model
@@ -67,7 +85,9 @@ class TestLMFit():
         # When
         mock_lm_model = MagicMock()
         mock_LMModel = MagicMock(return_value=mock_lm_model)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_lmfit, "LMModel", mock_LMModel)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_lmfit, 'LMModel', mock_LMModel
+        )
         minimizer._generate_fit_function = MagicMock(return_value='model')
         mock_parm_1 = MagicMock(Parameter)
         mock_parm_1.value = 1.0
@@ -81,10 +101,12 @@ class TestLMFit():
 
         # Then
         model = minimizer._make_model()
-        
+
         # Expect
         minimizer._generate_fit_function.assert_called_once_with()
-        mock_LMModel.assert_called_once_with('model', independent_vars=['x'], param_names=['pkey_1', 'pkey_2'])
+        mock_LMModel.assert_called_once_with(
+            'model', independent_vars=['x'], param_names=['pkey_1', 'pkey_2']
+        )
         mock_lm_model.set_param_hint.assert_called_with('pkey_2', value=2.0, min=-20.0, max=20.0)
         assert mock_lm_model.set_param_hint.call_count == 2
         assert model == mock_lm_model
@@ -92,6 +114,7 @@ class TestLMFit():
     def test_fit(self, minimizer: LMFit) -> None:
         # When
         from easyscience import global_object
+
         global_object.stack.enabled = False
 
         mock_model = MagicMock()
@@ -105,7 +128,9 @@ class TestLMFit():
 
         # Expect
         assert result == 'gen_fit_results'
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq')
+        mock_model.fit.assert_called_once_with(
+            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq'
+        )
         minimizer._make_model.assert_called_once_with()
         minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
         minimizer._gen_fit_results.assert_called_once_with('fit')
@@ -122,7 +147,9 @@ class TestLMFit():
         minimizer.fit(x=1.0, y=2.0, weights=1, model=mock_model)
 
         # Expect
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq')
+        mock_model.fit.assert_called_once_with(
+            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq'
+        )
         minimizer._make_model.assert_not_called()
 
     def test_fit_method(self, minimizer: LMFit) -> None:
@@ -139,7 +166,9 @@ class TestLMFit():
         minimizer.fit(x=1.0, y=2.0, weights=1, method='method_passed')
 
         # Expect
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='method_passed')
+        mock_model.fit.assert_called_once_with(
+            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='method_passed'
+        )
         minimizer.supported_methods.assert_called_once_with()
 
     def test_fit_kwargs(self, minimizer: LMFit) -> None:
@@ -151,10 +180,24 @@ class TestLMFit():
         minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
 
         # Then
-        minimizer.fit(x=1.0, y=2.0, weights=1, minimizer_kwargs={'minimizer_key': 'minimizer_val'}, engine_kwargs={'engine_key': 'engine_val'})
+        minimizer.fit(
+            x=1.0,
+            y=2.0,
+            weights=1,
+            minimizer_kwargs={'minimizer_key': 'minimizer_val'},
+            engine_kwargs={'engine_key': 'engine_val'},
+        )
 
         # Expect
-        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, fit_kws={'minimizer_key': 'minimizer_val'}, method='leastsq', engine_key='engine_val')
+        mock_model.fit.assert_called_once_with(
+            2.0,
+            x=1.0,
+            weights=1,
+            max_nfev=None,
+            fit_kws={'minimizer_key': 'minimizer_val'},
+            method='leastsq',
+            engine_key='engine_val',
+        )
 
     def test_fit_exception(self, minimizer: LMFit) -> None:
         # When
@@ -169,14 +212,16 @@ class TestLMFit():
     def test_convert_to_pars_obj(self, minimizer: LMFit, monkeypatch) -> None:
         # When
         minimizer._object = MagicMock()
-        minimizer._object.get_fit_parameters = MagicMock(return_value = ['parm_1', 'parm_2'])
+        minimizer._object.get_fit_parameters = MagicMock(return_value=['parm_1', 'parm_2'])
 
         minimizer.convert_to_par_object = MagicMock(return_value='convert_to_par_object')
 
         mock_lm_parameter = MagicMock()
         mock_lm_parameter.add_many = MagicMock(return_value='add_many')
         mock_LMParameters = MagicMock(return_value=mock_lm_parameter)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_lmfit, "LMParameters", mock_LMParameters)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_lmfit, 'LMParameters', mock_LMParameters
+        )
 
         # Then
         pars = minimizer.convert_to_pars_obj()
@@ -186,7 +231,10 @@ class TestLMFit():
         assert minimizer.convert_to_par_object.call_count == 2
         minimizer._object.get_fit_parameters.assert_called_once_with()
         minimizer.convert_to_par_object.assert_called_with('parm_2')
-        mock_lm_parameter.add_many.assert_called_once_with(['convert_to_par_object', 'convert_to_par_object'])
+        mock_lm_parameter.add_many.assert_called_once_with([
+            'convert_to_par_object',
+            'convert_to_par_object',
+        ])
 
     def test_convert_to_pars_obj_with_parameters(self, minimizer: LMFit, monkeypatch) -> None:
         # When
@@ -195,7 +243,9 @@ class TestLMFit():
         mock_lm_parameter = MagicMock()
         mock_lm_parameter.add_many = MagicMock(return_value='add_many')
         mock_LMParameters = MagicMock(return_value=mock_lm_parameter)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_lmfit, "LMParameters", mock_LMParameters)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_lmfit, 'LMParameters', mock_LMParameters
+        )
 
         # Then
         pars = minimizer.convert_to_pars_obj(['parm_1', 'parm_2'])
@@ -204,13 +254,18 @@ class TestLMFit():
         assert pars == 'add_many'
         assert minimizer.convert_to_par_object.call_count == 2
         minimizer.convert_to_par_object.assert_called_with('parm_2')
-        mock_lm_parameter.add_many.assert_called_once_with(['convert_to_par_object', 'convert_to_par_object'])
+        mock_lm_parameter.add_many.assert_called_once_with([
+            'convert_to_par_object',
+            'convert_to_par_object',
+        ])
 
     def test_convert_to_par_object(self, minimizer: LMFit, monkeypatch) -> None:
         # When
         mock_lm_parameter = MagicMock()
         mock_LMParameter = MagicMock(return_value=mock_lm_parameter)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_lmfit, "LMParameter", mock_LMParameter)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_lmfit, 'LMParameter', mock_LMParameter
+        )
 
         mock_parm = MagicMock(Parameter)
         mock_parm.value = 1.0
@@ -224,7 +279,15 @@ class TestLMFit():
 
         # Expect
         assert par == mock_lm_parameter
-        mock_LMParameter.assert_called_once_with('pkey_converted', value=1.0, vary=False, min=-10.0, max=10.0, expr=None, brute_step=None)
+        mock_LMParameter.assert_called_once_with(
+            'pkey_converted',
+            value=1.0,
+            vary=False,
+            min=-10.0,
+            max=10.0,
+            expr=None,
+            brute_step=None,
+        )
 
     def test_set_parameter_fit_result_no_stack_status(self, minimizer: LMFit) -> None:
         # When
@@ -286,10 +349,12 @@ class TestLMFit():
         # When
         mock_domain_fit_results = MagicMock()
         mock_FitResults = MagicMock(return_value=mock_domain_fit_results)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_lmfit, "FitResults", mock_FitResults)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_lmfit, 'FitResults', mock_FitResults
+        )
 
         mock_fit_result = MagicMock()
-        mock_fit_result.success ='success'
+        mock_fit_result.success = 'success'
         mock_fit_result.data = 'data'
         mock_fit_result.userkws = {'x': 'x_val'}
         mock_fit_result.values = 'values'
@@ -298,18 +363,22 @@ class TestLMFit():
         mock_fit_result.weights = 10
 
         # Then
-        domain_fit_results = minimizer._gen_fit_results(mock_fit_result, **{'kwargs_set_key': 'kwargs_set_val'})
+        domain_fit_results = minimizer._gen_fit_results(
+            mock_fit_result, **{'kwargs_set_key': 'kwargs_set_val'}
+        )
 
         # Expect
         assert domain_fit_results == mock_domain_fit_results
         assert domain_fit_results.kwargs_set_key == 'kwargs_set_val'
-        assert domain_fit_results.success == 'success' 
+        assert domain_fit_results.success == 'success'
         assert domain_fit_results.y_obs == 'data'
         assert domain_fit_results.x == 'x_val'
         assert domain_fit_results.p == 'values'
         assert domain_fit_results.p0 == 'init_values'
         assert domain_fit_results.y_calc == 'best_fit'
         assert domain_fit_results.y_err == 0.1
-        assert str(domain_fit_results.minimizer_engine) == "<class 'easyscience.fitting.minimizers.minimizer_lmfit.LMFit'>"
+        assert (
+            str(domain_fit_results.minimizer_engine)
+            == "<class 'easyscience.fitting.minimizers.minimizer_lmfit.LMFit'>"
+        )
         assert domain_fit_results.fit_args is None
-

@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import logging
@@ -12,11 +13,11 @@ class Logger:
         self.logger.setLevel(self.level)
 
     def getLogger(self, logger_name, color: str = '32', defaults: bool = True) -> logging:
-        """
-        Create a logger
-        :param color:
+        """Create a logger :param color:
+
         :param logger_name: logger name. Usually __name__ on creation
-        :param defaults: Do you want to associate any current file loggers with this logger
+        :param defaults: Do you want to associate any current file
+            loggers with this logger
         :return: A logger
         """
         logger = logging.getLogger(logger_name)

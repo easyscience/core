@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from abc import ABCMeta
@@ -12,8 +13,8 @@ from .theoreticalmodel import TheoreticalModelBase
 
 
 class JobBase(ObjBase, metaclass=ABCMeta):
-    """
-    This virtual class allows for the creation of technique-specific Job objects.
+    """This virtual class allows for the creation of technique-specific
+    Job objects.
     """
 
     def __init__(self, name: str, *args, **kwargs):

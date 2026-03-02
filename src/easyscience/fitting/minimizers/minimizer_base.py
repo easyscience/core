@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from abc import ABCMeta
@@ -28,8 +29,8 @@ MINIMIZER_PARAMETER_PREFIX = 'p'
 
 
 class MinimizerBase(metaclass=ABCMeta):
-    """
-    This template class is the basis for all minimizer engines in `EasyScience`.
+    """This template class is the basis for all minimizer engines in
+    `EasyScience`.
     """
 
     package: str = None
@@ -72,8 +73,7 @@ class MinimizerBase(metaclass=ABCMeta):
         max_evaluations: Optional[int] = None,
         **kwargs,
     ) -> FitResults:
-        """
-        Perform a fit using the  engine.
+        """Perform a fit using the  engine.
 
         :param x: points to be calculated at
         :type x: np.ndarray
@@ -89,10 +89,13 @@ class MinimizerBase(metaclass=ABCMeta):
         :return: Fit results
         """
 
-    def evaluate(self, x: np.ndarray, minimizer_parameters: Optional[dict[str, float]] = None, **kwargs) -> np.ndarray:
-        """
-        Evaluate the fit function for values of x. Parameters used are either the latest or user supplied.
-        If the parameters are user supplied, it must be in a dictionary of {'parameter_name': parameter_value,...}.
+    def evaluate(
+        self, x: np.ndarray, minimizer_parameters: Optional[dict[str, float]] = None, **kwargs
+    ) -> np.ndarray:
+        """Evaluate the fit function for values of x. Parameters used
+        are either the latest or user supplied. If the parameters are
+        user supplied, it must be in a dictionary of {'parameter_name':
+        parameter_value,...}.
 
         :param x: x values for which the fit function will be evaluated
         :type x:  np.ndarray
@@ -129,10 +132,11 @@ class MinimizerBase(metaclass=ABCMeta):
 
     @abstractmethod
     def convert_to_pars_obj(self, par_list: Optional[Union[list]] = None):
-        """
-        Create an engine compatible container with the `Parameters` converted from the base object.
+        """Create an engine compatible container with the `Parameters`
+        converted from the base object.
 
-        :param par_list: If only a single/selection of parameter is required. Specify as a list
+        :param par_list: If only a single/selection of parameter is
+            required. Specify as a list
         :type par_list: List[str]
         :return: engine Parameters compatible object
         """
@@ -140,8 +144,7 @@ class MinimizerBase(metaclass=ABCMeta):
     @staticmethod
     @abstractmethod
     def supported_methods() -> List[str]:
-        """
-        Return a list of supported methods for the minimizer.
+        """Return a list of supported methods for the minimizer.
 
         :return: List of supported methods
         :rtype: List[str]
@@ -150,8 +153,7 @@ class MinimizerBase(metaclass=ABCMeta):
     @staticmethod
     @abstractmethod
     def all_methods() -> List[str]:
-        """
-        Return a list of all available methods for the minimizer.
+        """Return a list of all available methods for the minimizer.
 
         :return: List of all available methods
         :rtype: List[str]
@@ -160,15 +162,15 @@ class MinimizerBase(metaclass=ABCMeta):
     @staticmethod
     @abstractmethod
     def convert_to_par_object(obj):  # todo after constraint changes, add type hint: obj: ObjBase
-        """
-        Convert an `EasyScience.variable.Parameter` object to an engine Parameter object.
+        """Convert an `EasyScience.variable.Parameter` object to an
+        engine Parameter object.
         """
 
     def _prepare_parameters(self, parameters: dict[str, float]) -> dict[str, float]:
-        """
-        Prepare the parameters for the minimizer.
+        """Prepare the parameters for the minimizer.
 
-        :param parameters: Dict of parameters for the minimizer with names as keys.
+        :param parameters: Dict of parameters for the minimizer with
+            names as keys.
         """
         pars = self._cached_pars
 
@@ -179,9 +181,8 @@ class MinimizerBase(metaclass=ABCMeta):
         return parameters
 
     def _generate_fit_function(self) -> Callable:
-        """
-        Using the user supplied `fit_function`, wrap it in such a way we can update `Parameter` on
-        iterations.
+        """Using the user supplied `fit_function`, wrap it in such a way
+        we can update `Parameter` on iterations.
 
         :return: a fit function which is compatible with bumps models
         """
@@ -197,8 +198,8 @@ class MinimizerBase(metaclass=ABCMeta):
 
         # Make a new fit function
         def _fit_function(x: np.ndarray, **kwargs):
-            """
-            Wrapped fit function which now has an EasyScience compatible form
+            """Wrapped fit function which now has an EasyScience
+            compatible form.
 
             :param x: array of data points to be calculated
             :type x: np.ndarray
@@ -227,14 +228,16 @@ class MinimizerBase(metaclass=ABCMeta):
 
     @staticmethod
     def _create_signature(parameters: Dict[int, Parameter]) -> Signature:
-        """
-        Wrap the function signature.
+        """Wrap the function signature.
+
         This is done as lmfit wants the function to be in the form:
         f = (x, a=1, b=2)...
         Where we need to be generic. Note that this won't hold for much outside of this scope.
         """
         wrapped_parameters = []
-        wrapped_parameters.append(InspectParameter('x', InspectParameter.POSITIONAL_OR_KEYWORD, annotation=_empty))
+        wrapped_parameters.append(
+            InspectParameter('x', InspectParameter.POSITIONAL_OR_KEYWORD, annotation=_empty)
+        )
 
         for name, parameter in parameters.items():
             default_value = parameter.value
@@ -250,7 +253,9 @@ class MinimizerBase(metaclass=ABCMeta):
         return Signature(wrapped_parameters)
 
     @staticmethod
-    def _error_from_jacobian(jacobian: np.ndarray, residuals: np.ndarray, confidence: float = 0.95) -> np.ndarray:
+    def _error_from_jacobian(
+        jacobian: np.ndarray, residuals: np.ndarray, confidence: float = 0.95
+    ) -> np.ndarray:
         from scipy import stats
 
         JtJi = np.linalg.inv(np.dot(jacobian.T, jacobian))

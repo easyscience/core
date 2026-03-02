@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
 import numbers
@@ -15,9 +18,11 @@ from .descriptor_base import DescriptorBase
 
 
 class DescriptorAnyType(DescriptorBase):
-    """
-    A `Descriptor` for any type that does not fit the other Descriptors. Should be avoided when possible.
-    It was created to hold the symmetry operations used in the SpaceGroup class of EasyCrystallography.
+    """A `Descriptor` for any type that does not fit the other
+    Descriptors.
+
+    Should be avoided when possible. It was created to hold the symmetry
+    operations used in the SpaceGroup class of EasyCrystallography.
     """
 
     def __init__(
@@ -30,7 +35,7 @@ class DescriptorAnyType(DescriptorBase):
         display_name: Optional[str] = None,
         parent: Optional[Any] = None,
     ):
-        """Constructor for the DescriptorAnyType class
+        """Constructor for the DescriptorAnyType class.
 
         param name: Name of the descriptor
         param value: Value of the descriptor
@@ -54,8 +59,7 @@ class DescriptorAnyType(DescriptorBase):
 
     @property
     def value(self) -> numbers.Number:
-        """
-        Get the value.
+        """Get the value.
 
         :return: Value of self.
         """
@@ -64,8 +68,7 @@ class DescriptorAnyType(DescriptorBase):
     @value.setter
     @property_stack
     def value(self, value: Union[list, np.ndarray]) -> None:
-        """
-        Set the value of self.
+        """Set the value of self.
 
         :param value: New value for the DescriptorAnyType.
         """
@@ -75,8 +78,8 @@ class DescriptorAnyType(DescriptorBase):
         return super().__copy__()
 
     def __repr__(self) -> str:
-        """
-        Return a string representation of the DescriptorAnyType, showing its name and value.
+        """Return a string representation of the DescriptorAnyType,
+        showing its name and value.
         """
 
         if hasattr(self._value, '__repr__'):

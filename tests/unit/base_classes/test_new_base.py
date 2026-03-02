@@ -1,13 +1,15 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import pytest
+
 from easyscience import global_object
 from easyscience.base_classes import NewBase
 
-class TestNewBase:
 
+class TestNewBase:
     @pytest.fixture
     def clear(self):
         # Clear the global object map before each test
@@ -24,12 +26,12 @@ class TestNewBase:
 
     def test_constructor_with_arguments(self):
         # When Then
-        obj = NewBase(unique_name="custom_name", display_name="My Object")
+        obj = NewBase(unique_name='custom_name', display_name='My Object')
         # Expect
-        assert obj._unique_name == "custom_name"
+        assert obj._unique_name == 'custom_name'
         assert obj._default_unique_name is False
-        assert obj._display_name == "My Object"
-        assert global_object.map.get_item_by_key("custom_name") is obj
+        assert obj._display_name == 'My Object'
+        assert global_object.map.get_item_by_key('custom_name') is obj
 
     def test_constructor_invalid_unique_name(self):
         # When Then Expect
@@ -54,12 +56,12 @@ class TestNewBase:
         # When
         obj = NewBase()
         # Then
-        obj.unique_name = "new_unique_name"
+        obj.unique_name = 'new_unique_name'
         # Expect
-        assert obj.unique_name == "new_unique_name"
+        assert obj.unique_name == 'new_unique_name'
         assert obj._default_unique_name is False
-        assert global_object.map.get_item_by_key("new_unique_name") is obj
-        assert global_object.map.get_item_by_key("NewBase_0") is obj
+        assert global_object.map.get_item_by_key('new_unique_name') is obj
+        assert global_object.map.get_item_by_key('NewBase_0') is obj
 
     def test_unique_name_setter_invalid(self):
         # When
@@ -81,10 +83,10 @@ class TestNewBase:
         # When
         obj = NewBase()
         # Then
-        obj.display_name = "Pretty Name"
+        obj.display_name = 'Pretty Name'
         # Expect
-        assert obj.display_name == "Pretty Name"
-        assert obj._display_name == "Pretty Name"
+        assert obj.display_name == 'Pretty Name'
+        assert obj._display_name == 'Pretty Name'
 
     def test_display_name_setter_invalid(self):
         # When
@@ -95,13 +97,13 @@ class TestNewBase:
 
     def test_to_dict_full_params(self):
         # When
-        obj = NewBase(unique_name="test_name", display_name="Test Object")
+        obj = NewBase(unique_name='test_name', display_name='Test Object')
         # Then
         obj_dict = obj.to_dict()
         # Expect
         assert isinstance(obj_dict, dict)
-        assert obj_dict['unique_name'] == "test_name"
-        assert obj_dict['display_name'] == "Test Object"
+        assert obj_dict['unique_name'] == 'test_name'
+        assert obj_dict['display_name'] == 'Test Object'
         assert obj_dict['@module'] == 'easyscience.base_classes.new_base'
         assert obj_dict['@class'] == 'NewBase'
         assert '@version' in obj_dict
@@ -121,12 +123,12 @@ class TestNewBase:
 
     def test_to_dict_with_skip(self):
         # When
-        obj = NewBase(unique_name="skip_test", display_name="Skip Test Object")
+        obj = NewBase(unique_name='skip_test', display_name='Skip Test Object')
         # Then
         obj_dict = obj.to_dict(skip=['display_name'])
         # Expect
         assert isinstance(obj_dict, dict)
-        assert obj_dict['unique_name'] == "skip_test"
+        assert obj_dict['unique_name'] == 'skip_test'
         assert 'display_name' not in obj_dict
         assert obj_dict['@module'] == 'easyscience.base_classes.new_base'
         assert obj_dict['@class'] == 'NewBase'
@@ -138,7 +140,7 @@ class TestNewBase:
             '@module': 'easyscience.base_classes.new_base',
             '@class': 'NewBase',
             'unique_name': 'from_dict_name',
-            'display_name': 'From Dict Object'
+            'display_name': 'From Dict Object',
         }
         # Then
         obj = NewBase.from_dict(obj_dict)
@@ -154,10 +156,12 @@ class TestNewBase:
             '@module': 'some.other.module',
             '@class': 'NewBase',
             'unique_name': 'invalid_from_dict',
-            'display_name': 'Invalid From Dict Object'
+            'display_name': 'Invalid From Dict Object',
         }
         # Then Expect
-        with pytest.raises(ValueError, match='Input must be a dictionary representing an EasyScience object.'):
+        with pytest.raises(
+            ValueError, match='Input must be a dictionary representing an EasyScience object.'
+        ):
             NewBase.from_dict(obj_dict)
 
     def test_from_dict_wrong_class(self):
@@ -166,10 +170,13 @@ class TestNewBase:
             '@module': 'easyscience.base_classes.new_base',
             '@class': 'SomeOtherClass',
             'unique_name': 'wrong_class_name',
-            'display_name': 'Wrong Class Object'
+            'display_name': 'Wrong Class Object',
         }
         # Then Expect
-        with pytest.raises(ValueError, match='Class name in dictionary does not match the expected class: NewBase.'):
+        with pytest.raises(
+            ValueError,
+            match='Class name in dictionary does not match the expected class: NewBase.',
+        ):
             NewBase.from_dict(obj_dict)
 
     def test__dir__(self):
@@ -189,7 +196,7 @@ class TestNewBase:
 
     def test_copy(self):
         # When
-        obj = NewBase(unique_name="original_name", display_name="Original Object")
+        obj = NewBase(unique_name='original_name', display_name='Original Object')
         # Then
         obj_copy = obj.__copy__()
         # Expect
@@ -200,9 +207,10 @@ class TestNewBase:
 
     def test_deepcopy(self):
         # When
-        obj = NewBase(unique_name="deepcopy_name", display_name="Deep Copy Object")
+        obj = NewBase(unique_name='deepcopy_name', display_name='Deep Copy Object')
         # Then
         import copy
+
         obj_deepcopy = copy.deepcopy(obj)
         # Expect
         assert isinstance(obj_deepcopy, NewBase)

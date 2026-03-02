@@ -1,7 +1,8 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from typing import TYPE_CHECKING
 from typing import Callable
@@ -17,8 +18,8 @@ if TYPE_CHECKING:
 
 
 class InterfaceFactoryTemplate:
-    """
-    This class allows for the creation and transference of interfaces.
+    """This class allows for the creation and transference of
+    interfaces.
     """
 
     def __init__(self, interface_list: List[ABCMeta], *args, **kwargs):
@@ -28,9 +29,9 @@ class InterfaceFactoryTemplate:
         self.create(*args, **kwargs)
 
     def create(self, *args, **kwargs):
-        """
-        Create an interface to a calculator from those initialized. Interfaces can be selected
-        by `interface_name` where `interface_name` is one of `obj.available_interfaces`. This
+        """Create an interface to a calculator from those initialized.
+        Interfaces can be selected by `interface_name` where
+        `interface_name` is one of `obj.available_interfaces`. This
         interface can now be accessed by obj().
 
         :param interface_name: name of interface to be created
@@ -52,13 +53,15 @@ class InterfaceFactoryTemplate:
         self.__interface_obj = self._current_interface(*args, **kwargs)
 
     def switch(self, new_interface: str, fitter: Optional[Type[Fitter]] = None):
-        """
-        Changes the current interface to a new interface. The current interface is destroyed and
-        all SerializerComponent parameters carried over to the new interface. i.e. pick up where you left off.
+        """Changes the current interface to a new interface. The current
+        interface is destroyed and all SerializerComponent parameters
+        carried over to the new interface. i.e. pick up where you left
+        off.
 
         :param new_interface: name of new interface to be created
         :type new_interface: str
-        :param fitter: Fitting interface which contains the fitting object which may have bindings which will be updated.
+        :param fitter: Fitting interface which contains the fitting
+            object which may have bindings which will be updated.
         :type fitter: EasyScience.fitting.Fitter
         :return: None
         :rtype: noneType
@@ -85,8 +88,7 @@ class InterfaceFactoryTemplate:
 
     @property
     def available_interfaces(self) -> List[str]:
-        """
-        Return all available interfaces.
+        """Return all available interfaces.
 
         :return: List of available interface names
         :rtype: List[str]
@@ -95,8 +97,7 @@ class InterfaceFactoryTemplate:
 
     @property
     def current_interface(self) -> ABCMeta:
-        """
-        Returns the constructor for the currently selected interface.
+        """Returns the constructor for the currently selected interface.
 
         :return: Interface constructor
         :rtype: InterfaceTemplate
@@ -105,8 +106,8 @@ class InterfaceFactoryTemplate:
 
     @property
     def current_interface_name(self) -> str:
-        """
-        Returns the constructor name for the currently selected interface.
+        """Returns the constructor name for the currently selected
+        interface.
 
         :return: Interface constructor name
         :rtype: str
@@ -117,8 +118,7 @@ class InterfaceFactoryTemplate:
     def fit_func(
         self,
     ) -> Callable:  # , x_array: np.ndarray, *args, **kwargs) -> np.ndarray:
-        """
-        Pass through to the underlying interfaces fitting function.
+        """Pass through to the underlying interfaces fitting function.
 
         :param x_array: points to be calculated at
         :type x_array: np.ndarray
@@ -128,7 +128,8 @@ class InterfaceFactoryTemplate:
         :type kwargs: Any
         :return: points calculated at positional values `x`
         :rtype: np.ndarray
-        #"""
+        #
+        """
 
         def __fit_func(*args, **kwargs):
             return self.__interface_obj.fit_func(*args, **kwargs)
@@ -139,8 +140,9 @@ class InterfaceFactoryTemplate:
         return self.fit_func(*args, **kwargs)
 
     def generate_bindings(self, model, *args, ifun=None, **kwargs):
-        """
-        Automatically bind a `Parameter` to the corresponding interface.
+        """Automatically bind a `Parameter` to the corresponding
+        interface.
+
         :param name: parameter name
         :type name: str
         :return: binding property
@@ -189,9 +191,7 @@ class InterfaceFactoryTemplate:
 
     @staticmethod
     def return_name(this_interface) -> str:
-        """
-        Return an interfaces name
-        """
+        """Return an interfaces name."""
         interface_name = this_interface.__name__
         if hasattr(this_interface, 'name'):
             interface_name = getattr(this_interface, 'name')

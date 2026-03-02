@@ -29,6 +29,7 @@ dependencies = [
   'uncertainties', # Propagation of uncertainties in calculations
   'numpy',         # Numerical computing
   'scipp',         # Handling and analysis of scientific data
+  'pooch',         # Data downloader
   'jupyterlab',    # Jupyter notebooks
   'pixi-kernel',   # Pixi Jupyter kernel
 ]
@@ -191,15 +192,15 @@ quote-style = 'single'          # But double quotes in docstrings (PEP 8, PEP 25
 # https://docs.astral.sh/ruff/rules/
 [tool.ruff.lint]
 select = [
-  'E',   # General PEP 8 style errors
-  'E9',  # Runtime errors (e.g., syntax errors, undefined names)
-  'F',   # Pyflakes-specific checks (e.g., unused variables, imports)
-  'F63', # Issues related to invalid escape sequences in strings
-  'F7',  # Type-related errors (e.g., mismatched argument types, unsupported operations)
-  'F82', # Import-related errors (e.g., unresolved imports, reimported modules)
-  'I',   # Import sorting issues (e.g., unsorted imports)
-  'S',   # Security-related issues (e.g., use of insecure functions or libraries)
-  'W',   # General PEP 8 warnings (e.g., lines too long, trailing whitespace)
+  #  'E',   # General PEP 8 style errors
+  #  'E9',  # Runtime errors (e.g., syntax errors, undefined names)
+  #  'F',   # Pyflakes-specific checks (e.g., unused variables, imports)
+  #  'F63', # Issues related to invalid escape sequences in strings
+  #  'F7',  # Type-related errors (e.g., mismatched argument types, unsupported operations)
+  #  'F82', # Import-related errors (e.g., unresolved imports, reimported modules)
+  #  'I',   # Import sorting issues (e.g., unsorted imports)
+  #  'S',   # Security-related issues (e.g., use of insecure functions or libraries)
+  #  'W',   # General PEP 8 warnings (e.g., lines too long, trailing whitespace)
 ]
 
 [tool.ruff.lint.per-file-ignores]

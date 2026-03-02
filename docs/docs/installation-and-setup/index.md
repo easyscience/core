@@ -8,8 +8,8 @@ icon: material/cog-box
 **Python 3.11** through **3.13**.
 
 To install and set up EasyScience, we recommend using
-[**Pixi**](https://pixi.prefix.dev), a modern package manager for Windows,
-macOS, and Linux.
+[**Pixi**](https://pixi.prefix.dev), a modern package manager for
+Windows, macOS, and Linux.
 
 ??? note "Main benefits of using Pixi"
 
@@ -94,8 +94,8 @@ This section describes the simplest way to set up EasyScience using
 ## Classical Installation
 
 This section describes how to install EasyScience using the traditional
-method with **pip**. It is assumed that you are familiar with Python package
-management and virtual environments.
+method with **pip**. It is assumed that you are familiar with Python
+package management and virtual environments.
 
 ### Environment Setup <small>optional</small> { #environment-setup data-toc-label="Environment Setup" }
 

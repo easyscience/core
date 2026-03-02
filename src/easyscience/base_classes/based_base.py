@@ -1,7 +1,8 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from inspect import signature
 from typing import TYPE_CHECKING
@@ -27,7 +28,12 @@ class BasedBase(SerializerComponent):
 
     _REDIRECT = {}
 
-    def __init__(self, name: str, interface: Optional[InterfaceFactoryTemplate] = None, unique_name: Optional[str] = None):
+    def __init__(
+        self,
+        name: str,
+        interface: Optional[InterfaceFactoryTemplate] = None,
+        unique_name: Optional[str] = None,
+    ):
         self._global_object = global_object
         if unique_name is None:
             unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
@@ -41,13 +47,16 @@ class BasedBase(SerializerComponent):
     def _arg_spec(self) -> Set[str]:
         base_cls = getattr(self, '__old_class__', self.__class__)
         sign = signature(base_cls.__init__)
-        names = [param.name for param in sign.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
+        names = [
+            param.name
+            for param in sign.parameters.values()
+            if param.kind == param.POSITIONAL_OR_KEYWORD
+        ]
         return set(names[1:])
 
     def __reduce__(self):
-        """
-        Make the class picklable.
-        Due to the nature of the dynamic class definitions special measures need to be taken.
+        """Make the class picklable. Due to the nature of the dynamic
+        class definitions special measures need to be taken.
 
         :return: Tuple consisting of how to make the object
         :rtype: tuple
@@ -63,9 +72,11 @@ class BasedBase(SerializerComponent):
 
     @unique_name.setter
     def unique_name(self, new_unique_name: str):
-        """Set a new unique name for the object. The old name is still kept in the map.
+        """Set a new unique name for the object. The old name is still
+        kept in the map.
 
-        :param new_unique_name: New unique name for the object"""
+        :param new_unique_name: New unique name for the object
+        """
         if not isinstance(new_unique_name, str):
             raise TypeError('Unique name has to be a string.')
         self._unique_name = new_unique_name
@@ -73,8 +84,7 @@ class BasedBase(SerializerComponent):
 
     @property
     def name(self) -> str:
-        """
-        Get the common name of the object.
+        """Get the common name of the object.
 
         :return: Common name of the object
         """
@@ -82,8 +92,7 @@ class BasedBase(SerializerComponent):
 
     @name.setter
     def name(self, new_name: str):
-        """
-        Set a new common name for the object.
+        """Set a new common name for the object.
 
         :param new_name: New name for the object
         :return: None
@@ -92,34 +101,32 @@ class BasedBase(SerializerComponent):
 
     @property
     def interface(self) -> InterfaceFactoryTemplate:
-        """
-        Get the current interface of the object
-        """
+        """Get the current interface of the object."""
         return self._interface
 
     @interface.setter
     def interface(self, new_interface: InterfaceFactoryTemplate):
-        """
-        Set the current interface to the object and generate bindings if possible. iF.e.
-        ```
-        def __init__(self, bar, interface=None, **kwargs):
-            super().__init__(self, **kwargs)
-            self.foo = bar
-            self.interface = interface # As final step after initialization to set correct bindings.
-        ```
+        """Set the current interface to the object and generate bindings
+        if possible.
+
+        iF.e. ``` def __init__(self, bar, interface=None, **kwargs):
+        super().__init__(self, **kwargs)     self.foo = bar
+        self.interface = interface  # As final step after initialization
+        to set correct bindings. ```
         """
         self._interface = new_interface
         if new_interface is not None:
             self.generate_bindings()
 
     def generate_bindings(self):
-        """
-        Generate or re-generate bindings to an interface (if exists)
+        """Generate or re-generate bindings to an interface (if exists)
 
         :raises: AttributeError
         """
         if self.interface is None:
-            raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
+            raise AttributeError(
+                'Interface error for generating bindings. `interface` has to be set.'
+            )
         interfaceable_children = [
             key
             for key in self._global_object.map.get_edges(self)
@@ -131,17 +138,16 @@ class BasedBase(SerializerComponent):
         self.interface.generate_bindings(self)
 
     def switch_interface(self, new_interface_name: str):
-        """
-        Switch or create a new interface.
-        """
+        """Switch or create a new interface."""
         if self.interface is None:
-            raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
+            raise AttributeError(
+                'Interface error for generating bindings. `interface` has to be set.'
+            )
         self.interface.switch(new_interface_name)
         self.generate_bindings()
 
     def get_parameters(self) -> List[Parameter]:
-        """
-        Get all parameter objects as a list.
+        """Get all parameter objects as a list.
 
         :return: List of `Parameter` objects.
         """
@@ -154,8 +160,7 @@ class BasedBase(SerializerComponent):
         return par_list
 
     def _get_linkable_attributes(self) -> List[DescriptorBase]:
-        """
-        Get all objects which can be linked against as a list.
+        """Get all objects which can be linked against as a list.
 
         :return: List of `Descriptor`/`Parameter` objects.
         """
@@ -168,8 +173,8 @@ class BasedBase(SerializerComponent):
         return item_list
 
     def get_fit_parameters(self) -> List[Parameter]:
-        """
-        Get all objects which can be fitted (and are not fixed) as a list.
+        """Get all objects which can be fitted (and are not fixed) as a
+        list.
 
         :return: List of `Parameter` objects which can be used in fitting.
         """
@@ -183,10 +188,11 @@ class BasedBase(SerializerComponent):
         return fit_list
 
     def __dir__(self) -> Iterable[str]:
-        """
-        This creates auto-completion and helps out in iPython notebooks.
+        """This creates auto-completion and helps out in iPython
+        notebooks.
 
-        :return: list of function and parameter names for auto-completion
+        :return: list of function and parameter names for auto-
+            completion
         """
         new_class_objs = list(k for k in dir(self.__class__) if not k.startswith('_'))
         return sorted(new_class_objs)
@@ -198,12 +204,14 @@ class BasedBase(SerializerComponent):
         return new_obj
 
     def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Convert an object into a full dictionary using `SerializerDict`.
-        This is a shortcut for ```obj.encode(encoder=SerializerDict)```
+        """Convert an object into a full dictionary using
+        `SerializerDict`. This is a shortcut for
+        ```obj.encode(encoder=SerializerDict)```
 
-        :param skip: List of field names as strings to skip when forming the dictionary
-        :return: encoded object containing all information to reform an EasyScience object.
+        :param skip: List of field names as strings to skip when forming
+            the dictionary
+        :return: encoded object containing all information to reform an
+            EasyScience object.
         """
         # extend skip to include unique_name by default
         if skip is None:

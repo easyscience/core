@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from __future__ import annotations
@@ -25,8 +26,9 @@ if TYPE_CHECKING:
 
 
 class CollectionBase(BasedBase, MutableSequence):
-    """
-    This is the base class for which all higher level classes are built off of.
+    """This is the base class for which all higher level classes are
+    built off of.
+
     NOTE: This object is serializable only if parameters are supplied as:
     `ObjBase(a=value, b=value)`. For `Parameter` or `Descriptor` objects we can
     cheat with `ObjBase(*[Descriptor(...), Parameter(...), ...])`.
@@ -40,8 +42,7 @@ class CollectionBase(BasedBase, MutableSequence):
         unique_name: Optional[str] = None,
         **kwargs,
     ):
-        """
-        Set up the base collection class.
+        """Set up the base collection class.
 
         :param name: Name of this object
         :type name: str
@@ -80,7 +81,9 @@ class CollectionBase(BasedBase, MutableSequence):
 
         for key in kwargs.keys():
             if key in self.__dict__.keys() or key in self.__slots__:
-                raise AttributeError(f'Given kwarg: `{key}`, is an internal attribute. Please rename.')
+                raise AttributeError(
+                    f'Given kwarg: `{key}`, is an internal attribute. Please rename.'
+                )
             if kwargs[key]:  # Might be None (empty tuple or list)
                 self._global_object.map.add_edge(self, kwargs[key])
                 self._global_object.map.reset_type(kwargs[key], 'created_internal')
@@ -92,8 +95,7 @@ class CollectionBase(BasedBase, MutableSequence):
         self._kwargs._stack_enabled = True
 
     def insert(self, index: int, value: Union[DescriptorBase, BasedBase, NewBase]) -> None:
-        """
-        Insert an object into the collection at an index.
+        """Insert an object into the collection at an index.
 
         :param index: Index for EasyScience object to be inserted.
         :type index: int
@@ -119,8 +121,7 @@ class CollectionBase(BasedBase, MutableSequence):
             raise AttributeError('Only EasyScience objects can be put into an EasyScience group')
 
     def __getitem__(self, idx: Union[int, slice]) -> Union[DescriptorBase, BasedBase, NewBase]:
-        """
-        Get an item in the collection based on its index.
+        """Get an item in the collection based on its index.
 
         :param idx: index or slice of the collection.
         :type idx: Union[int, slice]
@@ -129,7 +130,9 @@ class CollectionBase(BasedBase, MutableSequence):
         """
         if isinstance(idx, slice):
             start, stop, step = idx.indices(len(self))
-            return self.__class__(getattr(self, 'name'), *[self[i] for i in range(start, stop, step)])
+            return self.__class__(
+                getattr(self, 'name'), *[self[i] for i in range(start, stop, step)]
+            )
         if str(idx) in self._kwargs.keys():
             return self._kwargs[str(idx)]
         if isinstance(idx, str):
@@ -153,8 +156,7 @@ class CollectionBase(BasedBase, MutableSequence):
         return self._kwargs[keys[idx]]
 
     def __setitem__(self, key: int, value: Union[BasedBase, DescriptorBase, NewBase]) -> None:
-        """
-        Set an item via it's index.
+        """Set an item via it's index.
 
         :param key: Index in self.
         :type key: int
@@ -178,11 +180,12 @@ class CollectionBase(BasedBase, MutableSequence):
             # REMOVE EDGE
             self._global_object.map.prune_vertex_from_edge(self, old_item)
         else:
-            raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.')
+            raise NotImplementedError(
+                'At the moment only numerical values or EasyScience objects can be set.'
+            )
 
     def __delitem__(self, key: int) -> None:
-        """
-        Try to delete  an idem by key.
+        """Try to delete  an idem by key.
 
         :param key:
         :type key:
@@ -195,8 +198,7 @@ class CollectionBase(BasedBase, MutableSequence):
         del self._kwargs[keys[key]]
 
     def __len__(self) -> int:
-        """
-        Get the number of items in this collection
+        """Get the number of items in this collection.
 
         :return: Number of items in this collection.
         :rtype: int
@@ -204,8 +206,7 @@ class CollectionBase(BasedBase, MutableSequence):
         return len(self._kwargs.keys())
 
     def _convert_to_dict(self, in_dict, encoder, skip: List[str] = [], **kwargs) -> dict:
-        """
-        Convert ones self into a serialized form.
+        """Convert ones self into a serialized form.
 
         :return: dictionary of ones self
         :rtype: dict
@@ -220,14 +221,14 @@ class CollectionBase(BasedBase, MutableSequence):
 
     @property
     def data(self) -> Tuple:
-        """
-        The data function returns a tuple of the keyword arguments passed to the
-        constructor. This is useful for when you need to pass in a dictionary of data
-        to other functions, such as with matplotlib's plot function.
+        """The data function returns a tuple of the keyword arguments
+        passed to the constructor. This is useful for when you need to
+        pass in a dictionary of data to other functions, such as with
+        matplotlib's plot function.
 
         :param self: Access attributes of the class within the method
-        :return: The values of the attributes in a tuple
-        :doc-author: Trelent
+        :return: The values of the attributes in a tuple :doc-author:
+            Trelent
         """
         return tuple(self._kwargs.values())
 
@@ -239,10 +240,10 @@ class CollectionBase(BasedBase, MutableSequence):
         mapping: Callable[[Union[BasedBase, DescriptorBase, NewBase]], Any],
         reverse: bool = False,
     ) -> None:
-        """
-        Sort the collection according to the given mapping.
+        """Sort the collection according to the given mapping.
 
-        :param mapping: mapping function to sort the collection. i.e. lambda parameter: parameter.value
+        :param mapping: mapping function to sort the collection. i.e.
+            lambda parameter: parameter.value
         :type mapping: Callable
         :param reverse: Reverse the sorting.
         :type reverse: bool

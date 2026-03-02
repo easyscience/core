@@ -1,19 +1,31 @@
 # Parameter Dependency Serialization
 
-This document explains how to serialize and deserialize `Parameter` objects that have dependencies.
+This document explains how to serialize and deserialize `Parameter`
+objects that have dependencies.
 
 ## Overview
 
-Parameters with dependencies can now be serialized to dictionaries (and JSON) while preserving their dependency relationships. After deserialization, the dependencies are automatically reconstructed using the `serializer_id` attribute to match parameters, with `unique_name` attribute being used as a fallback.
+Parameters with dependencies can now be serialized to dictionaries (and
+JSON) while preserving their dependency relationships. After
+deserialization, the dependencies are automatically reconstructed using
+the `serializer_id` attribute to match parameters, with `unique_name`
+attribute being used as a fallback.
 
 ## Key Features
 
-- **Automatic dependency serialization**: Dependency expressions and maps are automatically saved during serialization
-- **Reliable dependency resolution**: Dependencies are resolved using stable `serializer_id` attributes with `unique_name` as fallback after deserialization
-- **Order-independent loading**: Parameters can be loaded in any order thanks to the reliable ID system
-- **Bulk dependency resolution**: Utility functions help resolve all dependencies at once
-- **JSON compatibility**: Full support for JSON serialization/deserialization
-- **Backward compatibility**: Existing code using `unique_name` continues to work as fallback
+- **Automatic dependency serialization**: Dependency expressions and
+  maps are automatically saved during serialization
+- **Reliable dependency resolution**: Dependencies are resolved using
+  stable `serializer_id` attributes with `unique_name` as fallback after
+  deserialization
+- **Order-independent loading**: Parameters can be loaded in any order
+  thanks to the reliable ID system
+- **Bulk dependency resolution**: Utility functions help resolve all
+  dependencies at once
+- **JSON compatibility**: Full support for JSON
+  serialization/deserialization
+- **Backward compatibility**: Existing code using `unique_name`
+  continues to work as fallback
 
 ## Usage
 
@@ -76,7 +88,7 @@ import json
 param_dict = parameter.as_dict()
 json_str = json.dumps(param_dict, default=str)
 
-# Deserialize from JSON  
+# Deserialize from JSON
 loaded_dict = json.loads(json_str)
 new_param = Parameter.from_dict(loaded_dict)
 
@@ -111,11 +123,14 @@ resolve_all_parameter_dependencies(new_params)
 
 ### Serialization
 
-During serialization, the following additional fields are added to dependent parameters:
+During serialization, the following additional fields are added to
+dependent parameters:
 
 - `_dependency_string`: The original dependency expression
-- `_dependency_map_serializer_ids`: A mapping of dependency keys to stable dependency IDs (preferred)
-- `_dependency_map_unique_names`: A mapping of dependency keys to unique names (fallback)
+- `_dependency_map_serializer_ids`: A mapping of dependency keys to
+  stable dependency IDs (preferred)
+- `_dependency_map_unique_names`: A mapping of dependency keys to unique
+  names (fallback)
 - `__serializer_id`: The parameter's own unique dependency ID
 - `_independent`: Boolean flag indicating if the parameter is dependent
 
@@ -124,21 +139,31 @@ During serialization, the following additional fields are added to dependent par
 During deserialization:
 
 1. Parameters are created normally but marked as independent temporarily
-2. Dependency information is stored in `_pending_dependency_string`, `_pending_dependency_map_serializer_ids`, and `_pending_dependency_map_unique_names` attributes
-3. The parameter's own `__serializer_id` is restored from serialized data
-4. After all parameters are loaded, `resolve_all_parameter_dependencies()` establishes the dependency relationships using dependency IDs first, then unique names as fallback
+2. Dependency information is stored in `_pending_dependency_string`,
+   `_pending_dependency_map_serializer_ids`, and
+   `_pending_dependency_map_unique_names` attributes
+3. The parameter's own `__serializer_id` is restored from serialized
+   data
+4. After all parameters are loaded,
+   `resolve_all_parameter_dependencies()` establishes the dependency
+   relationships using dependency IDs first, then unique names as
+   fallback
 
 ### Dependency Resolution
 
 The dependency resolution process:
 
 1. Scans for parameters with pending dependencies
-2. First attempts to look up dependency objects by their stable `serializer_id`
-3. Falls back to `unique_name` lookup in the global map if serializer_id is not available
+2. First attempts to look up dependency objects by their stable
+   `serializer_id`
+3. Falls back to `unique_name` lookup in the global map if serializer_id
+   is not available
 4. Calls `make_dependent_on()` to establish the dependency relationship
 5. Cleans up temporary attributes
 
-This dual-strategy approach ensures reliable dependency resolution regardless of parameter loading order while maintaining backward compatibility.
+This dual-strategy approach ensures reliable dependency resolution
+regardless of parameter loading order while maintaining backward
+compatibility.
 
 ## Error Handling
 
@@ -152,15 +177,20 @@ The system provides detailed error messages for common issues:
 
 ### `resolve_all_parameter_dependencies(obj)`
 
-Recursively finds all Parameter objects with pending dependencies and resolves them.
+Recursively finds all Parameter objects with pending dependencies and
+resolves them.
 
 **Parameters:**
-- `obj`: Object to search for Parameters (can be Parameter, list, dict, or complex object)
+
+- `obj`: Object to search for Parameters (can be Parameter, list, dict,
+  or complex object)
 
 **Returns:**
+
 - None (modifies parameters in place)
 
 **Raises:**
+
 - `ValueError`: If dependency resolution fails
 
 ### `get_parameters_with_pending_dependencies(obj)`
@@ -168,26 +198,37 @@ Recursively finds all Parameter objects with pending dependencies and resolves t
 Finds all Parameter objects that have pending dependencies.
 
 **Parameters:**
+
 - `obj`: Object to search for Parameters
 
 **Returns:**
+
 - `List[Parameter]`: List of parameters with pending dependencies
 
 ## Best Practices
 
-1. **Always resolve dependencies after deserialization**: Use `resolve_all_parameter_dependencies()` after loading serialized parameters
+1. **Always resolve dependencies after deserialization**: Use
+   `resolve_all_parameter_dependencies()` after loading serialized
+   parameters
 
-2. **Handle the global map carefully**: The global map must contain all referenced parameters for dependency resolution to work
+2. **Handle the global map carefully**: The global map must contain all
+   referenced parameters for dependency resolution to work
 
-3. **Use unique names for cross-references**: When creating dependency expressions that reference other parameters, consider using unique names with quotes: `'Parameter_0'`
+3. **Use unique names for cross-references**: When creating dependency
+   expressions that reference other parameters, consider using unique
+   names with quotes: `'Parameter_0'`
 
-4. **Error handling**: Wrap dependency resolution in try-catch blocks for robust error handling
+4. **Error handling**: Wrap dependency resolution in try-catch blocks
+   for robust error handling
 
-5. **Bulk operations**: For complex object hierarchies, use the utility functions to handle all parameters at once
+5. **Bulk operations**: For complex object hierarchies, use the utility
+   functions to handle all parameters at once
 
-6. **Reliable ordering**: With the new dependency ID system, parameters can be loaded in any order without affecting dependency resolution
+6. **Reliable ordering**: With the new dependency ID system, parameters
+   can be loaded in any order without affecting dependency resolution
 
-7. **Access dependency ID**: Use `parameter.serializer_id` to access the stable ID for debugging or manual cross-referencing
+7. **Access dependency ID**: Use `parameter.serializer_id` to access the
+   stable ID for debugging or manual cross-referencing
 
 ## Example: Complex Hierarchy
 
@@ -201,16 +242,18 @@ def save_model(model):
 def load_model(filename):
     \"\"\"Load a model from JSON and resolve dependencies.\"\"\"
     global_object.map._clear()  # Start fresh
-    
+
     with open(filename) as f:
         model_dict = json.load(f)
-    
+
     model = Model.from_dict(model_dict)
-    
+
     # Resolve all parameter dependencies
     resolve_all_parameter_dependencies(model)
-    
+
     return model
 ```
 
-This system ensures that complex parameter hierarchies with dependencies can be reliably serialized and reconstructed while maintaining their behavioral relationships.
+This system ensures that complex parameter hierarchies with dependencies
+can be reliably serialized and reconstructed while maintaining their
+behavioral relationships.

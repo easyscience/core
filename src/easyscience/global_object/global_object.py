@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from ..utils.classUtils import singleton
@@ -10,8 +11,9 @@ from .map import Map
 
 @singleton
 class GlobalObject:
-    """
-    GlobalObject is the assimilated knowledge of `EasyScience`. Every class based on `EasyScience` gets brought
+    """GlobalObject is the assimilated knowledge of `EasyScience`.
+
+    Every class based on `EasyScience` gets brought
     into the collective.
     """
 
@@ -33,9 +35,8 @@ class GlobalObject:
         self.map: Map = self.__map
 
     def instantiate_stack(self):
-        """
-        The undo/redo stack references the collective. Hence it has to be imported
-        after initialization.
+        """The undo/redo stack references the collective. Hence it has
+        to be imported after initialization.
 
         :return: None
         :rtype: noneType
@@ -45,13 +46,15 @@ class GlobalObject:
         self.stack = UndoStack()
 
     def generate_unique_name(self, name_prefix: str) -> str:
-        """
-        Generate a generic unique name for the object using the class name and a global iterator.
-        Names are in the format `name_prefix_0`, `name_prefix_1`, `name_prefix_2`, etc.
+        """Generate a generic unique name for the object using the class
+        name and a global iterator. Names are in the format
+        `name_prefix_0`, `name_prefix_1`, `name_prefix_2`, etc.
 
         :param name_prefix: The prefix to be used for the name
         """
-        names_with_prefix = [name for name in self.map.vertices() if name.startswith(name_prefix + '_')]
+        names_with_prefix = [
+            name for name in self.map.vertices() if name.startswith(name_prefix + '_')
+        ]
         if names_with_prefix:
             name_with_prefix_count = [0]
             for name in names_with_prefix:

@@ -1,11 +1,10 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from contextlib import contextmanager
 from copy import copy
-
 from typing import ClassVar
 from typing import List
 from typing import Optional
@@ -16,56 +15,54 @@ import numpy as np
 import pytest
 
 import easyscience
-from easyscience import ObjBase
 from easyscience import DescriptorNumber
+from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.io import SerializerDict
+
 
 @pytest.fixture
 def clear():
     global_object.map._clear()
 
+
 @pytest.fixture
 def setup_pars():
     d = {
-        "name": "test",
-        "par1": Parameter("p1", 0.1, fixed=True),
-        "des1": DescriptorNumber("d1", 0.1),
-        "par2": Parameter("p2", 0.1),
-        "des2": DescriptorNumber("d2", 0.1),
-        "par3": Parameter("p3", 0.1),
+        'name': 'test',
+        'par1': Parameter('p1', 0.1, fixed=True),
+        'des1': DescriptorNumber('d1', 0.1),
+        'par2': Parameter('p2', 0.1),
+        'des2': DescriptorNumber('d2', 0.1),
+        'par3': Parameter('p3', 0.1),
     }
     return d
 
 
 @contextmanager
-def not_raises(
-    expected_exception: Union[Type[BaseException], List[Type[BaseException]]]
-):
+def not_raises(expected_exception: Union[Type[BaseException], List[Type[BaseException]]]):
     try:
         yield
     except expected_exception:
         raise pytest.fail(
-            "Did raise exception {0} when it should not.".format(
-                repr(expected_exception)
-            )
+            'Did raise exception {0} when it should not.'.format(repr(expected_exception))
         )
     except Exception as err:
-        raise pytest.fail("An unexpected exception {0} raised.".format(repr(err)))
+        raise pytest.fail('An unexpected exception {0} raised.'.format(repr(err)))
 
 
 @pytest.mark.parametrize(
-    "a, kw",
+    'a, kw',
     [
-        ([], ["par1"]),
-        (["par1"], []),
-        (["par1"], ["par2"]),
-        (["par1", "des1"], ["par2", "des2"]), 
+        ([], ['par1']),
+        (['par1'], []),
+        (['par1'], ['par2']),
+        (['par1', 'des1'], ['par2', 'des2']),
     ],
 )
 def test_ObjBase_create(setup_pars: dict, a: List[str], kw: List[str]):
-    name = setup_pars["name"]
+    name = setup_pars['name']
     args = []
     for key in a:
         args.append(setup_pars[key])
@@ -81,12 +78,12 @@ def test_ObjBase_create(setup_pars: dict, a: List[str], kw: List[str]):
 
 def test_ObjBase_copy(setup_pars: dict):
     # When
-    name = setup_pars["name"]
+    name = setup_pars['name']
     args = []
-    for key in ["par1", "des1"]:
+    for key in ['par1', 'des1']:
         args.append(setup_pars[key])
     kwargs = {}
-    for key in ["par2", "des2"]:
+    for key in ['par2', 'des2']:
         kwargs[key] = setup_pars[key]
     base = ObjBase(name, None, *args, **kwargs)
 
@@ -97,15 +94,15 @@ def test_ObjBase_copy(setup_pars: dict):
     assert base_copy.name == name
     assert base_copy.unique_name != base.unique_name
 
-    for key in ["par1", "des1"]:
+    for key in ['par1', 'des1']:
         item = getattr(base, setup_pars[key].name)
         assert isinstance(item, setup_pars[key].__class__)
 
 
 def test_ObjBase_get(setup_pars: dict):
-    name = setup_pars["name"]
-    explicit_name1 = "par1"
-    explicit_name2 = "par2"
+    name = setup_pars['name']
+    explicit_name1 = 'par1'
+    explicit_name2 = 'par2'
     kwargs = {
         setup_pars[explicit_name1].name: setup_pars[explicit_name1],
         setup_pars[explicit_name2].name: setup_pars[explicit_name2],
@@ -118,8 +115,8 @@ def test_ObjBase_get(setup_pars: dict):
 
 
 def test_ObjBase_set(setup_pars: dict):
-    name = setup_pars["name"]
-    explicit_name1 = "par1"
+    name = setup_pars['name']
+    explicit_name1 = 'par1'
     kwargs = {
         setup_pars[explicit_name1].name: setup_pars[explicit_name1],
     }
@@ -131,15 +128,15 @@ def test_ObjBase_set(setup_pars: dict):
 
 
 def test_ObjBase_get_parameters(setup_pars: dict):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
     pars = obj.get_fit_parameters()
     assert isinstance(pars, list)
     assert len(pars) == 2
     par_names = [par.name for par in pars]
-    assert "p2" in par_names
-    assert "p3" in par_names
+    assert 'p2' in par_names
+    assert 'p3' in par_names
 
 
 def test_ObjBase_fit_objects(setup_pars: dict):
@@ -147,83 +144,83 @@ def test_ObjBase_fit_objects(setup_pars: dict):
 
 
 def test_ObjBase_as_dict(clear, setup_pars: dict):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
     obtained = obj.as_dict()
     assert isinstance(obtained, dict)
     expected = {
-        "@module": "easyscience.base_classes.obj_base",
-        "@class": "ObjBase",
-        "@version": easyscience.__version__,
-        "name": "test",
-        "par1": {
-            "@module": Parameter.__module__,
-            "@class": Parameter.__name__,
-            "@version": easyscience.__version__,
-            "name": "p1",
-            "value": 0.1,
-            "variance": 0.0,
-            "min": -np.inf,
-            "max": np.inf,
-            "fixed": True,
-            "unit": "dimensionless",
+        '@module': 'easyscience.base_classes.obj_base',
+        '@class': 'ObjBase',
+        '@version': easyscience.__version__,
+        'name': 'test',
+        'par1': {
+            '@module': Parameter.__module__,
+            '@class': Parameter.__name__,
+            '@version': easyscience.__version__,
+            'name': 'p1',
+            'value': 0.1,
+            'variance': 0.0,
+            'min': -np.inf,
+            'max': np.inf,
+            'fixed': True,
+            'unit': 'dimensionless',
         },
-        "des1": {
-            "@module": DescriptorNumber.__module__,
-            "@class": DescriptorNumber.__name__,
-            "@module": DescriptorNumber.__module__,
-            "@class": DescriptorNumber.__name__,
-            "@version": easyscience.__version__,
-            "name": "d1",
-            "value": 0.1,
-            "unit": "dimensionless",
-            "description": "",
-            "url": "",
-            "display_name": "d1",
+        'des1': {
+            '@module': DescriptorNumber.__module__,
+            '@class': DescriptorNumber.__name__,
+            '@module': DescriptorNumber.__module__,
+            '@class': DescriptorNumber.__name__,
+            '@version': easyscience.__version__,
+            'name': 'd1',
+            'value': 0.1,
+            'unit': 'dimensionless',
+            'description': '',
+            'url': '',
+            'display_name': 'd1',
         },
-        "par2": {
-            "@module": Parameter.__module__,
-            "@class": Parameter.__name__,
-            "@version": easyscience.__version__,
-            "name": "p2",
-            "value": 0.1,
-            "variance": 0.0,
-            "min": -np.inf,
-            "max": np.inf,
-            "fixed": False,
-            "unit": "dimensionless",
+        'par2': {
+            '@module': Parameter.__module__,
+            '@class': Parameter.__name__,
+            '@version': easyscience.__version__,
+            'name': 'p2',
+            'value': 0.1,
+            'variance': 0.0,
+            'min': -np.inf,
+            'max': np.inf,
+            'fixed': False,
+            'unit': 'dimensionless',
         },
-        "des2": {
-            "@module": DescriptorNumber.__module__,
-            "@class": DescriptorNumber.__name__,
-            "@module": DescriptorNumber.__module__,
-            "@class": DescriptorNumber.__name__,
-            "@version": easyscience.__version__,
-            "name": "d2",
-            "value": 0.1,
-            "unit": "dimensionless",
-            "description": "",
-            "url": "",
-            "display_name": "d2",
+        'des2': {
+            '@module': DescriptorNumber.__module__,
+            '@class': DescriptorNumber.__name__,
+            '@module': DescriptorNumber.__module__,
+            '@class': DescriptorNumber.__name__,
+            '@version': easyscience.__version__,
+            'name': 'd2',
+            'value': 0.1,
+            'unit': 'dimensionless',
+            'description': '',
+            'url': '',
+            'display_name': 'd2',
         },
-        "par3": {
-            "@module": Parameter.__module__,
-            "@class": Parameter.__name__,
-            "@version": easyscience.__version__,
-            "name": "p3",
-            "value": 0.1,
-            "variance": 0.0,
-            "min": -np.inf,
-            "max": np.inf,
-            "fixed": False,
-            "unit": "dimensionless",
+        'par3': {
+            '@module': Parameter.__module__,
+            '@class': Parameter.__name__,
+            '@version': easyscience.__version__,
+            'name': 'p3',
+            'value': 0.1,
+            'variance': 0.0,
+            'min': -np.inf,
+            'max': np.inf,
+            'fixed': False,
+            'unit': 'dimensionless',
         },
     }
 
     def check_dict(check, item):
         if isinstance(check, dict) and isinstance(item, dict):
-            if "@module" in item.keys():
+            if '@module' in item.keys():
                 with not_raises([ValueError, AttributeError]):
                     global_object.map._clear()
                     this_obj = SerializerDict().decode(item)
@@ -240,8 +237,8 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
 
 def test_ObjBase_dict_roundtrip(clear, setup_pars: dict):
     # When
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars, unique_name='special_name')
     obj_dict = obj.as_dict()
 
@@ -256,27 +253,27 @@ def test_ObjBase_dict_roundtrip(clear, setup_pars: dict):
 
 
 def test_ObjBase_dir(setup_pars):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
     expected = [
-        "encode",
-        "decode",
-        "as_dict",
-        "des1",
-        "des2",
-        "from_dict",
-        "generate_bindings",
-        "get_fit_parameters",
-        "get_parameters",
-        "interface",
-        "unique_name",
-        "name",
-        "par1",
-        "par2",
-        "par3",
-        "switch_interface",
-        "user_data",
+        'encode',
+        'decode',
+        'as_dict',
+        'des1',
+        'des2',
+        'from_dict',
+        'generate_bindings',
+        'get_fit_parameters',
+        'get_parameters',
+        'interface',
+        'unique_name',
+        'name',
+        'par1',
+        'par2',
+        'par3',
+        'switch_interface',
+        'user_data',
     ]
     obtained = dir(obj)
     print(obtained)
@@ -287,19 +284,19 @@ def test_ObjBase_dir(setup_pars):
 
 
 def test_ObjBase_get_parameters(setup_pars):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
     pars = obj.get_parameters()
     assert len(pars) == 3
 
 
 def test_ObjBase_get_parameters_nested(setup_pars):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
 
-    name2 = name + "_2"
+    name2 = name + '_2'
     obj2 = ObjBase(name2, obj=obj, **setup_pars)
 
     pars = obj2.get_parameters()
@@ -310,19 +307,19 @@ def test_ObjBase_get_parameters_nested(setup_pars):
 
 
 def test_ObjBase_get_fit_parameters(setup_pars):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
     pars = obj.get_fit_parameters()
     assert len(pars) == 2
 
 
 def test_ObjBase_get_fit_parameters_nested(setup_pars):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
 
-    name2 = name + "_2"
+    name2 = name + '_2'
     obj2 = ObjBase(name2, obj=obj, **setup_pars)
 
     pars = obj2.get_fit_parameters()
@@ -333,12 +330,12 @@ def test_ObjBase_get_fit_parameters_nested(setup_pars):
 
 
 def test_ObjBase__add_component(setup_pars):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
 
-    p = Parameter("added_par", 1)
-    new_item_name = "Added"
+    p = Parameter('added_par', 1)
+    new_item_name = 'Added'
     obj._add_component(new_item_name, p)
 
     assert hasattr(obj, new_item_name)
@@ -347,19 +344,20 @@ def test_ObjBase__add_component(setup_pars):
 
 
 def test_ObjBase_name(setup_pars):
-    name = setup_pars["name"]
-    del setup_pars["name"]
+    name = setup_pars['name']
+    del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
     assert obj.name == name
+
 
 def test_Base_GETSET():
     class A(ObjBase):
         def __init__(self, a: Parameter):
-            super(A, self).__init__("a", a=a)
+            super(A, self).__init__('a', a=a)
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter("a", a))
+            return cls(a=Parameter('a', a))
 
     a_start = 5
     a_end = 10
@@ -369,7 +367,7 @@ def test_Base_GETSET():
     assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
 
-    setattr(a, "a", a_end)
+    setattr(a, 'a', a_end)
     assert a.a.value == a_end
     assert len(graph.get_edges(a)) == 1
 
@@ -377,12 +375,12 @@ def test_Base_GETSET():
 def test_Base_GETSET():
     class A(ObjBase):
         def __init__(self, a: Parameter):
-            super(A, self).__init__("a", a=a)
+            super(A, self).__init__('a', a=a)
             b = 0
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter("a", a))
+            return cls(a=Parameter('a', a))
 
     a = A.from_pars(5)
     b_new = 10
@@ -392,15 +390,14 @@ def test_Base_GETSET():
 
 def test_Base_GETSET_v2():
     class A(ObjBase):
-
         a: ClassVar[Parameter]
 
         def __init__(self, a: Parameter):
-            super(A, self).__init__("a", a=a)
+            super(A, self).__init__('a', a=a)
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter("a", a))
+            return cls(a=Parameter('a', a))
 
     a_start = 5
     a_end = 10
@@ -410,22 +407,21 @@ def test_Base_GETSET_v2():
     assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
 
-    setattr(a, "a", a_end)
+    setattr(a, 'a', a_end)
     assert a.a.value == a_end
     assert len(graph.get_edges(a)) == 1
 
 
 def test_Base_GETSET_v3():
     class A(ObjBase):
-
         a: ClassVar[Parameter]
 
         def __init__(self, a: Parameter):
-            super(A, self).__init__("a", a=a)
+            super(A, self).__init__('a', a=a)
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter("a", a))
+            return cls(a=Parameter('a', a))
 
     a_start = 5
     a_end = 10
@@ -434,11 +430,11 @@ def test_Base_GETSET_v3():
 
     assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
-    a_ = Parameter("a", a_end)
+    a_ = Parameter('a', a_end)
     assert a.a.unique_name in graph.get_edges(a)
     a__ = a.a
 
-    setattr(a, "a", a_)
+    setattr(a, 'a', a_)
     assert a.a.value == a_end
     assert len(graph.get_edges(a)) == 1
     assert a_.unique_name in graph.get_edges(a)
@@ -448,7 +444,7 @@ def test_Base_GETSET_v3():
 def test_BaseCreation():
     class A(ObjBase):
         def __init__(self, a: Optional[Union[Parameter, float]] = None):
-            super(A, self).__init__("A", a=Parameter("a", 1.0))
+            super(A, self).__init__('A', a=Parameter('a', 1.0))
             if a is not None:
                 self.a = a
 
@@ -456,14 +452,14 @@ def test_BaseCreation():
     assert a.a.value == 1.0
     a = A(2.0)
     assert a.a.value == 2.0
-    a = A(Parameter("a", 3.0))
+    a = A(Parameter('a', 3.0))
     assert a.a.value == 3.0
     a.a = 4.0
     assert a.a.value == 4.0
 
     class B(ObjBase):
         def __init__(self, b: Optional[Union[A, Parameter, float]] = None):
-            super(B, self).__init__("B", b=A())
+            super(B, self).__init__('B', b=A())
             if b is not None:
                 if isinstance(b, (float, Parameter)):
                     b = A(b)
@@ -478,24 +474,27 @@ def test_BaseCreation():
     b.b.a = 4.0
     assert b.b.a.value == 4.0
 
+
 def test_unique_name_generator(clear):
     # When Then
-    test_obj = ObjBase(name="test")
+    test_obj = ObjBase(name='test')
     # Expect
-    assert test_obj.unique_name == "ObjBase_0"
+    assert test_obj.unique_name == 'ObjBase_0'
+
 
 def test_unique_name_change(clear):
     # When
-    test_obj = ObjBase(name="test")
+    test_obj = ObjBase(name='test')
     # Then
-    test_obj.unique_name = "test"
+    test_obj.unique_name = 'test'
     # Expect
-    assert test_obj.unique_name == "test"
+    assert test_obj.unique_name == 'test'
 
-@pytest.mark.parametrize("input", [2, 2.0, [2], {2}, None])
+
+@pytest.mark.parametrize('input', [2, 2.0, [2], {2}, None])
 def test_unique_name_change_exception(input):
     # When
-    test_obj = ObjBase(name="test")
+    test_obj = ObjBase(name='test')
     # Then Expect
     with pytest.raises(TypeError):
         test_obj.unique_name = input

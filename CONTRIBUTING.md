@@ -42,8 +42,8 @@ Please make sure you follow the EasyScience organization-wide
 If you are not planning to modify the code, you may want to:
 
 - 🐞 Report a bug — see [Reporting Issues](#11-reporting-issues)
-- 🛡 Report a security issue —
-  see [Security Issues](#12-security-issues)
+- 🛡 Report a security issue — see
+  [Security Issues](#12-security-issues)
 - 💬 Ask a question or start a discussion at
   [Project Discussions](https://github.com/easyscience/core/discussions)
 
@@ -403,5 +403,4 @@ the next stable release.
 
 ---
 
-Thank you for contributing to EasyScience and the EasyScience
-ecosystem!
+Thank you for contributing to EasyScience and the EasyScience ecosystem!

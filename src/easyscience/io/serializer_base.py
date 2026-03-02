@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from __future__ import annotations
@@ -28,21 +29,25 @@ _e = json.JSONEncoder()
 
 
 class SerializerBase:
-    """
-    This is the base class for creating an encoder/decoder which can convert EasyScience objects. `encode` and `decode` are
+    """This is the base class for creating an encoder/decoder which can
+    convert EasyScience objects.
+
+    `encode` and `decode` are
     abstract methods to be implemented for each serializer. It is expected that the helper function `_convert_to_dict`
     will be used as a base for encoding (or the `SerializerDict` as it's more flexible).
     """
 
     @abstractmethod
     def encode(self, obj: SerializerComponent, skip: Optional[List[str]] = None, **kwargs) -> any:
-        """
-        Abstract implementation of an encoder.
+        """Abstract implementation of an encoder.
 
         :param obj: Object to be encoded.
-        :param skip: List of field names as strings to skip when forming the encoded object
-        :param kwargs: Any additional key word arguments to be passed to the encoder
-        :return: encoded object containing all information to reform an EasyScience object.
+        :param skip: List of field names as strings to skip when forming
+            the encoded object
+        :param kwargs: Any additional key word arguments to be passed to
+            the encoder
+        :return: encoded object containing all information to reform an
+            EasyScience object.
         """
 
         pass
@@ -50,8 +55,8 @@ class SerializerBase:
     @classmethod
     @abstractmethod
     def decode(cls, obj: Any) -> Any:
-        """
-        Re-create an EasyScience object from the output of an encoder. The default decoder is `SerializerDict`.
+        """Re-create an EasyScience object from the output of an
+        encoder. The default decoder is `SerializerDict`.
 
         :param obj: encoded EasyScience object
         :return: Reformed EasyScience object
@@ -60,8 +65,8 @@ class SerializerBase:
 
     @staticmethod
     def get_arg_spec(func: Callable) -> Tuple[Any, List[str]]:
-        """
-        Get the full argument specification of a function (typically `__init__`)
+        """Get the full argument specification of a function (typically
+        `__init__`)
 
         :param func: Function to be inspected
         :return: Tuple of argument spec and arguments
@@ -73,8 +78,7 @@ class SerializerBase:
 
     @staticmethod
     def _encode_objs(obj: Any) -> Dict[str, Any]:
-        """
-        A JSON serializable dict representation of an object.
+        """A JSON serializable dict representation of an object.
 
         :param obj: any object to be encoded
         :param skip: List of field names as strings to skip when forming the encoded object
@@ -117,9 +121,7 @@ class SerializerBase:
         full_encode: bool = False,
         **kwargs,
     ) -> dict:
-        """
-        A JSON serializable dict representation of an object.
-        """
+        """A JSON serializable dict representation of an object."""
         if skip is None:
             skip = []
 
@@ -189,7 +191,9 @@ class SerializerBase:
                                     'determine the dict format. Alternatively, '
                                     'you can implement both as_dict and from_dict.'
                                 )
-                d[c] = self._recursive_encoder(a, skip=skip, encoder=self, full_encode=full_encode, **kwargs)
+                d[c] = self._recursive_encoder(
+                    a, skip=skip, encoder=self, full_encode=full_encode, **kwargs
+                )
         if spec.varargs is not None and getattr(obj, spec.varargs, None) is not None:
             d.update({spec.varargs: getattr(obj, spec.varargs)})
         if hasattr(obj, '_kwargs'):
@@ -223,12 +227,11 @@ class SerializerBase:
 
     @staticmethod
     def _convert_from_dict(d):
-        """
-        Recursive method to support decoding dicts and lists containing EasyScience objects
+        """Recursive method to support decoding dicts and lists
+        containing EasyScience objects.
 
         :param d: Dictionary containing JSONed EasyScience objects
         :return: Reformed EasyScience object
-
         """
         T_ = type(d)
         if isinstance(d, dict):
@@ -249,7 +252,11 @@ class SerializerBase:
                 mod = __import__(modname, globals(), locals(), [classname], 0)
                 if hasattr(mod, classname):
                     cls_ = getattr(mod, classname)
-                    data = {k: SerializerBase._convert_from_dict(v) for k, v in d.items() if not k.startswith('@')}
+                    data = {
+                        k: SerializerBase._convert_from_dict(v)
+                        for k, v in d.items()
+                        if not k.startswith('@')
+                    }
                     return cls_(**data)
             elif np is not None and modname == 'numpy' and classname == 'array':
                 if d['dtype'].startswith('complex'):
@@ -262,20 +269,24 @@ class SerializerBase:
 
     @staticmethod
     def deserialize_dict(in_dict: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Deserialize a dictionary using from_dict for ES objects and SerializerBase otherwise.
-        This method processes constructor arguments, skipping metadata keys starting with '@'.
+        """Deserialize a dictionary using from_dict for ES objects and
+        SerializerBase otherwise. This method processes constructor
+        arguments, skipping metadata keys starting with '@'.
 
         :param in_dict: dictionary to deserialize
         :return: deserialized dictionary with constructor arguments
         """
-        d = {key: SerializerBase._deserialize_value(value) for key, value in in_dict.items() if not key.startswith('@')}
+        d = {
+            key: SerializerBase._deserialize_value(value)
+            for key, value in in_dict.items()
+            if not key.startswith('@')
+        }
         return d
 
     @staticmethod
     def _deserialize_value(value: Any) -> Any:
-        """
-        Deserialize a single value, using specialized handling for ES objects.
+        """Deserialize a single value, using specialized handling for ES
+        objects.
 
         :param value:
         :return: deserialized value
@@ -301,18 +312,21 @@ class SerializerBase:
 
     @staticmethod
     def _is_serialized_easyscience_object(value: Any) -> bool:
-        """
-        Check if a value represents a serialized ES object.
+        """Check if a value represents a serialized ES object.
 
         :param value:
         :return: True if this is a serialized ES object
         """
-        return isinstance(value, dict) and '@module' in value and value['@module'].startswith('easy') and '@class' in value
+        return (
+            isinstance(value, dict)
+            and '@module' in value
+            and value['@module'].startswith('easy')
+            and '@class' in value
+        )
 
     @staticmethod
     def _import_class(module_name: str, class_name: str):
-        """
-        Import a class from a module name and class name.
+        """Import a class from a module name and class name.
 
         :param module_name: name of the module
         :param class_name: name of the class
@@ -330,24 +344,33 @@ class SerializerBase:
 
         return getattr(module, class_name)
 
-    def _recursive_encoder(self, obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs):
-        """
-        Walk through an object encoding it
-        """
+    def _recursive_encoder(
+        self, obj, skip: List[str] = [], encoder=None, full_encode=False, **kwargs
+    ):
+        """Walk through an object encoding it."""
         if encoder is None:
             encoder = SerializerBase()
         T_ = type(obj)
         if issubclass(T_, (list, tuple, MutableSequence)):
             # Is it a core MutableSequence?
-            if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
+            if (
+                hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins'
+            ):  # strings have encode
                 return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
             elif hasattr(obj, 'to_dict') and obj.__class__.__module__.startswith('easy'):
                 return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
             else:
-                return [self._recursive_encoder(it, skip, encoder, full_encode, **kwargs) for it in obj]
+                return [
+                    self._recursive_encoder(it, skip, encoder, full_encode, **kwargs) for it in obj
+                ]
         if isinstance(obj, dict):
-            return {kk: self._recursive_encoder(vv, skip, encoder, full_encode, **kwargs) for kk, vv in obj.items()}
-        if hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins':  # strings have encode
+            return {
+                kk: self._recursive_encoder(vv, skip, encoder, full_encode, **kwargs)
+                for kk, vv in obj.items()
+            }
+        if (
+            hasattr(obj, 'encode') and obj.__class__.__module__ != 'builtins'
+        ):  # strings have encode
             return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
         elif hasattr(obj, 'to_dict') and obj.__class__.__module__.startswith('easy'):
             return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)

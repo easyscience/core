@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience>
 
 
@@ -19,18 +20,18 @@ def clear():
 
 
 poly_test_cases = (
-    (1.,),
+    (1.0,),
     (
-        1.,
-        2.,
+        1.0,
+        2.0,
     ),
-    (1., 2., 3.),
-    (-1., -2., -3.),
+    (1.0, 2.0, 3.0),
+    (-1.0, -2.0, -3.0),
     (0.72, 6.48, -0.48),
 )
 
 
-@pytest.mark.parametrize("coo", poly_test_cases)
+@pytest.mark.parametrize('coo', poly_test_cases)
 def test_Polynomial_pars(clear, coo):
     poly = Polynomial(coefficients=coo)
 
@@ -126,7 +127,7 @@ def test_Polynomial_invalid_coefficients_type(clear):
     """Test that invalid coefficients argument type raises TypeError."""
     # String is iterable, so it will iterate over characters and fail with first error
     with pytest.raises(TypeError, match='Coefficients must be floats or Parameters'):
-        Polynomial(coefficients="invalid")
+        Polynomial(coefficients='invalid')
 
     # Integer is not iterable, so it will fail with second error
     with pytest.raises(TypeError, match='coefficients must be a list or a CollectionBase'):
@@ -188,7 +189,7 @@ def test_Polynomial_call_with_args_kwargs(clear):
 
     x = np.array([0, 1, 2])
     # These additional args/kwargs should be ignored
-    result = poly(x, "extra_arg", extra_kwarg="value")
+    result = poly(x, 'extra_arg', extra_kwarg='value')
     # polyval([1.0, 2.0, 3.0], x) = 1.0*x^2 + 2.0*x + 3.0
     expected = np.polyval([1.0, 2.0, 3.0], x)
     assert np.allclose(result, expected)

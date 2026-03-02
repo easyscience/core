@@ -1,7 +1,8 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from typing import TYPE_CHECKING
 from typing import Callable
@@ -16,8 +17,9 @@ if TYPE_CHECKING:
 
 
 class ObjBase(BasedBase):
-    """
-    This is the base class for which all higher level classes are built off of.
+    """This is the base class for which all higher level classes are
+    built off of.
+
     NOTE: This object is serializable only if parameters are supplied as:
     `ObjBase(a=value, b=value)`. For `Parameter` or `Descriptor` objects we can
     cheat with `ObjBase(*[Descriptor(...), Parameter(...), ...])`.
@@ -30,8 +32,7 @@ class ObjBase(BasedBase):
         *args: Optional[SerializerComponent],
         **kwargs: Optional[SerializerComponent],
     ):
-        """
-        Set up the base class.
+        """Set up the base class.
 
         :param name: Name of this object
         :param args: Any arguments?
@@ -64,16 +65,16 @@ class ObjBase(BasedBase):
             )
 
     def _add_component(self, key: str, component: SerializerComponent) -> None:
-        """
-        Dynamically add a component to the class. This is an internal method, though can be called remotely.
-        The recommended alternative is to use typing, i.e.
+        """Dynamically add a component to the class. This is an internal
+        method, though can be called remotely. The recommended
+        alternative is to use typing, i.e.
 
         .. code-block:: python
 
             class Foo(Bar):
                 def __init__(self, foo: Parameter, bar: Parameter):
                     super(Foo, self).__init__(bar=bar)
-                    self._add_component("foo", foo)
+                    self._add_component('foo', foo)
 
         :param key: Name of component to be added
         :param component: Component to be added
@@ -133,7 +134,9 @@ class ObjBase(BasedBase):
     @staticmethod
     def __setter(key: str) -> Callable[[SerializerComponent], None]:
         def setter(obj: SerializerComponent, value: float) -> None:
-            if issubclass(obj._kwargs[key].__class__, (DescriptorBase)) and not issubclass(value.__class__, (DescriptorBase)):
+            if issubclass(obj._kwargs[key].__class__, (DescriptorBase)) and not issubclass(
+                value.__class__, (DescriptorBase)
+            ):
                 obj._kwargs[key].value = value
             else:
                 obj._kwargs[key] = value

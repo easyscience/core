@@ -1,7 +1,8 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from inspect import signature
 from typing import TYPE_CHECKING
@@ -21,9 +22,10 @@ from ..io.serializer_base import SerializerBase
 
 
 class NewBase:
-    """
-    This is the new base class for easyscience objects.
-    It provides serialization capabilities as well as unique naming and display naming.
+    """This is the new base class for easyscience objects.
+
+    It provides serialization capabilities as well as unique naming and
+    display naming.
     """
 
     def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
@@ -43,12 +45,16 @@ class NewBase:
 
     @property
     def _arg_spec(self) -> Set[str]:
-        """
-        This method is used by the serializer to determine which arguments are needed
-        by the constructor to deserialize the object.
+        """This method is used by the serializer to determine which
+        arguments are needed by the constructor to deserialize the
+        object.
         """
         sign = signature(self.__class__.__init__)
-        names = [param.name for param in sign.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
+        names = [
+            param.name
+            for param in sign.parameters.values()
+            if param.kind == param.POSITIONAL_OR_KEYWORD
+        ]
         return set(names[1:])
 
     @property
@@ -58,9 +64,11 @@ class NewBase:
 
     @unique_name.setter
     def unique_name(self, new_unique_name: str):
-        """Set a new unique name for the object. The old name is still kept in the map.
+        """Set a new unique name for the object. The old name is still
+        kept in the map.
 
-        :param new_unique_name: New unique name for the object"""
+        :param new_unique_name: New unique name for the object
+        """
         if not isinstance(new_unique_name, str):
             raise TypeError('Unique name has to be a string.')
         self._unique_name = new_unique_name
@@ -69,8 +77,7 @@ class NewBase:
 
     @property
     def display_name(self) -> str:
-        """
-        Get a pretty display name.
+        """Get a pretty display name.
 
         :return: The pretty display name.
         """
@@ -82,8 +89,7 @@ class NewBase:
     @display_name.setter
     @property_stack
     def display_name(self, name: str | None) -> None:
-        """
-        Set the pretty display name.
+        """Set the pretty display name.
 
         :param name: Pretty display name of the object.
         """
@@ -92,11 +98,13 @@ class NewBase:
         self._display_name = name
 
     def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Convert an EasyScience object into a full dictionary using `SerializerBase`s generic `convert_to_dict` method.
+        """Convert an EasyScience object into a full dictionary using
+        `SerializerBase`s generic `convert_to_dict` method.
 
-        :param skip: List of field names as strings to skip when forming the dictionary
-        :return: encoded object containing all information to reform an EasyScience object.
+        :param skip: List of field names as strings to skip when forming
+            the dictionary
+        :return: encoded object containing all information to reform an
+            EasyScience object.
         """
         serializer = SerializerBase()
         if skip is None:
@@ -109,8 +117,8 @@ class NewBase:
 
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> NewBase:
-        """
-        Re-create an EasyScience object from a full encoded dictionary.
+        """Re-create an EasyScience object from a full encoded
+        dictionary.
 
         :param obj_dict: dictionary containing the serialized contents (from `SerializerDict`) of an EasyScience object
         :return: Reformed EasyScience object
@@ -121,13 +129,16 @@ class NewBase:
             kwargs = SerializerBase.deserialize_dict(obj_dict)
             return cls(**kwargs)
         else:
-            raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')
+            raise ValueError(
+                f'Class name in dictionary does not match the expected class: {cls.__name__}.'
+            )
 
     def __dir__(self) -> Iterable[str]:
-        """
-        This creates auto-completion and helps out in iPython notebooks.
+        """This creates auto-completion and helps out in iPython
+        notebooks.
 
-        :return: list of function and parameter names for auto-completion
+        :return: list of function and parameter names for auto-
+            completion
         """
         new_class_objs = list(k for k in dir(self.__class__) if not k.startswith('_'))
         return sorted(new_class_objs)

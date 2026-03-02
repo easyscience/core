@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 import warnings
@@ -17,11 +18,13 @@ class Alpha(NewBase):
     def __init__(self, unique_name=None, display_name=None):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
+
 class Beta(NewBase):
     """Another concrete subclass of NewBase for testing."""
 
     def __init__(self, unique_name=None, display_name=None):
         super().__init__(unique_name=unique_name, display_name=display_name)
+
 
 class TestEasyList:
     @pytest.fixture(autouse=True)
@@ -208,7 +211,10 @@ class TestEasyList:
         a2 = Alpha(unique_name='a2')
         a3 = Alpha(unique_name='a3')
         el = EasyList(a1, a2, protected_types=Alpha)
-        with pytest.raises(ValueError, match='Length of new values must match the length of the slice being replaced'):
+        with pytest.raises(
+            ValueError,
+            match='Length of new values must match the length of the slice being replaced',
+        ):
             el[0:2] = [a3]  # Only one item provided for a slice of length 2
 
     def test_setitem_invalid_index_type(self):

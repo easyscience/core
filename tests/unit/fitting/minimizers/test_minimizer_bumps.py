@@ -1,21 +1,23 @@
-import pytest
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from unittest.mock import MagicMock
+
 import numpy as np
+import pytest
 
 import easyscience.fitting.minimizers.minimizer_bumps
-
 from easyscience.fitting.minimizers.minimizer_bumps import Bumps
 from easyscience.fitting.minimizers.utils import FitError
 
 
-class TestBumpsFit():
+class TestBumpsFit:
     @pytest.fixture
     def minimizer(self) -> Bumps:
         minimizer = Bumps(
             obj='obj',
-            fit_function='fit_function', 
-            minimizer_enum=MagicMock(package='bumps', method='amoeba')
+            fit_function='fit_function',
+            minimizer_enum=MagicMock(package='bumps', method='amoeba'),
         )
         return minimizer
 
@@ -27,8 +29,8 @@ class TestBumpsFit():
         with pytest.raises(FitError):
             Bumps(
                 obj='obj',
-                fit_function='fit_function', 
-                minimizer_enum=MagicMock(package='bumps', method='not_amoeba')
+                fit_function='fit_function',
+                minimizer_enum=MagicMock(package='bumps', method='not_amoeba'),
             )
 
     def test_all_methods(self, minimizer: Bumps) -> None:
@@ -42,10 +44,13 @@ class TestBumpsFit():
     def test_fit(self, minimizer: Bumps, monkeypatch) -> None:
         # When
         from easyscience import global_object
+
         global_object.stack.enabled = False
 
         mock_bumps_fit = MagicMock(return_value='fit')
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, "bumps_fit", mock_bumps_fit)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'bumps_fit', mock_bumps_fit
+        )
 
         # Prepare a mock parameter with .name = 'pmock_parm_1'
         mock_bumps_param = MagicMock()
@@ -54,7 +59,9 @@ class TestBumpsFit():
         mock_FitProblem_instance = MagicMock()
         mock_FitProblem_instance._parameters = [mock_bumps_param]
         mock_FitProblem = MagicMock(return_value=mock_FitProblem_instance)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, "FitProblem", mock_FitProblem)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitProblem', mock_FitProblem
+        )
 
         mock_model = MagicMock()
         mock_model_function = MagicMock(return_value=mock_model)
@@ -70,8 +77,9 @@ class TestBumpsFit():
         def fake_set_parameter_fit_result(fit_result, stack_status, par_list):
             # Simulate what the real function does: update _cached_pars
             for index, name in enumerate([par.name for par in par_list]):
-                dict_name = name[len('p'):]  # Remove prefix 'p'
+                dict_name = name[len('p') :]  # Remove prefix 'p'
                 minimizer._cached_pars[dict_name].value = 42  # Arbitrary value
+
         minimizer._set_parameter_fit_result = fake_set_parameter_fit_result
 
         # Then
@@ -85,12 +93,22 @@ class TestBumpsFit():
         mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
 
-    @pytest.mark.parametrize("weights", [np.array([1, 2, 3, 4]), np.array([[1, 2, 3], [4, 5, 6]]), np.repeat(np.nan,3), np.zeros(3), np.repeat(np.inf,3), -np.ones(3)], ids=["wrong_length", "multidimensional", "NaNs", "zeros", "Infs", "negative"])
+    @pytest.mark.parametrize(
+        'weights',
+        [
+            np.array([1, 2, 3, 4]),
+            np.array([[1, 2, 3], [4, 5, 6]]),
+            np.repeat(np.nan, 3),
+            np.zeros(3),
+            np.repeat(np.inf, 3),
+            -np.ones(3),
+        ],
+        ids=['wrong_length', 'multidimensional', 'NaNs', 'zeros', 'Infs', 'negative'],
+    )
     def test_fit_weight_exceptions(self, minimizer: Bumps, weights) -> None:
         # When Then Expect
         with pytest.raises(ValueError):
             minimizer.fit(x=np.array([1, 2, 3]), y=np.array([1, 2, 3]), weights=weights)
- 
 
     def test_make_model(self, minimizer: Bumps, monkeypatch) -> None:
         # When
@@ -99,20 +117,22 @@ class TestBumpsFit():
 
         mock_parm_1 = MagicMock()
         mock_parm_1.unique_name = 'mock_parm_1'
-        minimizer.convert_to_par_object = MagicMock(return_value='converted_parm_1') 
+        minimizer.convert_to_par_object = MagicMock(return_value='converted_parm_1')
 
         mock_Curve = MagicMock(return_value='curve')
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, "Curve", mock_Curve)
+        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, 'Curve', mock_Curve)
 
         # Then
         model = minimizer._make_model(parameters=[mock_parm_1])
-        curve_for_model = model(x=np.array([1, 2]), y=np.array([10, 20]), weights=np.array([100, 200]))
+        curve_for_model = model(
+            x=np.array([1, 2]), y=np.array([10, 20]), weights=np.array([100, 200])
+        )
 
         # Expect
         minimizer._generate_fit_function.assert_called_once_with()
         assert mock_Curve.call_args[0][0] == mock_fit_function
-        assert all(mock_Curve.call_args[0][1] == np.array([1,2]))
-        assert all(mock_Curve.call_args[0][2] == np.array([10,20]))
+        assert all(mock_Curve.call_args[0][1] == np.array([1, 2]))
+        assert all(mock_Curve.call_args[0][2] == np.array([10, 20]))
         assert curve_for_model == 'curve'
 
     def test_set_parameter_fit_result_no_stack_status(self, minimizer: Bumps):
@@ -125,7 +145,7 @@ class TestBumpsFit():
         minimizer._cached_pars['b'].value = 'b'
 
         mock_cached_model = MagicMock()
-        mock_cached_model.pars = {'pa':0, 'pb': 0}
+        mock_cached_model.pars = {'pa': 0, 'pb': 0}
         minimizer._cached_model = mock_cached_model
 
         mock_fit_result = MagicMock()
@@ -152,7 +172,9 @@ class TestBumpsFit():
         # When
         mock_domain_fit_results = MagicMock()
         mock_FitResults = MagicMock(return_value=mock_domain_fit_results)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, "FitResults", mock_FitResults)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitResults', mock_FitResults
+        )
 
         mock_fit_result = MagicMock()
         mock_fit_result.success = True
@@ -170,22 +192,29 @@ class TestBumpsFit():
         mock_cached_par_2.value = 'par_value_2'
         minimizer._cached_pars = {'par_1': mock_cached_par_1, 'par_2': mock_cached_par_2}
 
-        minimizer._p_0 = 'p_0' 
+        minimizer._p_0 = 'p_0'
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
         # Then
-        domain_fit_results = minimizer._gen_fit_results(mock_fit_result, **{'kwargs_set_key': 'kwargs_set_val'})
+        domain_fit_results = minimizer._gen_fit_results(
+            mock_fit_result, **{'kwargs_set_key': 'kwargs_set_val'}
+        )
 
         # Expect
         assert domain_fit_results == mock_domain_fit_results
         assert domain_fit_results.kwargs_set_key == 'kwargs_set_val'
-        assert domain_fit_results.success == True 
+        assert domain_fit_results.success == True
         assert domain_fit_results.y_obs == 'y'
         assert domain_fit_results.x == 'x'
         assert domain_fit_results.p == {'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
         assert domain_fit_results.p0 == 'p_0'
         assert domain_fit_results.y_calc == 'evaluate'
         assert domain_fit_results.y_err == 'dy'
-        assert str(domain_fit_results.minimizer_engine) == "<class 'easyscience.fitting.minimizers.minimizer_bumps.Bumps'>"
+        assert (
+            str(domain_fit_results.minimizer_engine)
+            == "<class 'easyscience.fitting.minimizers.minimizer_bumps.Bumps'>"
+        )
         assert domain_fit_results.fit_args is None
-        minimizer.evaluate.assert_called_once_with('x', minimizer_parameters={'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'})
+        minimizer.evaluate.assert_called_once_with(
+            'x', minimizer_parameters={'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
+        )

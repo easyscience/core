@@ -1,21 +1,25 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 import pytest
 
-from easyscience.variable import DescriptorBool
 from easyscience import global_object
+from easyscience.variable import DescriptorBool
+
 
 class TestDescriptorBool:
     @pytest.fixture
     def descriptor(self):
         descriptor = DescriptorBool(
-            name="name",
+            name='name',
             value=True,
-            description="description",
-            url="url",
-            display_name="display_name",
+            description='description',
+            url='url',
+            display_name='display_name',
             parent=None,
         )
         return descriptor
-    
+
     @pytest.fixture
     def clear(self):
         global_object.map._clear()
@@ -25,22 +29,22 @@ class TestDescriptorBool:
         assert descriptor._bool_value == True
 
         # From super
-        assert descriptor._name == "name"
-        assert descriptor._description == "description"
-        assert descriptor._url == "url"
-        assert descriptor._display_name == "display_name"
+        assert descriptor._name == 'name'
+        assert descriptor._description == 'description'
+        assert descriptor._url == 'url'
+        assert descriptor._display_name == 'display_name'
 
-    @pytest.mark.parametrize("bool_value", ["string", 0, 1.0])
+    @pytest.mark.parametrize('bool_value', ['string', 0, 1.0])
     def test_init_bool_value_type_exception(self, bool_value):
 
         # When Then Expect
         with pytest.raises(ValueError):
             DescriptorBool(
-                name="name",
+                name='name',
                 value=bool_value,
-                description="description",
-                url="url",
-                display_name="display_name",
+                description='description',
+                url='url',
+                display_name='display_name',
                 parent=None,
             )
 
@@ -55,7 +59,7 @@ class TestDescriptorBool:
         # Expect
         assert descriptor._bool_value == False
 
-    @pytest.mark.parametrize("bool_value", ["string", 0, 0.0])
+    @pytest.mark.parametrize('bool_value', ['string', 0, 0.0])
     def test_set_value_type_exception(self, descriptor: DescriptorBool, bool_value):
         # When Then Expect
         with pytest.raises(TypeError):

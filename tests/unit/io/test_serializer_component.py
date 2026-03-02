@@ -1,8 +1,10 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
-import numpy as np
 from copy import deepcopy
 from typing import Type
 
+import numpy as np
 import pytest
 
 import easyscience
@@ -10,52 +12,50 @@ from easyscience import DescriptorNumber
 from easyscience import Parameter
 
 dp_param_dict = {
-    "argnames": "dp_kwargs, dp_cls",
-    "argvalues": (
+    'argnames': 'dp_kwargs, dp_cls',
+    'argvalues': (
         [
             {
-                "@module": DescriptorNumber.__module__,
-                "@class": DescriptorNumber.__name__,
-                "@version": easyscience.__version__,
-                "name": "test",
-                "value": 1.0,
-                "variance": None,
-                "unit": "dimensionless",
-                "description": "",
-                "url": "",
-                "display_name": "test",
+                '@module': DescriptorNumber.__module__,
+                '@class': DescriptorNumber.__name__,
+                '@version': easyscience.__version__,
+                'name': 'test',
+                'value': 1.0,
+                'variance': None,
+                'unit': 'dimensionless',
+                'description': '',
+                'url': '',
+                'display_name': 'test',
             },
             DescriptorNumber,
         ],
         [
             {
-                "@module": Parameter.__module__,
-                "@class": Parameter.__name__,
-                "@version": easyscience.__version__,
-                "name": "test",
-                "unit": "km",
-                "value": 1.0,
-                "variance": 0.0,
-                "min": -np.inf,
-                "max": np.inf,
-                "fixed": False,
-                "url": "https://www.boo.com",
-                "description": "",
-                "display_name": "test",
+                '@module': Parameter.__module__,
+                '@class': Parameter.__name__,
+                '@version': easyscience.__version__,
+                'name': 'test',
+                'unit': 'km',
+                'value': 1.0,
+                'variance': 0.0,
+                'min': -np.inf,
+                'max': np.inf,
+                'fixed': False,
+                'url': 'https://www.boo.com',
+                'description': '',
+                'display_name': 'test',
             },
             Parameter,
         ],
     ),
-    "ids": ["DescriptorNumber", "Parameter"],
+    'ids': ['DescriptorNumber', 'Parameter'],
 }
 
-_skip_opt = [[], None] + [
-    k for k in dp_param_dict["argvalues"][0][0].keys() if k[0] != "@"
-]
+_skip_opt = [[], None] + [k for k in dp_param_dict['argvalues'][0][0].keys() if k[0] != '@']
 skip_dict = {
-    "argnames": "skip",
-    "argvalues": _skip_opt,
-    "ids": ["skip_" + str(opt) for opt in _skip_opt],
+    'argnames': 'skip',
+    'argvalues': _skip_opt,
+    'ids': ['skip_' + str(opt) for opt in _skip_opt],
 }
 
 
@@ -72,7 +72,7 @@ def check_dict(check, item):
 @pytest.mark.parametrize(**skip_dict)
 @pytest.mark.parametrize(**dp_param_dict)
 def test_variable_as_dict_methods(dp_kwargs: dict, dp_cls: Type[DescriptorNumber], skip):
-    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != "@"}
+    data_dict = {k: v for k, v in dp_kwargs.items() if k[0] != '@'}
 
     obj = dp_cls(**data_dict)
 
@@ -94,4 +94,3 @@ def test_variable_as_dict_methods(dp_kwargs: dict, dp_cls: Type[DescriptorNumber
     assert len(dif) == 0
 
     check_dict(dp_kwargs, enc)
-

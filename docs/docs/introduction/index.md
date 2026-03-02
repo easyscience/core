@@ -6,12 +6,11 @@ icon: material/information-slab-circle
 
 ## Description
 
-**EasyScience** is the foundation of the framework, providing reusable building blocks for scientific libraries and applications aimed at making data analysis easier.
-
+**EasyScience** is the foundation of the framework, providing reusable
+building blocks for scientific libraries and applications aimed at
+making data analysis easier.
 
 **EasyScience** is developed as a Python library.
-
-
 
 <!--
 **EasyScience** is developed using the
@@ -34,11 +33,11 @@ the
 
 ## Citation
 
-If you use **EasyScience** library in your work,
-please cite the specific version you used.
+If you use **EasyScience** library in your work, please cite the
+specific version you used.
 
-All official releases of the **EasyScience** library are archived
-on Zenodo, each with a version-specific Digital Object Identifier (DOI).
+All official releases of the **EasyScience** library are archived on
+Zenodo, each with a version-specific Digital Object Identifier (DOI).
 
 Citation details in various styles (e.g., APA, MLA) and formats (e.g.,
 BibTeX, JSON) are available on the

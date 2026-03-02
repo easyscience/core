@@ -1,60 +1,64 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 import pytest
 
-from easyscience.variable import DescriptorStr
 from easyscience import global_object
+from easyscience.variable import DescriptorStr
+
 
 class TestDescriptorStr:
     @pytest.fixture
     def descriptor(self):
         descriptor = DescriptorStr(
-            name="name",
-            value="string",
-            description="description",
-            url="url",
-            display_name="display_name",
+            name='name',
+            value='string',
+            description='description',
+            url='url',
+            display_name='display_name',
             parent=None,
         )
         return descriptor
-    
+
     @pytest.fixture
     def clear(self):
         global_object.map._clear()
 
     def test_init(self, descriptor: DescriptorStr):
         # When Then Expect
-        assert descriptor._string == "string"
+        assert descriptor._string == 'string'
 
         # From super
-        assert descriptor._name == "name"
-        assert descriptor._description == "description"
-        assert descriptor._url == "url"
-        assert descriptor._display_name == "display_name"
+        assert descriptor._name == 'name'
+        assert descriptor._description == 'description'
+        assert descriptor._url == 'url'
+        assert descriptor._display_name == 'display_name'
 
-    @pytest.mark.parametrize("string", [True, 0, 1.0])
+    @pytest.mark.parametrize('string', [True, 0, 1.0])
     def test_init_string_type_exception(self, string):
         # When Then Expect
         with pytest.raises(ValueError):
             DescriptorStr(
-                name="name",
+                name='name',
                 value=string,
-                description="description",
-                url="url",
-                display_name="display_name",
+                description='description',
+                url='url',
+                display_name='display_name',
                 parent=None,
             )
 
     def test_value(self, descriptor: DescriptorStr):
         # When Then Expect
-        assert descriptor.value == "string"
+        assert descriptor.value == 'string'
 
     def test_set_value(self, descriptor: DescriptorStr):
         # When Then
-        descriptor.value = "new_string"
+        descriptor.value = 'new_string'
 
         # Expect
-        assert descriptor._string == "new_string"
+        assert descriptor._string == 'new_string'
 
-    @pytest.mark.parametrize("string", [True, 0, 1.0])
+    @pytest.mark.parametrize('string', [True, 0, 1.0])
     def test_set_value_type_exception(self, descriptor: DescriptorStr, string):
         # When Then Expect
         with pytest.raises(ValueError):

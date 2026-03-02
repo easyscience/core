@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
 from typing import Any
@@ -9,9 +12,7 @@ from .descriptor_base import DescriptorBase
 
 
 class DescriptorStr(DescriptorBase):
-    """
-    A `Descriptor` for string values.
-    """
+    """A `Descriptor` for string values."""
 
     def __init__(
         self,
@@ -37,8 +38,7 @@ class DescriptorStr(DescriptorBase):
 
     @property
     def value(self) -> str:
-        """
-        Get the value of self.
+        """Get the value of self.
 
         :return: Value of self with unit.
         """
@@ -47,8 +47,7 @@ class DescriptorStr(DescriptorBase):
     @value.setter
     @property_stack
     def value(self, value: str) -> None:
-        """
-        Set the value of self.
+        """Set the value of self.
 
         :param value: New value of self
         :return: None

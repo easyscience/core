@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
@@ -38,10 +39,11 @@ class LMFit(MinimizerBase):  # noqa: S101
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
     ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
-        """
-        Initialize the minimizer with the `ObjBase` and the `fit_function` to be used.
+        """Initialize the minimizer with the `ObjBase` and the
+        `fit_function` to be used.
 
-        :param obj: Base object which contains the parameters to be fitted
+        :param obj: Base object which contains the parameters to be
+            fitted
         :type obj: ObjBase
         :param fit_function: Function which will be fitted to the data
         :type fit_function: Callable
@@ -91,8 +93,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         engine_kwargs: Optional[dict] = None,
         **kwargs,
     ) -> FitResults:
-        """
-        Perform a fit using the lmfit engine.
+        """Perform a fit using the lmfit engine.
 
         :param method:
         :type method:
@@ -106,16 +107,15 @@ class LMFit(MinimizerBase):  # noqa: S101
         :type model: LMModel
         :param parameters: Optional parameters for the fit
         :type parameters: LMParameters
-        :param minimizer_kwargs: Arguments to be passed directly to the minimizer
+        :param minimizer_kwargs: Arguments to be passed directly to the
+            minimizer
         :type minimizer_kwargs: dict
         :param kwargs: Additional arguments for the fitting function.
         :return: Fit results
-        :rtype: ModelResult
-
-        For standard least squares, the weights should be 1/sigma, where
-        sigma is the standard deviation of the measurement. For
-        unweighted least squares, these should be 1.
-
+        :rtype: ModelResult For standard least squares, the weights
+            should be 1/sigma, where sigma is the standard deviation of
+            the measurement. For unweighted least squares, these should
+            be 1.
         """
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
@@ -165,7 +165,9 @@ class LMFit(MinimizerBase):  # noqa: S101
             raise FitError(e)
         return results
 
-    def _get_fit_kws(self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]) -> dict[str:str]:
+    def _get_fit_kws(
+        self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]
+    ) -> dict[str:str]:
         if minimizer_kwargs is None:
             minimizer_kwargs = {}
         if tolerance is not None:
@@ -176,22 +178,25 @@ class LMFit(MinimizerBase):  # noqa: S101
         return minimizer_kwargs
 
     def convert_to_pars_obj(self, parameters: Optional[List[Parameter]] = None) -> LMParameters:
-        """
-        Create an lmfit compatible container with the `Parameters` converted from the base object.
+        """Create an lmfit compatible container with the `Parameters`
+        converted from the base object.
 
-        :param parameters: If only a single/selection of parameter is required. Specify as a list
+        :param parameters: If only a single/selection of parameter is
+            required. Specify as a list
         :return: lmfit Parameters compatible object
         """
         if parameters is None:
             # Assume that we have a ObjBase for which we can obtain a list
             parameters = self._object.get_fit_parameters()
-        lm_parameters = LMParameters().add_many([self.convert_to_par_object(parameter) for parameter in parameters])
+        lm_parameters = LMParameters().add_many([
+            self.convert_to_par_object(parameter) for parameter in parameters
+        ])
         return lm_parameters
 
     @staticmethod
     def convert_to_par_object(parameter: Parameter) -> LMParameter:
-        """
-        Convert an EasyScience Parameter object to a lmfit Parameter object.
+        """Convert an EasyScience Parameter object to a lmfit Parameter
+        object.
 
         :return: lmfit Parameter compatible object.
         :rtype: LMParameter
@@ -209,8 +214,8 @@ class LMFit(MinimizerBase):  # noqa: S101
         )
 
     def _make_model(self, pars: Optional[LMParameters] = None) -> LMModel:
-        """
-        Generate a lmfit model from the supplied `fit_function` and parameters in the base object.
+        """Generate a lmfit model from the supplied `fit_function` and
+        parameters in the base object.
 
         :return: Callable lmfit model
         :rtype: LMModel
@@ -247,8 +252,8 @@ class LMFit(MinimizerBase):  # noqa: S101
         return model
 
     def _set_parameter_fit_result(self, fit_result: ModelResult, stack_status: bool):
-        """
-        Update parameters to their final values and assign a std error to them.
+        """Update parameters to their final values and assign a std
+        error to them.
 
         :param fit_result: Fit object which contains info on the fit
         :return: None

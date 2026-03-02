@@ -1,13 +1,17 @@
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from unittest.mock import MagicMock
 
-import pytest
 import numpy as np
+import pytest
+
 import easyscience.fitting.fitter
-from easyscience import Fitter
 from easyscience import AvailableMinimizers
+from easyscience import Fitter
 
 
-class TestFitter():
+class TestFitter:
     @pytest.fixture
     def fitter(self, monkeypatch):
         monkeypatch.setattr(Fitter, '_update_minimizer', MagicMock())
@@ -20,7 +24,7 @@ class TestFitter():
         assert fitter._fit_object == self.mock_fit_object
         assert fitter._fit_function == self.mock_fit_function
         assert fitter._dependent_dims is None
-        assert fitter._enum_current_minimizer is None #== AvailableMinimizers.LMFit_leastsq
+        assert fitter._enum_current_minimizer is None  # == AvailableMinimizers.LMFit_leastsq
         assert fitter._minimizer is None
         fitter._update_minimizer.assert_called_once_with(AvailableMinimizers.LMFit_leastsq)
 
@@ -88,7 +92,7 @@ class TestFitter():
         # Expect
         mock_string_to_enum.assert_called_once_with('great-minimizer')
         fitter._update_minimizer.assert_called_once_with(10)
-    
+
     def test_switch_minimizer(self, fitter: Fitter, monkeypatch):
         # When
         mock_minimizer = MagicMock()
@@ -127,23 +131,32 @@ class TestFitter():
 
         # Then Expect
         assert minimizers == [
-            'LMFit', 'LMFit_leastsq', 'LMFit_powell', 'LMFit_cobyla', 'LMFit_differential_evolution', 'LMFit_scipy_least_squares',
-            'Bumps', 'Bumps_simplex', 'Bumps_newton', 'Bumps_lm',
-            'DFO', 'DFO_leastsq'
+            'LMFit',
+            'LMFit_leastsq',
+            'LMFit_powell',
+            'LMFit_cobyla',
+            'LMFit_differential_evolution',
+            'LMFit_scipy_least_squares',
+            'Bumps',
+            'Bumps_simplex',
+            'Bumps_newton',
+            'Bumps_lm',
+            'DFO',
+            'DFO_leastsq',
         ]
 
     def test_minimizer(self, fitter: Fitter):
         # When
         fitter._minimizer = 'minimizer'
 
-        # Then 
+        # Then
         minimizer = fitter.minimizer
 
         # Expect
         assert minimizer == 'minimizer'
 
     def test_fit_function(self, fitter: Fitter):
-        # When Then 
+        # When Then
         fit_function = fitter.fit_function
 
         # Expect
@@ -161,7 +174,7 @@ class TestFitter():
         fitter._update_minimizer.assert_called_with('current_minimizer')
 
     def test_fit_object(self, fitter: Fitter):
-        # When Then 
+        # When Then
         fit_object = fitter.fit_object
 
         # Expect
@@ -180,7 +193,9 @@ class TestFitter():
 
     def test_fit(self, fitter: Fitter):
         # When
-        fitter._precompute_reshaping = MagicMock(return_value=('x_fit', 'x_new', 'y_new', 'weights', 'dims'))
+        fitter._precompute_reshaping = MagicMock(
+            return_value=('x_fit', 'x_new', 'y_new', 'weights', 'dims')
+        )
         fitter._fit_function_wrapper = MagicMock(return_value='wrapped_fit_function')
         fitter._post_compute_reshaping = MagicMock(return_value='fit_result')
         fitter._minimizer = MagicMock()
@@ -191,7 +206,7 @@ class TestFitter():
 
         # Expect
         fitter._precompute_reshaping.assert_called_once_with('x', 'y', 'weights', 'vectorized')
-        fitter._fit_function_wrapper.assert_called_once_with('x_new', flatten=True) 
+        fitter._fit_function_wrapper.assert_called_once_with('x_new', flatten=True)
         fitter._post_compute_reshaping.assert_called_once_with('result', 'x', 'y')
         assert result == 'fit_result'
         assert fitter._dependent_dims == 'dims'
@@ -200,8 +215,8 @@ class TestFitter():
     def test_post_compute_reshaping(self, fitter: Fitter):
         # When
         fit_result = MagicMock()
-        fit_result.y_calc = np.array([[10], [20], [30]]) 
-        fit_result.y_err = np.array([[40], [50], [60]]) 
+        fit_result.y_calc = np.array([[10], [20], [30]])
+        fit_result.y_err = np.array([[40], [50], [60]])
         x = np.array([1, 2, 3])
         y = np.array([4, 5, 6])
 
@@ -210,9 +225,10 @@ class TestFitter():
 
         # Expect
         assert np.array_equal(result.y_calc, np.array([10, 20, 30]))
-        assert np.array_equal(result.y_err, np.array([40, 50, 60])) 
+        assert np.array_equal(result.y_err, np.array([40, 50, 60]))
         assert np.array_equal(result.x, x)
         assert np.array_equal(result.y_obs, y)
+
 
 # TODO
 #       def test_fit_function_wrapper()

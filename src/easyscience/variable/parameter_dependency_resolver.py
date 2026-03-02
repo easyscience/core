@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 #  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 from __future__ import annotations
@@ -12,13 +13,15 @@ from .parameter import Parameter
 
 
 def resolve_all_parameter_dependencies(obj: Any) -> None:
-    """
-    Recursively find all Parameter objects in an object hierarchy and resolve their pending dependencies.
+    """Recursively find all Parameter objects in an object hierarchy and
+    resolve their pending dependencies.
 
-    This function should be called after deserializing a complex object that contains Parameters
-    with dependencies to ensure all dependency relationships are properly established.
+    This function should be called after deserializing a complex object
+    that contains Parameters with dependencies to ensure all dependency
+    relationships are properly established.
 
-    :param obj: The object to search for Parameters (can be a single Parameter, list, dict, or complex object)
+    :param obj: The object to search for Parameters (can be a single
+        Parameter, list, dict, or complex object)
     """
 
     def _collect_parameters(item: Any, parameters: List[Parameter]) -> None:
@@ -78,13 +81,15 @@ def resolve_all_parameter_dependencies(obj: Any) -> None:
         print(f'Successfully resolved dependencies for {resolved_count} parameter(s).')
 
     if error_count > 0:
-        error_message = f'Failed to resolve dependencies for {error_count} parameter(s):\n' + '\n'.join(errors)
+        error_message = (
+            f'Failed to resolve dependencies for {error_count} parameter(s):\n' + '\n'.join(errors)
+        )
         raise ValueError(error_message)
 
 
 def get_parameters_with_pending_dependencies(obj: Any) -> List[Parameter]:
-    """
-    Find all Parameter objects in an object hierarchy that have pending dependencies.
+    """Find all Parameter objects in an object hierarchy that have
+    pending dependencies.
 
     :param obj: The object to search for Parameters
     :return: List of Parameters with pending dependencies
@@ -92,7 +97,9 @@ def get_parameters_with_pending_dependencies(obj: Any) -> List[Parameter]:
     parameters_with_pending = []
 
     def _collect_pending_parameters(item: Any) -> None:
-        """Recursively collect all Parameter objects with pending dependencies."""
+        """Recursively collect all Parameter objects with pending
+        dependencies.
+        """
         if isinstance(item, Parameter):
             if hasattr(item, '_pending_dependency_string'):
                 parameters_with_pending.append(item)
@@ -126,15 +133,19 @@ def get_parameters_with_pending_dependencies(obj: Any) -> List[Parameter]:
     return parameters_with_pending
 
 
-def deserialize_and_resolve_parameters(params_data: Dict[str, Dict[str, Any]]) -> Dict[str, Parameter]:
-    """
-    Deserialize parameters from a dictionary and resolve their dependencies.
+def deserialize_and_resolve_parameters(
+    params_data: Dict[str, Dict[str, Any]],
+) -> Dict[str, Parameter]:
+    """Deserialize parameters from a dictionary and resolve their
+    dependencies.
 
-    This is a convenience function that combines Parameter.from_dict() deserialization
-    with dependency resolution in a single call.
+    This is a convenience function that combines Parameter.from_dict()
+    deserialization with dependency resolution in a single call.
 
-    :param params_data: Dictionary mapping parameter names to their serialized data
-    :return: Dictionary mapping parameter names to deserialized Parameters with resolved dependencies
+    :param params_data: Dictionary mapping parameter names to their
+        serialized data
+    :return: Dictionary mapping parameter names to deserialized
+        Parameters with resolved dependencies
     """
     # Deserialize all parameters first
     new_params = {}
