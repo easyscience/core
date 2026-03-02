@@ -172,3 +172,11 @@ nav:
           - Dummy tutorial: tutorials/tutorial.ipynb
   - API Reference:
       - API Reference: api-reference/index.md
+      - base_classes: api-reference/base_classes.md
+      - fitting: api-reference/fitting.md
+      - global_object: api-reference/global_object.md
+      - io: api-reference/io.md
+      - job: api-reference/job.md
+      - models: api-reference/models.md
+      - utils: api-reference/utils.md
+      - variable: api-reference/variable.md
