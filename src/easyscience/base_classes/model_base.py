@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+
 from typing import TYPE_CHECKING
 
 from easyscience.variable.descriptor_number import DescriptorNumber

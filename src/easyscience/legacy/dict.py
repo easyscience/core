@@ -5,7 +5,6 @@ from __future__ import annotations
 
 __author__ = 'https://github.com/materialsvirtuallab/monty/blob/master/monty/json.py'
 __version__ = '3.0.0'
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
 from typing import TYPE_CHECKING

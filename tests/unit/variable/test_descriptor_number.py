@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021-2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
-
 import pytest
 import scipp as sc
 from scipp import UnitError
