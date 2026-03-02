@@ -66,7 +66,6 @@ dev = [
 ]
 
 [project.urls]
-homepage = 'https://easyscience.github.io/corelib'
 documentation = 'https://easyscience.github.io/corelib'
 source = 'https://github.com/easyscience/corelib'
 tracker = 'https://github.com/easyscience/corelib/issues'

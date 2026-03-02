@@ -5,7 +5,7 @@
 #   - Check formatting of docstrings in the code
 #   - Check formatting of Markdown, YAML, TOML, etc. files
 
-name: Lint & Format checks
+name: Lint and format checks
 
 on:
   # Trigger the workflow on push

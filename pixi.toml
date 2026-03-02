@@ -182,9 +182,9 @@ docs-update-assets = 'python tools/update_docs_assets.py'
 # 📦 Template Management Tasks
 ##############################
 
-copier-copy = "copier copy gh:easyscience/templates . --data-file ../corelib/.copier-answers.yml --data template_type=lib"
-copier-recopy = "copier recopy --data-file ../corelib/.copier-answers.yml --data template_type=lib"
-copier-update = "copier update --data-file ../corelib/.copier-answers.yml --data template_type=lib"
+copier-copy = "copier copy gh:easyscience/templates . --data-file .copier-answers.yml --data template_type=lib"
+copier-recopy = "copier recopy --data-file .copier-answers.yml --data template_type=lib"
+copier-update = "copier update --data-file .copier-answers.yml --data template_type=lib"
 
 #####################
 # 🪝 Pre-commit Hooks
