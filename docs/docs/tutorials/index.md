@@ -17,5 +17,9 @@ The tutorials are organized into the following categories:
 
 ## Getting Started
 
-- [Dummy tutorial](tutorial.ipynb) – A dummy tutorial to ensure the
-  tutorial infrastructure is working correctly.
+- [Fitting QENS](fitting-qens.ipynb) – A tutorial demonstrating how to
+  fit a quasielastic neutron scattering (QENS) data using EasyScience
+  framework.
+- [Fitting SANS](fitting-sans.ipynb) – A tutorial demonstrating how to
+  fit a small-angle neutron scattering (SANS) data using EasyScience
+  framework.

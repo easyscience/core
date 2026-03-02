@@ -169,7 +169,8 @@ nav:
   - Tutorials:
       - Tutorials: tutorials/index.md
       - Getting Started:
-          - Dummy tutorial: tutorials/tutorial.ipynb
+          - Fitting QENS: tutorials/fitting-qens.ipynb
+          - Fitting SANS: tutorials/fitting-sans.ipynb
   - API Reference:
       - API Reference: api-reference/index.md
       - base_classes: api-reference/base_classes.md
