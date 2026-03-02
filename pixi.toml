@@ -42,7 +42,7 @@ channels = ['conda-forge']
 
 [dependencies]
 nodejs = '*' # Required for Prettier (non-Python formatting)
-#gsl = '*' # GNU Scientific Library; required for pdffit2.
+#gsl = '*' # GNU Scientific Library; required for pdffit2
 
 [pypi-dependencies] # == [feature.default.pypi-dependencies]
 #pip = '*' # Native package installer
