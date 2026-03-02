@@ -200,13 +200,13 @@ useful for testing.
 To install EasyScience from the `develop` branch of GitHub, for example:
 
 ```txt
-pip install git+https://github.com/easyscience/core@develop
+pip install git+https://github.com/easyscience/corelib@develop
 ```
 
 To include extra dependencies (e.g., dev):
 
 ```txt
-pip install 'easyscience[dev] @ git+https://github.com/easyscience/core@develop'
+pip install 'easyscience[dev] @ git+https://github.com/easyscience/corelib@develop'
 ```
 
 ## How to Run Tutorials

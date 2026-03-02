@@ -1,9 +1,9 @@
 # Project information
 site_name: EasyScience Library
-site_url: https://easyscience.github.io/core
+site_url: https://easyscience.github.io/corelib
 
 # Repository
-repo_url: https://github.com/easyscience/core
+repo_url: https://github.com/easyscience/corelib
 edit_uri: edit/develop/docs/
 
 # Copyright
@@ -62,10 +62,10 @@ extra:
       link: https://easyscience.org
       name: EasyScience Framework Webpage
     - icon: easyscience # File: overrides/.icons/easyscience.svg
-      link: https://easyscience.github.io/core
+      link: https://easyscience.github.io/corelib
       name: EasyScience Main Webpage
     - icon: fontawesome/brands/github # Name as in Font Awesome
-      link: https://github.com/easyscience/core
+      link: https://github.com/easyscience/corelib
       name: EasyScience Library Source Code on GitHub
   # Set custom variables to be used in Markdown and HTML files
   vars:

@@ -38,7 +38,7 @@ jobs:
       # https://pypi.org/manage/project/easyscience/settings/publishing/
       # Use the following data:
       # Owner: easyscience
-      # Repository name: core
+      # Repository name: corelib
       # Workflow name: pypi-publish.yml
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

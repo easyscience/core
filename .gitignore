@@ -2,6 +2,7 @@
 __pycache__/
 .venv/
 .coverage
+.pyc
 
 # PyInstaller
 dist/

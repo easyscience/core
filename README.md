@@ -21,26 +21,26 @@ making data analysis easier.
 
 ### 📚 For Users
 
-- 📖 [Documentation](https://easyscience.github.io/core/latest)
+- 📖 [Documentation](https://easyscience.github.io/corelib/latest)
 - 🚀
-  [Getting Started](https://easyscience.github.io/core/latest/introduction)
-- 🧪 [Tutorials](https://easyscience.github.io/core/latest/tutorials)
+  [Getting Started](https://easyscience.github.io/corelib/latest/introduction)
+- 🧪 [Tutorials](https://easyscience.github.io/corelib/latest/tutorials)
 - 💬
-  [Get in Touch](https://easyscience.github.io/core/latest/introduction/#get-in-touch)
+  [Get in Touch](https://easyscience.github.io/corelib/latest/introduction/#get-in-touch)
 - 🧾
-  [Citation](https://easyscience.github.io/core/latest/introduction/#citation)
+  [Citation](https://easyscience.github.io/corelib/latest/introduction/#citation)
 
 ### 🤝 For Contributors
 
 - 🤝
-  [Contributing Guide](https://github.com/easyscience/core/blob/master/CONTRIBUTING.md)
+  [Contributing Guide](https://github.com/easyscience/corelib/blob/master/CONTRIBUTING.md)
 - 🛡
   [Code of Conduct](https://github.com/easyscience/.github/blob/master/CODE_OF_CONDUCT.md)
-- 🐞 [Issue Tracker](https://github.com/easyscience/core/issues)
-- 💡 [Discussions](https://github.com/easyscience/core/discussions)
-- 🧑‍💻 [Source Code](https://github.com/easyscience/core)
+- 🐞 [Issue Tracker](https://github.com/easyscience/corelib/issues)
+- 💡 [Discussions](https://github.com/easyscience/corelib/discussions)
+- 🧑‍💻 [Source Code](https://github.com/easyscience/corelib)
 
 ### ⚖️ Project Information
 
 - ⚖️
-  [License](https://raw.githubusercontent.com/easyscience/core/refs/heads/master/LICENSE)
+  [License](https://raw.githubusercontent.com/easyscience/corelib/refs/heads/master/LICENSE)

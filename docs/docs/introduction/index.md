@@ -20,16 +20,16 @@ making data analysis easier.
 ## License
 
 **EasyScience** library is released under the
-[BSD 3-Clause License](https://raw.githubusercontent.com/easyscience/core/master/LICENSE).
+[BSD 3-Clause License](https://raw.githubusercontent.com/easyscience/corelib/master/LICENSE).
 
 ## Releases
 
 The latest version of the **EasyScience** library is
-[{{ vars.release_version }}](https://github.com/easyscience/core/releases/latest).
+[{{ vars.release_version }}](https://github.com/easyscience/corelib/releases/latest).
 
 For a complete list of new features, bug fixes, and improvements, see
 the
-[GitHub Releases page](https://github.com/easyscience/core/releases).
+[GitHub Releases page](https://github.com/easyscience/corelib/releases).
 
 ## Citation
 
@@ -54,11 +54,12 @@ The project is maintained by the
 [European Spallation Source (ESS)](https://ess.eu).
 
 If you would like to report a bug or request a new feature, please use
-the [GitHub Issue Tracker](https://github.com/easyscience/core/issues)
-(A free GitHub account is required.)
+the
+[GitHub Issue Tracker](https://github.com/easyscience/corelib/issues) (A
+free GitHub account is required.)
 
 To contribute code, documentation, or tests, please see our
-[:material-account-plus: Contributing Guidelines](https://github.com/easyscience/core/blob/master/CONTRIBUTING.md)
+[:material-account-plus: Contributing Guidelines](https://github.com/easyscience/corelib/blob/master/CONTRIBUTING.md)
 for detailed development instructions.
 
 ## Get in Touch

@@ -28,7 +28,7 @@ dependencies = [
   'dfo-ls',        # Derivative-free optimization
   'uncertainties', # Propagation of uncertainties in calculations
   'numpy',         # Numerical computing
-  'scipp',         # Handling and analysis of scientific data
+  'scipp<26.1.0',  # Handling and analysis of scientific data
   'pooch',         # Data downloader
   'jupyterlab',    # Jupyter notebooks
   'pixi-kernel',   # Pixi Jupyter kernel
@@ -66,10 +66,10 @@ dev = [
 ]
 
 [project.urls]
-homepage = 'https://easyscience.github.io/core'
-documentation = 'https://easyscience.github.io/core'
-source = 'https://github.com/easyscience/core'
-tracker = 'https://github.com/easyscience/core/issues'
+homepage = 'https://easyscience.github.io/corelib'
+documentation = 'https://easyscience.github.io/corelib'
+source = 'https://github.com/easyscience/corelib'
+tracker = 'https://github.com/easyscience/corelib/issues'
 
 ############################
 # Build system configuration

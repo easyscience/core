@@ -2,7 +2,7 @@
 # Any changes will be overwritten by Copier.
 _commit: v0.7.0-4-g9affb8e
 _src_path: gh:easyscience/templates
-lib_docs_url: https://easyscience.github.io/core
+lib_docs_url: https://easyscience.github.io/corelib
 lib_doi: 10.5281/zenodo.18163581
 lib_package_name: easyscience
 lib_python_max: '3.13'
