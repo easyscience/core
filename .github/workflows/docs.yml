@@ -1,0 +1,184 @@
+# This workflow builds and deploys documentation for the project.
+#
+# Overview:
+#  - Converts tutorial Python scripts to Jupyter notebooks and executes them.
+#  - Builds the documentation site using MkDocs with the Material theme.
+#  - Uploads the built site as an artifact for local inspection.
+#  - Deploys versioned documentation to the gh-pages branch using Mike:
+#    - For release tags (v*): deploys to a versioned folder (e.g., /0.9.1/) and updates /latest/.
+#    - For branches: deploys to /dev/.
+#
+# The action summary page will contain a link to the built artifact for downloading
+# and inspecting, as well as a link to the deployed documentation site.
+
+name: Docs build and deployment
+
+on:
+  # Trigger the workflow on push
+  push:
+    # Selected branches
+    branches: [develop] # master and main are already verified in PR
+    # Runs on creating a new tag starting with 'v', e.g. 'v1.0.3'
+    tags: ['v*']
+  # Trigger the workflow on pull request
+  pull_request:
+    # Selected branches
+    branches: [master, main, develop]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Allow only one concurrent deployment to gh-pages at a time.
+# All docs workflows share the same concurrency group to prevent race conditions
+# when multiple branches/tags trigger simultaneous deployments.
+concurrency:
+  group: docs-gh-pages-deploy
+  cancel-in-progress: false
+
+# Set the environment variables to be used in all jobs defined in this workflow
+env:
+  # CI_BRANCH - the branch name (used in mkdocs.yml)
+  # For PRs: github.head_ref is the source branch
+  # For pushes: github.ref_name is the branch
+  # For tags: github.ref_name is the tag name
+  # GITHUB_REPOSITORY - the repository name (used in mkdocs.yml)
+  # NOTEBOOKS_DIR - the directory containing the Jupyter notebooks (used in mkdocs.yml)
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+  DEVELOP_BRANCH: develop
+  CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+  IS_RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
+  GITHUB_REPOSITORY: ${{ github.repository }}
+  NOTEBOOKS_DIR: tutorials
+
+jobs:
+  # Single job that builds and deploys documentation.
+  # Uses macOS runner for consistent Plotly chart rendering.
+  build-deploy-docs:
+    runs-on: ubuntu-latest # macos-latest
+
+    permissions:
+      contents: write # Required for pushing to the gh-pages branch
+
+    steps:
+      # Setting DOCS_VERSION to be used in mkdocs.yml, and then in the
+      # main.html template. It defines the versioned docs subfolder name
+      # in the gh-pages branch. If it's a release tag, use the version
+      # number without the 'v' prefix, otherwise use 'dev'.
+      # Setting RELEASE_VERSION to be used in mkdocs.yml to show
+      # the latest release version in the index.md file. If it's a
+      # release tag, use the tag name, otherwise use the branch name
+      # for development builds.
+      - name: Set extra env variables
+        shell: bash
+        run: |
+          if [[ "${IS_RELEASE_TAG}" == "true" ]]; then
+            RELEASE_VERSION="${GITHUB_REF_NAME}"
+            DOCS_VERSION="${RELEASE_VERSION#v}"
+          else
+            RELEASE_VERSION="${CI_BRANCH}"
+            DOCS_VERSION="dev"
+          fi
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> "$GITHUB_ENV"
+          echo "DOCS_VERSION=${DOCS_VERSION}" >> "$GITHUB_ENV"
+
+      # Check out the repository source code.
+      # Note: The gh-pages branch is fetched separately later for mike deployment.
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Activate dark mode to create documentation with Plotly charts in dark mode
+      # Need a better solution to automatically switch the chart colour theme based on the mkdocs material switcher
+      # Something similar to mkdocs_plotly_plugin https://haoda-li.github.io/mkdocs-plotly-plugin/,
+      # but for generating documentation from notepads
+      #- name: Activate dark mode
+      #  run: |
+      #    brew install dark-mode
+      #    dark-mode status
+      #    dark-mode on
+      #    dark-mode status
+
+      # Set up the pixi package manager and install dependencies from pixi.toml.
+      # Uses frozen lockfile to ensure reproducible builds.
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+      # Pre-import the main package to exclude info messages from the docs
+      # E.g., Matplotlib may print messages to stdout/stderr when first
+      # imported. This step allows to avoid "Matplotlib is building the font
+      # cache" messages during notebook execution.
+      - name: Pre-build site step
+        run: pixi run python -c "import easyscience"
+
+      # Prepare the Jupyter notebooks for documentation (strip output, etc.).
+      - name: Prepare notebooks
+        run: pixi run notebook-prepare
+
+      # Execute all Jupyter notebooks to generate output cells (plots, tables, etc.).
+      # Uses multiple cores for parallel execution to speed up the process.
+      - name: Run notebooks
+        # if: false # Temporarily disabled to speed up the docs build
+        run: pixi run notebook-exec
+
+      # Build the static files for the documentation site for local inspection
+      # Input: docs/ directory containing the Markdown files
+      # Output: site/ directory containing the generated HTML files
+      - name: Build site for local check
+        run: pixi run docs-build-local
+
+      # Upload the static files from the site/ directory to be used for
+      # local check
+      - name: Upload built site as artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: site-local_easyscience-lib-${{ env.RELEASE_VERSION }}
+          path: docs/site/
+
+      # Create GitHub App token for pushing to gh-pages as easyscience[bot].
+      - name: Setup easyscience[bot]
+        id: bot
+        uses: ./.github/actions/setup-easyscience-bot
+        with:
+          app-id: ${{ vars.EASYSCIENCE_APP_ID }}
+          private-key: ${{ secrets.EASYSCIENCE_APP_KEY }}
+
+      # Configure git identity and remote URL so mike pushes as easyscience[bot].
+      - name: Configure git for pushing
+        run: |
+          set -euo pipefail
+          git config user.name "easyscience[bot]"
+          git config user.email "${{ vars.EASYSCIENCE_APP_ID }}+easyscience[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ steps.bot.outputs.token }}@github.com/${{ github.repository }}.git"
+
+      # Fetch the gh-pages branch to ensure mike has the latest remote state.
+      # This is required because the checkout step only fetches the source branch,
+      # not the gh-pages branch that mike needs to update.
+      - name: Fetch gh-pages branch
+        run: |
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+
+      # Deploy versioned documentation using mike (MkDocs plugin for versioning).
+      # - For release tags (v*): deploys to versioned folder (e.g., /0.9.1/) and aliases to /latest/.
+      # - For branches: deploys to /dev/.
+      # The "${RELEASE_VERSION#v}" syntax strips the 'v' prefix (v0.9.1 -> 0.9.1).
+      # Also sets 'latest' as the default version for the version selector.
+      - name: Rebuild and deploy docs with mike
+        run: |
+          # Exit on error (-e), undefined vars (-u), and pipeline failures (pipefail)
+          set -euo pipefail
+
+          REPO_NAME="${{ github.event.repository.name }}"
+          BASE_URL="https://easyscience.github.io/${REPO_NAME}"
+
+          # Deploy the release version and update the "latest" alias
+          if [[ "${IS_RELEASE_TAG}" == "true" ]]; then
+            pixi run docs-deploy-pre "${RELEASE_VERSION#v}" latest
+            pixi run docs-set-default-pre latest
+            DEPLOYMENT_URL="${BASE_URL}/latest"
+
+          # Deploy/update the "dev" alias (or whatever your convention is)
+          else
+            pixi run docs-deploy-pre dev
+            DEPLOYMENT_URL="${BASE_URL}/dev"
+
+          fi
+
+          # Add links to the action summary page for easy access
+          echo "🔗 deployment url [${DEPLOYMENT_URL}](${DEPLOYMENT_URL})" >> "${GITHUB_STEP_SUMMARY}"

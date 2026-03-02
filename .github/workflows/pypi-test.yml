@@ -1,0 +1,80 @@
+name: PyPI package tests
+
+on:
+  # Run daily, at 00:00.
+  schedule:
+    - cron: '0 0 * * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Allow only one concurrent workflow, skipping runs queued between the run
+# in-progress and latest queued. And cancel in-progress runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Set the environment variables to be used in all jobs defined in this workflow
+env:
+  CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+jobs:
+  # Job 1: Test installation from PyPI on multiple OS
+  pypi-package-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+        with:
+          environments: ''
+          activate-environment: ''
+          run-install: false
+          frozen: false
+
+      - name: Init pixi project
+        run: pixi init easyscience
+
+      - name: Add Python 3.13 from Conda
+        working-directory: easyscience
+        run: pixi add "python=3.13"
+
+      - name: Add other Conda dependencies
+        working-directory: easyscience
+        run: pixi add gsl
+
+      - name: Add easyscience from PyPI
+        working-directory: easyscience
+        run: pixi add --pypi "easyscience"
+
+      - name: Add dev dependencies from PyPI
+        working-directory: easyscience
+        run: pixi add --pypi pytest pytest-xdist
+
+      - name: Add Pixi task as a shortcut
+        working-directory: easyscience
+        run: pixi task add easyscience "python -m easyscience"
+
+      - name: Run unit tests to verify the installation
+        working-directory: easyscience
+        run: pixi run python -m pytest ../tests/unit/ --color=yes -v
+
+      - name: Run integration tests to verify the installation
+        working-directory: easyscience
+        run: pixi run python -m pytest ../tests/integration/ --color=yes -n auto
+
+  # Job 2: Build and publish dashboard (reusable workflow)
+  run-reusable-workflows:
+    needs: pypi-package-tests # depend on previous job
+    uses: ./.github/workflows/dashboard.yml
+    secrets: inherit

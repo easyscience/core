@@ -1,0 +1,121 @@
+# The workflow is divided into several steps to ensure code quality:
+#    - Check the validity of pyproject.toml
+#    - Check code linting
+#    - Check code formatting
+#    - Check formatting of docstrings in the code
+#    - Check formatting of Markdown, YAML, TOML, etc. files
+
+name: Code quality checks
+
+on:
+  # Trigger the workflow on push
+  push:
+    branches-ignore: [master, main] # Already verified in PR
+    # Do not run this workflow on creating a new tag starting with
+    # 'v', e.g. 'v1.0.3' (see publish-pypi.yml)
+    tags-ignore: ['v*']
+  # Trigger the workflow on pull request
+  pull_request:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Allow only one concurrent workflow, skipping runs queued between the run
+# in-progress and latest queued. And cancel in-progress runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Set the environment variables to be used in all jobs defined in this workflow
+env:
+  CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+
+      - name: Run post-install developer steps
+        run: pixi run post-install
+
+      # Check the validity of pyproject.toml
+      - name: Check validity of pyproject.toml
+        id: check_pyproject
+        continue-on-error: true
+        shell: bash
+        run: pixi run pyproject-check
+
+      # Check code linting with Ruff in the project root
+      - name: Check code linting
+        id: check_code_linting
+        continue-on-error: true
+        shell: bash
+        run: pixi run py-lint-check
+
+      # Check code formatting with Ruff in the project root
+      - name: Check code formatting
+        id: check_code_formatting
+        continue-on-error: true
+        shell: bash
+        run: pixi run py-format-check
+
+      # Check formatting of docstrings in the code with docformatter
+      - name: Check formatting of docstrings in the code
+        id: check_docs_formatting
+        continue-on-error: true
+        shell: bash
+        run: pixi run docs-format-check
+
+      # Check formatting of MD, YAML, TOML, etc. files with Prettier in
+      # the project root
+      - name: Check formatting of MD, YAML, TOML, etc. files
+        id: check_others_formatting
+        continue-on-error: true
+        shell: bash
+        run: pixi run nonpy-format-check
+      # Check formatting of Jupyter Notebooks in the tutorials folder
+      - name: Prepare notebooks and check formatting
+        id: check_notebooks_formatting
+        continue-on-error: true
+        shell: bash
+        run: |
+          pixi run notebook-prepare
+          pixi run notebook-format-check
+
+      # Add summary
+      - name: Add quality checks summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## 🧪 Code Quality Checks Summary"
+            echo ""
+            echo "| Check | Status |"
+            echo "|-------|--------|"
+            echo "| pyproject.toml   | ${{ steps.check_pyproject.outcome == 'success' && '✅' || '❌' }} |"
+            echo "| py lint          | ${{ steps.check_code_linting.outcome == 'success' && '✅' || '❌' }} |"
+            echo "| py format        | ${{ steps.check_code_formatting.outcome == 'success' && '✅' || '❌' }} |"
+            echo "| docstring format | ${{ steps.check_docs_formatting.outcome == 'success' && '✅' || '❌' }} |"
+            echo "| nonpy format     | ${{ steps.check_others_formatting.outcome == 'success' && '✅' || '❌' }} |"
+            echo "| notebooks format | ${{ steps.check_notebooks_formatting.outcome == 'success' && '✅' || '❌' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Fail job if any check failed
+      - name: Fail job if any check failed
+        if: |
+          steps.check_pyproject.outcome == 'failure'
+          || steps.check_code_linting.outcome == 'failure'
+          || steps.check_code_formatting.outcome == 'failure'
+          || steps.check_docs_formatting.outcome == 'failure'
+          || steps.check_others_formatting.outcome == 'failure'
+          || steps.check_notebooks_formatting.outcome == 'failure'
+        shell: bash
+        run: exit 1

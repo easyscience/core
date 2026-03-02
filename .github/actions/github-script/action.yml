@@ -1,0 +1,19 @@
+name: 'GitHub Script'
+description: 'Wrapper for actions/github-script'
+inputs:
+  script:
+    description: 'JavaScript to run'
+    required: true
+
+  github-token:
+    description: 'GitHub token (defaults to github.token)'
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/github-script@v8
+      with:
+        script: ${{ inputs.script }}
+        github-token: ${{ inputs.github-token }}

@@ -1,0 +1,72 @@
+default_branch: master
+develop_branch: develop
+
+cards:
+  - group: Tests
+    type: gh_action
+    title: Code/package tests (GitHub)
+    file: test.yml
+    enabled: true
+  - group: Tests
+    type: gh_action
+    title: Tutorial tests (GitHub)
+    file: tutorial-tests.yml
+    enabled: true
+
+  - group: Tests
+    type: gh_action
+    title: Package tests (PyPI)
+    file: pypi-test.yml
+    enabled: true
+
+  - group: Code Quality
+    type: codefactor
+    title: Code quality (CodeFactor)
+    enabled: true
+
+  - group: Code Quality
+    type: radon_mi
+    title: Maintainability index (radon)
+    report: reports/{branch}/maintainability-index.json
+    enabled: true
+
+  - group: Code Quality
+    type: radon_cc
+    title: Cyclomatic complexity (radon)
+    report: reports/{branch}/cyclomatic-complexity.json
+    enabled: true
+
+  - group: Size
+    type: radon_loc
+    title: Source/Logical lines of code (radon)
+    report: reports/{branch}/raw-metrics.json
+    enabled: true
+
+  - group: Size
+    type: radon_ff
+    title: Functions/Files count (radon)
+    report: reports/{branch}/cyclomatic-complexity.json
+    enabled: true
+
+  - group: Coverage
+    type: codecov
+    title: Unit test coverage (Codecov)
+    flag: unittests
+    enabled: true
+
+  - group: Coverage
+    type: interrogate
+    title: Docstring coverage (interrogate)
+    report: reports/{branch}/coverage-docstring.txt
+    enabled: true
+  - group: Build & Release
+    type: gh_action
+    title: Publishing (PyPI)
+    workflow: pypi-publish.yml
+    enabled: true
+
+  - group: Build & Release
+    type: gh_action
+    title: Docs build/deployment
+    workflow: docs.yml
+    enabled: true

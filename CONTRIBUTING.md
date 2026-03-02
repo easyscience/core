@@ -1,134 +1,407 @@
-# Contributing
+# Contributing to EasyScience
 
-When contributing to the EasyScience repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository before making a change. 
+Thank you for your interest in contributing to **EasyScience**!
 
-Please note we have a code of conduct, please follow it in all your interactions with the project.
+This guide explains how to:
 
-## Development Setup
+- Report issues
+- Contribute code
+- Improve documentation
+- Suggest enhancements
+- Interact with the EasyScience community
 
-We use [pixi](https://pixi.sh) for dependency management and development workflow automation. This ensures consistent environments across different platforms and simplifies the development process.
+Whether you are an experienced developer or contributing for the first
+time, this document walks you through the entire process step by step.
 
-### Prerequisites
+Please make sure you follow the EasyScience organization-wide
+[Code of Conduct](https://github.com/easyscience/.github/blob/master/CODE_OF_CONDUCT.md).
 
-1. Install pixi following the [official installation guide](https://pixi.sh/latest/#installation)
+---
 
-### Getting Started
+## Table of Contents
 
-1. Fork and clone the repository:
+- [How to Interact With This Project](#how-to-interact-with-this-project)
+- [1. Understanding the Development Model](#1-understanding-the-development-model)
+- [2. Getting the Code](#2-getting-the-code)
+- [3. Setting Up the Development Environment](#3-setting-up-the-development-environment)
+- [4. Creating a Branch](#4-creating-a-branch)
+- [5. Implementing Your Changes](#5-implementing-your-changes)
+- [6. Code Quality Checks](#6-code-quality-checks)
+- [7. Opening a Pull Request](#7-opening-a-pull-request)
+- [8. Continuous Integration (CI)](#8-continuous-integration-ci)
+- [9. Code Review](#9-code-review)
+- [10. Documentation Contributions](#10-documentation-contributions)
+- [11. Reporting Issues](#11-reporting-issues)
+- [12. Security Issues](#12-security-issues)
+- [13. Releases](#13-releases)
+
+---
+
+## How to Interact With This Project
+
+If you are not planning to modify the code, you may want to:
+
+- 🐞 Report a bug — see [Reporting Issues](#11-reporting-issues)
+- 🛡 Report a security issue —
+  see [Security Issues](#12-security-issues)
+- 💬 Ask a question or start a discussion at
+  [Project Discussions](https://github.com/easyscience/core/discussions)
+
+If you plan to contribute code or documentation, continue below.
+
+---
+
+## 1. Understanding the Development Model
+
+Before you start coding, it is important to understand how development
+works in this project.
+
+### Branching Strategy
+
+We use the following branches:
+
+- `master` — stable releases only
+- `develop` — active development branch
+- Short-lived branches — one branch per contribution
+
+All normal contributions must target the `develop` branch.
+
+This means:
+
+- Do **not** open Pull Requests against `master`
+- Always create your branch from `develop`
+- Always target `develop` when opening a Pull Request
+
+See ADR easyscience/.github#12 for full details on the branching
+strategy.
+
+---
+
+## 2. Getting the Code
+
+### 2.1. If You Are an External Contributor
+
+If you are not a core maintainer of this repository, follow these steps.
+
+1. Open the repository page: `https://github.com/easyscience/core`
+
+2. Click the **Fork** button (top-right corner). This creates your own
+   copy of the repository.
+
+3. Clone your fork locally:
+
+   ```bash
+   git clone https://github.com/<your-username>/core.git
+   cd core
+   ```
+
+4. Add the original repository as `upstream`:
+
+   ```bash
+   git remote add upstream https://github.com/easyscience/core.git
+   ```
+
+5. Switch to the `develop` branch and update it:
+
+   ```bash
+   git fetch upstream
+   git checkout develop
+   git pull upstream develop
+   ```
+
+If you have contributed before, make sure your local `develop` branch is
+up to date before starting new work. You can update it with:
+
 ```bash
-git clone https://github.com/your-username/EasyScience.git
-cd EasyScience
+git fetch upstream
+git pull upstream develop
 ```
 
-2. Set up the development environment:
+This ensures you are working on the latest version of the project.
+
+### 2.2. If You Are a Core Team Member
+
+Core team members do not need to fork the repository. You can create a
+new branch directly from `develop`, but the rest of the workflow remains
+the same.
+
+---
+
+## 3. Setting Up the Development Environment
+
+You need:
+
+- Git
+- Pixi
+
+EasyScience projects use **Pixi** to manage the development environment.
+
+To install Pixi, follow the official instructions:
+https://pixi.prefix.dev/latest/installation/
+
+You do **not** need to manually install Python. Pixi automatically:
+
+- Creates the correct Python environment
+- Installs all required dependencies
+- Installs development tools (linters, formatters, test tools)
+
+Set up the environment:
+
 ```bash
 pixi install
+pixi run post-install
 ```
 
-3. Run tests to verify everything is working:
+After this step, your development environment is ready.
+
+See ADR easyscience/.github#63 for more details about this decision.
+
+---
+
+## 4. Creating a Branch
+
+Never work directly on `develop`.
+
+Create a new branch:
+
 ```bash
-pixi run test
+git checkout -b my-change
 ```
 
-### Development Workflow
+Use a clear and descriptive name, for example:
 
-- **Run tests**: `pixi run test` (full test suite with coverage)
-- **Run unit tests only**: `pixi run test-unit`
-- **Check code style**: `pixi run lint-check`
-- **Fix code style**: `pixi run lint`
-- **Check code formatting**: `pixi run format-check`
-- **Format code**: `pixi run format`
-- **Build package**: `pixi run build`
-- **Build documentation**: `pixi run docs-build`
+- `improve-solver-speed`
+- `fix-boundary-condition`
+- `add-tutorial-example`
 
-### Before Submitting a Pull Request
+Clear branch names make reviews and history easier to understand.
 
-1. Update the lock file to ensure dependencies are up to date: `pixi run update-lock`
-2. Ensure all tests pass: `pixi run test`
-3. Check code style: `pixi run lint-check`
-4. Format your code: `pixi run format`
-5. Update documentation if necessary
-6. Add tests for new functionality
+---
 
-## Pull Request Process
+## 5. Implementing Your Changes
 
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a 
-   build.
-2. Update the README.md with details of changes to the interface, this includes new environment 
-   variables, exposed ports, useful file locations and container parameters.
-3. Increase the version numbers in any examples files and the README.md to the new version that this
-   Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. You may merge the Pull Request in once you have the sign-off of two other developers, or if you 
-   do not have permission to do that, you may request the second reviewer to merge it for you.
+While developing:
 
-## Code of Conduct
+- Make small, logical commits
+- Write clear and descriptive commit messages
+- Follow the Google docstring convention
+- Add or update unit tests if behavior changes
 
-### Our Pledge
+Example:
 
-In the interest of fostering an open and welcoming environment, we as
-contributors and maintainers pledge to making participation in our project and
-our community a harassment-free experience for everyone, regardless of age, body
-size, disability, ethnicity, gender identity and expression, level of experience,
-nationality, personal appearance, race, religion, or sexual identity and
-orientation.
+```bash
+git add .
+git commit -m "Improve performance of time integrator for large systems"
+```
 
-### Our Standards
+Run tests locally:
 
-Examples of behavior that contributes to creating a positive environment
-include:
+```bash
+pixi run unit-tests
+```
 
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
+Running tests frequently is strongly recommended.
 
-Examples of unacceptable behavior by participants include:
+---
 
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic
-  address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+## 6. Code Quality Checks
 
-### Our Responsibilities
+Before opening a Pull Request, always run:
 
-Project maintainers are responsible for clarifying the standards of acceptable
-behavior and are expected to take appropriate and fair corrective action in
-response to any instances of unacceptable behavior.
+```bash
+pixi run check
+```
 
-Project maintainers have the right and responsibility to remove, edit, or
-reject comments, commits, code, wiki edits, issues, and other contributions
-that are not aligned to this Code of Conduct, or to ban temporarily or
-permanently any contributor for other behaviors that they deem inappropriate,
-threatening, offensive, or harmful.
+This command runs:
 
-### Scope
+- Formatting checks
+- Linting
+- Docstring validation
+- Notebook checks
+- Unit tests
+- Other project validations
 
-This Code of Conduct applies both within project spaces and in public spaces
-when an individual is representing the project or its community. Examples of
-representing a project or community include using an official project e-mail
-address, posting via an official social media account, or acting as an appointed
-representative at an online or offline event. Representation of a project may be
-further defined and clarified by project maintainers.
+A successful run should look like this:
 
-### Enforcement
+```bash
+pixi run pyproject-check...................................Passed
+pixi run py-lint-check.....................................Passed
+pixi run py-format-check...................................Passed
+pixi run nonpy-format-check................................Passed
+pixi run docs-format-check.................................Passed
+pixi run notebook-format-check.............................Passed
+pixi run unit-tests........................................Passed
+```
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at suport@easydiffraction.org. All
-complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
-obligated to maintain confidentiality with regard to the reporter of an incident.
-Further details of specific enforcement policies may be posted separately.
+If something fails, read the error message carefully and fix the issue.
 
-Project maintainers who do not follow or enforce the Code of Conduct in good
-faith may face temporary or permanent repercussions as determined by other
-members of the project's leadership.
+You can run individual checks, for example:
 
-### Attribution
+```bash
+pixi run py-lint-check
+```
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
-available at [http://contributor-covenant.org/version/1/4][version]
+Some formatting issues can be fixed automatically:
 
-[homepage]: http://contributor-covenant.org
-[version]: http://contributor-covenant.org/version/1/4/
+```bash
+pixi run fix
+```
+
+If everything is correctly formatted, you will see:
+
+```text
+✅ All code auto-formatting steps have been applied.
+```
+
+This indicates that the auto-formatting pipeline completed successfully.
+If you do not see this message and no error messages appear, try running
+the command again.
+
+If errors are reported, resolve them and re-run:
+
+```bash
+pixi run check
+```
+
+All checks must pass before your Pull Request can be merged.
+
+If you are unsure how to fix an issue, ask for help in your Pull Request
+discussion.
+
+---
+
+## 7. Opening a Pull Request
+
+Push your branch:
+
+```bash
+git push origin my-change
+```
+
+On GitHub:
+
+- Click **Compare & Pull Request**
+- Ensure the base branch is `develop`
+- Write a clear and concise title
+- Add a description explaining what changed and why
+- Add the required `[scope]` label
+
+### Pull Request Title
+
+The PR title appears in release notes and changelogs. It should be
+concise and informative.
+
+Good examples:
+
+- Improve performance of time integrator for large systems
+- Fix incorrect boundary condition handling in solver
+- Add adaptive step-size control to ODE solver
+- Add tutorial for custom model configuration
+- Refactor solver API for improved readability
+
+### Required `[scope]` Label
+
+Each Pull Request must include one `[scope]` label:
+
+| Label                   | Description                                                             |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `[scope] bug`           | Bug report or fix (major.minor.**PATCH**)                               |
+| `[scope] documentation` | Documentation-only changes (major.minor.patch.**POST**)                 |
+| `[scope] enhancement`   | Adds or improves features (major.**MINOR**.patch)                       |
+| `[scope] maintenance`   | Code/tooling cleanup without feature or bug fix (major.minor.**PATCH**) |
+| `[scope] significant`   | Breaking or major changes (**MAJOR**.minor.patch)                       |
+
+See ADR easyscience/.github#33 for full versioning rules.
+
+---
+
+## 8. Continuous Integration (CI)
+
+After opening a Pull Request:
+
+- Automated checks run automatically
+- You will see green checkmarks or red crosses
+
+If checks fail:
+
+1. Open the failing check
+2. Read the logs
+3. Fix the issue locally
+4. Run `pixi run check`
+5. Push your changes
+
+The Pull Request updates automatically.
+
+---
+
+## 9. Code Review
+
+All Pull Requests are reviewed by at least one core team member.
+
+Code review is collaborative and aims to improve quality.
+
+Do not take comments personally — they are meant to help.
+
+To update your PR:
+
+```bash
+git add .
+git commit -m "Address review comments"
+git push
+```
+
+---
+
+## 10. Documentation Contributions
+
+If your change affects users, update the documentation.
+
+This may include:
+
+- API documentation
+- Examples
+- Tutorials
+- Jupyter notebooks
+
+Preview documentation locally:
+
+```bash
+pixi run docs-serve
+```
+
+Open the URL shown in the terminal to review your changes.
+
+---
+
+## 11. Reporting Issues
+
+If you find a bug but do not want to fix it:
+
+- Search existing issues first
+- Provide clear reproduction steps
+- Include logs and environment details
+
+Clear issue reports help maintainers significantly.
+
+---
+
+## 12. Security Issues
+
+Do **not** report security vulnerabilities publicly.
+
+If you discover a potential vulnerability, contact the maintainers
+privately.
+
+---
+
+## 13. Releases
+
+Releases are created by merging `develop` into `master`.
+
+Once your contribution is merged into `develop`, it will be included in
+the next stable release.
+
+---
+
+Thank you for contributing to EasyScience and the EasyScience
+ecosystem!

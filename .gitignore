@@ -1,3 +1,22 @@
+# Python
+__pycache__/
+.venv/
+.coverage
+
+# PyInstaller
+dist/
+build/
+*.spec
+
+# MkDocs
+docs/site/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Node
+node_modules/
+
 # QtCreator
 *.autosave
 
@@ -12,41 +31,13 @@
 # QtCreator CMake
 CMakeLists.txt.user*
 
-# Python
-__pycache__
-.venv
-.coverage
-.pyc
+# PyCharm
+.idea/
 
-# Poetry
-dist
-poetry.lock
-*.egg-info
-
-# Pixi
-.pixi/
-
-# PyInstaller
-build
-*.spec
-
-# Jupyter
-.ipynb_checkpoints
+# VS Code
+.vscode/
 
 # macOS
 .DS_Store
 *.app
 *.dmg
-
-# Docs
-docs/_build
-
-# VSCode
-.vscode
-
-# Misc
-..*
-*.log
-*.zip
-.ci/
-.idea/

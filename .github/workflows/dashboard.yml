@@ -1,0 +1,104 @@
+name: Dashboard build and publish
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+# Set the environment variables to be used in all jobs defined in this workflow
+env:
+  CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+  DEVELOP_BRANCH: develop
+  REPO_OWNER: ${{ github.repository_owner }}
+  REPO_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+
+      - name: Install badgery
+        shell: bash
+        run: pixi add --pypi --git https://github.com/enhantica/badgery badgery
+
+      - name: Run docstring coverage and code complexity/maintainability checks
+        run: |
+          for BRANCH in $DEFAULT_BRANCH $DEVELOP_BRANCH $CI_BRANCH; do
+            echo
+            echo "🔹🔸🔹🔸🔹 Processing branch $BRANCH 🔹🔸🔹🔸🔹"
+            if [ -d "../$BRANCH" ]; then
+              echo "Branch $BRANCH already processed, skipping"
+              continue
+            fi
+
+            git worktree add ../$BRANCH origin/$BRANCH
+            mkdir -p reports/$BRANCH
+
+            echo "Docstring coverage for branch $BRANCH"
+            pixi run interrogate -c pyproject.toml --fail-under=0 ../$BRANCH/src > reports/$BRANCH/coverage-docstring.txt
+
+            echo "Cyclomatic complexity for branch $BRANCH"
+            pixi run radon cc -s -j ../$BRANCH/src > reports/$BRANCH/cyclomatic-complexity.json
+
+            echo "Maintainability index for branch $BRANCH"
+            pixi run radon mi -j ../$BRANCH/src > reports/$BRANCH/maintainability-index.json
+
+            echo "Raw metrics for branch $BRANCH"
+            pixi run radon raw -s -j ../$BRANCH/src > reports/$BRANCH/raw-metrics.json
+          done
+
+      - name: Generate dashboard HTML
+        run: >
+          pixi run python -m badgery --config .badgery.yaml --repo ${{ github.repository
+          }} --branch ${{ env.CI_BRANCH }} --output index.html
+
+      - name: Prepare publish directory
+        run: |
+          mkdir -p _dashboard_publish/${{ env.REPO_NAME }}/${{ env.CI_BRANCH }}
+          cp index.html _dashboard_publish/${{ env.REPO_NAME }}/${{ env.CI_BRANCH }}
+
+      # Create GitHub App token for pushing to external dashboard repo.
+      # The 'repositories' parameter is required to grant access to repos
+      # other than the one where the workflow is running.
+      - name: Setup easyscience[bot]
+        id: bot
+        uses: ./.github/actions/setup-easyscience-bot
+        with:
+          app-id: ${{ vars.EASYSCIENCE_APP_ID }}
+          private-key: ${{ secrets.EASYSCIENCE_APP_KEY }}
+          repositories: |
+            ${{ github.event.repository.name }}
+            dashboard
+
+      # Publish to external dashboard repository with retry logic.
+      # Retry is needed to handle transient GitHub API/authentication issues
+      # that occasionally cause 403 errors when multiple workflows push concurrently.
+      # Uses personal_token (not github_token) as GITHUB_TOKEN cannot access external repos.
+      - name: Publish to main branch of ${{ github.repository }}
+        uses: Wandalen/wretry.action@v3.8.0
+        with:
+          attempt_limit: 3
+          attempt_delay: 15000 # 15 seconds between retries
+          action: peaceiris/actions-gh-pages@v4
+          with: |
+            publish_dir: ./_dashboard_publish
+            keep_files: true
+            external_repository: ${{ env.REPO_OWNER }}/dashboard
+            publish_branch: master
+            personal_token: ${{ steps.bot.outputs.token }}
+
+      - name: Add dashboard link to summary
+        run: |
+          URL="https://${{ env.REPO_OWNER }}.github.io/dashboard/${{ env.REPO_NAME }}/${{ env.CI_BRANCH }}"
+          echo "Dashboard link: [$URL]($URL)" >> $GITHUB_STEP_SUMMARY

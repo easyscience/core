@@ -1,54 +1,255 @@
+#######################
+# ENVIRONMENT VARIABLES
+#######################
+
+# Platform-independent
+
+[activation.env]
+PYTHONIOENCODING = "utf-8"
+
+# Platform-specific
+
+# Ensures the main package is used from the source code during
+# development, even if main package is installed in editable mode
+# via uv. This is important because `pixi update` might replace
+# the installed version with the latest released version.
+
+# Unix/macOS
+[target.unix.activation.env]
+PYTHONPATH = "${PIXI_PROJECT_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
+
+# Windows
+[target.win.activation.env]
+PYTHONPATH = "${PIXI_PROJECT_ROOT}/src;%PYTHONPATH%"
+
+###########
+# WORKSPACE
+###########
+
 [workspace]
-name = "easyscience"
-channels = ["conda-forge"]
-platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+# Supported platforms for the lock file (pixi.lock)
+platforms = ['win-64', 'linux-64', 'osx-64', 'osx-arm64']
+
+# Channels for fetching packages
+channels = ['conda-forge']
+
+##########
+# FEATURES
+##########
+
+# Default feature configuration
 
 [dependencies]
-python = ">=3.11,<3.14"
-
-[feature.dev.pypi-dependencies]
-# Development dependencies
-easyscience = { path = ".", extras = ["dev"], editable = true }
-
-[feature.docs.pypi-dependencies]
-# Documentation dependencies
-easyscience = { path = ".", extras = ["docs"], editable = true }
-
-[feature.build.pypi-dependencies]
-# build dependencies
-easyscience = { path = ".", extras = ["build"], editable = true }
-
-[environments]
-# Default environment with basic build setup
-default = ["build"]
-# Development environment with build, dev, and docs features
-dev = ["build", "dev", "docs"]
-
-[tasks]
-# Development tasks
-test = "pytest --cov=src/easyscience tests --cov-branch --cov-report=xml:coverage-unit.xml"
-test-unit = "pytest tests/unit_tests"
-test-integration = "pytest tests/integration_tests"
-
-# Code quality tasks
-lint-check = "ruff check ."
-lint = "ruff check . --fix"
-format-check = "ruff format . --check"
-format = "ruff format ."
-
-# Build tasks
-build = "python -m build"
-clean = "rm -rf dist/ build/ *.egg-info/"
-update-lock = "pixi update"
-
-# Tox tasks
-tox = "tox"
-
-# Documentation tasks
-docs-build = "sphinx-build -b html docs/src docs/_build/html"
-docs-clean = "rm -rf docs/_build/"
+nodejs = '*' # Required for Prettier (non-Python formatting)
+gsl = '*'    # GNU Scientific Library; required for pdffit2.
 
 [pypi-dependencies] # == [feature.default.pypi-dependencies]
-# Editable install of the package itself
-easyscience = { path = ".", editable = true }
+pip = '*'                                                     # Native package installer
+easyscience = { path = ".", editable = true, extras = ['dev'] }
 
+# Specific features: Set specific Python versions
+
+
+[feature.py-min.dependencies]
+python = '3.11.*'
+[feature.py-max.dependencies]
+python = '3.13.*'
+
+
+
+##############
+# ENVIRONMENTS
+##############
+
+[environments]
+
+# The `default` feature is always included in all environments.
+# Additional features can be specified per environment.
+py-311-env = { features = ['default', 'py-min'] }
+py-313-env = { features = ['default', 'py-max'] }
+
+# The `default` environment is always created and includes the `default` feature.
+# It does not need to be specified explicitly unless non-default features are included.
+default = { features = ['default', 'py-max'] }
+
+#######
+# TASKS
+#######
+
+[tasks]
+
+##################
+# 🧪 Testing Tasks
+##################
+
+unit-tests = 'python -m pytest tests/unit/ --color=yes -v'
+integration-tests = 'python -m pytest tests/integration/ --color=yes -n auto -v'
+notebook-tests = 'python -m pytest --nbmake docs/docs/tutorials/ --nbmake-timeout=600 --color=yes -n auto -v'
+script-tests = 'python -m pytest tools/test_scripts.py --color=yes -n auto -v'
+
+test = { depends-on = ['unit-tests'] }
+
+###########
+# ✔️ Checks
+###########
+
+pyproject-check = 'python -m validate_pyproject pyproject.toml'
+docs-format-check = 'docformatter --check src/ docs/docs/tutorials/'
+notebook-format-check = 'nbqa ruff docs/docs/tutorials/'
+py-lint-check = 'ruff check src/ tests/ docs/docs/tutorials/'
+py-format-check = "ruff format --check src/ tests/ docs/docs/tutorials/"
+nonpy-format-check = "npx prettier --list-different --config=prettierrc.toml --ignore-unknown ."
+nonpy-format-check-modified = "python tools/nonpy_prettier_modified.py"
+
+check = 'pre-commit run --hook-stage manual --all-files'
+
+##########
+# 🛠️ Fixes
+##########
+
+docs-format-fix = 'docformatter --in-place src/ docs/docs/tutorials/'
+notebook-format-fix = 'nbqa ruff --fix docs/docs/tutorials/'
+py-lint-fix = 'ruff check --fix src/ tests/ docs/docs/tutorials/'
+py-format-fix = "ruff format src/ tests/ docs/docs/tutorials/"
+nonpy-format-fix = 'npx prettier --write --list-different --config=prettierrc.toml --ignore-unknown .'
+nonpy-format-fix-modified = "python tools/nonpy_prettier_modified.py --write"
+success-message-fix = 'echo "✅ All code auto-formatting steps have been applied."'
+
+fix = { depends-on = [
+  'py-format-fix',
+  'docs-format-fix',
+  'py-lint-fix',
+  'nonpy-format-fix',
+  'notebook-format-fix',
+  'success-message-fix',
+] }
+
+####################
+# 🧮 Code Complexity
+####################
+
+complexity-check = 'radon cc -s src/'
+complexity-check-json = 'radon cc -s -j src/'
+maintainability-check = 'radon mi src/'
+maintainability-check-json = 'radon mi -j src/'
+raw-metrics = 'radon raw -s src/'
+raw-metrics-json = 'radon raw -s -j src/'
+
+#############
+# 📊 Coverage
+#############
+
+unit-tests-coverage = 'pixi run unit-tests --cov=src/easyscience --cov-report=term-missing'
+integration-tests-coverage = 'pixi run integration-tests --cov=src/easyscience --cov-report=term-missing'
+docstring-coverage = 'interrogate -c pyproject.toml src/easyscience'
+
+cov = { depends-on = [
+  'docstring-coverage',
+  'unit-tests-coverage',
+  'integration-tests-coverage',
+] }
+
+########################
+# 📓 Notebook Management
+########################
+
+notebook-convert = 'jupytext docs/docs/tutorials/*.py --from py:percent --to ipynb'
+notebook-strip = 'nbstripout docs/docs/tutorials/*.ipynb'
+notebook-tweak = 'python tools/tweak_notebooks.py tutorials/'
+notebook-exec = 'python -m pytest --nbmake docs/docs/tutorials/ --nbmake-timeout=600 --overwrite --color=yes -n auto -v'
+
+notebook-prepare = { depends-on = [
+  #'notebook-convert',
+  'notebook-strip',
+  #'notebook-tweak',
+] }
+
+########################
+# 📚 Documentation Tasks
+########################
+
+docs-vars = "JUPYTER_PLATFORM_DIRS=1 PYTHONWARNINGS='ignore::RuntimeWarning'"
+docs-pre = "pixi run docs-vars python -m mkdocs"
+docs-serve = "pixi run docs-pre serve -f docs/mkdocs.yml"
+docs-serve-dirty = "pixi run docs-serve --dirty"
+docs-build = "pixi run docs-pre build -f docs/mkdocs.yml"
+docs-build-local = "pixi run docs-build --no-directory-urls"
+
+docs-deploy-pre = 'mike deploy -F docs/mkdocs.yml --push --branch gh-pages --update-aliases --alias-type redirect'
+docs-set-default-pre = 'mike set-default -F docs/mkdocs.yml --push --branch gh-pages'
+
+docs-update-assets = 'python tools/update_docs_assets.py'
+
+##############################
+# 📦 Template Management Tasks
+##############################
+
+copier-copy = "copier copy gh:easyscience/templates . --data-file ../core/.copier-answers.yml --data template_type=lib"
+copier-recopy = "copier recopy --data-file ../core/.copier-answers.yml --data template_type=lib"
+copier-update = "copier update --data-file ../core/.copier-answers.yml --data template_type=lib"
+
+#####################
+# 🪝 Pre-commit Hooks
+#####################
+
+pre-commit-clean = 'pre-commit clean'
+pre-commit-install = 'pre-commit install --hook-type pre-commit --hook-type pre-push --overwrite'
+pre-commit-uninstall = 'pre-commit uninstall --hook-type pre-commit --hook-type pre-push'
+pre-commit-setup = { depends-on = [
+  'pre-commit-clean',
+  'pre-commit-uninstall',
+  'pre-commit-install',
+] }
+
+#################
+# 🐙️ GitHub Tasks
+#################
+
+repo-wiki = 'gh api -X PATCH repos/easyscience/core -f has_wiki=false'
+repo-discussions = 'gh api -X PATCH repos/easyscience/core -f has_discussions=true'
+repo-description = "gh api -X PATCH repos/easyscience/core -f description='Core building blocks for EasyScience'"
+repo-homepage = "gh api -X PATCH repos/easyscience/core -f homepage='https://easyscience.github.io/core'"
+repo-config = { depends-on = [
+  'repo-wiki',
+  'repo-discussions',
+  'repo-description',
+  'repo-homepage',
+] }
+
+master-protection = 'gh api -X POST repos/easyscience/core/rulesets --input .github/configs/rulesets-master.json'
+develop-protection = 'gh api -X POST repos/easyscience/core/rulesets --input .github/configs/rulesets-develop.json'
+gh-pages-protection = 'gh api -X POST repos/easyscience/core/rulesets --input .github/configs/rulesets-gh-pages.json'
+branch-protection = { depends-on = [
+  'master-protection',
+  'develop-protection',
+  'gh-pages-protection',
+] }
+
+pages-deployment = 'gh api -X POST repos/easyscience/core/pages --input .github/configs/pages-deployment.json'
+
+github-labels = 'python tools/update_github_labels.py'
+
+####################################
+# 🚀 Other Development & Build Tasks
+####################################
+
+default-build = 'python -m build'
+dist-build = 'python -m build --wheel --outdir dist'
+
+npm-config = 'npm config set registry https://registry.npmjs.org/'
+prettier-install = 'npm install --no-save --no-audit --no-fund prettier prettier-plugin-toml'
+
+clean-pycache = "find . -type d -name '__pycache__' -prune -exec rm -rf '{}' +"
+spdx-update = 'python tools/update_spdx.py'
+
+post-install = { depends-on = [
+  'npm-config',
+  'prettier-install',
+  #'pre-commit-setup',
+] }
+
+##########################
+# 🔗 Main Package Shortcut
+##########################
+easyscience = 'python -m easyscience'

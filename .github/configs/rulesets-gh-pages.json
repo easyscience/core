@@ -1,0 +1,19 @@
+{
+  "name": "gh-pages branch",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/gh-pages"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "deletion"
+    }
+  ]
+}
