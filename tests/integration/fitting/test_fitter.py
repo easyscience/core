@@ -99,6 +99,7 @@ def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
     assert result.residual == pytest.approx(sp_sin(x) - y_calc_ref, abs=1e-2)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [
@@ -136,6 +137,7 @@ def test_basic_fit(fit_engine: AvailableMinimizers):
     assert sp_sin.offset.value == pytest.approx(ref_sin.offset.value, rel=1e-3)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [
@@ -177,6 +179,7 @@ def test_fit_result(fit_engine):
     check_fit_results(result, sp_sin, ref_sin, x, sp_ref1=sp_ref1, sp_ref2=sp_ref2)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [
@@ -214,6 +217,7 @@ def test_basic_max_evaluations(fit_engine):
         assert 'Objective has been called MAXFUN times' in str(e)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine,tolerance',
     [
@@ -247,6 +251,7 @@ def test_basic_tolerance(fit_engine, tolerance):
     assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize('fit_method', ['leastsq', 'powell', 'cobyla'])
 def test_lmfit_methods(fit_method):
     ref_sin = AbsSin(0.2, np.pi)
@@ -266,6 +271,7 @@ def test_lmfit_methods(fit_method):
 
 
 # @pytest.mark.xfail(reason="known bumps issue")
+@pytest.mark.fast
 @pytest.mark.parametrize('fit_method', ['newton', 'lm'])
 def test_bumps_methods(fit_method):
     ref_sin = AbsSin(0.2, np.pi)
@@ -285,6 +291,7 @@ def test_bumps_methods(fit_method):
     check_fit_results(result, sp_sin, ref_sin, x)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
@@ -313,6 +320,7 @@ def test_dependent_parameter(fit_engine):
     check_fit_results(result, sp_sin, ref_sin, x)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [
@@ -351,6 +359,7 @@ def test_2D_vectorized(fit_engine):
     assert result.residual == pytest.approx(mm(XY) - y_calc_ref, abs=1e-2)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [
@@ -389,6 +398,7 @@ def test_2D_non_vectorized(fit_engine):
     assert result.residual == pytest.approx(mm(XY.reshape(-1, 2)) - y_calc_ref, abs=1e-2)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [
@@ -430,6 +440,7 @@ def test_fixed_parameter_does_not_change(fit_engine):
     assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
 
 
+@pytest.mark.fast
 def test_fitter_new_model_base_integration():
     # WHEN
     ground_truth = StraightLine(slope=2.0, intercept=1.0)
@@ -450,6 +461,7 @@ def test_fitter_new_model_base_integration():
     assert model.intercept.value == pytest.approx(ground_truth.intercept.value, rel=1e-3)
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
     [
