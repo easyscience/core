@@ -15,7 +15,7 @@ section of the documentation.
 
 The tutorials are organized into the following categories:
 
-## Getting Started
+## Workshops & Schools
 
 - [Fitting QENS](fitting-qens.ipynb) – A tutorial demonstrating how to
   fit a quasielastic neutron scattering (QENS) data using EasyScience
