@@ -21,7 +21,7 @@ theme:
     - content.tooltips
     - navigation.footer
     - navigation.indexes
-    - navigation.instant # Instant loading (SPA-like)
+    #- navigation.instant # Instant loading, but it causes issues with rendering equations
     #- navigation.sections
     - navigation.top # Back-to-top button
     - navigation.tracking # Anchor tracking
@@ -81,18 +81,12 @@ extra:
 # Customization to be included by the theme
 extra_css:
   - assets/stylesheets/extra.css
-  # KaTeX for rendering mathematical expressions (alternative to MathJax, faster but less feature-rich)
-  #- https://unpkg.com/katex@0/dist/katex.min.css
 
 extra_javascript:
   - assets/javascripts/extra.js
   # MathJax for rendering mathematical expressions
-  - javascripts/mathjax.js
-  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
-  # KaTeX for rendering mathematical expressions (alternative to MathJax, faster but less feature-rich)
-  #- javascripts/katex.js
-  #- https://unpkg.com/katex@0/dist/katex.min.js
-  #- https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+  - assets/javascripts/mathjax.js # Custom MathJax config to ensure compatibility with mkdocs-jupyter
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js # Official MathJax CDN
 
 # A list of extensions beyond the ones that MkDocs uses by default (meta, toc, tables, and fenced_code)
 markdown_extensions:
@@ -141,7 +135,7 @@ plugins:
       allow_errors: false
       include_source: true
       include_requirejs: true # Required for Plotly
-      custom_mathjax_url: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML-full,Safe'
+      #custom_mathjax_url: 'https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js' # See 'extra_javascript' above
       ignore_h1_titles: true # Use titles defined in the nav section below
       remove_tag_config:
         remove_input_tags:
