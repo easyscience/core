@@ -17,7 +17,7 @@ on:
   # Trigger the workflow on push
   push:
     # Selected branches
-    branches: [develop] # master and main are already verified in PR
+    branches: [develop, apply-new-templates] # master and main are already verified in PR
     # Runs on creating a new tag starting with 'v', e.g. 'v1.0.3'
     tags: ['v*']
   # Trigger the workflow on pull request
