@@ -30,8 +30,13 @@ dependencies = [
   'numpy',         # Numerical computing
   'scipp<26.1.0',  # Handling and analysis of scientific data
   'pooch',         # Data downloader
+  'matplotlib',    # Plotting library
   'jupyterlab',    # Jupyter notebooks
   'pixi-kernel',   # Pixi Jupyter kernel
+  'ipykernel',     # Jupyter kernel (required for running notebooks)
+  'ipywidgets',    # Widgets (needed for interactive matplotlib backends)
+  'ipympl',        # Matplotlib Jupyter widget backend (%matplotlib widget)
+  'IPython',       # Interactive Python shell
 ]
 
 [project.optional-dependencies]
