@@ -53,7 +53,7 @@ easyscience = { path = ".", editable = true, extras = ['dev'] }
 [feature.py-min.dependencies]
 python = '3.11.*'
 [feature.py-max.dependencies]
-python = '3.14.*'
+python = '3.13.*'
 
 ##############
 # ENVIRONMENTS
@@ -64,7 +64,7 @@ python = '3.14.*'
 # The `default` feature is always included in all environments.
 # Additional features can be specified per environment.
 py-311-env = { features = ['default', 'py-min'] }
-py-314-env = { features = ['default', 'py-max'] }
+py-313-env = { features = ['default', 'py-max'] }
 
 # The `default` environment is always created and includes the `default` feature.
 # It does not need to be specified explicitly unless non-default features are included.
