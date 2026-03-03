@@ -45,9 +45,9 @@ jobs:
       - name: Init pixi project
         run: pixi init easyscience
 
-      - name: Add Python 3.13 from Conda
+      - name: Add Python 3.14 from Conda
         working-directory: easyscience
-        run: pixi add "python=3.13"
+        run: pixi add "python=3.14"
 
       - name: Add other Conda dependencies
         working-directory: easyscience
