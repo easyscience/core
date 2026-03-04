@@ -95,7 +95,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "## 🧪 Code Quality Checks Summary"
+            echo "## 🧪 Checks Summary"
             echo ""
             echo "| Check | Status |"
             echo "|-------|--------|"
