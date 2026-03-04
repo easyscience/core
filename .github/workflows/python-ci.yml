@@ -22,21 +22,21 @@ jobs:
       - name: Setup Pixi
         uses: prefix-dev/setup-pixi@v0.9.4
       - name: Run linting
-        run: pixi run lint
+        run: pixi run -e dev lint-check
 
       - name: Suggestion to fix lint issues
         if: ${{ failure() }}
         run: |
-            echo "::notice::In project root run 'pixi run lint-fix' and commit changes to fix issues."
+            echo "::notice::In project root run 'pixi run -e dev lint' and commit changes to fix issues."
             exit 1
 
       - name: Run formatting
-        run: pixi run format-check
+        run: pixi run -e dev format-check
 
       - name: Suggestion to fix format issues
         if: ${{ failure() }}
         run: |
-            echo "::notice::In project root run 'pixi run format' and commit changes to fix issues."
+            echo "::notice::In project root run 'pixi run -e dev format' and commit changes to fix issues."
             exit 1
 
   Code_Testing:
@@ -91,4 +91,4 @@ jobs:
       run: pixi run build
 
     - name: Run tox tests
-      run: pixi run tox
+      run: pixi run -e dev tox
