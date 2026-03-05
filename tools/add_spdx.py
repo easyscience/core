@@ -46,18 +46,25 @@ def get_file_creation_year(file_path: Union[str, Path]) -> str:
     root = Path(repo.working_tree_dir).resolve()
     rel_path = file_path.resolve().relative_to(root)
 
-    output = repo.git.log(
+    rel_path_git = rel_path.as_posix()  # IMPORTANT for git pathspec
+
+    # Get the year when the file was first added to Git history.
+    # NOTE: Do not combine `--reverse` with `--max-count=1` here, as it can
+    # yield an empty result with some Git versions. Instead, get the full
+    # filtered output and take the first line.
+    log_output = repo.git.log(
         '--follow',
         '--diff-filter=A',
         '--reverse',
-        '--max-count=1',
         '--format=%ad',
         '--date=format:%Y',
         '--',
-        str(rel_path),
+        rel_path_git,
     ).strip()
 
-    return output or str(datetime.now().year)
+    year = log_output.splitlines()[0].strip() if log_output else ''
+
+    return year or str(datetime.now().year)
 
 
 def get_org_url(repo_path: Union[str, Path]) -> str:
