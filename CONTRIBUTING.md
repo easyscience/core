@@ -45,7 +45,7 @@ If you are not planning to modify the code, you may want to:
 - 🛡 Report a security issue — see
   [Security Issues](#12-security-issues)
 - 💬 Ask a question or start a discussion at
-  [Project Discussions](https://github.com/easyscience/corelib/discussions)
+  [Project Discussions](https://github.com/easyscience/core/discussions)
 
 If you plan to contribute code or documentation, continue below.
 
@@ -83,7 +83,7 @@ strategy.
 
 If you are not a core maintainer of this repository, follow these steps.
 
-1. Open the repository page: `https://github.com/easyscience/corelib`
+1. Open the repository page: `https://github.com/easyscience/core`
 
 2. Click the **Fork** button (top-right corner). This creates your own
    copy of the repository.
@@ -91,14 +91,14 @@ If you are not a core maintainer of this repository, follow these steps.
 3. Clone your fork locally:
 
    ```bash
-   git clone https://github.com/<your-username>/corelib.git
-   cd corelib
+   git clone https://github.com/<your-username>/core.git
+   cd core
    ```
 
 4. Add the original repository as `upstream`:
 
    ```bash
-   git remote add upstream https://github.com/easyscience/corelib.git
+   git remote add upstream https://github.com/easyscience/core.git
    ```
 
 5. Switch to the `develop` branch and update it:

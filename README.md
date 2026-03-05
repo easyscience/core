@@ -20,25 +20,23 @@ making data analysis easier.
 License:
 [BSD 3-Clause](https://github.com/easyscience/corelib/blob/master/LICENSE)
 
+
+License: [BSD 3-Clause](https://github.com/easyscience/core/blob/master/LICENSE)
+
 ## Useful Links
 
 ### For Users
 
-- 📖 [Documentation](https://easyscience.github.io/corelib/latest)
-- 🚀
-  [Getting Started](https://easyscience.github.io/corelib/latest/introduction)
-- 🧪 [Tutorials](https://easyscience.github.io/corelib/latest/tutorials)
-- 💬
-  [Get in Touch](https://easyscience.github.io/corelib/latest/introduction/#get-in-touch)
-- 🧾
-  [Citation](https://easyscience.github.io/corelib/latest/introduction/#citation)
+- 📖 [Documentation](https://easyscience.github.io/core/latest)
+- 🚀 [Getting Started](https://easyscience.github.io/core/latest/introduction)
+- 🧪 [Tutorials](https://easyscience.github.io/core/latest/tutorials)
+- 💬 [Get in Touch](https://easyscience.github.io/core/latest/introduction/#get-in-touch)
+- 🧾 [Citation](https://easyscience.github.io/core/latest/introduction/#citation)
 
 ### For Contributors
 
-- 🧑‍💻 [Source Code](https://github.com/easyscience/corelib)
-- 🐞 [Issue Tracker](https://github.com/easyscience/corelib/issues)
-- 💡 [Discussions](https://github.com/easyscience/corelib/discussions)
-- 🤝
-  [Contributing Guide](https://github.com/easyscience/corelib/blob/master/CONTRIBUTING.md)
-- 🛡
-  [Code of Conduct](https://github.com/easyscience/.github/blob/master/CODE_OF_CONDUCT.md)
+- 🧑‍💻 [Source Code](https://github.com/easyscience/core)
+- 🐞 [Issue Tracker](https://github.com/easyscience/core/issues)
+- 💡 [Discussions](https://github.com/easyscience/core/discussions)
+- 🤝 [Contributing Guide](https://github.com/easyscience/core/blob/master/CONTRIBUTING.md)
+- 🛡 [Code of Conduct](https://github.com/easyscience/.github/blob/master/CODE_OF_CONDUCT.md)

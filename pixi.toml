@@ -203,10 +203,10 @@ pre-commit-setup = { depends-on = [
 # 🐙️ GitHub Tasks
 #################
 
-repo-wiki = 'gh api -X PATCH repos/easyscience/corelib -f has_wiki=false'
-repo-discussions = 'gh api -X PATCH repos/easyscience/corelib -f has_discussions=true'
-repo-description = "gh api -X PATCH repos/easyscience/corelib -f description='Core building blocks for EasyScience'"
-repo-homepage = "gh api -X PATCH repos/easyscience/corelib -f homepage='https://easyscience.github.io/corelib'"
+repo-wiki = 'gh api -X PATCH repos/easyscience/core -f has_wiki=false'
+repo-discussions = 'gh api -X PATCH repos/easyscience/core -f has_discussions=true'
+repo-description = "gh api -X PATCH repos/easyscience/core -f description='Core building blocks for EasyScience'"
+repo-homepage = "gh api -X PATCH repos/easyscience/core -f homepage='https://easyscience.github.io/core'"
 repo-config = { depends-on = [
   'repo-wiki',
   'repo-discussions',
@@ -214,18 +214,26 @@ repo-config = { depends-on = [
   'repo-homepage',
 ] }
 
-master-protection = 'gh api -X POST repos/easyscience/corelib/rulesets --input .github/configs/rulesets-master.json'
-develop-protection = 'gh api -X POST repos/easyscience/corelib/rulesets --input .github/configs/rulesets-develop.json'
-gh-pages-protection = 'gh api -X POST repos/easyscience/corelib/rulesets --input .github/configs/rulesets-gh-pages.json'
+master-protection = 'gh api -X POST repos/easyscience/core/rulesets --input .github/configs/rulesets-master.json'
+develop-protection = 'gh api -X POST repos/easyscience/core/rulesets --input .github/configs/rulesets-develop.json'
+gh-pages-protection = 'gh api -X POST repos/easyscience/core/rulesets --input .github/configs/rulesets-gh-pages.json'
 branch-protection = { depends-on = [
   'master-protection',
   'develop-protection',
   'gh-pages-protection',
 ] }
 
-pages-deployment = 'gh api -X POST repos/easyscience/corelib/pages --input .github/configs/pages-deployment.json'
+pages-deployment = 'gh api -X POST repos/easyscience/core/pages --input .github/configs/pages-deployment.json'
 
 github-labels = 'python tools/update_github_labels.py'
+
+#########################
+# ⚖️ SPDX License Headers
+#########################
+
+spdx-remove = 'python tools/remove_spdx.py src/ tests/'
+spdx-add = 'python tools/add_spdx.py src/ tests/'
+spdx-check = 'python tools/check_spdx.py src/ tests/'
 
 ####################################
 # 🚀 Other Development & Build Tasks
@@ -238,7 +246,6 @@ npm-config = 'npm config set registry https://registry.npmjs.org/'
 prettier-install = 'npm install --no-save --no-audit --no-fund prettier prettier-plugin-toml'
 
 clean-pycache = "find . -type d -name '__pycache__' -prune -exec rm -rf '{}' +"
-spdx-update = 'python tools/update_spdx.py'
 
 post-install = { depends-on = [
   'npm-config',

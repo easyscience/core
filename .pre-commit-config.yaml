@@ -11,6 +11,13 @@ repos:
         pass_filenames: false
         stages: [manual]
 
+      - id: spdx-headers-check
+        name: pixi run spdx-check
+        entry: pixi run spdx-check
+        language: system
+        pass_filenames: false
+        stages: [manual]
+
       - id: pixi-py-lint-check
         name: pixi run py-lint-check
         entry: pixi run py-lint-check
