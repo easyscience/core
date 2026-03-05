@@ -1,0 +1,46 @@
+# This workflow will for a variety of Python versions
+# - build a python package using pixi
+# - run tests on the produced package
+# - upload the package as an artifact
+#
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Create Python Package using pixi
+
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+    - uses: actions/checkout@v5
+    
+    - name: Setup Pixi
+      uses: prefix-dev/setup-pixi@v0.9.4
+        
+    - name: Set Python version
+      run: pixi add python=${{ matrix.python-version }}
+      
+    - name: Build package
+      run: pixi run build
+      
+    - name: Run tests with tox
+      run: pixi run -e dev tox
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: EasyScience - Python ${{ matrix.python-version }}
+        path: ${{ github.workspace }}/dist/*
+        overwrite: true
