@@ -14,6 +14,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+from easyscience.base_classes.new_base import NewBase
 from easyscience.global_object.undo_redo import NotarizedDict
 
 from ..variable.descriptor_base import DescriptorBase
@@ -34,7 +35,7 @@ class CollectionBase(BasedBase, MutableSequence):
     def __init__(
         self,
         name: str,
-        *args: Union[BasedBase, DescriptorBase],
+        *args: Union[BasedBase, DescriptorBase, NewBase],
         interface: Optional[InterfaceFactoryTemplate] = None,
         unique_name: Optional[str] = None,
         **kwargs,
@@ -64,7 +65,7 @@ class CollectionBase(BasedBase, MutableSequence):
                 _kwargs[key] = item
         kwargs = _kwargs
         for item in list(kwargs.values()) + _args:
-            if not issubclass(type(item), (DescriptorBase, BasedBase)):
+            if not issubclass(type(item), (DescriptorBase, BasedBase, NewBase)):
                 raise AttributeError('A collection can only be formed from easyscience objects.')
         args = _args
         _kwargs = {}
@@ -90,19 +91,19 @@ class CollectionBase(BasedBase, MutableSequence):
             self.interface = interface
         self._kwargs._stack_enabled = True
 
-    def insert(self, index: int, value: Union[DescriptorBase, BasedBase]) -> None:
+    def insert(self, index: int, value: Union[DescriptorBase, BasedBase, NewBase]) -> None:
         """
         Insert an object into the collection at an index.
 
         :param index: Index for EasyScience object to be inserted.
         :type index: int
         :param value: Object to be inserted.
-        :type value: Union[BasedBase, DescriptorBase]
+        :type value: Union[BasedBase, DescriptorBase, NewBase]
         :return: None
         :rtype: None
         """
         t_ = type(value)
-        if issubclass(t_, (BasedBase, DescriptorBase)):
+        if issubclass(t_, (BasedBase, DescriptorBase, NewBase)):
             update_key = list(self._kwargs.keys())
             values = list(self._kwargs.values())
             # Update the internal dict
@@ -117,7 +118,7 @@ class CollectionBase(BasedBase, MutableSequence):
         else:
             raise AttributeError('Only EasyScience objects can be put into an EasyScience group')
 
-    def __getitem__(self, idx: Union[int, slice]) -> Union[DescriptorBase, BasedBase]:
+    def __getitem__(self, idx: Union[int, slice]) -> Union[DescriptorBase, BasedBase, NewBase]:
         """
         Get an item in the collection based on its index.
 
@@ -151,7 +152,7 @@ class CollectionBase(BasedBase, MutableSequence):
         keys = list(self._kwargs.keys())
         return self._kwargs[keys[idx]]
 
-    def __setitem__(self, key: int, value: Union[BasedBase, DescriptorBase]) -> None:
+    def __setitem__(self, key: int, value: Union[BasedBase, DescriptorBase, NewBase]) -> None:
         """
         Set an item via it's index.
 
@@ -163,7 +164,7 @@ class CollectionBase(BasedBase, MutableSequence):
         if isinstance(value, Number):  # noqa: S3827
             item = self.__getitem__(key)
             item.value = value
-        elif issubclass(type(value), (BasedBase, DescriptorBase)):
+        elif issubclass(type(value), (BasedBase, DescriptorBase, NewBase)):
             update_key = list(self._kwargs.keys())
             values = list(self._kwargs.values())
             old_item = values[key]
@@ -233,7 +234,11 @@ class CollectionBase(BasedBase, MutableSequence):
     def __repr__(self) -> str:
         return f'{self.__class__.__name__} `{getattr(self, "name")}` of length {len(self)}'
 
-    def sort(self, mapping: Callable[[Union[BasedBase, DescriptorBase]], Any], reverse: bool = False) -> None:
+    def sort(
+        self,
+        mapping: Callable[[Union[BasedBase, DescriptorBase, NewBase]], Any],
+        reverse: bool = False,
+    ) -> None:
         """
         Sort the collection according to the given mapping.
 
