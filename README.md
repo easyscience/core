@@ -18,9 +18,6 @@ making data analysis easier.
 **EasyScience** is developed as a Python library.
 
 License:
-[BSD 3-Clause](https://github.com/easyscience/corelib/blob/master/LICENSE)
-
-License:
 [BSD 3-Clause](https://github.com/easyscience/core/blob/master/LICENSE)
 
 ## Useful Links
