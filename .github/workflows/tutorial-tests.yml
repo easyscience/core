@@ -1,0 +1,64 @@
+name: Tutorial tests
+
+on:
+  # Trigger the workflow on push
+  push:
+    # Selected branches
+    branches: [develop] # master and main are already verified in PR
+  # Trigger the workflow on pull request
+  pull_request:
+    branches: ['**']
+  # Trigger the workflow on workflow_call (to be called from other workflows)
+  # Needed, as standard schedule triggers the master branch only, but we want
+  # to run this workflow on develop branch.
+  workflow_call:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Allow only one concurrent workflow, skipping runs queued between the run
+# in-progress and latest queued. And cancel in-progress runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Set the environment variables to be used in all jobs defined in this workflow
+env:
+  CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  # Job 1: Test tutorials as scripts and notebooks on multiple OS
+  tutorial-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+
+      - name: Test tutorials as python scripts
+        shell: bash
+        run: pixi run script-tests
+
+      - name: Prepare notebooks
+        shell: bash
+        run: pixi run notebook-prepare
+
+      - name: Test tutorials as notebooks
+        shell: bash
+        run: pixi run notebook-tests
+
+  # Job 2: Build and publish dashboard (reusable workflow)
+  run-reusable-workflows:
+    needs: tutorial-tests # depend on previous job
+    uses: ./.github/workflows/dashboard.yml
+    secrets: inherit

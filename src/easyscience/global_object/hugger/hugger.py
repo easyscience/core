@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 import inspect
 import sys
@@ -94,9 +93,12 @@ class PatcherFactory(Hugger, metaclass=ABCMeta):
     @staticmethod
     def _caller_name(skip: int = 2):
         """Get a name of a caller in the format module.class.method
-        `skip` specifies how many levels of stack to skip while getting caller
-        name. skip=1 means "who calls me", skip=2 "who calls my caller" etc.
-        An empty string is returned if skipped levels exceed stack height
+        `skip` specifies how many levels of stack to skip while getting
+        caller name.
+
+        skip=1 means "who calls me", skip=2 "who calls my caller" etc.
+        An empty string is returned if skipped levels exceed stack
+        height
         https://gist.github.com/techtonik/2151727#gistcomment-2333747
         """
 

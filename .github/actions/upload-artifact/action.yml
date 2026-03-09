@@ -1,0 +1,49 @@
+name: 'Upload artifact'
+description: 'Generic wrapper for actions/upload-artifact'
+inputs:
+  name:
+    description: 'Artifact name'
+    required: true
+
+  path:
+    description: 'File(s)/dir(s)/glob(s) to upload (newline-separated)'
+    required: true
+
+  include-hidden-files:
+    description: 'Include hidden files'
+    required: false
+    default: 'true'
+
+  if-no-files-found:
+    description: 'warn | error | ignore'
+    required: false
+    default: 'error'
+
+  compression-level:
+    description: '0-9 (0 = no compression)'
+    required: false
+    default: '0'
+
+  retention-days:
+    description: 'Retention in days (optional)'
+    required: false
+    default: ''
+
+  overwrite:
+    description: 'Overwrite an existing artifact with the same name'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        include-hidden-files: ${{ inputs.include-hidden-files }}
+        if-no-files-found: ${{ inputs.if-no-files-found }}
+        compression-level: ${{ inputs.compression-level }}
+        retention-days: ${{ inputs.retention-days }}
+        overwrite: ${{ inputs.overwrite }}

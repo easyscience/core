@@ -4,13 +4,21 @@ inputs:
   environments:
     description: 'Pixi environments to setup'
     required: false
-    default: 'dev'
+    default: 'default'
   activate-environment:
     description: 'Environment to activate'
     required: false
-    default: 'dev'
+    default: 'default'
   run-install:
-    description: 'Whether to run install'
+    description: 'Whether to run pixi install'
+    required: false
+    default: 'true'
+  locked:
+    description: 'Whether to run pixi install --locked'
+    required: false
+    default: 'false'
+  frozen:
+    description: 'Whether to run pixi install --frozen'
     required: false
     default: 'true'
   cache:
@@ -25,10 +33,12 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - uses: prefix-dev/setup-pixi@v0.9.0
+    - uses: prefix-dev/setup-pixi@v0.9.4
       with:
         environments: ${{ inputs.environments }}
         activate-environment: ${{ inputs.activate-environment }}
         run-install: ${{ inputs.run-install }}
+        locked: ${{ inputs.locked }}
+        frozen: ${{ inputs.frozen }}
         cache: ${{ inputs.cache }}
         post-cleanup: ${{ inputs.post-cleanup }}

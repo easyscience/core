@@ -1,0 +1,42 @@
+# Verifies if an issue has at least one of the `[scope]` and one of the
+# `[priority]` labels. If not, the bot adds labels with a warning emoji
+# to indicate that those labels need to be added.
+
+name: Issue labels check
+
+on:
+  issues:
+    types: [opened, labeled, unlabeled]
+
+permissions:
+  issues: write
+
+jobs:
+  check-labels:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup easyscience[bot]
+        id: bot
+        uses: ./.github/actions/setup-easyscience-bot
+        with:
+          app-id: ${{ vars.EASYSCIENCE_APP_ID }}
+          private-key: ${{ secrets.EASYSCIENCE_APP_KEY }}
+
+      - name: Check for required [scope] label
+        uses: trstringer/require-label-prefix@v1
+        with:
+          secret: ${{ steps.bot.outputs.token }}
+          prefix: '[scope]'
+          labelSeparator: ' '
+          addLabel: true
+          defaultLabel: '[scope] ⚠️ label needed'
+
+      - name: Check for required [priority] label
+        uses: trstringer/require-label-prefix@v1
+        with:
+          secret: ${{ steps.bot.outputs.token }}
+          prefix: '[priority]'
+          labelSeparator: ' '
+          addLabel: true
+          defaultLabel: '[priority] ⚠️ label needed'

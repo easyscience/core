@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 import copy
 from typing import Callable
@@ -43,8 +42,8 @@ class Bumps(MinimizerBase):
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
     ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
-        """
-        Initialize the fitting engine with a `ObjBase` and an arbitrary fitting function.
+        """Initialize the fitting engine with a `ObjBase` and an
+        arbitrary fitting function.
 
         :param obj: Object containing elements of the `Parameter` class
         :type obj: ObjBase
@@ -80,8 +79,7 @@ class Bumps(MinimizerBase):
         engine_kwargs: Optional[dict] = None,
         **kwargs,
     ) -> FitResults:
-        """
-        Perform a fit using the lmfit engine.
+        """Perform a fit using the lmfit engine.
 
         :param x: points to be calculated at
         :type x: np.ndarray
@@ -97,12 +95,10 @@ class Bumps(MinimizerBase):
         :param method: Method for minimization
         :type method: str
         :return: Fit results
-        :rtype: ModelResult
-
-        For standard least squares, the weights should be 1/sigma, where
-        sigma is the standard deviation of the measurement. For
-        unweighted least squares, these should be 1.
-
+        :rtype: ModelResult For standard least squares, the weights
+            should be 1/sigma, where sigma is the standard deviation of
+            the measurement. For unweighted least squares, these should
+            be 1.
         """
         method_dict = self._get_method_kwargs(method)
 
@@ -129,7 +125,9 @@ class Bumps(MinimizerBase):
 
         if tolerance is not None:
             minimizer_kwargs['ftol'] = tolerance  # tolerance for change in function value
-            minimizer_kwargs['xtol'] = tolerance  # tolerance for change in parameter value, could be an independent value
+            minimizer_kwargs['xtol'] = (
+                tolerance  # tolerance for change in parameter value, could be an independent value
+            )
         if max_evaluations is not None:
             minimizer_kwargs['steps'] = max_evaluations
 
@@ -158,10 +156,11 @@ class Bumps(MinimizerBase):
         return results
 
     def convert_to_pars_obj(self, par_list: Optional[List] = None) -> List[BumpsParameter]:
-        """
-        Create a container with the `Parameters` converted from the base object.
+        """Create a container with the `Parameters` converted from the
+        base object.
 
-        :param par_list: If only a single/selection of parameter is required. Specify as a list
+        :param par_list: If only a single/selection of parameter is
+            required. Specify as a list
         :type par_list: List[str]
         :return: bumps Parameters list
         :rtype: List[BumpsParameter]
@@ -175,8 +174,8 @@ class Bumps(MinimizerBase):
     # For some reason I have to double staticmethod :-/
     @staticmethod
     def convert_to_par_object(obj) -> BumpsParameter:
-        """
-        Convert an `EasyScience.variable.Parameter` object to a bumps Parameter object
+        """Convert an `EasyScience.variable.Parameter` object to a bumps
+        Parameter object.
 
         :return: bumps Parameter compatible object.
         :rtype: BumpsParameter
@@ -192,9 +191,9 @@ class Bumps(MinimizerBase):
         )
 
     def _make_model(self, parameters: Optional[List[BumpsParameter]] = None) -> Callable:
-        """
-        Generate a bumps model from the supplied `fit_function` and parameters in the base object.
-        Note that this makes a callable as it needs to be initialized with *x*, *y*, *weights*
+        """Generate a bumps model from the supplied `fit_function` and
+        parameters in the base object. Note that this makes a callable
+        as it needs to be initialized with *x*, *y*, *weights*
 
         Weights are converted to dy (standard deviation of y).
 
@@ -208,19 +207,25 @@ class Bumps(MinimizerBase):
                 bumps_pars = {}
                 if not parameters:
                     for name, par in obj._cached_pars.items():
-                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + str(name)] = obj.convert_to_par_object(par)
+                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + str(name)] = (
+                            obj.convert_to_par_object(par)
+                        )
                 else:
                     for par in parameters:
-                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + par.unique_name] = obj.convert_to_par_object(par)
+                        bumps_pars[MINIMIZER_PARAMETER_PREFIX + par.unique_name] = (
+                            obj.convert_to_par_object(par)
+                        )
                 return Curve(fit_func, x, y, dy=1 / weights, **bumps_pars)
 
             return _make_func
 
         return _outer(self)
 
-    def _set_parameter_fit_result(self, fit_result, stack_status: bool, par_list: List[BumpsParameter]):
-        """
-        Update parameters to their final values and assign a std error to them.
+    def _set_parameter_fit_result(
+        self, fit_result, stack_status: bool, par_list: List[BumpsParameter]
+    ):
+        """Update parameters to their final values and assign a std
+        error to them.
 
         :param fit_result: Fit object which contains info on the fit
         :return: None
@@ -245,8 +250,7 @@ class Bumps(MinimizerBase):
             global_object.stack.endMacro()
 
     def _gen_fit_results(self, fit_results, **kwargs) -> FitResults:
-        """
-        Convert fit results into the unified `FitResults` format
+        """Convert fit results into the unified `FitResults` format.
 
         :param fit_result: Fit object which contains info on the fit
         :return: fit results container

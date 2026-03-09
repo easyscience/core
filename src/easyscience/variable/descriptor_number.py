@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
 import numbers
@@ -22,8 +25,7 @@ from .descriptor_base import DescriptorBase
 # Why is this a decorator? Because otherwise we would need a flag on the convert_unit method to avoid
 # infinite recursion. This is a bit cleaner as it avoids the need for a internal only flag on a user method.
 def notify_observers(func):
-    """
-    Decorator to notify observers of a change in the descriptor.
+    """Decorator to notify observers of a change in the descriptor.
 
     :param func: Function to be decorated
     :return: Decorated function
@@ -38,8 +40,9 @@ def notify_observers(func):
 
 
 class DescriptorNumber(DescriptorBase):
-    """
-    A `Descriptor` for Number values with units.  The internal representation is a scipp scalar.
+    """A `Descriptor` for Number values with units.
+
+    The internal representation is a scipp scalar.
     """
 
     def __init__(
@@ -55,7 +58,7 @@ class DescriptorNumber(DescriptorBase):
         parent: Optional[Any] = None,
         **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
-        """Constructor for the DescriptorNumber class
+        """Constructor for the DescriptorNumber class.
 
         param name: Name of the descriptor
         param value: Value of the descriptor
@@ -82,7 +85,9 @@ class DescriptorNumber(DescriptorBase):
                 raise ValueError(f'{variance=} must be positive')
             variance = float(variance)
         if not isinstance(unit, sc.Unit) and not isinstance(unit, str):
-            raise TypeError(f'{unit=} must be a scipp unit or a string representing a valid scipp unit')
+            raise TypeError(
+                f'{unit=} must be a scipp unit or a string representing a valid scipp unit'
+            )
         try:
             self._scalar = sc.scalar(float(value), unit=unit, variance=variance)
         except Exception as message:
@@ -102,8 +107,7 @@ class DescriptorNumber(DescriptorBase):
 
     @classmethod
     def from_scipp(cls, name: str, full_value: Variable, **kwargs) -> DescriptorNumber:
-        """
-        Create a DescriptorNumber from a scipp constant.
+        """Create a DescriptorNumber from a scipp constant.
 
         :param name: Name of the descriptor
         :param value: Value of the descriptor as a scipp scalar
@@ -114,7 +118,13 @@ class DescriptorNumber(DescriptorBase):
             raise TypeError(f'{full_value=} must be a scipp scalar')
         if len(full_value.dims) != 0:
             raise TypeError(f'{full_value=} must be a scipp scalar')
-        return cls(name=name, value=full_value.value, unit=full_value.unit, variance=full_value.variance, **kwargs)
+        return cls(
+            name=name,
+            value=full_value.value,
+            unit=full_value.unit,
+            variance=full_value.variance,
+            **kwargs,
+        )
 
     def _attach_observer(self, observer: DescriptorNumber) -> None:
         """Attach an observer to the descriptor."""
@@ -134,9 +144,11 @@ class DescriptorNumber(DescriptorBase):
             observer._update()
 
     def _validate_dependencies(self, origin=None) -> None:
-        """Ping all observers to check if any cyclic dependencies have been introduced.
+        """Ping all observers to check if any cyclic dependencies have
+        been introduced.
 
-        :param origin: Unique_name of the origin of this validation check. Used to avoid cyclic depenencies.
+        :param origin: Unique_name of the origin of this validation
+            check. Used to avoid cyclic depenencies.
         """
         if origin == self.unique_name:
             raise RuntimeError(
@@ -151,8 +163,8 @@ class DescriptorNumber(DescriptorBase):
 
     @property
     def full_value(self) -> Variable:
-        """
-        Get the value of self as a scipp scalar. This is should be usable for most cases.
+        """Get the value of self as a scipp scalar. This is should be
+        usable for most cases.
 
         :return: Value of self with unit.
         """
@@ -166,8 +178,8 @@ class DescriptorNumber(DescriptorBase):
 
     @property
     def value(self) -> numbers.Number:
-        """
-        Get the value. This should be usable for most cases. The full value can be obtained from `obj.full_value`.
+        """Get the value. This should be usable for most cases. The full
+        value can be obtained from `obj.full_value`.
 
         :return: Value of self with unit.
         """
@@ -177,8 +189,8 @@ class DescriptorNumber(DescriptorBase):
     @notify_observers
     @property_stack
     def value(self, value: numbers.Number) -> None:
-        """
-        Set the value of self. This should be usable for most cases. The full value can be obtained from `obj.full_value`.
+        """Set the value of self. This should be usable for most cases.
+        The full value can be obtained from `obj.full_value`.
 
         :param value: New value of self
         """
@@ -188,8 +200,7 @@ class DescriptorNumber(DescriptorBase):
 
     @property
     def unit(self) -> str:
-        """
-        Get the unit.
+        """Get the unit.
 
         :return: Unit as a string.
         """
@@ -206,8 +217,7 @@ class DescriptorNumber(DescriptorBase):
 
     @property
     def variance(self) -> float:
-        """
-        Get the variance.
+        """Get the variance.
 
         :return: variance.
         """
@@ -217,8 +227,7 @@ class DescriptorNumber(DescriptorBase):
     @notify_observers
     @property_stack
     def variance(self, variance_float: float) -> None:
-        """
-        Set the variance.
+        """Set the variance.
 
         :param variance_float: Variance as a float
         """
@@ -232,8 +241,7 @@ class DescriptorNumber(DescriptorBase):
 
     @property
     def error(self) -> float:
-        """
-        The standard deviation for the parameter.
+        """The standard deviation for the parameter.
 
         :return: Error associated with parameter
         """
@@ -245,8 +253,7 @@ class DescriptorNumber(DescriptorBase):
     @notify_observers
     @property_stack
     def error(self, value: float) -> None:
-        """
-        Set the standard deviation for the parameter.
+        """Set the standard deviation for the parameter.
 
         :param value: New error value
         """
@@ -263,8 +270,7 @@ class DescriptorNumber(DescriptorBase):
     # When we convert units internally, we dont want to notify observers as this can cause infinite recursion.
     # Therefore the convert_unit method is split into two methods, a private internal method and a public method.
     def _convert_unit(self, unit_str: str) -> None:
-        """
-        Convert the value from one unit system to another.
+        """Convert the value from one unit system to another.
 
         :param unit_str: New unit in string form
         """
@@ -287,7 +293,9 @@ class DescriptorNumber(DescriptorBase):
 
         # Push to undo stack
         self._global_object.stack.push(
-            PropertyStack(self, set_scalar, old_scalar, new_scalar, text=f'Convert unit to {unit_str}')
+            PropertyStack(
+                self, set_scalar, old_scalar, new_scalar, text=f'Convert unit to {unit_str}'
+            )
         )
 
         # Update the scalar
@@ -296,8 +304,7 @@ class DescriptorNumber(DescriptorBase):
     # When the user calls convert_unit, we want to notify observers of the change to propagate the change.
     @notify_observers
     def convert_unit(self, unit_str: str) -> None:
-        """
-        Convert the value from one unit system to another.
+        """Convert the value from one unit system to another.
 
         :param unit_str: New unit in string form
         """
@@ -312,7 +319,9 @@ class DescriptorNumber(DescriptorBase):
         string = '<'
         string += self.__class__.__name__ + ' '
         string += f"'{self._name}': "
-        if np.abs(self._scalar.value) > 1e4 or (np.abs(self._scalar.value) < 1e-4 and self._scalar.value != 0):
+        if np.abs(self._scalar.value) > 1e4 or (
+            np.abs(self._scalar.value) < 1e-4 and self._scalar.value != 0
+        ):
             # Use scientific notation for large or small values
             string += f'{self._scalar.value:.3e}'
             if self.variance:
@@ -350,7 +359,9 @@ class DescriptorNumber(DescriptorBase):
             try:
                 other._convert_unit(self.unit)
             except UnitError:
-                raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be added') from None
+                raise UnitError(
+                    f'Values with units {self.unit} and {other.unit} cannot be added'
+                ) from None
             new_value = self.full_value + other.full_value
             other._convert_unit(original_unit)
         else:
@@ -380,7 +391,9 @@ class DescriptorNumber(DescriptorBase):
             try:
                 other._convert_unit(self.unit)
             except UnitError:
-                raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be subtracted') from None
+                raise UnitError(
+                    f'Values with units {self.unit} and {other.unit} cannot be subtracted'
+                ) from None
             new_value = self.full_value - other.full_value
             other._convert_unit(original_unit)
         else:
@@ -493,8 +506,8 @@ class DescriptorNumber(DescriptorBase):
         return descriptor_number
 
     def _base_unit(self) -> str:
-        """
-        Extract the base unit from the unit string by removing numeric components and scientific notation.
+        """Extract the base unit from the unit string by removing
+        numeric components and scientific notation.
         """
         string = str(self._scalar.unit)
         for i, letter in enumerate(string):

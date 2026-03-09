@@ -1,0 +1,55 @@
+# This workflow creates an automated release PR from a source branch into the default branch.
+#
+# Usage:
+#   - Triggered manually via workflow_dispatch.
+#   - Creates a PR titled "Release: merge <source> into <default>".
+#   - Adds the label "[bot] release" so it is excluded from changelogs.
+#   - The PR body makes clear that this is automation only (no review needed).
+
+name: 'Release PR (develop → master)'
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Source branch to create PR from'
+        required: false
+        default: 'develop'
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+  SOURCE_BRANCH: ${{ inputs.source_branch || 'develop' }}
+
+jobs:
+  create-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ${{ env.SOURCE_BRANCH }} branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SOURCE_BRANCH }}
+
+      - name: Setup easyscience[bot]
+        id: bot
+        uses: ./.github/actions/setup-easyscience-bot
+        with:
+          app-id: ${{ vars.EASYSCIENCE_APP_ID }}
+          private-key: ${{ secrets.EASYSCIENCE_APP_KEY }}
+
+      - name: Create PR from ${{ env.SOURCE_BRANCH }} to ${{ env.DEFAULT_BRANCH }}
+        env:
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
+        run: |
+          gh pr create \
+            --base ${{ env.DEFAULT_BRANCH }} \
+            --head ${{ env.SOURCE_BRANCH }} \
+            --title "Release: merge ${{ env.SOURCE_BRANCH }} into ${{ env.DEFAULT_BRANCH }}" \
+            --label "[bot] release" \
+            --body "This PR is created automatically to trigger the release pipeline. It merges the accumulated changes from \`${{ env.SOURCE_BRANCH }}\` into \`${{ env.DEFAULT_BRANCH }}\`.
+
+            ⚠️ It is labeled \`[bot] release\` and is excluded from release notes and version bump logic."

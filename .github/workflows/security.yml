@@ -1,0 +1,93 @@
+# Code scanning (CodeQL) for vulnerabilities and insecure coding patterns.
+#
+# What this workflow does
+# - Runs GitHub CodeQL analysis and uploads results to your repository's Security tab.
+# - Triggers on PRs (so findings appear as PR checks) and on pushes to `develop`.
+# - Runs on a weekly schedule.
+#
+# Where to find results on GitHub
+# - Repository → Security → Code scanning alerts
+#   (You can filter by tool = CodeQL and by branch.)
+#
+# Where to configure on GitHub
+# - Repository → Settings → Advanced Security
+#   Enable "GitHub Advanced Security" (if available) and configure CodeQL there.
+# - Repository → Security → Code scanning alerts
+#   This page shows findings produced by this workflow.
+#
+# Notes about the scheduled run
+# - Scheduled workflows are triggered from the repository's *default branch*.
+#   If your default branch is `master` but you want the scheduled scan to analyze
+#   `develop`, this workflow checks out `develop` explicitly for scheduled runs.
+#
+# References
+# - CodeQL Action: https://github.com/github/codeql-action
+# - Advanced setup docs: https://docs.github.com/en/code-security/code-scanning
+
+name: Security scans with CodeQL
+
+on:
+  # Run on pull requests so results show up as PR checks and code
+  # scanning alerts.
+  pull_request:
+    branches: [master, main, develop]
+
+  # Run on pushes (e.g., after merging PRs).
+  push:
+    branches: [master, main, develop]
+
+  # Run weekly. (Cron is in UTC.)
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  codeql:
+    name: Code scanning
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep this list tight to avoid noise and speed up runs.
+        language: [python, actions]
+
+    steps:
+      # Scheduled workflows run from the default branch.
+      # We explicitly analyze `develop` on the schedule to keep the scan
+      # focused on the active dev branch.
+      - name: Checkout repository (scheduled → develop)
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/checkout@v5
+        with:
+          ref: develop
+
+      - name: Checkout repository
+        if: ${{ github.event_name != 'schedule' }}
+        uses: actions/checkout@v5
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+
+  print-link:
+    name: Print results link
+    runs-on: ubuntu-latest
+
+    needs: codeql
+    permissions: {} # no special perms needed just to print links
+
+    steps:
+      - name: Add Code Scanning link to job summary
+        run: |
+          echo "## 🔎 CodeQL Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View Code Scanning alerts here:" >> $GITHUB_STEP_SUMMARY
+          echo "${{ github.server_url }}/${{ github.repository }}/security/code-scanning" >> $GITHUB_STEP_SUMMARY

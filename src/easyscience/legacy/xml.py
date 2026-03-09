@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from __future__ import annotations
 
@@ -26,8 +25,8 @@ can_intent = (sys.version_info.major > 2) & (sys.version_info.minor > 8)
 
 
 class XMLSerializer(BaseEncoderDecoder):
-    """
-    This is a serializer that can encode and decode EasyScience objects to a basic xml format.
+    """This is a serializer that can encode and decode EasyScience
+    objects to a basic xml format.
     """
 
     def encode(
@@ -39,16 +38,20 @@ class XMLSerializer(BaseEncoderDecoder):
         use_header: bool = False,
         **kwargs,
     ) -> str:
-        """
-        Convert an EasyScience object to an XML encoded string. Note that for speed the `fast` setting can be changed to
-        `True`. An XML document with initial block *data* is returned.
+        """Convert an EasyScience object to an XML encoded string. Note
+        that for speed the `fast` setting can be changed to `True`. An
+        XML document with initial block *data* is returned.
 
         :param obj: Object to be encoded.
-        :param skip: List of field names as strings to skip when forming the encoded object
+        :param skip: List of field names as strings to skip when forming
+            the encoded object
         :param data_only: Should only the object's data be encoded.
-        :param fast: Should the returned string be pretty? This can be turned off for speed.
-        :param use_header: Should a header of `'?xml version="1.0"  encoding="UTF-8"?'` be included?
-        :param kwargs: Any additional key-words to pass to the Dictionary Serializer.
+        :param fast: Should the returned string be pretty? This can be
+            turned off for speed.
+        :param use_header: Should a header of `'?xml version="1.0"
+            encoding="UTF-8"?'` be included?
+        :param kwargs: Any additional key-words to pass to the
+            Dictionary Serializer.
         :return: string containing the XML encoded object
         """
 
@@ -74,8 +77,8 @@ class XMLSerializer(BaseEncoderDecoder):
 
     @classmethod
     def decode(cls, data: str) -> ComponentSerializer:
-        """
-        Decode an EasyScience object which has been encoded in XML format.
+        """Decode an EasyScience object which has been encoded in XML
+        format.
 
         :param data: String containing XML encoded data.
         :return: Reformed EasyScience object.
@@ -89,9 +92,7 @@ class XMLSerializer(BaseEncoderDecoder):
 
     @staticmethod
     def _element_to_dict(element, out_dict):
-        """
-        Convert an XML element to a dictionary recursively.
-        """
+        """Convert an XML element to a dictionary recursively."""
 
         label = element.tag
         if label[0] == '_':
@@ -113,9 +114,7 @@ class XMLSerializer(BaseEncoderDecoder):
 
     @staticmethod
     def string_to_variable(in_string: str):
-        """
-        Convert an XML encoded string to JSON form.
-        """
+        """Convert an XML encoded string to JSON form."""
         if in_string is None:
             return in_string
         in_string = in_string.strip()
@@ -137,8 +136,8 @@ class XMLSerializer(BaseEncoderDecoder):
         return value
 
     def _check_class(self, element, key: str, value: Any, skip: Optional[List[str]] = None):
-        """
-        Add a value to an element or create a new element based on input type.
+        """Add a value to an element or create a new element based on
+        input type.
         """
         T_ = type(value)
         if isinstance(value, dict):

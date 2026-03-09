@@ -1,0 +1,189 @@
+# Project information
+site_name: EasyScience Library
+site_url: https://easyscience.github.io/core
+
+# Repository
+repo_url: https://github.com/easyscience/core
+edit_uri: edit/develop/docs/
+
+# Copyright
+copyright: © 2021-2026 EasyScience
+
+# Sets the theme and theme-specific configuration
+theme:
+  name: material
+  custom_dir: overrides
+  features:
+    #- content.action.edit # Temporary disable edit button (until decided on which branch to use and where to host the notebooks)
+    #- content.action.view
+    - content.code.annotate
+    - content.code.copy # Auto generated button to copy a code block's content
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    #- navigation.instant # Instant loading, but it causes issues with rendering equations
+    #- navigation.sections
+    - navigation.top # Back-to-top button
+    - navigation.tracking # Anchor tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    # Palette toggle for light mode
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: custom
+      toggle:
+        icon: fontawesome/solid/sun
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: custom
+      toggle:
+        icon: fontawesome/solid/moon
+        name: Switch to light mode
+  font:
+    text: Mulish
+    code: Roboto Mono
+  icon:
+    edit: material/file-edit-outline
+  favicon: assets/images/favicon.png
+  logo_dark_mode: assets/images/logo_dark.svg
+  logo_light_mode: assets/images/logo_light.svg
+
+# A set of key-value pairs, where the values can be any valid YAML
+# construct, that will be passed to the template
+extra:
+  generator: false # Disable `Made with Material for MkDocs` (bottom left)
+  social: # Extra icons in the bottom right corner
+    - icon: easyscience # File: overrides/.icons/easyscience.svg
+      link: https://easyscience.org
+      name: EasyScience Framework Webpage
+    - icon: easyscience # File: overrides/.icons/easyscience.svg
+      link: https://easyscience.github.io/corelib
+      name: EasyScience Main Webpage
+    - icon: fontawesome/brands/github # Name as in Font Awesome
+      link: https://github.com/easyscience/core
+      name: EasyScience Library Source Code on GitHub
+  # Set custom variables to be used in Markdown and HTML files
+  vars:
+    ci_branch: !ENV CI_BRANCH
+    github_repository: !ENV GITHUB_REPOSITORY
+    release_version: !ENV RELEASE_VERSION
+    docs_version: !ENV DOCS_VERSION
+    notebooks_dir: !ENV NOTEBOOKS_DIR
+  # Renders a version selector in the header
+  version:
+    provider: mike
+
+# Customization to be included by the theme
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/extra.js
+  # MathJax for rendering mathematical expressions
+  - assets/javascripts/mathjax.js # Custom MathJax config to ensure compatibility with mkdocs-jupyter
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js # Official MathJax CDN
+
+# A list of extensions beyond the ones that MkDocs uses by default (meta, toc, tables, and fenced_code)
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - pymdownx.arithmatex: # rendering of equations and integrates with MathJax or KaTeX
+      generic: true
+  - pymdownx.blocks.caption
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - docs/overrides/.icons
+  - pymdownx.highlight: # whether highlighting should be carried out during build time by Pygments
+      use_pygments: true
+      pygments_lang_class: true
+  - pymdownx.snippets:
+      auto_append:
+        - docs/includes/abbreviations.md
+  - pymdownx.superfences: # whether highlighting should be carried out during build time by Pygments
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed: # enables content tabs
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      toc_depth: 3
+
+# A list of plugins (with optional configuration settings) to use when building the site
+plugins:
+  - autorefs
+  - inline-svg
+  - markdownextradata # Plugin that injects the mkdocs.yml extra variables into the Markdown template
+  - mike # Plugin that makes it easy to deploy multiple versions of the docs
+  - mkdocs-jupyter:
+      include: ['*.ipynb'] # Default: ['*.py', '*.ipynb']
+      execute: false # Do not execute notebooks during build. They are expected to be pre-executed.
+      allow_errors: false
+      include_source: true
+      include_requirejs: true # Required for Plotly
+      #custom_mathjax_url: 'https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js' # See 'extra_javascript' above
+      ignore_h1_titles: true # Use titles defined in the nav section below
+      remove_tag_config:
+        remove_input_tags:
+          - hide-in-docs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ['src'] # Change 'src' to your actual sources directory
+          options:
+            docstring_style: google
+            group_by_category: false
+            heading_level: 1
+            show_root_heading: true
+            show_root_full_path: false
+            show_submodules: true
+            show_source: true
+  - search
+
+# Determines additional directories to watch when running mkdocs serve
+watch:
+  - includes
+  - overrides
+  - ../src
+
+# Exclude files and folders from the global navigation
+not_in_nav: |
+  index.md
+
+# Format and layout of the global navigation for the site
+nav:
+  - Introduction:
+      - Introduction: introduction/index.md
+  - Installation & Setup:
+      - Installation & Setup: installation-and-setup/index.md
+  - User Guide:
+      - User Guide: user-guide/index.md
+  - Tutorials:
+      - Tutorials: tutorials/index.md
+      - Workshops & Schools:
+          - Fitting QENS: tutorials/fitting-qens.ipynb
+          - Fitting SANS: tutorials/fitting-sans.ipynb
+  - API Reference:
+      - API Reference: api-reference/index.md
+      - base_classes: api-reference/base_classes.md
+      - fitting: api-reference/fitting.md
+      - global_object: api-reference/global_object.md
+      - io: api-reference/io.md
+      - job: api-reference/job.md
+      - models: api-reference/models.md
+      - utils: api-reference/utils.md
+      - variable: api-reference/variable.md

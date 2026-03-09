@@ -1,0 +1,109 @@
+# This workflow automatically merges `master` into `develop` whenever a
+# new version release with a tag is published. It can also be triggered
+# manually via workflow_dispatch for cases where an automatic backmerge
+# is needed outside of the standard release process.
+# If a merge conflict occurs, the workflow creates an issue to notify
+# maintainers for manual resolution.
+
+name: Backmerge (master → develop)
+
+on:
+  release:
+    types: [published, prereleased]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: backmerge-master-into-develop
+  cancel-in-progress: false
+
+jobs:
+  backmerge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository (for local actions)
+        uses: actions/checkout@v5
+
+      - name: Setup easyscience[bot]
+        id: bot
+        uses: ./.github/actions/setup-easyscience-bot
+        with:
+          app-id: ${{ vars.EASYSCIENCE_APP_ID }}
+          private-key: ${{ secrets.EASYSCIENCE_APP_KEY }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Checkout repository (with bot token)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ steps.bot.outputs.token }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "easyscience[bot]"
+          git config user.email "${{ vars.EASYSCIENCE_APP_ID }}+easyscience[bot]@users.noreply.github.com"
+
+      - name: Set merge message
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            MESSAGE="Backmerge: master into develop (manual) [skip ci]"
+          else
+            TAG="${{ github.event.release.tag_name }}"
+            MESSAGE="Backmerge: master (${TAG}) into develop [skip ci]"
+          fi
+
+          echo "MESSAGE=$MESSAGE" >> "$GITHUB_ENV"
+          echo "message=$MESSAGE" >> "$GITHUB_OUTPUT"
+          echo "📝 Merge message: $MESSAGE" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Prepare branches
+        run: |
+          git fetch origin master develop
+          git checkout -B develop origin/develop
+
+      - name: Check if develop is already up-to-date
+        id: up_to_date
+        run: |
+          if git merge-base --is-ancestor origin/master develop; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ Develop is already up-to-date with master" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Try merge master into develop
+        id: merge
+        if: steps.up_to_date.outputs.value == 'false'
+        continue-on-error: true
+        run: |
+          if ! git merge origin/master --no-ff -m "${MESSAGE}"; then
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            echo "❌ Backmerge conflict detected." | tee -a "$GITHUB_STEP_SUMMARY"
+            git status --porcelain || true
+            exit 0
+          fi
+
+          echo "conflict=false" >> "$GITHUB_OUTPUT"
+          echo "✅ Merge commit created." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Push to develop (if merge succeeded)
+        if:
+          steps.up_to_date.outputs.value == 'false' && steps.merge.outputs.conflict ==
+          'false'
+        run: |
+          git push origin develop
+          echo "🚀 Backmerge successful: master → develop" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Create issue (if merge failed with conflicts)
+        if: steps.merge.outputs.conflict == 'true'
+        uses: ./.github/actions/github-script
+        with:
+          github-token: ${{ steps.bot.outputs.token }}
+          script: |
+            const run = require('./.github/scripts/backmerge-conflict-issue.js')
+            await run({ github, context, core })

@@ -1,0 +1,50 @@
+name: 'Download artifact'
+description: 'Generic wrapper for actions/download-artifact'
+inputs:
+  name:
+    description: 'Name of the artifact to download'
+    required: true
+
+  path:
+    description: 'Destination path'
+    required: false
+    default: '.'
+
+  pattern:
+    description: 'Glob pattern to match artifact names (optional)'
+    required: false
+    default: ''
+
+  merge-multiple:
+    description: 'Merge multiple artifacts into the same directory'
+    required: false
+    default: 'false'
+
+  github-token:
+    description: 'GitHub token for cross-repo download (optional)'
+    required: false
+    default: ''
+
+  repository:
+    description: 'owner/repo for cross-repo download (optional)'
+    required: false
+    default: ''
+
+  run-id:
+    description: 'Workflow run ID for cross-run download (optional)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        pattern: ${{ inputs.pattern }}
+        merge-multiple: ${{ inputs.merge-multiple }}
+        github-token: ${{ inputs.github-token }}
+        repository: ${{ inputs.repository }}
+        run-id: ${{ inputs.run-id }}

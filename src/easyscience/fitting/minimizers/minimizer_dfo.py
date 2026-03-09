@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from typing import Callable
 from typing import Dict
@@ -34,8 +33,8 @@ class DFO(MinimizerBase):
         fit_function: Callable,
         minimizer_enum: Optional[AvailableMinimizers] = None,
     ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
-        """
-        Initialize the fitting engine with a `ObjBase` and an arbitrary fitting function.
+        """Initialize the fitting engine with a `ObjBase` and an
+        arbitrary fitting function.
 
         :param obj: Object containing elements of the `Parameter` class
         :type obj: ObjBase
@@ -67,8 +66,7 @@ class DFO(MinimizerBase):
         max_evaluations: Optional[int] = None,
         **kwargs,
     ) -> FitResults:
-        """
-        Perform a fit using the DFO-ls engine.
+        """Perform a fit using the DFO-ls engine.
 
         :param x: points to be calculated at
         :type x: np.ndarray
@@ -84,11 +82,10 @@ class DFO(MinimizerBase):
         :param method: Method for minimization
         :type method: str
         :return: Fit results
-        :rtype: ModelResult
-
-        For standard least squares, the weights should be 1/sigma, where
-        sigma is the standard deviation of the measurement. For
-        unweighted least squares, these should be 1.
+        :rtype: ModelResult For standard least squares, the weights
+            should be 1/sigma, where sigma is the standard deviation of
+            the measurement. For unweighted least squares, these should
+            be 1.
         """
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
@@ -132,22 +129,18 @@ class DFO(MinimizerBase):
         return results
 
     def convert_to_pars_obj(self, par_list: Optional[list] = None):
-        """
-        Required by interface but not needed for DFO-LS
-        """
+        """Required by interface but not needed for DFO-LS."""
         pass
 
     @staticmethod
     def convert_to_par_object(obj) -> None:
-        """
-        Required by interface but not needed for DFO-LS
-        """
+        """Required by interface but not needed for DFO-LS."""
         pass
 
     def _make_model(self, parameters: Optional[List[Parameter]] = None) -> Callable:
-        """
-        Generate a model from the supplied `fit_function` and parameters in the base object.
-        Note that this makes a callable as it needs to be initialized with *x*, *y*, *weights*
+        """Generate a model from the supplied `fit_function` and
+        parameters in the base object. Note that this makes a callable
+        as it needs to be initialized with *x*, *y*, *weights*
 
         :return: Callable model which returns residuals
         :rtype: Callable
@@ -176,11 +169,12 @@ class DFO(MinimizerBase):
         return _outer(self)
 
     def _set_parameter_fit_result(self, fit_result, stack_status, ci: float = 0.95) -> None:
-        """
-        Update parameters to their final values and assign a std error to them.
+        """Update parameters to their final values and assign a std
+        error to them.
 
         :param fit_result: Fit object which contains info on the fit
-        :param ci: Confidence interval for calculating errors. Default 95%
+        :param ci: Confidence interval for calculating errors. Default
+            95%
         :return: None
         :rtype: noneType
         """
@@ -203,8 +197,7 @@ class DFO(MinimizerBase):
             global_object.stack.endMacro()
 
     def _gen_fit_results(self, fit_results, weights, **kwargs) -> FitResults:
-        """
-        Convert fit results into the unified `FitResults` format
+        """Convert fit results into the unified `FitResults` format.
 
         :param fit_result: Fit object which contains info on the fit
         :return: fit results container
@@ -242,8 +235,8 @@ class DFO(MinimizerBase):
         model: Callable,
         **kwargs,
     ):
-        """
-        Method to convert EasyScience styling to DFO-LS styling (yes, again)
+        """Method to convert EasyScience styling to DFO-LS styling (yes,
+        again)
 
         :param model: Model which accepts f(x[0])
         :type model: Callable

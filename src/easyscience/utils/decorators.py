@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 import collections.abc
 import functools
@@ -11,10 +10,11 @@ from easyscience import global_object
 
 
 class memoized:
-    """
-    Decorator. Caches a function's return value each time it is called.
-    If called later with the same arguments, the cached value is returned
-    (not reevaluated).
+    """Decorator.
+
+    Caches a function's return value each time it is called. If called
+    later with the same arguments, the cached value is returned (not
+    reevaluated).
     """
 
     def __init__(self, func):
@@ -42,10 +42,9 @@ class memoized:
 
 
 def counted(func):
-    """
-    Counts how many times a function has been called and adds a `func.calls` to it's properties
-    :param func: Function to be counted
-    :return: Results from function call
+    """Counts how many times a function has been called and adds a
+    `func.calls` to it's properties :param func: Function to be counted
+    :return: Results from function call.
     """
 
     @functools.wraps(func)
@@ -58,10 +57,9 @@ def counted(func):
 
 
 def time_it(func):
-    """
-    Times a function and reports the time either to the class' log or the base logger
-    :param func: function to be timed
-    :return: callable function with timer
+    """Times a function and reports the time either to the class' log or
+    the base logger :param func: function to be timed :return: callable
+    function with timer.
     """
     name = func.__module__ + '.' + func.__name__
     time_logger = global_object.log.getLogger('timer.' + name)
@@ -79,10 +77,10 @@ def time_it(func):
 
 
 def deprecated(func):
-    """
-    This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emitted
-    when the function is used.
+    """This is a decorator which can be used to mark functions as
+    deprecated.
+
+    It will result in a warning being emitted when the function is used.
     """
 
     @functools.wraps(func)
