@@ -80,9 +80,7 @@ class CollectionBase(EasyList):
             except TypeError as exc:
                 raise AttributeError('A collection can only be formed from easyscience objects.') from exc
             if item in self:
-                warnings.warn(
-                    f'Item with unique name "{self._get_key(item)}" already in CollectionBase, it will be ignored'
-                )
+                warnings.warn(f'Item with unique name "{self._get_key(item)}" already in CollectionBase, it will be ignored')
                 continue
             self._data.append(item)
 
