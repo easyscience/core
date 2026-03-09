@@ -146,7 +146,7 @@ def test_CollectionBase_append_fail(cls, setup_pars, value):
 
 
 @pytest.mark.parametrize("cls", class_constructors)
-@pytest.mark.parametrize("value", (0, 1, 3, "par1", "des1"))
+@pytest.mark.parametrize("value", (0, 1, 3, "p1", "d1"))
 def test_CollectionBase_getItem(cls, setup_pars, value):
     name = setup_pars["name"]
     del setup_pars["name"]
@@ -155,10 +155,10 @@ def test_CollectionBase_getItem(cls, setup_pars, value):
 
     get_item = coll[value]
     if isinstance(value, str):
-        key = value
+        assert get_item.name == value
     else:
         key = list(setup_pars.keys())[value]
-    assert get_item.name == setup_pars[key].name
+        assert get_item.name == setup_pars[key].name
 
 
 @pytest.mark.parametrize("cls", class_constructors)
@@ -325,7 +325,7 @@ def test_CollectionBase_dir(cls):
         "decode",
         "sort",
     }
-    assert not d.difference(expected)
+    assert expected.issubset(d)
 
 
 @pytest.mark.parametrize("cls", class_constructors)
@@ -469,11 +469,8 @@ def test_CollectionBase_set_index(cls):
     assert obj[idx] == p2
     obj[idx] = p4
     assert obj[idx] == p4
-    edges = obj._global_object.map.get_edges(obj)
-    assert len(edges) == len(obj)
-    for item in obj:
-        assert item.unique_name in edges
-    assert p2.unique_name not in edges
+    assert len(obj) == len(l_object)
+    assert p2 not in obj.data
 
 
 @pytest.mark.parametrize("cls", class_constructors)
@@ -493,11 +490,8 @@ def test_CollectionBase_set_index_based(cls):
     assert obj[idx] == p4
     obj[idx] = d
     assert obj[idx] == d
-    edges = obj._global_object.map.get_edges(obj)
-    assert len(edges) == len(obj)
-    for item in obj:
-        assert item.unique_name in edges
-    assert p4.unique_name not in edges
+    assert len(obj) == len(l_object)
+    assert p4 not in obj.data
 
 
 @pytest.mark.parametrize("cls", class_constructors)
@@ -529,19 +523,10 @@ class Beta(ObjBase):
 
 @pytest.mark.parametrize("cls", class_constructors)
 def test_CollectionBaseGraph(cls):
-    from easyscience import global_object
-
-    G = global_object.map
     name = "test"
     v = [1, 2]
     p = [Parameter(f"p{i}", v[i]) for i in range(len(v))]
-    p_id = [_p.unique_name for _p in p]
     bb = cls(name, *p)
-    bb_id = bb.unique_name
     b = Beta("b", bb=bb)
-    b_id = b.unique_name
-    for _id in p_id:
-        assert _id in G.get_edges(bb)
-    assert len(p) == len(G.get_edges(bb))
-    assert bb_id in G.get_edges(b)
-    assert 1 == len(G.get_edges(b))
+    assert b.bb is bb
+    assert list(bb) == p

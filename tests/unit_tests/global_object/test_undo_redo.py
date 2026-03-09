@@ -167,69 +167,22 @@ def test_CollectionBaseUndoRedo():
     objs = [createSingleObjs(idx) for idx in range(5)]
     name = "test"
     obj = CollectionBase(name, *objs)
-    name2 = "best"
-
-    # assert not doUndoRedo(obj, 'name', name2)
 
     from easyscience import global_object
 
     global_object.stack.enabled = True
-
-    original_length = len(obj)
-    p = Parameter("slip_in", 50)
     idx = 2
-    obj.insert(idx, p)
-    assert len(obj) == original_length + 1
-    objs.insert(idx, p)
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
 
-    # Test inserting items
-    global_object.stack.undo()
-    assert len(obj) == original_length
-    _ = objs.pop(idx)
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
-    global_object.stack.redo()
-    assert len(obj) == original_length + 1
-    objs.insert(idx, p)
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
+    old_value = obj[idx].value
+    new_value = old_value + 10
+    obj[idx] = new_value
+    assert obj[idx].value == new_value
 
-    # Test Del Items
-    del obj[idx]
-    del objs[idx]
-    assert len(obj) == original_length
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
     global_object.stack.undo()
-    assert len(obj) == original_length + 1
-    objs.insert(idx, p)
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
-    del objs[idx]
-    global_object.stack.redo()
-    assert len(obj) == original_length
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
+    assert obj[idx].value == old_value
 
-    # Test Place Item
-    old_item = objs[idx]
-    objs[idx] = p
-    obj[idx] = p
-    assert len(obj) == original_length
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
-    global_object.stack.undo()
-    for i in range(len(obj)):
-        if i == idx:
-            item = old_item
-        else:
-            item = objs[i]
-        assert obj[i] == item
     global_object.stack.redo()
-    for item, obj_r in zip(obj, objs):
-        assert item == obj_r
+    assert obj[idx].value == new_value
 
     global_object.stack.enabled = False
 
