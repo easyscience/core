@@ -4,416 +4,249 @@
 
 from __future__ import annotations
 
-import copy
-import warnings
-from collections.abc import Iterable
-from importlib import import_module
+from collections.abc import MutableSequence
 from numbers import Number
+from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
+from typing import List
 from typing import Optional
+from typing import Tuple
+from typing import Union
 
-from easyscience.io.serializer_base import SerializerBase
-from easyscience.io.serializer_dict import SerializerDict
+from easyscience.base_classes.new_base import NewBase
+from easyscience.global_object.undo_redo import NotarizedDict
 
 from ..variable.descriptor_base import DescriptorBase
-from ..variable.parameter import Parameter
 from .based_base import BasedBase
-from .easy_list import EasyList
-from .new_base import NewBase
+
+if TYPE_CHECKING:
+    from ..fitting.calculators import InterfaceFactoryTemplate
 
 
-class CollectionBase(EasyList):
+class CollectionBase(BasedBase, MutableSequence):
     """
-    EasyList-backed collection with a small compatibility layer for migration.
-
-    The collection delegates storage and MutableSequence behavior to EasyList,
-    adding only scientific-parameter aggregation methods and a thin compatibility
-    layer for existing callers.
+    This is the base class for which all higher level classes are built off of.
+    NOTE: This object is serializable only if parameters are supplied as:
+    `ObjBase(a=value, b=value)`. For `Parameter` or `Descriptor` objects we can
+    cheat with `ObjBase(*[Descriptor(...), Parameter(...), ...])`.
     """
-
-    _DEFAULT_PROTECTED_TYPES = (DescriptorBase, BasedBase, NewBase)
-    _RESERVED_NAMED_KEYS = {
-        'data',
-        'display_name',
-        'interface',
-        'name',
-        'protected_types',
-        'unique_name',
-        'user_data',
-        '_kwargs',
-    }
-    _REDIRECT = {'interface': None}
 
     def __init__(
         self,
-        *items: Any,
-        name: Optional[str] = None,
-        protected_types: type | Iterable[type] | None = None,
+        name: str,
+        *args: Union[BasedBase, DescriptorBase, NewBase],
+        interface: Optional[InterfaceFactoryTemplate] = None,
         unique_name: Optional[str] = None,
-        display_name: Optional[str] = None,
-        interface: Any = None,
-        data: Optional[Iterable[Any]] = None,
-        **named_items: Any,
+        **kwargs,
     ):
-        if items and isinstance(items[0], str) and name is None:
-            name = items[0]
-            items = items[1:]
+        """
+        Set up the base collection class.
 
-        if display_name is None and name is not None:
-            display_name = name
+        :param name: Name of this object
+        :type name: str
+        :param args: selection of
+        :param _kwargs: Fields which this class should contain
+        :type _kwargs: dict
+        """
+        BasedBase.__init__(self, name, unique_name=unique_name)
+        kwargs = {key: kwargs[key] for key in kwargs.keys() if kwargs[key] is not None}
+        _args = []
+        for item in args:
+            if not isinstance(item, list):
+                _args.append(item)
+            else:
+                _args += item
+        _kwargs = {}
+        for key, item in kwargs.items():
+            if isinstance(item, list) and len(item) > 0:
+                _args += item
+            else:
+                _kwargs[key] = item
+        kwargs = _kwargs
+        for item in list(kwargs.values()) + _args:
+            if not issubclass(type(item), (DescriptorBase, BasedBase, NewBase)):
+                raise AttributeError('A collection can only be formed from easyscience objects.')
+        args = _args
+        _kwargs = {}
+        for key, item in kwargs.items():
+            _kwargs[key] = item
+        for arg in args:
+            kwargs[arg.unique_name] = arg
+            _kwargs[arg.unique_name] = arg
 
-        super().__init__(unique_name=unique_name, display_name=display_name)
+        # Set kwargs, also useful for serialization
+        self._kwargs = NotarizedDict(**_kwargs)
 
+        for key in kwargs.keys():
+            if key in self.__dict__.keys() or key in self.__slots__:
+                raise AttributeError(f'Given kwarg: `{key}`, is an internal attribute. Please rename.')
+            if kwargs[key]:  # Might be None (empty tuple or list)
+                self._global_object.map.add_edge(self, kwargs[key])
+                self._global_object.map.reset_type(kwargs[key], 'created_internal')
+                if interface is not None:
+                    kwargs[key].interface = interface
+            # TODO wrap getter and setter in Logger
         if interface is not None:
-            raise AttributeError('Given kwarg: `interface`, is an internal attribute. Please rename.')
+            self.interface = interface
+        self._kwargs._stack_enabled = True
 
-        self._protected_types = self._normalize_protected_types(protected_types)
-        self._name = name if name is not None else self.display_name
-        self.user_data: dict[str, Any] = {}
-        self.interface = None
+    def insert(self, index: int, value: Union[DescriptorBase, BasedBase, NewBase]) -> None:
+        """
+        Insert an object into the collection at an index.
 
-        normalized_named_items = self._normalize_named_items(named_items)
-        all_items = self._collect_items(items, data=data, named_items=normalized_named_items)
-        for item in all_items:
+        :param index: Index for EasyScience object to be inserted.
+        :type index: int
+        :param value: Object to be inserted.
+        :type value: Union[BasedBase, DescriptorBase, NewBase]
+        :return: None
+        :rtype: None
+        """
+        t_ = type(value)
+        if issubclass(t_, (BasedBase, DescriptorBase, NewBase)):
+            update_key = list(self._kwargs.keys())
+            values = list(self._kwargs.values())
+            # Update the internal dict
+            new_key = value.unique_name
+            update_key.insert(index, new_key)
+            values.insert(index, value)
+            self._kwargs.reorder(**{k: v for k, v in zip(update_key, values)})
+            # ADD EDGE
+            self._global_object.map.add_edge(self, value)
+            self._global_object.map.reset_type(value, 'created_internal')
+            value.interface = self.interface
+        else:
+            raise AttributeError('Only EasyScience objects can be put into an EasyScience group')
+
+    def __getitem__(self, idx: Union[int, slice]) -> Union[DescriptorBase, BasedBase, NewBase]:
+        """
+        Get an item in the collection based on its index.
+
+        :param idx: index or slice of the collection.
+        :type idx: Union[int, slice]
+        :return: Object at index `idx`
+        :rtype: Union[Parameter, Descriptor, ObjBase, 'CollectionBase']
+        """
+        if isinstance(idx, slice):
+            start, stop, step = idx.indices(len(self))
+            return self.__class__(getattr(self, 'name'), *[self[i] for i in range(start, stop, step)])
+        if str(idx) in self._kwargs.keys():
+            return self._kwargs[str(idx)]
+        if isinstance(idx, str):
+            idx = [index for index, item in enumerate(self) if item.name == idx]
+            noi = len(idx)
+            if noi == 0:
+                raise IndexError('Given index does not exist')
+            elif noi == 1:
+                idx = idx[0]
+            else:
+                return self.__class__(getattr(self, 'name'), *[self[i] for i in idx])
+        elif not isinstance(idx, int) or isinstance(idx, bool):
+            if isinstance(idx, bool):
+                raise TypeError('Boolean indexing is not supported at the moment')
             try:
-                self._validate_item(item)
-            except TypeError as exc:
-                raise AttributeError('A collection can only be formed from easyscience objects.') from exc
-            if item in self:
-                warnings.warn(f'Item with unique name "{self._get_key(item)}" already in CollectionBase, it will be ignored')
-                continue
-            self._data.append(item)
+                if idx > len(self):
+                    raise IndexError(f'Given index {idx} is out of bounds')
+            except TypeError:
+                raise IndexError('Index must be of type `int`/`slice` or an item name (`str`)')
+        keys = list(self._kwargs.keys())
+        return self._kwargs[keys[idx]]
+
+    def __setitem__(self, key: int, value: Union[BasedBase, DescriptorBase, NewBase]) -> None:
+        """
+        Set an item via it's index.
+
+        :param key: Index in self.
+        :type key: int
+        :param value: Value which index key should be set to.
+        :type value: Any
+        """
+        if isinstance(value, Number):  # noqa: S3827
+            item = self.__getitem__(key)
+            item.value = value
+        elif issubclass(type(value), (BasedBase, DescriptorBase, NewBase)):
+            update_key = list(self._kwargs.keys())
+            values = list(self._kwargs.values())
+            old_item = values[key]
+            # Update the internal dict
+            update_dict = {update_key[key]: value}
+            self._kwargs.update(update_dict)
+            # ADD EDGE
+            self._global_object.map.add_edge(self, value)
+            self._global_object.map.reset_type(value, 'created_internal')
+            value.interface = self.interface
+            # REMOVE EDGE
+            self._global_object.map.prune_vertex_from_edge(self, old_item)
+        else:
+            raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.')
+
+    def __delitem__(self, key: int) -> None:
+        """
+        Try to delete  an idem by key.
+
+        :param key:
+        :type key:
+        :return:
+        :rtype:
+        """
+        keys = list(self._kwargs.keys())
+        item = self._kwargs[keys[key]]
+        self._global_object.map.prune_vertex_from_edge(self, item)
+        del self._kwargs[keys[key]]
+
+    def __len__(self) -> int:
+        """
+        Get the number of items in this collection
+
+        :return: Number of items in this collection.
+        :rtype: int
+        """
+        return len(self._kwargs.keys())
+
+    def _convert_to_dict(self, in_dict, encoder, skip: List[str] = [], **kwargs) -> dict:
+        """
+        Convert ones self into a serialized form.
+
+        :return: dictionary of ones self
+        :rtype: dict
+        """
+        d = {}
+        if hasattr(self, '_modify_dict'):
+            # any extra keys defined on the inheriting class
+            d = self._modify_dict(skip=skip, **kwargs)
+        in_dict['data'] = [encoder._convert_to_dict(item, skip=skip, **kwargs) for item in self]
+        out_dict = {**in_dict, **d}
+        return out_dict
 
     @property
-    def name(self) -> str:
-        return self._name
+    def data(self) -> Tuple:
+        """
+        The data function returns a tuple of the keyword arguments passed to the
+        constructor. This is useful for when you need to pass in a dictionary of data
+        to other functions, such as with matplotlib's plot function.
 
-    @name.setter
-    def name(self, new_name: str) -> None:
-        if not isinstance(new_name, str):
-            raise TypeError('Name must be a string')
-        self._name = new_name
-        self.display_name = new_name
-
-    # --- Minimal overrides (compatibility shims) ---
-
-    def __getitem__(self, idx: int | slice | str) -> Any:
-        if isinstance(idx, bool):
-            raise TypeError('Boolean indexing is not supported at the moment')
-        if isinstance(idx, slice):
-            return self._clone_with_items(self._data[idx])
-        if isinstance(idx, str):
-            try:
-                return super().__getitem__(idx)
-            except KeyError:
-                pass
-            name_matches = [item for item in self._data if getattr(item, 'name', None) == idx]
-            if len(name_matches) == 1:
-                return name_matches[0]
-            if len(name_matches) > 1:
-                return self._clone_with_items(name_matches)
-            raise KeyError(f'No item with key or name "{idx}" found')
-        return super().__getitem__(idx)
-
-    def __setitem__(self, idx: int | slice, value: Any) -> None:
-        if isinstance(idx, int) and isinstance(value, Number):
-            item = self[idx]
-            if not hasattr(item, 'value'):
-                raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.')
-            item.value = value
-            return
-        try:
-            super().__setitem__(idx, value)
-        except TypeError as exc:
-            raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.') from exc
-
-    def insert(self, index: int, value: Any) -> None:
-        try:
-            super().insert(index, value)
-        except TypeError as exc:
-            raise AttributeError('Only EasyScience objects can be put into an EasyScience group') from exc
+        :param self: Access attributes of the class within the method
+        :return: The values of the attributes in a tuple
+        :doc-author: Trelent
+        """
+        return tuple(self._kwargs.values())
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__} `{self.name}` of length {len(self)}'
+        return f'{self.__class__.__name__} `{getattr(self, "name")}` of length {len(self)}'
 
-    def sort(self, key=None, reverse: bool = False, mapping=None) -> None:
-        if mapping is not None:
-            if key is not None:
-                raise TypeError('Use either key or mapping, not both')
-            warnings.warn('sort(mapping=...) is deprecated; use sort(key=...) instead', DeprecationWarning)
-            key = mapping
-        super().sort(key=key, reverse=reverse)
-
-    # --- Parameter/variable aggregation ---
-
-    def get_all_variables(self) -> list[DescriptorBase]:
-        variables: list[DescriptorBase] = []
-        for item in self._data:
-            if isinstance(item, DescriptorBase):
-                variables.append(item)
-            elif hasattr(item, 'get_all_variables'):
-                variables.extend(item.get_all_variables())
-        return variables
-
-    def get_all_parameters(self) -> list[Parameter]:
-        parameters: list[Parameter] = []
-        seen = set()
-        for item in self._data:
-            if isinstance(item, Parameter):
-                parameters.append(item)
-                seen.add(id(item))
-                continue
-            if hasattr(item, 'get_all_parameters'):
-                for parameter in item.get_all_parameters():
-                    if id(parameter) not in seen:
-                        parameters.append(parameter)
-                        seen.add(id(parameter))
-                continue
-            if hasattr(item, 'get_parameters'):
-                for parameter in item.get_parameters():
-                    if id(parameter) not in seen:
-                        parameters.append(parameter)
-                        seen.add(id(parameter))
-                continue
-            if hasattr(item, 'get_all_variables'):
-                for variable in item.get_all_variables():
-                    if isinstance(variable, Parameter) and id(variable) not in seen:
-                        parameters.append(variable)
-                        seen.add(id(variable))
-        return parameters
-
-    def get_parameters(self) -> list[Parameter]:
-        return self.get_all_parameters()
-
-    def get_fittable_parameters(self) -> list[Parameter]:
-        return [parameter for parameter in self.get_all_parameters() if parameter.independent]
-
-    def get_free_parameters(self) -> list[Parameter]:
-        return [parameter for parameter in self.get_fittable_parameters() if not parameter.fixed]
-
-    def get_fit_parameters(self) -> list[Parameter]:
-        return self.get_free_parameters()
-
-    @property
-    def data(self) -> tuple[Any, ...]:
-        return tuple(self._data)
-
-    # --- Serialization ---
-
-    def as_dict(self, skip: Optional[list[str]] = None) -> dict[str, Any]:
-        if skip is None:
-            skip = []
-        if 'unique_name' not in skip:
-            skip = [*skip, 'unique_name']
-        return self.to_dict(skip=skip)
-
-    def encode(self, skip: Optional[list[str]] = None, encoder=None, **kwargs: Any) -> Any:
-        if encoder is None:
-            encoder = SerializerDict
-        return encoder().encode(self, skip=skip, **kwargs)
-
-    @classmethod
-    def decode(cls, obj: Any, decoder=None) -> Any:
-        if decoder is None or decoder is SerializerDict:
-            return cls.from_dict(obj)
-        return decoder.decode(obj)
-
-    def to_dict(self, skip: Optional[list[str]] = None) -> dict[str, Any]:
-        if skip is None:
-            skip = []
-
-        try:
-            parent_module = self.__module__.split('.')[0]
-            module_version = import_module(parent_module).__version__
-        except (AttributeError, ImportError):
-            module_version = None
-
-        dict_repr: dict[str, Any] = {
-            '@module': self.__module__,
-            '@class': self.__class__.__name__,
-            '@version': module_version,
-        }
-
-        if 'name' not in skip:
-            dict_repr['name'] = self.name
-        if 'display_name' not in skip and self._display_name is not None and self._display_name != self.name:
-            dict_repr['display_name'] = self._display_name
-        if 'unique_name' not in skip:
-            dict_repr['unique_name'] = self.unique_name
-        if self._protected_types != list(self._DEFAULT_PROTECTED_TYPES) and 'protected_types' not in skip:
-            dict_repr['protected_types'] = [
-                {'@module': cls_.__module__, '@class': cls_.__name__} for cls_ in self._protected_types
-            ]
-        dict_repr['data'] = [self._serialize_item(item, skip=skip) for item in self._data]
-        return dict_repr
-
-    @classmethod
-    def from_dict(cls, obj_dict: dict[str, Any]) -> CollectionBase:
-        if not isinstance(obj_dict, dict) or '@class' not in obj_dict or '@module' not in obj_dict:
-            raise ValueError('Input must be a dictionary representing an EasyScience CollectionBase object.')
-        accepted_names = {base.__name__ for base in cls.__mro__ if issubclass(base, CollectionBase)}
-        if obj_dict['@class'] not in accepted_names:
-            raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')
-
-        temp_dict = copy.deepcopy(obj_dict)
-        protected_types = temp_dict.pop('protected_types', None)
-        if protected_types is not None:
-            protected_types = cls._deserialize_protected_types(protected_types)
-
-        raw_data = temp_dict.pop('data', [])
-        kwargs = SerializerBase.deserialize_dict(temp_dict)
-        data = [cls._deserialize_item(item) for item in raw_data]
-        name = kwargs.pop('name', None)
-        kwargs.pop('unique_name', None)
-        return cls(*data, name=name, protected_types=protected_types, **kwargs)
-
-    def _convert_to_dict(
+    def sort(
         self,
-        in_dict: dict[str, Any],
-        encoder: Any,
-        skip: Optional[list[str]] = None,
-        **kwargs: Any,
-    ) -> dict[str, Any]:
-        if skip is None:
-            skip = []
-        if 'name' not in skip:
-            in_dict['name'] = self.name
-        if self._display_name is not None and self._display_name != self.name and 'display_name' not in skip:
-            in_dict['display_name'] = self._display_name
-        in_dict['data'] = [encoder._convert_to_dict(item, skip=skip, **kwargs) for item in self._data]
-        return in_dict
+        mapping: Callable[[Union[BasedBase, DescriptorBase, NewBase]], Any],
+        reverse: bool = False,
+    ) -> None:
+        """
+        Sort the collection according to the given mapping.
 
-    @staticmethod
-    def _deserialize_protected_types(protected_types: list[dict[str, str]]) -> list[type]:
-        deserialized_types: list[type] = []
-        for type_dict in protected_types:
-            if '@module' not in type_dict or '@class' not in type_dict:
-                raise ValueError('Each protected type must contain @module and @class keys')
-            module = __import__(type_dict['@module'], globals(), locals(), [type_dict['@class']], 0)
-            deserialized_types.append(getattr(module, type_dict['@class']))
-        return deserialized_types
-
-    def _clone_with_items(self, items: Iterable[Any]) -> CollectionBase:
-        return self.__class__(
-            *list(items),
-            name=self.name,
-            protected_types=list(self._protected_types),
-            display_name=self._display_name,
-        )
-
-    # --- Compatibility surface ---
-
-    def __dir__(self) -> Iterable[str]:
-        hidden = {
-            'display_name',
-            'get_all_parameters',
-            'get_all_variables',
-            'get_fittable_parameters',
-            'get_free_parameters',
-            'to_dict',
-        }
-        legacy = {
-            'append',
-            'as_dict',
-            'clear',
-            'constraints',
-            'count',
-            'data',
-            'decode',
-            'encode',
-            'extend',
-            'from_dict',
-            'generate_bindings',
-            'get_fit_parameters',
-            'get_parameters',
-            'index',
-            'insert',
-            'interface',
-            'name',
-            'pop',
-            'remove',
-            'reverse',
-            'sort',
-            'switch_interface',
-            'unique_name',
-            'user_data',
-        }
-        public_names = {name for name in dir(self.__class__) if not name.startswith('_')}
-        return sorted((public_names | legacy) - hidden)
-
-    @property
-    def constraints(self) -> list[Any]:
-        return []
-
-    def generate_bindings(self) -> None:
-        if self.interface is None:
-            raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
-
-    def switch_interface(self, new_interface_name: str) -> None:
-        if self.interface is None:
-            raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
-
-    # --- Internal helpers ---
-
-    def _normalize_named_items(self, named_items: dict[str, Any]) -> dict[str, Any]:
-        normalized: dict[str, Any] = {}
-        for key, item in named_items.items():
-            if key in self._RESERVED_NAMED_KEYS:
-                raise AttributeError(f'Given kwarg: `{key}`, is an internal attribute. Please rename.')
-            if item is None:
-                continue
-            normalized[key] = item
-        return normalized
-
-    def _collect_items(
-        self,
-        items: tuple[Any, ...],
-        data: Optional[Iterable[Any]] = None,
-        named_items: Optional[dict[str, Any]] = None,
-    ) -> list[Any]:
-        collected: list[Any] = []
-        for item in items:
-            if isinstance(item, list):
-                collected.extend(item)
-            else:
-                collected.append(item)
-        if data is not None:
-            collected.extend(data)
-        if named_items is not None:
-            for item in named_items.values():
-                if isinstance(item, list) and len(item) > 0:
-                    collected.extend(item)
-                else:
-                    collected.append(item)
-        return collected
-
-    def _normalize_protected_types(self, protected_types: type | Iterable[type] | None) -> list[type]:
-        if protected_types is None:
-            return list(self._DEFAULT_PROTECTED_TYPES)
-        if isinstance(protected_types, type):
-            return [protected_types]
-        if isinstance(protected_types, Iterable):
-            normalized = list(protected_types)
-            if all(isinstance(item, type) for item in normalized):
-                return normalized
-        raise TypeError('protected_types must be a type or an iterable of types')
-
-    def _serialize_item(self, item: Any, skip: Optional[list[str]] = None) -> dict[str, Any]:
-        if hasattr(item, 'to_dict'):
-            return item.to_dict()
-        if hasattr(item, 'as_dict'):
-            return item.as_dict(skip=skip)
-        raise TypeError(f'Unable to serialize item of type {type(item)}')
-
-    @staticmethod
-    def _deserialize_item(item: Any) -> Any:
-        if not SerializerBase._is_serialized_easyscience_object(item):
-            return SerializerBase._deserialize_value(item)
-
-        normalized_item = copy.deepcopy(item)
-        normalized_item.pop('unique_name', None)
-        return SerializerBase._deserialize_value(normalized_item)
-
-    def _validate_item(self, item: Any) -> None:
-        if not isinstance(item, tuple(self._protected_types)):
-            raise TypeError(f'Items must be one of {self._protected_types}, got {type(item)}')
+        :param mapping: mapping function to sort the collection. i.e. lambda parameter: parameter.value
+        :type mapping: Callable
+        :param reverse: Reverse the sorting.
+        :type reverse: bool
+        """
+        i = list(self._kwargs.items())
+        i.sort(key=lambda x: mapping(x[1]), reverse=reverse)
+        self._kwargs.reorder(**{k[0]: k[1] for k in i})

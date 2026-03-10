@@ -8,7 +8,7 @@ from easyscience import DescriptorNumber
 from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience import global_object
-from easyscience.base_classes import CollectionBase
+from easyscience.base_classes import CollectionBaseEasyList as CollectionBase
 
 
 @pytest.fixture(autouse=True)
