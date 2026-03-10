@@ -1,6 +1,6 @@
 from .based_base import BasedBase
-from .collection_base_easylist import CollectionBase as CollectionBaseEasyList
 from .collection_base import CollectionBase
+from .collection_base_easylist import CollectionBase as CollectionBaseEasyList
 from .easy_list import EasyList
 from .model_base import ModelBase
 from .new_base import NewBase
