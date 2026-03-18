@@ -31,7 +31,17 @@ class CollectionBase(EasyList):
     layer for existing callers.
     """
 
+    # Base types that items in this collection must be instances of when no
+    # custom ``protected_types`` are supplied by the caller.  The validation
+    # check in ``_validate_item`` uses this list to reject plain Python objects
+    # that are not part of the EasyScience type hierarchy.
+    # ``BasedBase`` is only kept for backwards compatibility.
     _DEFAULT_PROTECTED_TYPES = (DescriptorBase, BasedBase, NewBase)
+
+    # Names that cannot be used as keyword-argument keys when passing named
+    # items to the constructor (e.g. ``CollectionBase(name='x', data=...)``).
+    # These names collide with constructor parameters or internal attributes,
+    # so accepting them as named items would silently shadow real arguments.
     _RESERVED_NAMED_KEYS = {
         'data',
         'display_name',
@@ -42,6 +52,12 @@ class CollectionBase(EasyList):
         'user_data',
         '_kwargs',
     }
+
+    # Mapping checked by ``SerializerBase._convert_to_dict`` to
+    # decide how to serialise each constructor argument.  ``None``
+    # tells the serialiser to skip that attribute entirely,
+    # a callable value would be invoked to produce the serialised form.
+    # ``interface`` should never be persistent and it will soon be removed.
     _REDIRECT = {'interface': None}
 
     def __init__(
@@ -51,10 +67,32 @@ class CollectionBase(EasyList):
         protected_types: type | Iterable[type] | None = None,
         unique_name: Optional[str] = None,
         display_name: Optional[str] = None,
-        interface: Any = None,
+        interface: Any = None, # legacy, should be None and will soon be removed
         data: Optional[Iterable[Any]] = None,
         **named_items: Any,
     ):
+        """Create a new collection of EasyScience objects.
+
+        Items can be supplied as positional arguments, via the *data* iterable,
+        or as keyword arguments (``**named_items``).  All three sources are
+        merged in order; keyword names are discarded (only values are kept).
+
+        If the first positional argument is a string and *name* is not given,
+        it is consumed as the collection name.
+
+        :param items: EasyScience objects to include in the collection.
+        :param name: Human-readable name for the collection.
+        :param protected_types: Allowed item types.  Defaults to
+            ``_DEFAULT_PROTECTED_TYPES``.
+        :param unique_name: Machine-friendly unique identifier.
+        :param display_name: Display label; defaults to *name*.
+        :param interface: Reserved internal attribute — must be ``None``.
+        :param data: Additional iterable of items to append.
+        :param named_items: Keyword-argument items (keys must not collide with
+            ``_RESERVED_NAMED_KEYS``).
+        :raises AttributeError: If *interface* is not ``None`` or an item
+            fails type validation.
+        """
         if items and isinstance(items[0], str) and name is None:
             name = items[0]
             items = items[1:]
@@ -86,10 +124,12 @@ class CollectionBase(EasyList):
 
     @property
     def name(self) -> str:
+        """Human-readable name of the collection."""
         return self._name
 
     @name.setter
     def name(self, new_name: str) -> None:
+        """Set the collection name and sync *display_name*."""
         if not isinstance(new_name, str):
             raise TypeError('Name must be a string')
         self._name = new_name
@@ -98,6 +138,13 @@ class CollectionBase(EasyList):
     # --- Minimal overrides (compatibility shims) ---
 
     def __getitem__(self, idx: int | slice | str) -> Any:
+        """Retrieve items by integer index, slice, unique-name key, or display name.
+
+        String lookup first tries the EasyList key (unique_name), then falls
+        back to matching on the item's *name* attribute.  If multiple items
+        share the same name a new ``CollectionBase`` containing all matches is
+        returned.
+        """
         if isinstance(idx, bool):
             raise TypeError('Boolean indexing is not supported at the moment')
         if isinstance(idx, slice):
@@ -116,6 +163,13 @@ class CollectionBase(EasyList):
         return super().__getitem__(idx)
 
     def __setitem__(self, idx: int | slice, value: Any) -> None:
+        """Set an item by index.
+
+        When *value* is a plain number and the existing item has a ``value``
+        attribute, the number is assigned to ``item.value`` (in-place update).
+        Otherwise the item is replaced via the EasyList, which
+        enforces type validation.
+        """
         if isinstance(idx, int) and isinstance(value, Number):
             item = self[idx]
             if not hasattr(item, 'value'):
@@ -128,6 +182,7 @@ class CollectionBase(EasyList):
             raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.') from exc
 
     def insert(self, index: int, value: Any) -> None:
+        """Insert *value* before *index*, validating it against protected types."""
         try:
             super().insert(index, value)
         except TypeError as exc:
@@ -137,6 +192,12 @@ class CollectionBase(EasyList):
         return f'{self.__class__.__name__} `{self.name}` of length {len(self)}'
 
     def sort(self, key=None, reverse: bool = False, mapping=None) -> None:
+        """Sort items in place.
+
+        :param key: Single-argument function used to extract a comparison key.
+        :param reverse: If ``True``, sort in descending order.
+        :param mapping: Deprecated alias for *key*.
+        """
         if mapping is not None:
             if key is not None:
                 raise TypeError('Use either key or mapping, not both')
@@ -147,6 +208,7 @@ class CollectionBase(EasyList):
     # --- Parameter/variable aggregation ---
 
     def get_all_variables(self) -> list[DescriptorBase]:
+        """Return all descriptors in this collection, recursing into nested items."""
         variables: list[DescriptorBase] = []
         for item in self._data:
             if isinstance(item, DescriptorBase):
@@ -156,6 +218,10 @@ class CollectionBase(EasyList):
         return variables
 
     def get_all_parameters(self) -> list[Parameter]:
+        """Return all parameters in this collection, recursing into nested items.
+
+        Each parameter appears at most once (deduplicated by identity).
+        """
         parameters: list[Parameter] = []
         seen = set()
         for item in self._data:
@@ -183,24 +249,30 @@ class CollectionBase(EasyList):
         return parameters
 
     def get_parameters(self) -> list[Parameter]:
+        """Alias for :meth:`get_all_parameters`."""
         return self.get_all_parameters()
 
     def get_fittable_parameters(self) -> list[Parameter]:
+        """Return all independent (fittable) parameters."""
         return [parameter for parameter in self.get_all_parameters() if parameter.independent]
 
     def get_free_parameters(self) -> list[Parameter]:
+        """Return all fittable parameters that are not fixed."""
         return [parameter for parameter in self.get_fittable_parameters() if not parameter.fixed]
 
     def get_fit_parameters(self) -> list[Parameter]:
+        """Legacy alias for :meth:`get_free_parameters`."""
         return self.get_free_parameters()
 
     @property
     def data(self) -> tuple[Any, ...]:
+        """Read-only snapshot of the collection items as a tuple."""
         return tuple(self._data)
 
     # --- Serialization ---
 
     def as_dict(self, skip: Optional[list[str]] = None) -> dict[str, Any]:
+        """Legacy. Serialize to a dict, always excluding ``unique_name``."""
         if skip is None:
             skip = []
         if 'unique_name' not in skip:
@@ -208,17 +280,23 @@ class CollectionBase(EasyList):
         return self.to_dict(skip=skip)
 
     def encode(self, skip: Optional[list[str]] = None, encoder=None, **kwargs: Any) -> Any:
+        """Legacy. Encode the collection using the given encoder (default: ``SerializerDict``)."""
         if encoder is None:
             encoder = SerializerDict
         return encoder().encode(self, skip=skip, **kwargs)
 
     @classmethod
     def decode(cls, obj: Any, decoder=None) -> Any:
+        """Reconstruct a ``CollectionBase`` from a previously encoded object."""
         if decoder is None or decoder is SerializerDict:
             return cls.from_dict(obj)
         return decoder.decode(obj)
 
     def to_dict(self, skip: Optional[list[str]] = None) -> dict[str, Any]:
+        """Full serialization including ``@module``, ``@class``, and ``@version`` metadata.
+
+        :param skip: List of attribute names to exclude from the output.
+        """
         if skip is None:
             skip = []
 
@@ -249,6 +327,11 @@ class CollectionBase(EasyList):
 
     @classmethod
     def from_dict(cls, obj_dict: dict[str, Any]) -> CollectionBase:
+        """Reconstruct a ``CollectionBase`` from a dict produced by :meth:`to_dict`.
+
+        :param obj_dict: Dictionary containing ``@module``, ``@class``, and ``data`` keys.
+        :raises ValueError: If the dictionary structure or class name is invalid.
+        """
         if not isinstance(obj_dict, dict) or '@class' not in obj_dict or '@module' not in obj_dict:
             raise ValueError('Input must be a dictionary representing an EasyScience CollectionBase object.')
         accepted_names = {base.__name__ for base in cls.__mro__ if issubclass(base, CollectionBase)}
@@ -274,6 +357,7 @@ class CollectionBase(EasyList):
         skip: Optional[list[str]] = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        """Legacy. Hook used by ``SerializerBase`` to populate *in_dict* with collection data."""
         if skip is None:
             skip = []
         if 'name' not in skip:
@@ -285,6 +369,7 @@ class CollectionBase(EasyList):
 
     @staticmethod
     def _deserialize_protected_types(protected_types: list[dict[str, str]]) -> list[type]:
+        """Resolve serialized ``{@module, @class}`` dicts back to live type objects."""
         deserialized_types: list[type] = []
         for type_dict in protected_types:
             if '@module' not in type_dict or '@class' not in type_dict:
@@ -294,6 +379,7 @@ class CollectionBase(EasyList):
         return deserialized_types
 
     def _clone_with_items(self, items: Iterable[Any]) -> CollectionBase:
+        """Create a shallow copy of this collection containing the given *items*."""
         return self.__class__(
             *list(items),
             name=self.name,
@@ -304,6 +390,8 @@ class CollectionBase(EasyList):
     # --- Compatibility surface ---
 
     def __dir__(self) -> Iterable[str]:
+        # Names that exist on the class but should not be shown to users.
+        # These are internal/new-API names
         hidden = {
             'display_name',
             'get_all_parameters',
@@ -312,6 +400,8 @@ class CollectionBase(EasyList):
             'get_free_parameters',
             'to_dict',
         }
+        # Names that the old BasedBase/BaseObj API exposed and that
+        # downstream code may rely on for introspection
         legacy = {
             'append',
             'as_dict',
@@ -343,19 +433,26 @@ class CollectionBase(EasyList):
 
     @property
     def constraints(self) -> list[Any]:
+        """Compatibility stub — always returns an empty list."""
         return []
 
     def generate_bindings(self) -> None:
+        """Compatibility stub — requires ``interface`` to be set."""
         if self.interface is None:
             raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
 
     def switch_interface(self, new_interface_name: str) -> None:
+        """Compatibility stub — requires ``interface`` to be set."""
         if self.interface is None:
             raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
 
     # --- Internal helpers ---
 
     def _normalize_named_items(self, named_items: dict[str, Any]) -> dict[str, Any]:
+        """Validate keyword-argument item names and drop ``None`` values.
+
+        :raises AttributeError: If a key collides with ``_RESERVED_NAMED_KEYS``.
+        """
         normalized: dict[str, Any] = {}
         for key, item in named_items.items():
             if key in self._RESERVED_NAMED_KEYS:
@@ -371,6 +468,10 @@ class CollectionBase(EasyList):
         data: Optional[Iterable[Any]] = None,
         named_items: Optional[dict[str, Any]] = None,
     ) -> list[Any]:
+        """Merge positional *items*, *data*, and *named_items* into a flat list.
+
+        Lists inside *items* or *named_items* values are flattened one level.
+        """
         collected: list[Any] = []
         for item in items:
             if isinstance(item, list):
@@ -388,6 +489,7 @@ class CollectionBase(EasyList):
         return collected
 
     def _normalize_protected_types(self, protected_types: type | Iterable[type] | None) -> list[type]:
+        """Coerce *protected_types* into a list, falling back to the class default."""
         if protected_types is None:
             return list(self._DEFAULT_PROTECTED_TYPES)
         if isinstance(protected_types, type):
@@ -399,6 +501,7 @@ class CollectionBase(EasyList):
         raise TypeError('protected_types must be a type or an iterable of types')
 
     def _serialize_item(self, item: Any, skip: Optional[list[str]] = None) -> dict[str, Any]:
+        """Serialize a single item via its ``to_dict`` or ``as_dict`` method."""
         if hasattr(item, 'to_dict'):
             return item.to_dict()
         if hasattr(item, 'as_dict'):
@@ -407,6 +510,7 @@ class CollectionBase(EasyList):
 
     @staticmethod
     def _deserialize_item(item: Any) -> Any:
+        """Deserialize a single item dict back into an EasyScience object."""
         if not SerializerBase._is_serialized_easyscience_object(item):
             return SerializerBase._deserialize_value(item)
 
@@ -415,5 +519,6 @@ class CollectionBase(EasyList):
         return SerializerBase._deserialize_value(normalized_item)
 
     def _validate_item(self, item: Any) -> None:
+        """Raise ``TypeError`` if *item* is not an instance of a protected type."""
         if not isinstance(item, tuple(self._protected_types)):
             raise TypeError(f'Items must be one of {self._protected_types}, got {type(item)}')
