@@ -16,18 +16,6 @@ def clear():
     global_object.map._clear()
 
 
-def test_collection_base_legacy_constructor_supports_named_items():
-    p1 = Parameter('p1', 1.0)
-    p2 = Parameter('p2', 2.0)
-
-    collection = CollectionBase('test', first=p1, second=p2)
-
-    assert collection.name == 'test'
-    assert len(collection) == 2
-    assert collection[0] is p1
-    assert collection[1] is p2
-
-
 def test_collection_base_getitem_supports_unique_name_and_name_fallback():
     p1 = Parameter('dup', 1.0, unique_name='p1')
     p2 = Parameter('dup', 2.0, unique_name='p2')

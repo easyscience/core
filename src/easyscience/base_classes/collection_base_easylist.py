@@ -38,21 +38,6 @@ class CollectionBase(EasyList):
     # ``BasedBase`` is only kept for backwards compatibility.
     _DEFAULT_PROTECTED_TYPES = (DescriptorBase, BasedBase, NewBase)
 
-    # Names that cannot be used as keyword-argument keys when passing named
-    # items to the constructor (e.g. ``CollectionBase(name='x', data=...)``).
-    # These names collide with constructor parameters or internal attributes,
-    # so accepting them as named items would silently shadow real arguments.
-    _RESERVED_NAMED_KEYS = {
-        'data',
-        'display_name',
-        'interface',
-        'name',
-        'protected_types',
-        'unique_name',
-        'user_data',
-        '_kwargs',
-    }
-
     # Mapping checked by ``SerializerBase._convert_to_dict`` to
     # decide how to serialise each constructor argument.  ``None``
     # tells the serialiser to skip that attribute entirely,
@@ -67,15 +52,13 @@ class CollectionBase(EasyList):
         protected_types: type | Iterable[type] | None = None,
         unique_name: Optional[str] = None,
         display_name: Optional[str] = None,
-        interface: Any = None, # legacy, should be None and will soon be removed
+        interface: Any = None,  # legacy, should be None and will soon be removed
         data: Optional[Iterable[Any]] = None,
-        **named_items: Any,
     ):
         """Create a new collection of EasyScience objects.
 
-        Items can be supplied as positional arguments, via the *data* iterable,
-        or as keyword arguments (``**named_items``).  All three sources are
-        merged in order; keyword names are discarded (only values are kept).
+        Items can be supplied as positional arguments or via the *data*
+        iterable.  Both sources are merged in order.
 
         If the first positional argument is a string and *name* is not given,
         it is consumed as the collection name.
@@ -88,8 +71,6 @@ class CollectionBase(EasyList):
         :param display_name: Display label; defaults to *name*.
         :param interface: Reserved internal attribute — must be ``None``.
         :param data: Additional iterable of items to append.
-        :param named_items: Keyword-argument items (keys must not collide with
-            ``_RESERVED_NAMED_KEYS``).
         :raises AttributeError: If *interface* is not ``None`` or an item
             fails type validation.
         """
@@ -110,8 +91,7 @@ class CollectionBase(EasyList):
         self.user_data: dict[str, Any] = {}
         self.interface = None
 
-        normalized_named_items = self._normalize_named_items(named_items)
-        all_items = self._collect_items(items, data=data, named_items=normalized_named_items)
+        all_items = self._collect_items(items, data=data)
         for item in all_items:
             try:
                 self._validate_item(item)
@@ -448,29 +428,14 @@ class CollectionBase(EasyList):
 
     # --- Internal helpers ---
 
-    def _normalize_named_items(self, named_items: dict[str, Any]) -> dict[str, Any]:
-        """Validate keyword-argument item names and drop ``None`` values.
-
-        :raises AttributeError: If a key collides with ``_RESERVED_NAMED_KEYS``.
-        """
-        normalized: dict[str, Any] = {}
-        for key, item in named_items.items():
-            if key in self._RESERVED_NAMED_KEYS:
-                raise AttributeError(f'Given kwarg: `{key}`, is an internal attribute. Please rename.')
-            if item is None:
-                continue
-            normalized[key] = item
-        return normalized
-
     def _collect_items(
         self,
         items: tuple[Any, ...],
         data: Optional[Iterable[Any]] = None,
-        named_items: Optional[dict[str, Any]] = None,
     ) -> list[Any]:
-        """Merge positional *items*, *data*, and *named_items* into a flat list.
+        """Merge positional *items* and *data* into a flat list.
 
-        Lists inside *items* or *named_items* values are flattened one level.
+        Lists inside *items* are flattened one level.
         """
         collected: list[Any] = []
         for item in items:
@@ -480,12 +445,6 @@ class CollectionBase(EasyList):
                 collected.append(item)
         if data is not None:
             collected.extend(data)
-        if named_items is not None:
-            for item in named_items.values():
-                if isinstance(item, list) and len(item) > 0:
-                    collected.extend(item)
-                else:
-                    collected.append(item)
         return collected
 
     def _normalize_protected_types(self, protected_types: type | Iterable[type] | None) -> list[type]:
