@@ -74,7 +74,9 @@ def test_collection_base_to_dict_round_trip_preserves_name_and_data():
 
 
 def test_collection_base_sort_accepts_mapping_alias():
-    collection = CollectionBase('test', Parameter('p1', 3.0), Parameter('p2', 1.0), Parameter('p3', 2.0))
+    collection = CollectionBase(
+        'test', Parameter('p1', 3.0), Parameter('p2', 1.0), Parameter('p3', 2.0)
+    )
 
     collection.sort(mapping=lambda item: item.value)
 
