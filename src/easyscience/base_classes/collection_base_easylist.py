@@ -84,7 +84,9 @@ class CollectionBase(EasyList):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
         if interface is not None:
-            raise AttributeError('Given kwarg: `interface`, is an internal attribute. Please rename.')
+            raise AttributeError(
+                'Given kwarg: `interface`, is an internal attribute. Please rename.'
+            )
 
         self._protected_types = self._normalize_protected_types(protected_types)
         self._name = name if name is not None else self.display_name
@@ -96,9 +98,13 @@ class CollectionBase(EasyList):
             try:
                 self._validate_item(item)
             except TypeError as exc:
-                raise AttributeError('A collection can only be formed from easyscience objects.') from exc
+                raise AttributeError(
+                    'A collection can only be formed from easyscience objects.'
+                ) from exc
             if item in self:
-                warnings.warn(f'Item with unique name "{self._get_key(item)}" already in CollectionBase, it will be ignored')
+                warnings.warn(
+                    f'Item with unique name "{self._get_key(item)}" already in CollectionBase, it will be ignored'
+                )
                 continue
             self._data.append(item)
 
@@ -153,20 +159,26 @@ class CollectionBase(EasyList):
         if isinstance(idx, int) and isinstance(value, Number):
             item = self[idx]
             if not hasattr(item, 'value'):
-                raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.')
+                raise NotImplementedError(
+                    'At the moment only numerical values or EasyScience objects can be set.'
+                )
             item.value = value
             return
         try:
             super().__setitem__(idx, value)
         except TypeError as exc:
-            raise NotImplementedError('At the moment only numerical values or EasyScience objects can be set.') from exc
+            raise NotImplementedError(
+                'At the moment only numerical values or EasyScience objects can be set.'
+            ) from exc
 
     def insert(self, index: int, value: Any) -> None:
         """Insert *value* before *index*, validating it against protected types."""
         try:
             super().insert(index, value)
         except TypeError as exc:
-            raise AttributeError('Only EasyScience objects can be put into an EasyScience group') from exc
+            raise AttributeError(
+                'Only EasyScience objects can be put into an EasyScience group'
+            ) from exc
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__} `{self.name}` of length {len(self)}'
@@ -181,7 +193,9 @@ class CollectionBase(EasyList):
         if mapping is not None:
             if key is not None:
                 raise TypeError('Use either key or mapping, not both')
-            warnings.warn('sort(mapping=...) is deprecated; use sort(key=...) instead', DeprecationWarning)
+            warnings.warn(
+                'sort(mapping=...) is deprecated; use sort(key=...) instead', DeprecationWarning
+            )
             key = mapping
         super().sort(key=key, reverse=reverse)
 
@@ -294,13 +308,21 @@ class CollectionBase(EasyList):
 
         if 'name' not in skip:
             dict_repr['name'] = self.name
-        if 'display_name' not in skip and self._display_name is not None and self._display_name != self.name:
+        if (
+            'display_name' not in skip
+            and self._display_name is not None
+            and self._display_name != self.name
+        ):
             dict_repr['display_name'] = self._display_name
         if 'unique_name' not in skip:
             dict_repr['unique_name'] = self.unique_name
-        if self._protected_types != list(self._DEFAULT_PROTECTED_TYPES) and 'protected_types' not in skip:
+        if (
+            self._protected_types != list(self._DEFAULT_PROTECTED_TYPES)
+            and 'protected_types' not in skip
+        ):
             dict_repr['protected_types'] = [
-                {'@module': cls_.__module__, '@class': cls_.__name__} for cls_ in self._protected_types
+                {'@module': cls_.__module__, '@class': cls_.__name__}
+                for cls_ in self._protected_types
             ]
         dict_repr['data'] = [self._serialize_item(item, skip=skip) for item in self._data]
         return dict_repr
@@ -313,10 +335,16 @@ class CollectionBase(EasyList):
         :raises ValueError: If the dictionary structure or class name is invalid.
         """
         if not isinstance(obj_dict, dict) or '@class' not in obj_dict or '@module' not in obj_dict:
-            raise ValueError('Input must be a dictionary representing an EasyScience CollectionBase object.')
-        accepted_names = {base.__name__ for base in cls.__mro__ if issubclass(base, CollectionBase)}
+            raise ValueError(
+                'Input must be a dictionary representing an EasyScience CollectionBase object.'
+            )
+        accepted_names = {
+            base.__name__ for base in cls.__mro__ if issubclass(base, CollectionBase)
+        }
         if obj_dict['@class'] not in accepted_names:
-            raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')
+            raise ValueError(
+                f'Class name in dictionary does not match the expected class: {cls.__name__}.'
+            )
 
         temp_dict = copy.deepcopy(obj_dict)
         protected_types = temp_dict.pop('protected_types', None)
@@ -342,9 +370,15 @@ class CollectionBase(EasyList):
             skip = []
         if 'name' not in skip:
             in_dict['name'] = self.name
-        if self._display_name is not None and self._display_name != self.name and 'display_name' not in skip:
+        if (
+            self._display_name is not None
+            and self._display_name != self.name
+            and 'display_name' not in skip
+        ):
             in_dict['display_name'] = self._display_name
-        in_dict['data'] = [encoder._convert_to_dict(item, skip=skip, **kwargs) for item in self._data]
+        in_dict['data'] = [
+            encoder._convert_to_dict(item, skip=skip, **kwargs) for item in self._data
+        ]
         return in_dict
 
     @staticmethod
@@ -354,7 +388,9 @@ class CollectionBase(EasyList):
         for type_dict in protected_types:
             if '@module' not in type_dict or '@class' not in type_dict:
                 raise ValueError('Each protected type must contain @module and @class keys')
-            module = __import__(type_dict['@module'], globals(), locals(), [type_dict['@class']], 0)
+            module = __import__(
+                type_dict['@module'], globals(), locals(), [type_dict['@class']], 0
+            )
             deserialized_types.append(getattr(module, type_dict['@class']))
         return deserialized_types
 
@@ -419,12 +455,16 @@ class CollectionBase(EasyList):
     def generate_bindings(self) -> None:
         """Compatibility stub — requires ``interface`` to be set."""
         if self.interface is None:
-            raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
+            raise AttributeError(
+                'Interface error for generating bindings. `interface` has to be set.'
+            )
 
     def switch_interface(self, new_interface_name: str) -> None:
         """Compatibility stub — requires ``interface`` to be set."""
         if self.interface is None:
-            raise AttributeError('Interface error for generating bindings. `interface` has to be set.')
+            raise AttributeError(
+                'Interface error for generating bindings. `interface` has to be set.'
+            )
 
     # --- Internal helpers ---
 
@@ -447,7 +487,9 @@ class CollectionBase(EasyList):
             collected.extend(data)
         return collected
 
-    def _normalize_protected_types(self, protected_types: type | Iterable[type] | None) -> list[type]:
+    def _normalize_protected_types(
+        self, protected_types: type | Iterable[type] | None
+    ) -> list[type]:
         """Coerce *protected_types* into a list, falling back to the class default."""
         if protected_types is None:
             return list(self._DEFAULT_PROTECTED_TYPES)
