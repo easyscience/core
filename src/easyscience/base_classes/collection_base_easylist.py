@@ -23,12 +23,12 @@ from .new_base import NewBase
 
 
 class CollectionBase(EasyList):
-    """
-    EasyList-backed collection with a small compatibility layer for migration.
+    """EasyList-backed collection with a small compatibility layer for
+    migration.
 
-    The collection delegates storage and MutableSequence behavior to EasyList,
-    adding only scientific-parameter aggregation methods and a thin compatibility
-    layer for existing callers.
+    The collection delegates storage and MutableSequence behavior to
+    EasyList, adding only scientific-parameter aggregation methods and a
+    thin compatibility layer for existing callers.
     """
 
     # Base types that items in this collection must be instances of when no
@@ -124,7 +124,8 @@ class CollectionBase(EasyList):
     # --- Minimal overrides (compatibility shims) ---
 
     def __getitem__(self, idx: int | slice | str) -> Any:
-        """Retrieve items by integer index, slice, unique-name key, or display name.
+        """Retrieve items by integer index, slice, unique-name key, or
+        display name.
 
         String lookup first tries the EasyList key (unique_name), then falls
         back to matching on the item's *name* attribute.  If multiple items
@@ -172,7 +173,9 @@ class CollectionBase(EasyList):
             ) from exc
 
     def insert(self, index: int, value: Any) -> None:
-        """Insert *value* before *index*, validating it against protected types."""
+        """Insert *value* before *index*, validating it against
+        protected types.
+        """
         try:
             super().insert(index, value)
         except TypeError as exc:
@@ -202,7 +205,9 @@ class CollectionBase(EasyList):
     # --- Parameter/variable aggregation ---
 
     def get_all_variables(self) -> list[DescriptorBase]:
-        """Return all descriptors in this collection, recursing into nested items."""
+        """Return all descriptors in this collection, recursing into
+        nested items.
+        """
         variables: list[DescriptorBase] = []
         for item in self._data:
             if isinstance(item, DescriptorBase):
@@ -212,7 +217,8 @@ class CollectionBase(EasyList):
         return variables
 
     def get_all_parameters(self) -> list[Parameter]:
-        """Return all parameters in this collection, recursing into nested items.
+        """Return all parameters in this collection, recursing into
+        nested items.
 
         Each parameter appears at most once (deduplicated by identity).
         """
@@ -266,7 +272,10 @@ class CollectionBase(EasyList):
     # --- Serialization ---
 
     def as_dict(self, skip: Optional[list[str]] = None) -> dict[str, Any]:
-        """Legacy. Serialize to a dict, always excluding ``unique_name``."""
+        """Legacy.
+
+        Serialize to a dict, always excluding ``unique_name``.
+        """
         if skip is None:
             skip = []
         if 'unique_name' not in skip:
@@ -274,20 +283,26 @@ class CollectionBase(EasyList):
         return self.to_dict(skip=skip)
 
     def encode(self, skip: Optional[list[str]] = None, encoder=None, **kwargs: Any) -> Any:
-        """Legacy. Encode the collection using the given encoder (default: ``SerializerDict``)."""
+        """Legacy.
+
+        Encode the collection using the given encoder (default: ``SerializerDict``).
+        """
         if encoder is None:
             encoder = SerializerDict
         return encoder().encode(self, skip=skip, **kwargs)
 
     @classmethod
     def decode(cls, obj: Any, decoder=None) -> Any:
-        """Reconstruct a ``CollectionBase`` from a previously encoded object."""
+        """Reconstruct a ``CollectionBase`` from a previously encoded
+        object.
+        """
         if decoder is None or decoder is SerializerDict:
             return cls.from_dict(obj)
         return decoder.decode(obj)
 
     def to_dict(self, skip: Optional[list[str]] = None) -> dict[str, Any]:
-        """Full serialization including ``@module``, ``@class``, and ``@version`` metadata.
+        """Full serialization including ``@module``, ``@class``, and
+        ``@version`` metadata.
 
         :param skip: List of attribute names to exclude from the output.
         """
@@ -329,7 +344,8 @@ class CollectionBase(EasyList):
 
     @classmethod
     def from_dict(cls, obj_dict: dict[str, Any]) -> CollectionBase:
-        """Reconstruct a ``CollectionBase`` from a dict produced by :meth:`to_dict`.
+        """Reconstruct a ``CollectionBase`` from a dict produced by
+        :meth:`to_dict`.
 
         :param obj_dict: Dictionary containing ``@module``, ``@class``, and ``data`` keys.
         :raises ValueError: If the dictionary structure or class name is invalid.
@@ -365,7 +381,10 @@ class CollectionBase(EasyList):
         skip: Optional[list[str]] = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        """Legacy. Hook used by ``SerializerBase`` to populate *in_dict* with collection data."""
+        """Legacy.
+
+        Hook used by ``SerializerBase`` to populate *in_dict* with collection data.
+        """
         if skip is None:
             skip = []
         if 'name' not in skip:
@@ -383,7 +402,9 @@ class CollectionBase(EasyList):
 
     @staticmethod
     def _deserialize_protected_types(protected_types: list[dict[str, str]]) -> list[type]:
-        """Resolve serialized ``{@module, @class}`` dicts back to live type objects."""
+        """Resolve serialized ``{@module, @class}`` dicts back to live
+        type objects.
+        """
         deserialized_types: list[type] = []
         for type_dict in protected_types:
             if '@module' not in type_dict or '@class' not in type_dict:
@@ -395,7 +416,9 @@ class CollectionBase(EasyList):
         return deserialized_types
 
     def _clone_with_items(self, items: Iterable[Any]) -> CollectionBase:
-        """Create a shallow copy of this collection containing the given *items*."""
+        """Create a shallow copy of this collection containing the given
+        *items*.
+        """
         return self.__class__(
             *list(items),
             name=self.name,
@@ -490,7 +513,9 @@ class CollectionBase(EasyList):
     def _normalize_protected_types(
         self, protected_types: type | Iterable[type] | None
     ) -> list[type]:
-        """Coerce *protected_types* into a list, falling back to the class default."""
+        """Coerce *protected_types* into a list, falling back to the
+        class default.
+        """
         if protected_types is None:
             return list(self._DEFAULT_PROTECTED_TYPES)
         if isinstance(protected_types, type):
@@ -502,7 +527,9 @@ class CollectionBase(EasyList):
         raise TypeError('protected_types must be a type or an iterable of types')
 
     def _serialize_item(self, item: Any, skip: Optional[list[str]] = None) -> dict[str, Any]:
-        """Serialize a single item via its ``to_dict`` or ``as_dict`` method."""
+        """Serialize a single item via its ``to_dict`` or ``as_dict``
+        method.
+        """
         if hasattr(item, 'to_dict'):
             return item.to_dict()
         if hasattr(item, 'as_dict'):
@@ -511,7 +538,9 @@ class CollectionBase(EasyList):
 
     @staticmethod
     def _deserialize_item(item: Any) -> Any:
-        """Deserialize a single item dict back into an EasyScience object."""
+        """Deserialize a single item dict back into an EasyScience
+        object.
+        """
         if not SerializerBase._is_serialized_easyscience_object(item):
             return SerializerBase._deserialize_value(item)
 
@@ -520,6 +549,8 @@ class CollectionBase(EasyList):
         return SerializerBase._deserialize_value(normalized_item)
 
     def _validate_item(self, item: Any) -> None:
-        """Raise ``TypeError`` if *item* is not an instance of a protected type."""
+        """Raise ``TypeError`` if *item* is not an instance of a
+        protected type.
+        """
         if not isinstance(item, tuple(self._protected_types)):
             raise TypeError(f'Items must be one of {self._protected_types}, got {type(item)}')
