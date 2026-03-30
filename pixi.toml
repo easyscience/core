@@ -53,7 +53,7 @@ easyscience = { path = ".", editable = true, extras = ['dev'] }
 [feature.py-min.dependencies]
 python = '3.11.*'
 [feature.py-max.dependencies]
-python = '3.13.*'
+python = '3.14.*'
 
 ##############
 # ENVIRONMENTS
