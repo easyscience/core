@@ -264,7 +264,9 @@ class TestDFOFit:
         mock_result.flag = 1
 
         mock_solve = MagicMock(return_value=mock_result)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_dfo.dfols, 'solve', mock_solve)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_dfo.dfols, 'solve', mock_solve
+        )
 
         parameter = MagicMock(min=0.0, max=1.0, value=0.5)
 
@@ -280,7 +282,9 @@ class TestDFOFit:
         mock_result.msg = 'linear algebra error'
 
         mock_solve = MagicMock(return_value=mock_result)
-        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_dfo.dfols, 'solve', mock_solve)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_dfo.dfols, 'solve', mock_solve
+        )
 
         parameter = MagicMock(min=0.0, max=1.0, value=0.5)
 

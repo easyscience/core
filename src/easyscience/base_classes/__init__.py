@@ -10,11 +10,11 @@ from .new_base import NewBase
 from .obj_base import ObjBase
 
 __all__ = [
-	BasedBase,
-	CollectionBase,
-	CollectionBaseEasyList,
-	ObjBase,
-	ModelBase,
-	NewBase,
-	EasyList,
+    BasedBase,
+    CollectionBase,
+    CollectionBaseEasyList,
+    ObjBase,
+    ModelBase,
+    NewBase,
+    EasyList,
 ]
