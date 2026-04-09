@@ -20,6 +20,8 @@ class FitResults:
         'y_obs',
         'y_calc',
         'y_err',
+        'n_evaluations',
+        'message',
         'engine_result',
         'total_results',
     ]
@@ -35,6 +37,8 @@ class FitResults:
         self.y_obs = np.ndarray([])
         self.y_calc = np.ndarray([])
         self.y_err = np.ndarray([])
+        self.n_evaluations = None
+        self.message = ''
         self.engine_result = None
         self.total_results = None
 

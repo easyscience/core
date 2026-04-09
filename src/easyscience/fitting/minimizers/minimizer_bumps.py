@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import copy
+import functools
+import inspect
 from typing import Callable
 from typing import List
 from typing import Optional
@@ -26,6 +28,19 @@ from .utils import FitResults
 FIT_AVAILABLE_IDS_FILTERED = copy.copy(FIT_AVAILABLE_IDS)
 # Considered experimental
 FIT_AVAILABLE_IDS_FILTERED.remove('pt')
+
+
+class _EvalCounter:
+    def __init__(self, fn: Callable):
+        self._fn = fn
+        self.count = 0
+        self.__name__ = getattr(fn, '__name__', self.__class__.__name__)
+        self.__signature__ = inspect.signature(fn)
+        functools.update_wrapper(self, fn)
+
+    def __call__(self, *args, **kwargs):
+        self.count += 1
+        return self._fn(*args, **kwargs)
 
 
 class Bumps(MinimizerBase):
@@ -54,6 +69,7 @@ class Bumps(MinimizerBase):
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
         self._p_0 = {}
+        self._eval_counter: Optional[_EvalCounter] = None
 
     @staticmethod
     def all_methods() -> List[str]:
@@ -148,7 +164,7 @@ class Bumps(MinimizerBase):
         try:
             model_results = bumps_fit(problem, **method_dict, **minimizer_kwargs, **kwargs)
             self._set_parameter_fit_result(model_results, stack_status, problem._parameters)
-            results = self._gen_fit_results(model_results)
+            results = self._gen_fit_results(model_results, max_evaluations=max_evaluations)
         except Exception as e:
             for key in self._cached_pars.keys():
                 self._cached_pars[key].value = self._cached_pars_vals[key][0]
@@ -200,7 +216,8 @@ class Bumps(MinimizerBase):
         :return: Callable to make a bumps Curve model
         :rtype: Callable
         """
-        fit_func = self._generate_fit_function()
+        fit_func = _EvalCounter(self._generate_fit_function())
+        self._eval_counter = fit_func
 
         def _outer(obj):
             def _make_func(x, y, weights):
@@ -249,7 +266,12 @@ class Bumps(MinimizerBase):
         if stack_status:
             global_object.stack.endMacro()
 
-    def _gen_fit_results(self, fit_results, **kwargs) -> FitResults:
+    def _gen_fit_results(
+        self,
+        fit_results,
+        max_evaluations: Optional[int] = None,
+        **kwargs,
+    ) -> FitResults:
         """Convert fit results into the unified `FitResults` format.
 
         :param fit_result: Fit object which contains info on the fit
@@ -261,7 +283,10 @@ class Bumps(MinimizerBase):
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
-        results.success = fit_results.success
+        nit = getattr(fit_results, 'nit', 0)
+        stopped_on_budget = max_evaluations is not None and nit >= max_evaluations - 1
+
+        results.success = fit_results.success and not stopped_on_budget
         pars = self._cached_pars
         item = {}
         for index, name in enumerate(self._cached_model.pars.keys()):
@@ -275,6 +300,12 @@ class Bumps(MinimizerBase):
         results.y_obs = self._cached_model.y
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = self._cached_model.dy
+        results.n_evaluations = None if self._eval_counter is None else self._eval_counter.count
+        results.message = (
+            f'Fit stopped: reached maximum evaluations ({max_evaluations})'
+            if stopped_on_budget
+            else ''
+        )
         # results.residual = results.y_obs - results.y_calc
         # results.goodness_of_fit = np.sum(results.residual**2)
         results.minimizer_engine = self.__class__

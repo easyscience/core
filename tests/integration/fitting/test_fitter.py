@@ -207,14 +207,48 @@ def test_basic_max_evaluations(fit_engine):
         except AttributeError:
             pytest.skip(msg=f'{fit_engine} is not installed')
     f.max_evaluations = 3
-    try:
-        result = f.fit(x=x, y=y, weights=weights)
-        # Result should not be the same as the reference
-        assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
-        assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
-    except FitError as e:
-        # DFO throws a different error
-        assert 'Objective has been called MAXFUN times' in str(e)
+    result = f.fit(x=x, y=y, weights=weights)
+    # Result should not be the same as the reference
+    assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
+    assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize(
+    'fit_engine',
+    [
+        None,
+        AvailableMinimizers.LMFit,
+        AvailableMinimizers.Bumps,
+        AvailableMinimizers.DFO,
+    ],
+)
+def test_max_evaluations_populates_fit_result_fields(fit_engine):
+    """With a tight budget every engine must return success=False, n_evaluations>0, non-empty message."""
+    ref_sin = AbsSin(0.2, np.pi)
+    sp_sin = AbsSin(0.354, 3.05)
+
+    x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
+    y = ref_sin(x)
+
+    sp_sin.offset.fixed = False
+    sp_sin.phase.fixed = False
+
+    f = Fitter(sp_sin, sp_sin)
+    if fit_engine is not None:
+        try:
+            f.switch_minimizer(fit_engine)
+        except AttributeError:
+            pytest.skip(msg=f'{fit_engine} is not installed')
+    f.max_evaluations = 3
+    result = f.fit(x=x, y=y, weights=weights)
+
+    assert result.success is False
+    assert result.n_evaluations is not None
+    assert result.n_evaluations > 0
+    assert isinstance(result.message, str)
+    assert len(result.message) > 0
 
 
 @pytest.mark.fast

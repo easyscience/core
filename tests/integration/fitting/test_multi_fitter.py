@@ -104,6 +104,46 @@ def test_multi_fit(fit_engine):
 
 
 @pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+def test_multi_fit_propagates_n_evaluations_and_message(fit_engine):
+    """Verify that n_evaluations and message are copied into each per-dataset result."""
+    ref_sin_1 = AbsSin(0.2, np.pi)
+    sp_sin_1 = AbsSin(0.354, 3.05)
+    ref_sin_2 = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
+    sp_sin_2 = AbsSin(1, 0.5)
+
+    ref_sin_2.offset.make_dependent_on(
+        dependency_expression='ref_sin1', dependency_map={'ref_sin1': ref_sin_1.offset}
+    )
+    sp_sin_2.offset.make_dependent_on(
+        dependency_expression='sp_sin1', dependency_map={'sp_sin1': sp_sin_1.offset}
+    )
+
+    x1 = np.linspace(0, 5, 200)
+    y1 = ref_sin_1(x1)
+    x2 = np.copy(x1)
+    y2 = ref_sin_2(x2)
+    weights = np.ones_like(x1)
+
+    sp_sin_1.offset.fixed = False
+    sp_sin_1.phase.fixed = False
+    sp_sin_2.phase.fixed = False
+
+    f = MultiFitter([sp_sin_1, sp_sin_2], [sp_sin_1, sp_sin_2])
+    if fit_engine is not None:
+        try:
+            f.switch_minimizer(fit_engine)
+        except AttributeError:
+            pytest.skip(msg=f'{fit_engine} is not installed')
+
+    results = f.fit(x=[x1, x2], y=[y1, y2], weights=[weights, weights])
+    for result in results:
+        assert result.n_evaluations is not None
+        assert isinstance(result.n_evaluations, int)
+        assert result.n_evaluations > 0
+        assert isinstance(result.message, str)
+
+
+@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
 def test_multi_fit2(fit_engine):
     ref_sin_1 = AbsSin(0.2, np.pi)
     sp_sin_1 = AbsSin(0.354, 3.05)

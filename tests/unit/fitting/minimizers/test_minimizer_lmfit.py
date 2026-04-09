@@ -209,6 +209,25 @@ class TestLMFit:
         with pytest.raises(FitError):
             minimizer.fit(x=1.0, y=2.0, weights=1)
 
+    def test_gen_fit_results_populates_evaluation_metadata(self, minimizer: LMFit) -> None:
+        fit_results = MagicMock()
+        fit_results.success = False
+        fit_results.data = 'data'
+        fit_results.userkws = {'x': 'x'}
+        fit_results.values = {'p1': 1.0}
+        fit_results.init_values = {'p1': 0.5}
+        fit_results.best_fit = 'best_fit'
+        fit_results.weights = 2
+        fit_results.nfev = 9
+        fit_results.message = 'max evaluations reached'
+
+        result = minimizer._gen_fit_results(fit_results)
+
+        assert result.success is False
+        assert result.n_evaluations == 9
+        assert result.message == 'max evaluations reached'
+        assert result.engine_result == fit_results
+
     def test_convert_to_pars_obj(self, minimizer: LMFit, monkeypatch) -> None:
         # When
         minimizer._object = MagicMock()
