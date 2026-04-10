@@ -364,7 +364,9 @@ class TestDFOFit:
         assert 'kwargs_set_key' in list(mock_dfols.solve.call_args[1].keys())
         assert mock_dfols.solve.call_args[1]['kwargs_set_key'] == 'kwargs_set_val'
 
-    def test_fit_generic_exception_resets_parameters_and_raises_fit_error(self, minimizer: DFO) -> None:
+    def test_fit_generic_exception_resets_parameters_and_raises_fit_error(
+        self, minimizer: DFO
+    ) -> None:
         """When _dfo_fit raises a non-FitError exception, fit() must reset
         parameter values to cached originals and re-raise as FitError."""
         from easyscience import global_object
