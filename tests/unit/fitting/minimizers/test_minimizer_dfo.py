@@ -364,6 +364,31 @@ class TestDFOFit:
         assert 'kwargs_set_key' in list(mock_dfols.solve.call_args[1].keys())
         assert mock_dfols.solve.call_args[1]['kwargs_set_key'] == 'kwargs_set_val'
 
+    def test_fit_generic_exception_resets_parameters_and_raises_fit_error(self, minimizer: DFO) -> None:
+        """When _dfo_fit raises a non-FitError exception, fit() must reset
+        parameter values to cached originals and re-raise as FitError."""
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        mock_model = MagicMock()
+        mock_model_function = MagicMock(return_value=mock_model)
+        minimizer._make_model = MagicMock(return_value=mock_model_function)
+        minimizer._dfo_fit = MagicMock(side_effect=RuntimeError('solver crashed'))
+
+        cached_par_1 = MagicMock()
+        cached_par_1.value = 5.0
+        cached_par_2 = MagicMock()
+        cached_par_2.value = 10.0
+        minimizer._cached_pars = {'a': cached_par_1, 'b': cached_par_2}
+        minimizer._cached_pars_vals = {'a': (1.0, 0.1), 'b': (2.0, 0.2)}
+
+        with pytest.raises(FitError):
+            minimizer.fit(x=np.array([1.0]), y=np.array([1.0]), weights=np.array([1.0]))
+
+        assert cached_par_1.value == 1.0
+        assert cached_par_2.value == 2.0
+
     def test_dfo_fit_exception(self, minimizer: DFO, monkeypatch):
         # When
         pars = {1: MagicMock(Parameter)}
