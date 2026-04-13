@@ -75,6 +75,7 @@ class Bumps(MinimizerBase):
         method: Optional[str] = None,
         tolerance: Optional[float] = None,
         max_evaluations: Optional[int] = None,
+        progress_callback: Optional[Callable[[dict], Optional[bool]]] = None,
         minimizer_kwargs: Optional[dict] = None,
         engine_kwargs: Optional[dict] = None,
         **kwargs,

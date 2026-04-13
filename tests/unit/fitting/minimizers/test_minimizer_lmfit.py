@@ -10,6 +10,7 @@ from lmfit import Parameter as LMParameter
 import easyscience.fitting.minimizers.minimizer_lmfit
 from easyscience import Parameter
 from easyscience.fitting.minimizers.minimizer_lmfit import LMFit
+from easyscience.fitting.minimizers.utils import FitCancelled
 from easyscience.fitting.minimizers.utils import FitError
 
 
@@ -128,9 +129,7 @@ class TestLMFit:
 
         # Expect
         assert result == 'gen_fit_results'
-        mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq'
-        )
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, iter_cb=None, fit_kws={}, method='leastsq')
         minimizer._make_model.assert_called_once_with()
         minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
         minimizer._gen_fit_results.assert_called_once_with('fit')
@@ -147,9 +146,7 @@ class TestLMFit:
         minimizer.fit(x=1.0, y=2.0, weights=1, model=mock_model)
 
         # Expect
-        mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq'
-        )
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, iter_cb=None, fit_kws={}, method='leastsq')
         minimizer._make_model.assert_not_called()
 
     def test_fit_method(self, minimizer: LMFit) -> None:
@@ -166,9 +163,7 @@ class TestLMFit:
         minimizer.fit(x=1.0, y=2.0, weights=1, method='method_passed')
 
         # Expect
-        mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='method_passed'
-        )
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, iter_cb=None, fit_kws={}, method='method_passed')
         minimizer.supported_methods.assert_called_once_with()
 
     def test_fit_kwargs(self, minimizer: LMFit) -> None:
@@ -189,15 +184,95 @@ class TestLMFit:
         )
 
         # Expect
-        mock_model.fit.assert_called_once_with(
-            2.0,
-            x=1.0,
-            weights=1,
-            max_nfev=None,
-            fit_kws={'minimizer_key': 'minimizer_val'},
-            method='leastsq',
-            engine_key='engine_val',
-        )
+        mock_model.fit.assert_called_once_with(2.0, x=1.0, weights=1, max_nfev=None, iter_cb=None, fit_kws={'minimizer_key': 'minimizer_val'}, method='leastsq', engine_key='engine_val')
+
+    def test_fit_progress_callback(self, minimizer: LMFit) -> None:
+        # When
+        progress_callback = MagicMock(return_value=True)
+        mock_model = MagicMock()
+        mock_model.fit = MagicMock(return_value='fit')
+        minimizer._make_model = MagicMock(return_value=mock_model)
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+
+        # Then
+        minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=progress_callback)
+
+        # Expect
+        assert mock_model.fit.call_count == 1
+        iter_cb = mock_model.fit.call_args.kwargs['iter_cb']
+        assert callable(iter_cb)
+
+    def test_create_iter_callback_no_callback(self, minimizer: LMFit) -> None:
+        # When Then Expect
+        assert minimizer._create_iter_callback(None) is None
+
+    def test_create_iter_callback_abort(self, minimizer: LMFit) -> None:
+        # When
+        progress_callback = MagicMock(return_value=False)
+        iter_cb = minimizer._create_iter_callback(progress_callback)
+
+        # Then Expect
+        with pytest.raises(FitCancelled):
+            iter_cb(MagicMock(), 5, np.array([1.0, -2.0]))
+        progress_callback.assert_called_once()
+
+    def test_fit_cancellation_restores_parameter_values(self, minimizer: LMFit) -> None:
+        # When
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        parameter = MagicMock(Parameter)
+        parameter.value = 10.0
+        minimizer._cached_pars = {'alpha': parameter}
+        minimizer._cached_pars_vals = {'alpha': (1.0, None)}
+
+        mock_model = MagicMock()
+        mock_lm_parameter = MagicMock()
+        mock_lm_parameter.value = 2.0
+        mock_lm_parameter.vary = True
+
+        def fit_side_effect(*args, **kwargs):
+            kwargs['iter_cb']({'palpha': mock_lm_parameter}, 1, np.array([1.0, -2.0]))
+
+        mock_model.fit.side_effect = fit_side_effect
+        minimizer._make_model = MagicMock(return_value=mock_model)
+
+        # Then Expect
+        with pytest.raises(FitCancelled):
+            minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=MagicMock(return_value=False))
+
+        assert parameter.value == 1.0
+
+    def test_build_progress_payload(self, minimizer: LMFit) -> None:
+        # When
+        parameter_a = MagicMock(Parameter)
+        parameter_a.value = 1.5
+        parameter_b = MagicMock(Parameter)
+        parameter_b.value = 2.5
+        minimizer._cached_pars = {'alpha': parameter_a, 'beta': parameter_b}
+
+        mock_param_alpha = MagicMock()
+        mock_param_alpha.value = 1.0
+        mock_param_alpha.vary = True
+        mock_param_beta = MagicMock()
+        mock_param_beta.value = 2.0
+        mock_param_beta.vary = False
+        params = {'palpha': mock_param_alpha, 'pbeta': mock_param_beta}
+
+        # Then
+        payload = minimizer._build_progress_payload(params, 7, np.array([3.0, 4.0]))
+
+        # Expect
+        assert payload == {
+            'iteration': 7,
+            'chi2': 25.0,
+            'reduced_chi2': 25.0,
+            'parameter_values': {'alpha': 1.0, 'beta': 2.0},
+            'refresh_plots': False,
+            'finished': False,
+        }
 
     def test_fit_exception(self, minimizer: LMFit) -> None:
         # When

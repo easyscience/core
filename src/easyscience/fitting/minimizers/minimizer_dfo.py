@@ -64,6 +64,7 @@ class DFO(MinimizerBase):
         method: str = None,
         tolerance: Optional[float] = None,
         max_evaluations: Optional[int] = None,
+        progress_callback: Optional[Callable[[dict], Optional[bool]]] = None,
         **kwargs,
     ) -> FitResults:
         """Perform a fit using the DFO-ls engine.

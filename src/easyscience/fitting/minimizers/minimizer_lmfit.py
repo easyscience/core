@@ -19,6 +19,7 @@ from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
 from .utils import FitError
+from .utils import FitCancelled
 from .utils import FitResults
 
 
@@ -86,6 +87,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         method: Optional[str] = None,
         tolerance: Optional[float] = None,
         max_evaluations: Optional[int] = None,
+        progress_callback: Optional[Callable[[dict], Optional[bool]]] = None,
         minimizer_kwargs: Optional[dict] = None,
         engine_kwargs: Optional[dict] = None,
         **kwargs,
@@ -144,11 +146,13 @@ class LMFit(MinimizerBase):  # noqa: S101
             if model is None:
                 model = self._make_model()
 
+            iter_cb = self._create_iter_callback(progress_callback)
             model_results = model.fit(
                 y,
                 x=x,
                 weights=weights,
                 max_nfev=max_evaluations,
+                iter_cb=iter_cb,
                 fit_kws=fit_kws_dict,
                 **method_kwargs,
                 **engine_kwargs,
@@ -156,15 +160,59 @@ class LMFit(MinimizerBase):  # noqa: S101
             )
             self._set_parameter_fit_result(model_results, stack_status)
             results = self._gen_fit_results(model_results)
+        except FitCancelled:
+            self._restore_parameter_values()
+            raise
         except Exception as e:
-            for key in self._cached_pars.keys():
-                self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            self._restore_parameter_values()
             raise FitError(e)
         return results
 
-    def _get_fit_kws(
-        self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]
-    ) -> dict[str:str]:
+    def _create_iter_callback(
+        self,
+        progress_callback: Optional[Callable[[dict], Optional[bool]]],
+    ) -> Optional[Callable]:
+        if progress_callback is None:
+            return None
+
+        def iter_cb(params, iteration: int, residuals: np.ndarray, *args, **kwargs) -> bool:
+            payload = self._build_progress_payload(params, iteration, residuals)
+            should_continue = progress_callback(payload)
+            if should_continue is False:
+                raise FitCancelled()
+            return False
+
+        return iter_cb
+
+    def _restore_parameter_values(self) -> None:
+        for key in self._cached_pars.keys():
+            self._cached_pars[key].value = self._cached_pars_vals[key][0]
+
+    def _build_progress_payload(self, params, iteration: int, residuals: np.ndarray) -> dict:
+        residual_array = np.asarray(residuals)
+        chi2 = float(np.square(residual_array).sum())
+        varied_parameter_count = sum(1 for parameter in params.values() if getattr(parameter, 'vary', False))
+        degrees_of_freedom = residual_array.size - varied_parameter_count
+        reduced_chi2 = chi2 / degrees_of_freedom if degrees_of_freedom > 0 else chi2
+
+        parameter_values = {}
+        for parameter_name, parameter in self._cached_pars.items():
+            lmfit_parameter_name = f'{MINIMIZER_PARAMETER_PREFIX}{parameter_name}'
+            if lmfit_parameter_name in params:
+                parameter_values[parameter_name] = float(params[lmfit_parameter_name].value)
+            else:
+                parameter_values[parameter_name] = float(parameter.value)
+
+        return {
+            'iteration': int(iteration),
+            'chi2': chi2,
+            'reduced_chi2': reduced_chi2,
+            'parameter_values': parameter_values,
+            'refresh_plots': False,
+            'finished': False,
+        }
+
+    def _get_fit_kws(self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]) -> dict[str:str]:
         if minimizer_kwargs is None:
             minimizer_kwargs = {}
         if tolerance is not None:

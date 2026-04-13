@@ -10,6 +10,7 @@ import pytest
 
 from easyscience import Parameter
 from easyscience.fitting.minimizers.minimizer_base import MinimizerBase
+from easyscience.fitting.minimizers.utils import FitCancelled
 from easyscience.fitting.minimizers.utils import FitError
 
 
@@ -213,3 +214,6 @@ class TestMinimizerBase:
         # Then Expect
         with pytest.raises(FitError):
             result = minimizer._get_method_kwargs('not_supported_method')
+
+    def test_fit_cancelled_string(self) -> None:
+        assert str(FitCancelled()) == 'Fit cancelled by progress callback'
