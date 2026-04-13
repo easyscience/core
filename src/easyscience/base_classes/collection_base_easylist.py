@@ -232,8 +232,8 @@ class CollectionBase(ModelBase, MutableSequence):
         return self._data.index(value, start, stop)
 
     def pop(self, index: int | str = -1) -> Any:
-        """Remove and return an item at the given index,
-        unique_name, or name.
+        """Remove and return an item at the given index, unique_name, or
+        name.
         """
         if isinstance(index, int):
             return self._data.pop(index)
