@@ -283,8 +283,8 @@ class Bumps(MinimizerBase):
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
-        nit = getattr(fit_results, 'nit', 0)
-        stopped_on_budget = max_evaluations is not None and nit >= max_evaluations - 1
+        n_evaluations = None if self._eval_counter is None else self._eval_counter.count
+        stopped_on_budget = max_evaluations is not None and n_evaluations is not None and n_evaluations >= max_evaluations
 
         results.success = fit_results.success and not stopped_on_budget
         pars = self._cached_pars
@@ -300,7 +300,7 @@ class Bumps(MinimizerBase):
         results.y_obs = self._cached_model.y
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = self._cached_model.dy
-        results.n_evaluations = None if self._eval_counter is None else self._eval_counter.count
+        results.n_evaluations = n_evaluations
         results.message = (
             f'Fit stopped: reached maximum evaluations ({max_evaluations})'
             if stopped_on_budget
