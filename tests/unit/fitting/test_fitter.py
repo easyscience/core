@@ -214,7 +214,9 @@ class TestFitter:
 
     def test_fit_progress_callback(self, fitter: Fitter):
         # When
-        fitter._precompute_reshaping = MagicMock(return_value=('x_fit', 'x_new', 'y_new', 'weights', 'dims'))
+        fitter._precompute_reshaping = MagicMock(
+            return_value=('x_fit', 'x_new', 'y_new', 'weights', 'dims')
+        )
         fitter._fit_function_wrapper = MagicMock(return_value='wrapped_fit_function')
         fitter._post_compute_reshaping = MagicMock(return_value='fit_result')
         fitter._minimizer = MagicMock()

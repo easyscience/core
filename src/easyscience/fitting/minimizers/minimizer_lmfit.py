@@ -18,8 +18,8 @@ from easyscience.variable import Parameter
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
-from .utils import FitError
 from .utils import FitCancelled
+from .utils import FitError
 from .utils import FitResults
 
 
@@ -191,7 +191,9 @@ class LMFit(MinimizerBase):  # noqa: S101
     def _build_progress_payload(self, params, iteration: int, residuals: np.ndarray) -> dict:
         residual_array = np.asarray(residuals)
         chi2 = float(np.square(residual_array).sum())
-        varied_parameter_count = sum(1 for parameter in params.values() if getattr(parameter, 'vary', False))
+        varied_parameter_count = sum(
+            1 for parameter in params.values() if getattr(parameter, 'vary', False)
+        )
         degrees_of_freedom = residual_array.size - varied_parameter_count
         reduced_chi2 = chi2 / degrees_of_freedom if degrees_of_freedom > 0 else chi2
 
@@ -212,7 +214,9 @@ class LMFit(MinimizerBase):  # noqa: S101
             'finished': False,
         }
 
-    def _get_fit_kws(self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]) -> dict[str:str]:
+    def _get_fit_kws(
+        self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]
+    ) -> dict[str:str]:
         if minimizer_kwargs is None:
             minimizer_kwargs = {}
         if tolerance is not None:
