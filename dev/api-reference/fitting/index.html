@@ -4819,7 +4819,11 @@ It allows for the Bumps fitting engine to use parameters declared in an <code>Ea
 <span class="normal">312</span>
 <span class="normal">313</span>
 <span class="normal">314</span>
-<span class="normal">315</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Bumps</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Bumps</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is a wrapper to Bumps: https://bumps.readthedocs.io/</span>
 <span class="sd">    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.</span>
@@ -5060,7 +5064,11 @@ It allows for the Bumps fitting engine to use parameters declared in an <code>Ea
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="n">n_evaluations</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_counter</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_counter</span><span class="o">.</span><span class="n">count</span>
-        <span class="n">stopped_on_budget</span> <span class="o">=</span> <span class="n">max_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="o">&gt;=</span> <span class="n">max_evaluations</span>
+        <span class="n">stopped_on_budget</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">max_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="o">&gt;=</span> <span class="n">max_evaluations</span>
+        <span class="p">)</span>
 
         <span class="n">results</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">success</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">stopped_on_budget</span>
         <span class="n">pars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_pars</span>
