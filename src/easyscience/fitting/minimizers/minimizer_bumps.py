@@ -284,7 +284,11 @@ class Bumps(MinimizerBase):
             if getattr(results, name, False):
                 setattr(results, name, value)
         n_evaluations = None if self._eval_counter is None else self._eval_counter.count
-        stopped_on_budget = max_evaluations is not None and n_evaluations is not None and n_evaluations >= max_evaluations
+        stopped_on_budget = (
+            max_evaluations is not None
+            and n_evaluations is not None
+            and n_evaluations >= max_evaluations
+        )
 
         results.success = fit_results.success and not stopped_on_budget
         pars = self._cached_pars
