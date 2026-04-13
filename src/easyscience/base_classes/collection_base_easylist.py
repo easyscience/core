@@ -133,9 +133,7 @@ class CollectionBase(ModelBase, MutableSequence):
         if isinstance(idx, int) and isinstance(value, Number):
             item = self[idx]
             if not hasattr(item, 'value'):
-                raise AttributeError(
-                    f'Item at index {idx} does not have a `value` attribute.'
-                )
+                raise AttributeError(f'Item at index {idx} does not have a `value` attribute.')
             item.value = value
             return
         if isinstance(idx, int):
