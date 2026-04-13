@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import copy
+import warnings
 from collections.abc import Iterable
 from collections.abc import MutableSequence
 from importlib import import_module
@@ -106,6 +107,8 @@ class CollectionBase(ModelBase, MutableSequence):
         """
         if isinstance(idx, bool):
             raise TypeError('Boolean indexing is not supported at the moment')
+        if isinstance(idx, int):
+            return self._data[idx]
         if isinstance(idx, slice):
             return self._clone_with_items(self._data[idx])
         if isinstance(idx, str):
@@ -118,7 +121,7 @@ class CollectionBase(ModelBase, MutableSequence):
             if len(name_matches) > 1:
                 return self._clone_with_items(name_matches)
             raise KeyError(f'No item with key or name "{idx}" found')
-        return self._data[idx]
+        raise TypeError('Index must be an int, slice, or str')
 
     def __setitem__(self, idx: int | slice, value: Any) -> None:
         """Set an item by index.
@@ -130,29 +133,39 @@ class CollectionBase(ModelBase, MutableSequence):
         if isinstance(idx, int) and isinstance(value, Number):
             item = self[idx]
             if not hasattr(item, 'value'):
-                raise NotImplementedError(
-                    'At the moment only numerical values or model objects can be set.'
+                raise AttributeError(
+                    f'Item at index {idx} does not have a `value` attribute.'
                 )
             item.value = value
             return
         if isinstance(idx, int):
             self._validate_item(value)
             if value is not self._data[idx] and value in self:
+                warnings.warn(
+                    f'Item with unique name "{self._get_key(value)}" already in collection, it will be ignored'
+                )
                 return
             self._data[idx] = value
             return
         if isinstance(idx, slice):
             if not isinstance(value, Iterable):
                 raise TypeError('Value must be an iterable for slice assignment')
+            replaced = self._data[idx]
             new_values = list(value)
-            for v in new_values:
+            for i, v in enumerate(new_values):
                 self._validate_item(v)
+                if v in self and (i >= len(replaced) or replaced[i] is not v):
+                    warnings.warn(
+                        f'Item with unique name "{self._get_key(v)}" already in collection, it will be ignored'
+                    )
+                    if i < len(replaced):
+                        new_values[i] = replaced[i]
             self._data[idx] = new_values
             return
         raise TypeError('Index must be an int or slice')
 
     def __delitem__(self, idx: int | slice | str) -> None:
-        """Delete an item by index, slice, or unique_name."""
+        """Delete an item by index, slice, unique_name, or name."""
         if isinstance(idx, (int, slice)):
             del self._data[idx]
         elif isinstance(idx, str):
@@ -160,7 +173,11 @@ class CollectionBase(ModelBase, MutableSequence):
                 if self._get_key(item) == idx:
                     del self._data[i]
                     return
-            raise KeyError(f'No item with unique name "{idx}" found')
+            for i, item in enumerate(self._data):
+                if getattr(item, 'name', None) == idx:
+                    del self._data[i]
+                    return
+            raise KeyError(f'No item with key or name "{idx}" found')
         else:
             raise TypeError('Index must be an int, slice, or str')
 
@@ -172,19 +189,27 @@ class CollectionBase(ModelBase, MutableSequence):
         """Insert *value* before *index*, validating it against
         protected types.
         """
+        if not isinstance(index, int):
+            raise TypeError('Index must be an integer')
         try:
             self._validate_item(value)
         except TypeError as exc:
             raise AttributeError('Only model objects can be put into a CollectionBase') from exc
         if value in self:
+            warnings.warn(
+                f'Item with unique name "{self._get_key(value)}" already in collection, it will be ignored'
+            )
             return
         self._data.insert(index, value)
 
     # --- Additional list-like methods ---
 
     def __contains__(self, item: Any) -> bool:
+        """Check membership by identity, unique_name, or name."""
         if isinstance(item, str):
-            return any(self._get_key(r) == item for r in self._data)
+            if any(self._get_key(r) == item for r in self._data):
+                return True
+            return any(getattr(r, 'name', None) == item for r in self._data)
         return item in self._data
 
     def __repr__(self) -> str:
@@ -209,8 +234,8 @@ class CollectionBase(ModelBase, MutableSequence):
         return self._data.index(value, start, stop)
 
     def pop(self, index: int | str = -1) -> Any:
-        """Remove and return an item at the given index or
-        unique_name.
+        """Remove and return an item at the given index,
+        unique_name, or name.
         """
         if isinstance(index, int):
             return self._data.pop(index)
@@ -218,7 +243,10 @@ class CollectionBase(ModelBase, MutableSequence):
             for i, item in enumerate(self._data):
                 if self._get_key(item) == index:
                     return self._data.pop(i)
-            raise KeyError(f'No item with unique name "{index}" found')
+            for i, item in enumerate(self._data):
+                if getattr(item, 'name', None) == index:
+                    return self._data.pop(i)
+            raise KeyError(f'No item with key or name "{index}" found')
         raise TypeError('Index must be an int or str')
 
     @staticmethod
