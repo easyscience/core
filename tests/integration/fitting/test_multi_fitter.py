@@ -95,7 +95,7 @@ def test_multi_fit(fit_engine):
             sp_sin_2.get_fit_parameters()
         )
         assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
-        assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+        assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
         assert result.success
         assert np.all(result.x == X[idx])
         assert np.all(result.y_obs == Y[idx])
@@ -200,7 +200,7 @@ def test_multi_fit2(fit_engine):
             sp_sin_2.get_fit_parameters()
         ) + len(sp_line.get_fit_parameters())
         assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
-        assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+        assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
         assert result.success
         assert np.all(result.x == X[idx])
         assert np.all(result.y_obs == Y[idx])
@@ -275,7 +275,7 @@ def test_multi_fit_1D_2D(fit_engine):
             fit_engine != 'DFO'
         ):  # DFO apparently does not fit well with even weights. Can't be bothered to fix
             assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
-            assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+            assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
             assert result.y_calc == pytest.approx(F_ref[idx](X[idx]), abs=1e-2)
             assert result.residual == pytest.approx(
                 F_real[idx](X[idx]) - F_ref[idx](X[idx]), abs=1e-2

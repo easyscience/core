@@ -81,7 +81,7 @@ class StraightLine(ModelBase):
 def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
     assert result.n_pars == len(sp_sin.get_fit_parameters())
     assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
-    assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+    assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     if 'sp_ref1' in kwargs.keys():
         sp_ref1 = kwargs['sp_ref1']
@@ -385,7 +385,7 @@ def test_2D_vectorized(fit_engine):
         else:
             raise e
     assert result.n_pars == len(m2.get_fit_parameters())
-    assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+    assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)
     y_calc_ref = m2(XY)
@@ -424,7 +424,7 @@ def test_2D_non_vectorized(fit_engine):
         else:
             raise e
     assert result.n_pars == len(m2.get_fit_parameters())
-    assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+    assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)
     y_calc_ref = m2(XY.reshape(-1, 2))

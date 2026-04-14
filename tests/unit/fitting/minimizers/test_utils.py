@@ -36,14 +36,14 @@ class TestFitResultsRepr:
         r = self._make_result()
         text = repr(r)
         assert 'chi2=' in text
-        assert 'reduced_chi=' in text
+        assert 'reduced_chi2=' in text
         assert 'N/A' not in text
 
     def test_repr_shows_na_when_chi2_cannot_be_computed(self):
         r = self._make_result(y_err=np.array([0.0, 0.0, 0.0]))
         text = repr(r)
         assert 'chi2=N/A' in text
-        assert 'reduced_chi=N/A' in text
+        assert 'reduced_chi2=N/A' in text
 
     def test_repr_contains_n_evaluations(self):
         r = self._make_result()

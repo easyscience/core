@@ -46,7 +46,7 @@ class FitResults:
         engine_name = self.minimizer_engine.__name__ if self.minimizer_engine else None
         try:
             chi2_val = self.chi2
-            reduced_val = self.reduced_chi
+            reduced_val = self.reduced_chi2
             if not np.isfinite(chi2_val) or not np.isfinite(reduced_val):
                 raise ValueError
             chi2 = f'{chi2_val:.4g}'
@@ -63,7 +63,7 @@ class FitResults:
         lines = [
             f'FitResults(success={self.success}',
             f'  n_pars={self.n_pars}, n_points={n_points}',
-            f'  chi2={chi2}, reduced_chi={reduced}',
+            f'  chi2={chi2}, reduced_chi2={reduced}',
             f'  n_evaluations={self.n_evaluations}',
             f'  minimizer={engine_name}',
         ]
@@ -88,7 +88,7 @@ class FitResults:
         return ((self.residual / self.y_err) ** 2).sum()
 
     @property
-    def reduced_chi(self):
+    def reduced_chi2(self):
         return self.chi2 / (len(self.x) - self.n_pars)
 
 
