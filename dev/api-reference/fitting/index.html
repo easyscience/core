@@ -7838,7 +7838,7 @@ fit parameters.</p>
         <span class="n">engine_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimizer_engine</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimizer_engine</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">chi2_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span>
-            <span class="n">reduced_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_chi</span>
+            <span class="n">reduced_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_chi2</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">chi2_val</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">reduced_val</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span>
             <span class="n">chi2</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">chi2_val</span><span class="si">:</span><span class="s1">.4g</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -7855,7 +7855,7 @@ fit parameters.</p>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
             <span class="sa">f</span><span class="s1">&#39;FitResults(success=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">success</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="sa">f</span><span class="s1">&#39;  n_pars=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pars</span><span class="si">}</span><span class="s1">, n_points=</span><span class="si">{</span><span class="n">n_points</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-            <span class="sa">f</span><span class="s1">&#39;  chi2=</span><span class="si">{</span><span class="n">chi2</span><span class="si">}</span><span class="s1">, reduced_chi=</span><span class="si">{</span><span class="n">reduced</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;  chi2=</span><span class="si">{</span><span class="n">chi2</span><span class="si">}</span><span class="s1">, reduced_chi2=</span><span class="si">{</span><span class="n">reduced</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="sa">f</span><span class="s1">&#39;  n_evaluations=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_evaluations</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="sa">f</span><span class="s1">&#39;  minimizer=</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
         <span class="p">]</span>
@@ -7880,7 +7880,7 @@ fit parameters.</p>
         <span class="k">return</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">residual</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_err</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">reduced_chi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reduced_chi2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_pars</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
               </details>
