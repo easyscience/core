@@ -184,10 +184,6 @@ class LMFit(MinimizerBase):  # noqa: S101
 
         return iter_cb
 
-    def _restore_parameter_values(self) -> None:
-        for key in self._cached_pars.keys():
-            self._cached_pars[key].value = self._cached_pars_vals[key][0]
-
     def _build_progress_payload(self, params, iteration: int, residuals: np.ndarray) -> dict:
         residual_array = np.asarray(residuals)
         chi2 = float(np.square(residual_array).sum())

@@ -8,7 +8,10 @@ from typing import Optional
 
 import numpy as np
 from bumps.fitters import FIT_AVAILABLE_IDS
-from bumps.fitters import fit as bumps_fit
+from bumps.fitters import FITTERS
+from bumps.fitters import FitDriver
+from bumps.mapper import SerialMapper
+from bumps.monitor import Monitor
 from bumps.names import Curve
 from bumps.names import FitProblem
 from bumps.parameter import Parameter as BumpsParameter
@@ -20,12 +23,35 @@ from easyscience.variable import Parameter
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
+from .utils import FitCancelled
 from .utils import FitError
 from .utils import FitResults
 
 FIT_AVAILABLE_IDS_FILTERED = copy.copy(FIT_AVAILABLE_IDS)
 # Considered experimental
 FIT_AVAILABLE_IDS_FILTERED.remove('pt')
+
+
+class _BumpsProgressMonitor(Monitor):
+    def __init__(self, owner, problem, callback):
+        self._owner = owner
+        self._problem = problem
+        self._callback = callback
+        self.cancel_requested = False
+
+    def config_history(self, history):
+        history.requires(step=1, point=1, value=1)
+
+    def __call__(self, history):
+        payload = self._owner._build_progress_payload(
+            problem=self._problem,
+            iteration=int(history.step[0]),
+            point=np.asarray(history.point[0]),
+            nllf=float(history.value[0]),
+        )
+        should_continue = self._callback(payload)
+        if should_continue is False:
+            self.cancel_requested = True
 
 
 class Bumps(MinimizerBase):
@@ -80,7 +106,7 @@ class Bumps(MinimizerBase):
         engine_kwargs: Optional[dict] = None,
         **kwargs,
     ) -> FitResults:
-        """Perform a fit using the lmfit engine.
+        """Perform a fit using the BUMPS engine.
 
         :param x: points to be calculated at
         :type x: np.ndarray
@@ -89,17 +115,14 @@ class Bumps(MinimizerBase):
         :param weights: Weights for supplied measured points
         :type weights: np.ndarray
         :param model: Optional Model which is being fitted to
-        :type model: lmModel
         :param parameters: Optional parameters for the fit
         :type parameters: List[BumpsParameter]
-        :param kwargs: Additional arguments for the fitting function.
         :param method: Method for minimization
         :type method: str
+        :param progress_callback: Optional callback for progress updates
+        :type progress_callback: Callable
         :return: Fit results
-        :rtype: ModelResult For standard least squares, the weights
-            should be 1/sigma, where sigma is the standard deviation of
-            the measurement. For unweighted least squares, these should
-            be 1.
+        :rtype: FitResults
         """
         method_dict = self._get_method_kwargs(method)
 
@@ -125,10 +148,8 @@ class Bumps(MinimizerBase):
         minimizer_kwargs.update(engine_kwargs)
 
         if tolerance is not None:
-            minimizer_kwargs['ftol'] = tolerance  # tolerance for change in function value
-            minimizer_kwargs['xtol'] = (
-                tolerance  # tolerance for change in parameter value, could be an independent value
-            )
+            minimizer_kwargs['ftol'] = tolerance
+            minimizer_kwargs['xtol'] = tolerance
         if max_evaluations is not None:
             minimizer_kwargs['steps'] = max_evaluations
 
@@ -140,6 +161,29 @@ class Bumps(MinimizerBase):
         self._p_0 = {f'p{key}': self._cached_pars[key].value for key in self._cached_pars.keys()}
 
         problem = FitProblem(model)
+
+        method_str = method_dict.get('method', self._method)
+        fitclass = self._resolve_fitclass(method_str)
+
+        monitors = []
+        progress_monitor = None
+        if progress_callback is not None:
+            progress_monitor = _BumpsProgressMonitor(self, problem, progress_callback)
+            monitors.append(progress_monitor)
+
+        abort_test = (lambda: progress_monitor.cancel_requested) if progress_monitor else None
+
+        mapper = SerialMapper.start_mapper(problem, [])
+        driver = FitDriver(
+            fitclass=fitclass,
+            problem=problem,
+            monitors=monitors,
+            abort_test=abort_test,
+            mapper=mapper,
+            **minimizer_kwargs,
+        )
+        driver.clip()
+
         # Why do we do this? Because a fitting template has to have global_object instantiated outside pre-runtime
         from easyscience import global_object
 
@@ -147,14 +191,55 @@ class Bumps(MinimizerBase):
         global_object.stack.enabled = False
 
         try:
-            model_results = bumps_fit(problem, **method_dict, **minimizer_kwargs, **kwargs)
-            self._set_parameter_fit_result(model_results, stack_status, problem._parameters)
-            results = self._gen_fit_results(model_results)
+            x_result, fx = driver.fit()
+            if progress_monitor is not None and progress_monitor.cancel_requested:
+                raise FitCancelled()
+            self._set_parameter_fit_result(x_result, driver, stack_status, problem._parameters)
+            results = self._gen_fit_results(x_result, fx, driver)
+        except FitCancelled:
+            self._restore_parameter_values()
+            raise
         except Exception as e:
-            for key in self._cached_pars.keys():
-                self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            self._restore_parameter_values()
             raise FitError(e)
         return results
+
+    @staticmethod
+    def _resolve_fitclass(method: str):
+        for fitclass in FITTERS:
+            if fitclass.id == method:
+                return fitclass
+        raise FitError(f'Unknown BUMPS fitting method: {method}')
+
+    def _build_progress_payload(
+        self, problem, iteration: int, point: np.ndarray, nllf: float
+    ) -> dict:
+        # Use the nllf already computed by the fitter to avoid a costly
+        # model re-evaluation.  For Gaussian likelihoods:
+        #   nllf = sum(residuals**2) / 2  =>  chi2 = 2 * nllf
+        chi2 = 2.0 * nllf
+        dof = problem.dof
+        reduced_chi2 = chi2 / dof if dof > 0 else chi2
+
+        parameter_values = self._current_parameter_snapshot(problem, point)
+
+        return {
+            'iteration': iteration,
+            'chi2': chi2,
+            'reduced_chi2': reduced_chi2,
+            'parameter_values': parameter_values,
+            'refresh_plots': False,
+            'finished': False,
+        }
+
+    def _current_parameter_snapshot(self, problem, point: np.ndarray) -> dict:
+        labels = problem.labels()
+        values = problem.getp() if point is None else point
+        snapshot = {}
+        for label, value in zip(labels, values):
+            dict_name = label[len(MINIMIZER_PARAMETER_PREFIX) :]
+            snapshot[dict_name] = float(value)
+        return snapshot
 
     def convert_to_pars_obj(self, par_list: Optional[List] = None) -> List[BumpsParameter]:
         """Create a container with the `Parameters` converted from the
@@ -223,18 +308,24 @@ class Bumps(MinimizerBase):
         return _outer(self)
 
     def _set_parameter_fit_result(
-        self, fit_result, stack_status: bool, par_list: List[BumpsParameter]
+        self,
+        x_result: np.ndarray,
+        driver: FitDriver,
+        stack_status: bool,
+        par_list: List[BumpsParameter],
     ):
         """Update parameters to their final values and assign a std
         error to them.
 
-        :param fit_result: Fit object which contains info on the fit
-        :return: None
-        :rtype: noneType
+        :param x_result: Optimized parameter values from FitDriver
+        :param driver: The FitDriver instance (provides stderr)
+        :param stack_status: Whether the undo stack was enabled
+        :param par_list: List of BUMPS parameter objects
         """
         from easyscience import global_object
 
         pars = self._cached_pars
+        stderr = driver.stderr()
 
         if stack_status:
             for name in pars.keys():
@@ -245,15 +336,19 @@ class Bumps(MinimizerBase):
 
         for index, name in enumerate([par.name for par in par_list]):
             dict_name = name[len(MINIMIZER_PARAMETER_PREFIX) :]
-            pars[dict_name].value = fit_result.x[index]
-            pars[dict_name].error = fit_result.dx[index]
+            pars[dict_name].value = x_result[index]
+            pars[dict_name].error = stderr[index]
         if stack_status:
             global_object.stack.endMacro()
 
-    def _gen_fit_results(self, fit_results, **kwargs) -> FitResults:
+    def _gen_fit_results(
+        self, x_result: np.ndarray, fx: float, driver: FitDriver, **kwargs
+    ) -> FitResults:
         """Convert fit results into the unified `FitResults` format.
 
-        :param fit_result: Fit object which contains info on the fit
+        :param x_result: Optimized parameter values from FitDriver
+        :param fx: Final objective function value
+        :param driver: The FitDriver instance
         :return: fit results container
         :rtype: FitResults
         """
@@ -262,12 +357,11 @@ class Bumps(MinimizerBase):
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
-        results.success = fit_results.success
+        results.success = True
         pars = self._cached_pars
         item = {}
         for index, name in enumerate(self._cached_model.pars.keys()):
             dict_name = name[len(MINIMIZER_PARAMETER_PREFIX) :]
-
             item[name] = pars[dict_name].value
 
         results.p0 = self._p_0
@@ -276,10 +370,7 @@ class Bumps(MinimizerBase):
         results.y_obs = self._cached_model.y
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = self._cached_model.dy
-        # results.residual = results.y_obs - results.y_calc
-        # results.goodness_of_fit = np.sum(results.residual**2)
         results.minimizer_engine = self.__class__
         results.fit_args = None
-        results.engine_result = fit_results
-        # results.check_sanity()
+        results.engine_result = driver
         return results

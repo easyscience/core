@@ -1,13 +1,17 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+from unittest.mock import ANY
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import numpy as np
 import pytest
 
 import easyscience.fitting.minimizers.minimizer_bumps
 from easyscience.fitting.minimizers.minimizer_bumps import Bumps
+from easyscience.fitting.minimizers.minimizer_bumps import _BumpsProgressMonitor
+from easyscience.fitting.minimizers.utils import FitCancelled
 from easyscience.fitting.minimizers.utils import FitError
 
 
@@ -47,9 +51,20 @@ class TestBumpsFit:
 
         global_object.stack.enabled = False
 
-        mock_bumps_fit = MagicMock(return_value='fit')
+        # Mock FitDriver
+        mock_driver_instance = MagicMock()
+        mock_driver_instance.fit.return_value = (np.array([42.0]), 0.5)
+        mock_driver_instance.stderr.return_value = np.array([0.1])
+        mock_driver_instance.clip = MagicMock()
+        mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps, 'bumps_fit', mock_bumps_fit
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        mock_SerialMapper = MagicMock()
+        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
         )
 
         # Prepare a mock parameter with .name = 'pmock_parm_1'
@@ -72,24 +87,29 @@ class TestBumpsFit:
         cached_par.value = 1
         cached_pars = {'mock_parm_1': cached_par}
         minimizer._cached_pars = cached_pars
+        minimizer._cached_pars_vals = {'mock_parm_1': (1, 0.0)}
 
-        # Patch _set_parameter_fit_result to a real function that will not raise KeyError
-        def fake_set_parameter_fit_result(fit_result, stack_status, par_list):
-            # Simulate what the real function does: update _cached_pars
+        # Patch _set_parameter_fit_result
+        def fake_set_parameter_fit_result(x_result, driver, stack_status, par_list):
             for index, name in enumerate([par.name for par in par_list]):
-                dict_name = name[len('p') :]  # Remove prefix 'p'
-                minimizer._cached_pars[dict_name].value = 42  # Arbitrary value
+                dict_name = name[len('p') :]
+                minimizer._cached_pars[dict_name].value = x_result[index]
 
         minimizer._set_parameter_fit_result = fake_set_parameter_fit_result
+
+        mock_fitclass = MagicMock()
+        mock_fitclass.id = 'amoeba'
+        minimizer._resolve_fitclass = MagicMock(return_value=mock_fitclass)
 
         # Then
         result = minimizer.fit(x=1.0, y=2.0, weights=1)
 
         # Expect
         assert result == 'gen_fit_results'
-        mock_bumps_fit.assert_called_once_with(mock_FitProblem_instance, method='amoeba')
+        mock_FitDriver.assert_called_once()
+        mock_driver_instance.clip.assert_called_once()
+        mock_driver_instance.fit.assert_called_once()
         minimizer._make_model.assert_called_once_with(parameters=None)
-        minimizer._gen_fit_results.assert_called_once_with('fit')
         mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
 
@@ -148,9 +168,9 @@ class TestBumpsFit:
         mock_cached_model.pars = {'pa': 0, 'pb': 0}
         minimizer._cached_model = mock_cached_model
 
-        mock_fit_result = MagicMock()
-        mock_fit_result.x = [1.0, 2.0]
-        mock_fit_result.dx = [0.1, 0.2]
+        x_result = np.array([1.0, 2.0])
+        mock_driver = MagicMock()
+        mock_driver.stderr.return_value = np.array([0.1, 0.2])
 
         # The new argument: par_list (list of mock parameters)
         mock_par_a = MagicMock()
@@ -160,7 +180,7 @@ class TestBumpsFit:
         par_list = [mock_par_a, mock_par_b]
 
         # Then
-        minimizer._set_parameter_fit_result(mock_fit_result, False, par_list)
+        minimizer._set_parameter_fit_result(x_result, mock_driver, False, par_list)
 
         # Expect
         assert minimizer._cached_pars['a'].value == 1.0
@@ -176,8 +196,9 @@ class TestBumpsFit:
             easyscience.fitting.minimizers.minimizer_bumps, 'FitResults', mock_FitResults
         )
 
-        mock_fit_result = MagicMock()
-        mock_fit_result.success = True
+        x_result = np.array([1.0, 2.0])
+        fx = 0.5
+        mock_driver = MagicMock()
 
         mock_cached_model = MagicMock()
         mock_cached_model.x = 'x'
@@ -197,13 +218,13 @@ class TestBumpsFit:
 
         # Then
         domain_fit_results = minimizer._gen_fit_results(
-            mock_fit_result, **{'kwargs_set_key': 'kwargs_set_val'}
+            x_result, fx, mock_driver, **{'kwargs_set_key': 'kwargs_set_val'}
         )
 
         # Expect
         assert domain_fit_results == mock_domain_fit_results
         assert domain_fit_results.kwargs_set_key == 'kwargs_set_val'
-        assert domain_fit_results.success == True
+        assert domain_fit_results.success is True
         assert domain_fit_results.y_obs == 'y'
         assert domain_fit_results.x == 'x'
         assert domain_fit_results.p == {'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
@@ -215,6 +236,299 @@ class TestBumpsFit:
             == "<class 'easyscience.fitting.minimizers.minimizer_bumps.Bumps'>"
         )
         assert domain_fit_results.fit_args is None
+        assert domain_fit_results.engine_result == mock_driver
         minimizer.evaluate.assert_called_once_with(
             'x', minimizer_parameters={'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
         )
+
+    def test_resolve_fitclass_valid(self, minimizer: Bumps) -> None:
+        # When Then
+        fitclass = Bumps._resolve_fitclass('lm')
+
+        # Expect
+        assert fitclass.id == 'lm'
+
+    def test_resolve_fitclass_invalid(self, minimizer: Bumps) -> None:
+        # When Then Expect
+        with pytest.raises(FitError):
+            Bumps._resolve_fitclass('nonexistent_method')
+
+    def test_fit_progress_callback(self, minimizer: Bumps, monkeypatch) -> None:
+        # When
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        progress_callback = MagicMock(return_value=True)
+
+        mock_driver_instance = MagicMock()
+        mock_driver_instance.fit.return_value = (np.array([42.0]), 0.5)
+        mock_driver_instance.stderr.return_value = np.array([0.1])
+        mock_driver_instance.clip = MagicMock()
+        mock_FitDriver = MagicMock(return_value=mock_driver_instance)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        mock_SerialMapper = MagicMock()
+        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
+        )
+
+        mock_bumps_param = MagicMock()
+        mock_bumps_param.name = 'pmock_parm_1'
+        mock_FitProblem_instance = MagicMock()
+        mock_FitProblem_instance._parameters = [mock_bumps_param]
+        mock_FitProblem = MagicMock(return_value=mock_FitProblem_instance)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitProblem', mock_FitProblem
+        )
+
+        mock_model = MagicMock()
+        mock_model_function = MagicMock(return_value=mock_model)
+        minimizer._make_model = MagicMock(return_value=mock_model_function)
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+
+        cached_par = MagicMock()
+        cached_par.value = 1
+        minimizer._cached_pars = {'mock_parm_1': cached_par}
+        minimizer._cached_pars_vals = {'mock_parm_1': (1, 0.0)}
+
+        minimizer._resolve_fitclass = MagicMock(return_value=MagicMock(id='amoeba'))
+
+        # Then
+        result = minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=progress_callback)
+
+        # Expect - FitDriver was called with a monitor list containing our monitor
+        assert result == 'gen_fit_results'
+        driver_call_kwargs = mock_FitDriver.call_args
+        monitors = driver_call_kwargs.kwargs.get('monitors', driver_call_kwargs[1].get('monitors'))
+        assert len(monitors) == 1
+        assert isinstance(monitors[0], _BumpsProgressMonitor)
+
+    def test_fit_cancellation_restores_parameter_values(
+        self, minimizer: Bumps, monkeypatch
+    ) -> None:
+        # When
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        from easyscience.variable import Parameter
+
+        parameter = MagicMock(Parameter)
+        parameter.value = 10.0
+        minimizer._cached_pars = {'alpha': parameter}
+        minimizer._cached_pars_vals = {'alpha': (1.0, None)}
+
+        mock_driver_instance = MagicMock()
+
+        def fit_side_effect(*args, **kwargs):
+            # Simulate the monitor triggering cancellation
+            raise FitCancelled()
+
+        mock_driver_instance.fit.side_effect = fit_side_effect
+        mock_driver_instance.clip = MagicMock()
+        mock_FitDriver = MagicMock(return_value=mock_driver_instance)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        mock_SerialMapper = MagicMock()
+        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
+        )
+
+        mock_FitProblem_instance = MagicMock()
+        mock_FitProblem_instance._parameters = []
+        mock_FitProblem = MagicMock(return_value=mock_FitProblem_instance)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitProblem', mock_FitProblem
+        )
+
+        mock_model = MagicMock()
+        mock_model_function = MagicMock(return_value=mock_model)
+        minimizer._make_model = MagicMock(return_value=mock_model_function)
+        minimizer._resolve_fitclass = MagicMock(return_value=MagicMock(id='amoeba'))
+
+        # Then Expect
+        with pytest.raises(FitCancelled):
+            minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=MagicMock(return_value=False))
+
+        assert parameter.value == 1.0
+
+    def test_build_progress_payload(self, minimizer: Bumps) -> None:
+        # When
+        mock_problem = MagicMock()
+        mock_problem.dof = 2
+        mock_problem.labels.return_value = ['palpha', 'pbeta']
+        mock_problem.getp.return_value = np.array([1.0, 2.0])
+
+        point = np.array([1.0, 2.0])
+        nllf = 12.5  # chi2 = 2 * 12.5 = 25.0; reduced = 25.0 / 2 = 12.5
+
+        # Then
+        payload = minimizer._build_progress_payload(mock_problem, 7, point, nllf)
+
+        # Expect
+        assert payload == {
+            'iteration': 7,
+            'chi2': 25.0,
+            'reduced_chi2': 12.5,
+            'parameter_values': {'alpha': 1.0, 'beta': 2.0},
+            'refresh_plots': False,
+            'finished': False,
+        }
+        # setp should NOT be called – the monitor avoids model re-evaluation
+        mock_problem.setp.assert_not_called()
+
+    def test_build_progress_payload_keys_match_lmfit(self, minimizer: Bumps) -> None:
+        # When
+        mock_problem = MagicMock()
+        mock_problem.dof = 2
+        mock_problem.labels.return_value = ['pa']
+        mock_problem.getp.return_value = np.array([5.0])
+
+        minimizer._cached_pars = {'a': MagicMock(value=5.0)}
+
+        # Then
+        payload = minimizer._build_progress_payload(mock_problem, 1, np.array([5.0]), nllf=5.0)
+
+        # Expect - same keys as LMFit payload
+        expected_keys = {
+            'iteration',
+            'chi2',
+            'reduced_chi2',
+            'parameter_values',
+            'refresh_plots',
+            'finished',
+        }
+        assert set(payload.keys()) == expected_keys
+        assert isinstance(payload['iteration'], int)
+        assert isinstance(payload['chi2'], float)
+        assert isinstance(payload['reduced_chi2'], float)
+        assert isinstance(payload['parameter_values'], dict)
+        assert payload['refresh_plots'] is False
+        assert payload['finished'] is False
+
+    def test_build_progress_payload_reduced_chi2_positive_dof(self, minimizer: Bumps) -> None:
+        # When - dof = 2, nllf = 5.0 -> chi2 = 10.0 -> reduced = 5.0
+        mock_problem = MagicMock()
+        mock_problem.dof = 2
+        mock_problem.labels.return_value = ['pa']
+        mock_problem.getp.return_value = np.array([5.0])
+
+        minimizer._cached_pars = {'a': MagicMock(value=5.0)}
+
+        # Then
+        payload = minimizer._build_progress_payload(mock_problem, 1, np.array([5.0]), nllf=5.0)
+
+        # Expect
+        assert payload['chi2'] == 10.0  # 2 * nllf
+        assert payload['reduced_chi2'] == 5.0  # 10.0 / 2
+
+    def test_current_parameter_snapshot(self, minimizer: Bumps) -> None:
+        # When
+        mock_problem = MagicMock()
+        mock_problem.labels.return_value = ['palpha', 'pbeta']
+
+        point = np.array([1.5, 2.5])
+
+        # Then
+        snapshot = minimizer._current_parameter_snapshot(mock_problem, point)
+
+        # Expect
+        assert snapshot == {'alpha': 1.5, 'beta': 2.5}
+
+    def test_bumps_progress_monitor_calls_callback(self, minimizer: Bumps) -> None:
+        # When
+        callback = MagicMock(return_value=True)
+        mock_problem = MagicMock()
+
+        monitor = _BumpsProgressMonitor(minimizer, mock_problem, callback)
+        minimizer._build_progress_payload = MagicMock(return_value={'iteration': 1})
+
+        mock_history = MagicMock()
+        mock_history.step = [5]
+        mock_history.point = [np.array([1.0])]
+        mock_history.value = [42.0]
+
+        # Then
+        monitor(mock_history)
+
+        # Expect
+        assert not monitor.cancel_requested
+        callback.assert_called_once_with({'iteration': 1})
+        minimizer._build_progress_payload.assert_called_once_with(
+            problem=mock_problem,
+            iteration=5,
+            point=ANY,
+            nllf=42.0,
+        )
+
+    def test_bumps_progress_monitor_cancel(self, minimizer: Bumps) -> None:
+        # When
+        callback = MagicMock(return_value=False)
+        mock_problem = MagicMock()
+
+        monitor = _BumpsProgressMonitor(minimizer, mock_problem, callback)
+        minimizer._build_progress_payload = MagicMock(return_value={'iteration': 1})
+
+        mock_history = MagicMock()
+        mock_history.step = [5]
+        mock_history.point = [np.array([1.0])]
+        mock_history.value = [42.0]
+
+        # Then
+        monitor(mock_history)
+
+        # Expect
+        assert monitor.cancel_requested is True
+
+    def test_fit_exception_restores_values(self, minimizer: Bumps, monkeypatch) -> None:
+        # When
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        from easyscience.variable import Parameter
+
+        parameter = MagicMock(Parameter)
+        parameter.value = 10.0
+        minimizer._cached_pars = {'alpha': parameter}
+        minimizer._cached_pars_vals = {'alpha': (1.0, None)}
+
+        mock_driver_instance = MagicMock()
+        mock_driver_instance.fit.side_effect = RuntimeError('something broke')
+        mock_driver_instance.clip = MagicMock()
+        mock_FitDriver = MagicMock(return_value=mock_driver_instance)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        mock_SerialMapper = MagicMock()
+        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
+        )
+
+        mock_FitProblem_instance = MagicMock()
+        mock_FitProblem_instance._parameters = []
+        mock_FitProblem = MagicMock(return_value=mock_FitProblem_instance)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitProblem', mock_FitProblem
+        )
+
+        mock_model = MagicMock()
+        mock_model_function = MagicMock(return_value=mock_model)
+        minimizer._make_model = MagicMock(return_value=mock_model_function)
+        minimizer._resolve_fitclass = MagicMock(return_value=MagicMock(id='amoeba'))
+
+        # Then Expect
+        with pytest.raises(FitError):
+            minimizer.fit(x=1.0, y=2.0, weights=1)
+
+        assert parameter.value == 1.0

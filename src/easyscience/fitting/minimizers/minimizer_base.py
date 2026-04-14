@@ -58,6 +58,10 @@ class MinimizerBase(metaclass=ABCMeta):
     def name(self) -> str:
         return self._minimizer_enum.name
 
+    def _restore_parameter_values(self) -> None:
+        for key in self._cached_pars.keys():
+            self._cached_pars[key].value = self._cached_pars_vals[key][0]
+
     @abstractmethod
     def fit(
         self,
