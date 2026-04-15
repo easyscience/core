@@ -242,6 +242,46 @@ class TestBumpsFit:
             'x', minimizer_parameters={'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
         )
 
+    @pytest.mark.parametrize(
+        'n_evaluations, max_evaluations, expected_success',
+        [
+            (1, 3, True),  # last step (1) < budget-1 (2) => success
+            (2, 3, False),  # last step (2) == budget-1 (2) => budget consumed => failure
+            (3, 3, False),  # last step (3) > budget-1 (2) => failure
+            (0, 1, False),  # 0 >= 0 => failure (budget of 1, step counter 0-indexed)
+            (5, None, True),  # no budget => always success
+        ],
+    )
+    def test_gen_fit_results_max_evaluations_boundary(
+        self, minimizer: Bumps, monkeypatch, n_evaluations, max_evaluations, expected_success
+    ):
+        """Bumps step counter is 0-indexed so the last step of a budget
+        of N is N-1.  Verify the boundary condition in _gen_fit_results."""
+        mock_domain_fit_results = MagicMock()
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps,
+            'FitResults',
+            MagicMock(return_value=mock_domain_fit_results),
+        )
+
+        mock_cached_model = MagicMock()
+        mock_cached_model.pars = {'ppar_1': 0}
+        minimizer._cached_model = mock_cached_model
+
+        mock_par = MagicMock()
+        mock_par.value = 1.0
+        minimizer._cached_pars = {'par_1': mock_par}
+        minimizer._p_0 = 'p_0'
+        minimizer.evaluate = MagicMock(return_value='evaluate')
+
+        mock_driver = MagicMock()
+
+        minimizer._gen_fit_results(
+            np.array([1.0]), 0.5, mock_driver, n_evaluations, max_evaluations
+        )
+
+        assert mock_domain_fit_results.success is expected_success
+
     def test_resolve_fitclass_valid(self, minimizer: Bumps) -> None:
         # When Then
         fitclass = Bumps._resolve_fitclass('lm')

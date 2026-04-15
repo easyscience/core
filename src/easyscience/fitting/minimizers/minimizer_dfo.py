@@ -128,8 +128,6 @@ class DFO(MinimizerBase):
         if progress_callback is not None and callback is None:
             dof = max(len(x) - len(self._cached_pars), 1)
             callback = self._make_progress_adapter(progress_callback, dof)
-            if callback_every == 1:
-                callback_every = 1  # keep default; adapter fires every evaluation
 
         if model is None:
             model_function = self._make_model(
@@ -166,12 +164,10 @@ class DFO(MinimizerBase):
             self._set_parameter_fit_result(model_results, stack_status)
             results = self._gen_fit_results(model_results, weights)
         except FitError:
-            for key in self._cached_pars.keys():
-                self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            self._restore_parameter_values()
             raise
         except Exception as e:
-            for key in self._cached_pars.keys():
-                self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            self._restore_parameter_values()
             raise FitError(e)
         return results
 

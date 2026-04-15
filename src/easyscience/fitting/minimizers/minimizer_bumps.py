@@ -384,6 +384,8 @@ class Bumps(MinimizerBase):
             if getattr(results, name, False):
                 setattr(results, name, value)
         results.n_evaluations = n_evaluations
+        # Bumps step counter is 0-indexed, so the last step of a budget of N
+        # is N-1.  We therefore compare with ``max_evaluations - 1``.
         if max_evaluations is not None and n_evaluations >= max_evaluations - 1:
             results.success = False
             results.message = f'Maximum number of evaluations ({max_evaluations}) reached'
