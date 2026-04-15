@@ -346,6 +346,8 @@ class LMFit(MinimizerBase):  # noqa: S101
         # results.goodness_of_fit = fit_results.chisqr
         results.y_calc = fit_results.best_fit
         results.y_err = 1 / fit_results.weights
+        results.n_evaluations = fit_results.nfev
+        results.message = fit_results.message
         results.minimizer_engine = self.__class__
         results.fit_args = None
 

@@ -81,7 +81,7 @@ class StraightLine(ModelBase):
 def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
     assert result.n_pars == len(sp_sin.get_fit_parameters())
     assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
-    assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+    assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     if 'sp_ref1' in kwargs.keys():
         sp_ref1 = kwargs['sp_ref1']
@@ -207,14 +207,48 @@ def test_basic_max_evaluations(fit_engine):
         except AttributeError:
             pytest.skip(msg=f'{fit_engine} is not installed')
     f.max_evaluations = 3
-    try:
-        result = f.fit(x=x, y=y, weights=weights)
-        # Result should not be the same as the reference
-        assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
-        assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
-    except FitError as e:
-        # DFO throws a different error
-        assert 'Objective has been called MAXFUN times' in str(e)
+    result = f.fit(x=x, y=y, weights=weights)
+    # Result should not be the same as the reference
+    assert sp_sin.phase.value != pytest.approx(ref_sin.phase.value, rel=1e-3)
+    assert sp_sin.offset.value != pytest.approx(ref_sin.offset.value, rel=1e-3)
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize(
+    'fit_engine',
+    [
+        None,
+        AvailableMinimizers.LMFit,
+        AvailableMinimizers.Bumps,
+        AvailableMinimizers.DFO,
+    ],
+)
+def test_max_evaluations_populates_fit_result_fields(fit_engine):
+    """With a tight budget every engine must return success=False, n_evaluations>0, non-empty message."""
+    ref_sin = AbsSin(0.2, np.pi)
+    sp_sin = AbsSin(0.354, 3.05)
+
+    x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
+    y = ref_sin(x)
+
+    sp_sin.offset.fixed = False
+    sp_sin.phase.fixed = False
+
+    f = Fitter(sp_sin, sp_sin)
+    if fit_engine is not None:
+        try:
+            f.switch_minimizer(fit_engine)
+        except AttributeError:
+            pytest.skip(msg=f'{fit_engine} is not installed')
+    f.max_evaluations = 3
+    result = f.fit(x=x, y=y, weights=weights)
+
+    assert result.success is False
+    assert result.n_evaluations is not None
+    assert result.n_evaluations > 0
+    assert isinstance(result.message, str)
+    assert len(result.message) > 0
 
 
 @pytest.mark.fast
@@ -351,7 +385,7 @@ def test_2D_vectorized(fit_engine):
         else:
             raise e
     assert result.n_pars == len(m2.get_fit_parameters())
-    assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+    assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)
     y_calc_ref = m2(XY)
@@ -390,7 +424,7 @@ def test_2D_non_vectorized(fit_engine):
         else:
             raise e
     assert result.n_pars == len(m2.get_fit_parameters())
-    assert result.reduced_chi == pytest.approx(0, abs=1.5e-3)
+    assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)
     y_calc_ref = m2(XY.reshape(-1, 2))

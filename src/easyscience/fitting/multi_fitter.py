@@ -131,6 +131,8 @@ class MultiFitter(Fitter):
             current_results.minimizer_engine = fit_result_obj.minimizer_engine
             current_results.p = fit_result_obj.p
             current_results.p0 = fit_result_obj.p0
+            current_results.n_evaluations = fit_result_obj.n_evaluations
+            current_results.message = fit_result_obj.message
             current_results.x = this_x
             current_results.y_obs = y[idx]
             current_results.y_calc = np.reshape(

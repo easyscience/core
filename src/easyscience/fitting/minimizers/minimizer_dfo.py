@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+from dataclasses import dataclass
 from typing import Callable
 from typing import Dict
 from typing import List
@@ -18,6 +19,21 @@ from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
 from .utils import FitError
 from .utils import FitResults
+
+
+@dataclass(frozen=True)
+class DFOCallbackState:
+    """Snapshot of a DFO objective evaluation."""
+
+    evaluation: int
+    xk: np.ndarray
+    residuals: np.ndarray
+    objective: float
+    parameters: dict[str, float]
+    best_xk: np.ndarray
+    best_objective: float
+    best_parameters: dict[str, float]
+    improved: bool
 
 
 class DFO(MinimizerBase):
@@ -65,6 +81,9 @@ class DFO(MinimizerBase):
         tolerance: Optional[float] = None,
         max_evaluations: Optional[int] = None,
         progress_callback: Optional[Callable[[dict], Optional[bool]]] = None,
+        callback: Optional[Callable[[DFOCallbackState], None]] = None,
+        callback_every: int = 1,
+        callback_on_improvement_only: bool = False,
         **kwargs,
     ) -> FitResults:
         """Perform a fit using the DFO-ls engine.
@@ -102,9 +121,32 @@ class DFO(MinimizerBase):
         if (weights <= 0).any():
             raise ValueError('Weights must be strictly positive and non-zero.')
 
+        if callback_every < 1:
+            raise ValueError('callback_every must be a positive integer.')
+
+        # Bridge progress_callback into the DFO callback mechanism
+        if progress_callback is not None and callback is None:
+            dof = max(len(x) - len(self._cached_pars), 1)
+            callback = self._make_progress_adapter(progress_callback, dof)
+            if callback_every == 1:
+                callback_every = 1  # keep default; adapter fires every evaluation
+
         if model is None:
-            model_function = self._make_model(parameters=parameters)
+            model_function = self._make_model(
+                parameters=parameters,
+                callback=callback,
+                callback_every=callback_every,
+                callback_on_improvement_only=callback_on_improvement_only,
+            )
             model = model_function(x, y, weights)
+        elif callback is not None:
+            model = self._wrap_model_with_callback(
+                model,
+                self._get_callback_parameter_names(parameters),
+                callback,
+                callback_every,
+                callback_on_improvement_only,
+            )
         self._cached_model = model
         self._cached_model.x = x
         self._cached_model.y = y
@@ -123,6 +165,10 @@ class DFO(MinimizerBase):
             model_results = self._dfo_fit(self._cached_pars, model, **kwargs)
             self._set_parameter_fit_result(model_results, stack_status)
             results = self._gen_fit_results(model_results, weights)
+        except FitError:
+            for key in self._cached_pars.keys():
+                self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            raise
         except Exception as e:
             for key in self._cached_pars.keys():
                 self._cached_pars[key].value = self._cached_pars_vals[key][0]
@@ -138,7 +184,13 @@ class DFO(MinimizerBase):
         """Required by interface but not needed for DFO-LS."""
         pass
 
-    def _make_model(self, parameters: Optional[List[Parameter]] = None) -> Callable:
+    def _make_model(
+        self,
+        parameters: Optional[List[Parameter]] = None,
+        callback: Optional[Callable[[DFOCallbackState], None]] = None,
+        callback_every: int = 1,
+        callback_on_improvement_only: bool = False,
+    ) -> Callable:
         """Generate a model from the supplied `fit_function` and
         parameters in the base object. Note that this makes a callable
         as it needs to be initialized with *x*, *y*, *weights*
@@ -163,11 +215,110 @@ class DFO(MinimizerBase):
                         dfo_pars[par_name] = pars_values[idx]
                     return (y - fit_func(x, **dfo_pars)) * weights
 
-                return _residuals
+                return obj._wrap_model_with_callback(
+                    _residuals,
+                    list(dfo_pars.keys()),
+                    callback,
+                    callback_every,
+                    callback_on_improvement_only,
+                )
 
             return _make_func
 
         return _outer(self)
+
+    def _get_callback_parameter_names(
+        self, parameters: Optional[List[Parameter]] = None
+    ) -> list[str]:
+        if parameters is not None:
+            return [MINIMIZER_PARAMETER_PREFIX + parameter.unique_name for parameter in parameters]
+        return [MINIMIZER_PARAMETER_PREFIX + name for name in self._cached_pars.keys()]
+
+    @staticmethod
+    def _wrap_model_with_callback(
+        model: Callable,
+        parameter_names: list[str],
+        callback: Optional[Callable[[DFOCallbackState], None]],
+        callback_every: int,
+        callback_on_improvement_only: bool,
+    ) -> Callable:
+        if callback is None:
+            return model
+
+        evaluation = 0
+        best_objective = np.inf
+        best_xk = np.array([], dtype=float)
+        best_parameters: dict[str, float] = {}
+
+        def wrapped_model(pars_values: List[float]) -> np.ndarray:
+            nonlocal evaluation, best_objective, best_xk, best_parameters
+
+            residuals = np.asarray(model(pars_values), dtype=float)
+            xk = np.asarray(pars_values, dtype=float).copy()
+            parameters = {name: value for name, value in zip(parameter_names, xk)}
+            objective = float(np.dot(residuals.ravel(), residuals.ravel()))
+
+            evaluation += 1
+            improved = objective < best_objective
+            if improved:
+                best_objective = objective
+                best_xk = xk.copy()
+                best_parameters = parameters.copy()
+
+            should_notify = evaluation % callback_every == 0
+            if callback_on_improvement_only:
+                should_notify = should_notify and improved
+
+            if should_notify:
+                callback(
+                    DFOCallbackState(
+                        evaluation=evaluation,
+                        xk=xk,
+                        residuals=residuals.copy(),
+                        objective=objective,
+                        parameters=parameters,
+                        best_xk=best_xk.copy(),
+                        best_objective=best_objective,
+                        best_parameters=best_parameters.copy(),
+                        improved=improved,
+                    )
+                )
+
+            return residuals
+
+        return wrapped_model
+
+    @staticmethod
+    def _make_progress_adapter(
+        progress_callback: Callable[[dict], Optional[bool]],
+        dof: int,
+    ) -> Callable[['DFOCallbackState'], None]:
+        """Create a DFO callback that translates DFOCallbackState into
+        the standard progress_callback dict format used by the GUI.
+
+        :param progress_callback: Standard progress callback (dict -> bool|None)
+        :param dof: Degrees of freedom for reduced chi2 calculation
+        :return: DFO-compatible callback
+        """
+
+        def adapter(state: 'DFOCallbackState') -> None:
+            chi2 = state.best_objective
+            reduced_chi2 = chi2 / dof if dof > 0 else chi2
+            param_snapshot = {
+                name[len(MINIMIZER_PARAMETER_PREFIX) :]: float(val)
+                for name, val in state.best_parameters.items()
+            }
+            payload = {
+                'iteration': state.evaluation,
+                'chi2': chi2,
+                'reduced_chi2': reduced_chi2,
+                'parameter_values': param_snapshot,
+                'refresh_plots': False,
+                'finished': False,
+            }
+            progress_callback(payload)
+
+        return adapter
 
     def _set_parameter_fit_result(self, fit_result, stack_status, ci: float = 0.95) -> None:
         """Update parameters to their final values and assign a std
@@ -209,7 +360,7 @@ class DFO(MinimizerBase):
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
-        results.success = not bool(fit_results.flag)
+        results.success = fit_results.flag == fit_results.EXIT_SUCCESS
 
         pars = {}
         for p_name, par in self._cached_pars.items():
@@ -221,11 +372,14 @@ class DFO(MinimizerBase):
         results.y_obs = self._cached_model.y
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = weights
+        results.n_evaluations = int(fit_results.nf)
+        results.message = str(fit_results.msg)
         # results.residual = results.y_obs - results.y_calc
         # results.goodness_of_fit = fit_results.f
 
         results.minimizer_engine = self.__class__
         results.fit_args = None
+        results.engine_result = fit_results
         # results.check_sanity()
 
         return results
@@ -259,10 +413,10 @@ class DFO(MinimizerBase):
 
         results = dfols.solve(model, pars_values, bounds=bounds, **kwargs)
 
-        if 'Success' not in results.msg:
-            raise FitError(f'Fit failed with message: {results.msg}')
+        if results.flag in {results.EXIT_SUCCESS, results.EXIT_MAXFUN_WARNING}:
+            return results
 
-        return results
+        raise FitError(f'Fit failed with message: {results.msg}')
 
     @staticmethod
     def _prepare_kwargs(

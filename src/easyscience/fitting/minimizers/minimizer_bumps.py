@@ -32,6 +32,19 @@ FIT_AVAILABLE_IDS_FILTERED = copy.copy(FIT_AVAILABLE_IDS)
 FIT_AVAILABLE_IDS_FILTERED.remove('pt')
 
 
+class _StepCounterMonitor(Monitor):
+    """Lightweight monitor that ensures step count is recorded in history."""
+
+    def __init__(self):
+        self.last_step = 0
+
+    def config_history(self, history):
+        history.requires(step=1)
+
+    def __call__(self, history):
+        self.last_step = int(history.step[0])
+
+
 class _BumpsProgressMonitor(Monitor):
     def __init__(self, owner, problem, callback):
         self._owner = owner
@@ -165,7 +178,8 @@ class Bumps(MinimizerBase):
         method_str = method_dict.get('method', self._method)
         fitclass = self._resolve_fitclass(method_str)
 
-        monitors = []
+        step_counter = _StepCounterMonitor()
+        monitors = [step_counter]
         progress_monitor = None
         if progress_callback is not None:
             progress_monitor = _BumpsProgressMonitor(self, problem, progress_callback)
@@ -195,7 +209,9 @@ class Bumps(MinimizerBase):
             if progress_monitor is not None and progress_monitor.cancel_requested:
                 raise FitCancelled()
             self._set_parameter_fit_result(x_result, driver, stack_status, problem._parameters)
-            results = self._gen_fit_results(x_result, fx, driver)
+            results = self._gen_fit_results(
+                x_result, fx, driver, step_counter.last_step, max_evaluations
+            )
         except FitCancelled:
             self._restore_parameter_values()
             raise
@@ -342,13 +358,21 @@ class Bumps(MinimizerBase):
             global_object.stack.endMacro()
 
     def _gen_fit_results(
-        self, x_result: np.ndarray, fx: float, driver: FitDriver, **kwargs
+        self,
+        x_result: np.ndarray,
+        fx: float,
+        driver: FitDriver,
+        n_evaluations: int = 0,
+        max_evaluations: Optional[int] = None,
+        **kwargs,
     ) -> FitResults:
         """Convert fit results into the unified `FitResults` format.
 
         :param x_result: Optimized parameter values from FitDriver
         :param fx: Final objective function value
         :param driver: The FitDriver instance
+        :param n_evaluations: Number of iterations completed
+        :param max_evaluations: Maximum evaluations budget (if set)
         :return: fit results container
         :rtype: FitResults
         """
@@ -357,7 +381,13 @@ class Bumps(MinimizerBase):
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
-        results.success = True
+        results.n_evaluations = n_evaluations
+        if max_evaluations is not None and n_evaluations >= max_evaluations - 1:
+            results.success = False
+            results.message = f'Maximum number of evaluations ({max_evaluations}) reached'
+        else:
+            results.success = True
+            results.message = 'Optimization terminated successfully'
         pars = self._cached_pars
         item = {}
         for index, name in enumerate(self._cached_model.pars.keys()):
