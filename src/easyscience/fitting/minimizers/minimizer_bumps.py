@@ -33,7 +33,9 @@ FIT_AVAILABLE_IDS_FILTERED.remove('pt')
 
 
 class _StepCounterMonitor(Monitor):
-    """Lightweight monitor that ensures step count is recorded in history."""
+    """Lightweight monitor that ensures step count is recorded in
+    history.
+    """
 
     def __init__(self):
         self.last_step = 0

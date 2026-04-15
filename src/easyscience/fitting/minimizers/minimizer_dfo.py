@@ -296,7 +296,8 @@ class DFO(MinimizerBase):
         """Create a DFO callback that translates DFOCallbackState into
         the standard progress_callback dict format used by the GUI.
 
-        :param progress_callback: Standard progress callback (dict -> bool|None)
+        :param progress_callback: Standard progress callback (dict ->
+            bool|None)
         :param dof: Degrees of freedom for reduced chi2 calculation
         :return: DFO-compatible callback
         """
