@@ -356,7 +356,7 @@ class TestBumpsFit:
         # When
         from easyscience import global_object
 
-        global_object.stack.enabled = False
+        global_object.stack.enabled = True
 
         from easyscience.variable import Parameter
 
@@ -401,6 +401,7 @@ class TestBumpsFit:
             minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=MagicMock(return_value=False))
 
         assert parameter.value == 1.0
+        assert global_object.stack.enabled is True
 
     def test_build_progress_payload(self, minimizer: Bumps) -> None:
         # When

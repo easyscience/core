@@ -236,7 +236,7 @@ class TestLMFit:
         # When
         from easyscience import global_object
 
-        global_object.stack.enabled = False
+        global_object.stack.enabled = True
 
         parameter = MagicMock(Parameter)
         parameter.value = 10.0
@@ -259,6 +259,7 @@ class TestLMFit:
             minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=MagicMock(return_value=False))
 
         assert parameter.value == 1.0
+        assert global_object.stack.enabled is True
 
     def test_build_progress_payload(self, minimizer: LMFit) -> None:
         # When

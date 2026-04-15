@@ -220,6 +220,8 @@ class Bumps(MinimizerBase):
         except Exception as e:
             self._restore_parameter_values()
             raise FitError(e)
+        finally:
+            global_object.stack.enabled = stack_status
         return results
 
     @staticmethod

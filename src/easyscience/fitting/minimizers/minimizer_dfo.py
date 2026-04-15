@@ -169,6 +169,8 @@ class DFO(MinimizerBase):
         except Exception as e:
             self._restore_parameter_values()
             raise FitError(e)
+        finally:
+            global_object.stack.enabled = stack_status
         return results
 
     def convert_to_pars_obj(self, par_list: Optional[list] = None):

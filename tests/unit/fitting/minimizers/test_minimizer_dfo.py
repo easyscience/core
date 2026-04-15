@@ -487,7 +487,7 @@ class TestDFOFit:
         parameter values to cached originals and re-raise as FitError."""
         from easyscience import global_object
 
-        global_object.stack.enabled = False
+        global_object.stack.enabled = True
 
         mock_model = MagicMock()
         mock_model_function = MagicMock(return_value=mock_model)
@@ -506,6 +506,7 @@ class TestDFOFit:
 
         assert cached_par_1.value == 1.0
         assert cached_par_2.value == 2.0
+        assert global_object.stack.enabled is True
 
     def test_dfo_fit_exception(self, minimizer: DFO, monkeypatch):
         # When
