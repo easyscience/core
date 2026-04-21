@@ -12,7 +12,6 @@ import easyscience.fitting.minimizers.minimizer_bumps
 from easyscience.fitting.minimizers.minimizer_bumps import Bumps
 from easyscience.fitting.minimizers.minimizer_bumps import _BumpsProgressMonitor
 from easyscience.fitting.minimizers.minimizer_bumps import _StepCounterMonitor
-from easyscience.fitting.minimizers.utils import FitCancelled
 from easyscience.fitting.minimizers.utils import FitError
 
 
@@ -350,59 +349,6 @@ class TestBumpsFit:
         assert isinstance(monitors[0], _StepCounterMonitor)
         assert isinstance(monitors[1], _BumpsProgressMonitor)
 
-    def test_fit_cancellation_restores_parameter_values(
-        self, minimizer: Bumps, monkeypatch
-    ) -> None:
-        # When
-        from easyscience import global_object
-
-        global_object.stack.enabled = True
-
-        from easyscience.variable import Parameter
-
-        parameter = MagicMock(Parameter)
-        parameter.value = 10.0
-        minimizer._cached_pars = {'alpha': parameter}
-        minimizer._cached_pars_vals = {'alpha': (1.0, None)}
-
-        mock_driver_instance = MagicMock()
-
-        def fit_side_effect(*args, **kwargs):
-            # Simulate the monitor triggering cancellation
-            raise FitCancelled()
-
-        mock_driver_instance.fit.side_effect = fit_side_effect
-        mock_driver_instance.clip = MagicMock()
-        mock_FitDriver = MagicMock(return_value=mock_driver_instance)
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
-        )
-
-        mock_SerialMapper = MagicMock()
-        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
-        )
-
-        mock_FitProblem_instance = MagicMock()
-        mock_FitProblem_instance._parameters = []
-        mock_FitProblem = MagicMock(return_value=mock_FitProblem_instance)
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps, 'FitProblem', mock_FitProblem
-        )
-
-        mock_model = MagicMock()
-        mock_model_function = MagicMock(return_value=mock_model)
-        minimizer._make_model = MagicMock(return_value=mock_model_function)
-        minimizer._resolve_fitclass = MagicMock(return_value=MagicMock(id='amoeba'))
-
-        # Then Expect
-        with pytest.raises(FitCancelled):
-            minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=MagicMock(return_value=False))
-
-        assert parameter.value == 1.0
-        assert global_object.stack.enabled is True
-
     def test_build_progress_payload(self, minimizer: Bumps) -> None:
         # When
         mock_problem = MagicMock()
@@ -503,7 +449,6 @@ class TestBumpsFit:
         monitor(mock_history)
 
         # Expect
-        assert not monitor.cancel_requested
         callback.assert_called_once_with({'iteration': 1})
         minimizer._build_progress_payload.assert_called_once_with(
             problem=mock_problem,
@@ -511,25 +456,6 @@ class TestBumpsFit:
             point=ANY,
             nllf=42.0,
         )
-
-    def test_bumps_progress_monitor_cancel(self, minimizer: Bumps) -> None:
-        # When
-        callback = MagicMock(return_value=False)
-        mock_problem = MagicMock()
-
-        monitor = _BumpsProgressMonitor(minimizer, mock_problem, callback)
-        minimizer._build_progress_payload = MagicMock(return_value={'iteration': 1})
-
-        mock_history = MagicMock()
-        mock_history.step = [5]
-        mock_history.point = [np.array([1.0])]
-        mock_history.value = [42.0]
-
-        # Then
-        monitor(mock_history)
-
-        # Expect
-        assert monitor.cancel_requested is True
 
     def test_fit_exception_restores_values(self, minimizer: Bumps, monkeypatch) -> None:
         # When

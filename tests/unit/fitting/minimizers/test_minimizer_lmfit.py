@@ -10,7 +10,6 @@ from lmfit import Parameter as LMParameter
 import easyscience.fitting.minimizers.minimizer_lmfit
 from easyscience import Parameter
 from easyscience.fitting.minimizers.minimizer_lmfit import LMFit
-from easyscience.fitting.minimizers.utils import FitCancelled
 from easyscience.fitting.minimizers.utils import FitError
 
 
@@ -222,44 +221,17 @@ class TestLMFit:
         # When Then Expect
         assert minimizer._create_iter_callback(None) is None
 
-    def test_create_iter_callback_abort(self, minimizer: LMFit) -> None:
+    def test_create_iter_callback_invokes_progress(self, minimizer: LMFit) -> None:
         # When
         progress_callback = MagicMock(return_value=False)
         iter_cb = minimizer._create_iter_callback(progress_callback)
 
-        # Then Expect
-        with pytest.raises(FitCancelled):
-            iter_cb(MagicMock(), 5, np.array([1.0, -2.0]))
+        # Then
+        result = iter_cb(MagicMock(), 5, np.array([1.0, -2.0]))
+
+        # Expect — progress callback is notified, but its return value is ignored
         progress_callback.assert_called_once()
-
-    def test_fit_cancellation_restores_parameter_values(self, minimizer: LMFit) -> None:
-        # When
-        from easyscience import global_object
-
-        global_object.stack.enabled = True
-
-        parameter = MagicMock(Parameter)
-        parameter.value = 10.0
-        minimizer._cached_pars = {'alpha': parameter}
-        minimizer._cached_pars_vals = {'alpha': (1.0, None)}
-
-        mock_model = MagicMock()
-        mock_lm_parameter = MagicMock()
-        mock_lm_parameter.value = 2.0
-        mock_lm_parameter.vary = True
-
-        def fit_side_effect(*args, **kwargs):
-            kwargs['iter_cb']({'palpha': mock_lm_parameter}, 1, np.array([1.0, -2.0]))
-
-        mock_model.fit.side_effect = fit_side_effect
-        minimizer._make_model = MagicMock(return_value=mock_model)
-
-        # Then Expect
-        with pytest.raises(FitCancelled):
-            minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=MagicMock(return_value=False))
-
-        assert parameter.value == 1.0
-        assert global_object.stack.enabled is True
+        assert result is False
 
     def test_build_progress_payload(self, minimizer: LMFit) -> None:
         # When

@@ -18,7 +18,6 @@ from easyscience.variable import Parameter
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
-from .utils import FitCancelled
 from .utils import FitError
 from .utils import FitResults
 
@@ -160,9 +159,6 @@ class LMFit(MinimizerBase):  # noqa: S101
             )
             self._set_parameter_fit_result(model_results, stack_status)
             results = self._gen_fit_results(model_results)
-        except FitCancelled:
-            self._restore_parameter_values()
-            raise
         except Exception as e:
             self._restore_parameter_values()
             raise FitError(e)
@@ -179,9 +175,7 @@ class LMFit(MinimizerBase):  # noqa: S101
 
         def iter_cb(params, iteration: int, residuals: np.ndarray, *args, **kwargs) -> bool:
             payload = self._build_progress_payload(params, iteration, residuals)
-            should_continue = progress_callback(payload)
-            if should_continue is False:
-                raise FitCancelled()
+            progress_callback(payload)
             return False
 
         return iter_cb

@@ -101,8 +101,3 @@ class FitError(Exception):
         if self.e is not None:
             s = f'{self.e}\n'
         return s + 'Something has gone wrong with the fit'
-
-
-class FitCancelled(Exception):
-    def __str__(self) -> str:
-        return 'Fit cancelled by progress callback'

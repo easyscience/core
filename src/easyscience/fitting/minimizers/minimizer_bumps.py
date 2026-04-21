@@ -23,7 +23,6 @@ from easyscience.variable import Parameter
 from ..available_minimizers import AvailableMinimizers
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
-from .utils import FitCancelled
 from .utils import FitError
 from .utils import FitResults
 
@@ -52,7 +51,6 @@ class _BumpsProgressMonitor(Monitor):
         self._owner = owner
         self._problem = problem
         self._callback = callback
-        self.cancel_requested = False
 
     def config_history(self, history):
         history.requires(step=1, point=1, value=1)
@@ -64,9 +62,7 @@ class _BumpsProgressMonitor(Monitor):
             point=np.asarray(history.point[0]),
             nllf=float(history.value[0]),
         )
-        should_continue = self._callback(payload)
-        if should_continue is False:
-            self.cancel_requested = True
+        self._callback(payload)
 
 
 class Bumps(MinimizerBase):
@@ -182,19 +178,14 @@ class Bumps(MinimizerBase):
 
         step_counter = _StepCounterMonitor()
         monitors = [step_counter]
-        progress_monitor = None
         if progress_callback is not None:
-            progress_monitor = _BumpsProgressMonitor(self, problem, progress_callback)
-            monitors.append(progress_monitor)
-
-        abort_test = (lambda: progress_monitor.cancel_requested) if progress_monitor else None
+            monitors.append(_BumpsProgressMonitor(self, problem, progress_callback))
 
         mapper = SerialMapper.start_mapper(problem, [])
         driver = FitDriver(
             fitclass=fitclass,
             problem=problem,
             monitors=monitors,
-            abort_test=abort_test,
             mapper=mapper,
             **minimizer_kwargs,
         )
@@ -208,15 +199,10 @@ class Bumps(MinimizerBase):
 
         try:
             x_result, fx = driver.fit()
-            if progress_monitor is not None and progress_monitor.cancel_requested:
-                raise FitCancelled()
             self._set_parameter_fit_result(x_result, driver, stack_status, problem._parameters)
             results = self._gen_fit_results(
                 x_result, fx, driver, step_counter.last_step, max_evaluations
             )
-        except FitCancelled:
-            self._restore_parameter_values()
-            raise
         except Exception as e:
             self._restore_parameter_values()
             raise FitError(e)
