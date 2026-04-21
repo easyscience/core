@@ -8509,7 +8509,7 @@ fit parameters.</p>
             <span class="n">chi2_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span>
             <span class="n">reduced_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_chi2</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">chi2_val</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">reduced_val</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Chi2 or reduced chi2 is not finite&#39;</span><span class="p">)</span>
             <span class="n">chi2</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">chi2_val</span><span class="si">:</span><span class="s1">.4g</span><span class="si">}</span><span class="s1">&#39;</span>
             <span class="n">reduced</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">reduced_val</span><span class="si">:</span><span class="s1">.4g</span><span class="si">}</span><span class="s1">&#39;</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
