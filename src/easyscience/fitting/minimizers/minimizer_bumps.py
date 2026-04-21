@@ -157,7 +157,7 @@ class Bumps(MinimizerBase):
         minimizer_kwargs.update(engine_kwargs)
 
         if tolerance is not None:
-            minimizer_kwargs['ftol'] = tolerance # tolerance for change in function value
+            minimizer_kwargs['ftol'] = tolerance  # tolerance for change in function value
             minimizer_kwargs['xtol'] = (
                 tolerance  # tolerance for change in parameter value, could be an independent value
             )
@@ -180,7 +180,7 @@ class Bumps(MinimizerBase):
         monitors = [step_counter]
         if progress_callback is not None:
             if not callable(progress_callback):
-                raise ValueError("progress_callback must be callable")
+                raise ValueError('progress_callback must be callable')
             monitors.append(
                 _BumpsProgressMonitor(problem, progress_callback, self._build_progress_payload)
             )

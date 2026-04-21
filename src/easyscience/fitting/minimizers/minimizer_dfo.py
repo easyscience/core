@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import warnings
 from dataclasses import dataclass
 from numbers import Integral
-import warnings
 from typing import Callable
 from typing import Dict
 from typing import List

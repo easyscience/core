@@ -412,8 +412,8 @@ class TestBumpsFit:
         assert payload['chi2'] == 10.0
         assert payload['reduced_chi2'] == 5.0
         assert mock_problem.chisq.call_args_list == [
-            (( ), {'nllf': 5.0, 'norm': False}),
-            (( ), {'nllf': 5.0, 'norm': True}),
+            ((), {'nllf': 5.0, 'norm': False}),
+            ((), {'nllf': 5.0, 'norm': True}),
         ]
 
     def test_current_parameter_snapshot(self, minimizer: Bumps) -> None:
