@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from dataclasses import dataclass
+from numbers import Integral
+import warnings
 from typing import Callable
 from typing import Dict
 from typing import List
-from typing import Optional
 
 import dfols
 import numpy as np
@@ -47,7 +48,7 @@ class DFO(MinimizerBase):
         self,
         obj,  #: ObjBase,
         fit_function: Callable,
-        minimizer_enum: Optional[AvailableMinimizers] = None,
+        minimizer_enum: AvailableMinimizers | None = None,
     ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """Initialize the fitting engine with a `ObjBase` and an
         arbitrary fitting function.
@@ -75,13 +76,13 @@ class DFO(MinimizerBase):
         x: np.ndarray,
         y: np.ndarray,
         weights: np.ndarray,
-        model: Optional[Callable] = None,
-        parameters: Optional[List[Parameter]] = None,
-        method: str = None,
-        tolerance: Optional[float] = None,
-        max_evaluations: Optional[int] = None,
-        progress_callback: Optional[Callable[[dict], Optional[bool]]] = None,
-        callback: Optional[Callable[[DFOCallbackState], None]] = None,
+        model: Callable | None = None,
+        parameters: List[Parameter] | None = None,
+        method: str | None = None,
+        tolerance: float | None = None,
+        max_evaluations: int | None = None,
+        progress_callback: Callable[[dict], bool | None] | None = None,
+        callback: Callable[[DFOCallbackState], None] | None = None,
         callback_every: int = 1,
         callback_on_improvement_only: bool = False,
         **kwargs,
@@ -120,6 +121,9 @@ class DFO(MinimizerBase):
 
         if (weights <= 0).any():
             raise ValueError('Weights must be strictly positive and non-zero.')
+
+        if not isinstance(callback_every, Integral) or isinstance(callback_every, bool):
+            raise ValueError('callback_every must be a positive integer.')
 
         if callback_every < 1:
             raise ValueError('callback_every must be a positive integer.')
@@ -173,7 +177,7 @@ class DFO(MinimizerBase):
             global_object.stack.enabled = stack_status
         return results
 
-    def convert_to_pars_obj(self, par_list: Optional[list] = None):
+    def convert_to_pars_obj(self, par_list: List[Parameter] | None = None):
         """Required by interface but not needed for DFO-LS."""
         pass
 
@@ -184,8 +188,8 @@ class DFO(MinimizerBase):
 
     def _make_model(
         self,
-        parameters: Optional[List[Parameter]] = None,
-        callback: Optional[Callable[[DFOCallbackState], None]] = None,
+        parameters: List[Parameter] | None = None,
+        callback: Callable[[DFOCallbackState], None] | None = None,
         callback_every: int = 1,
         callback_on_improvement_only: bool = False,
     ) -> Callable:
@@ -226,7 +230,7 @@ class DFO(MinimizerBase):
         return _outer(self)
 
     def _get_callback_parameter_names(
-        self, parameters: Optional[List[Parameter]] = None
+        self, parameters: List[Parameter] | None = None
     ) -> list[str]:
         if parameters is not None:
             return [MINIMIZER_PARAMETER_PREFIX + parameter.unique_name for parameter in parameters]
@@ -236,7 +240,7 @@ class DFO(MinimizerBase):
     def _wrap_model_with_callback(
         model: Callable,
         parameter_names: list[str],
-        callback: Optional[Callable[[DFOCallbackState], None]],
+        callback: Callable[[DFOCallbackState], None] | None,
         callback_every: int,
         callback_on_improvement_only: bool,
     ) -> Callable:
@@ -288,7 +292,7 @@ class DFO(MinimizerBase):
 
     @staticmethod
     def _make_progress_adapter(
-        progress_callback: Callable[[dict], Optional[bool]],
+        progress_callback: Callable[[dict], bool | None],
         dof: int,
     ) -> Callable[['DFOCallbackState'], None]:
         """Create a DFO callback that translates DFOCallbackState into
@@ -333,9 +337,7 @@ class DFO(MinimizerBase):
 
         pars = self._cached_pars
         if stack_status:
-            for name in pars.keys():
-                pars[name].value = self._cached_pars_vals[name][0]
-                pars[name].error = self._cached_pars_vals[name][1]
+            self._restore_parameter_values()
             global_object.stack.enabled = True
             global_object.stack.beginMacro('Fitting routine')
 
@@ -373,6 +375,9 @@ class DFO(MinimizerBase):
         results.y_err = weights
         results.n_evaluations = int(fit_results.nf)
         results.message = str(fit_results.msg)
+        if not results.success:
+            warning_message = results.message or 'DFO fit did not succeed.'
+            warnings.warn(warning_message, UserWarning, stacklevel=2)
         # results.residual = results.y_obs - results.y_calc
         # results.goodness_of_fit = fit_results.f
 
@@ -419,8 +424,8 @@ class DFO(MinimizerBase):
 
     @staticmethod
     def _prepare_kwargs(
-        tolerance: Optional[float] = None,
-        max_evaluations: Optional[int] = None,
+        tolerance: float | None = None,
+        max_evaluations: int | None = None,
         **kwargs,
     ) -> dict[str:str]:
         if max_evaluations is not None:

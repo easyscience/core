@@ -4,13 +4,11 @@
 import copy
 from typing import Callable
 from typing import List
-from typing import Optional
 
 import numpy as np
 from bumps.fitters import FIT_AVAILABLE_IDS
 from bumps.fitters import FITTERS
 from bumps.fitters import FitDriver
-from bumps.mapper import SerialMapper
 from bumps.monitor import Monitor
 from bumps.names import Curve
 from bumps.names import FitProblem
@@ -47,16 +45,16 @@ class _StepCounterMonitor(Monitor):
 
 
 class _BumpsProgressMonitor(Monitor):
-    def __init__(self, owner, problem, callback):
-        self._owner = owner
+    def __init__(self, problem, callback, payload_builder):
         self._problem = problem
         self._callback = callback
+        self._payload_builder = payload_builder
 
     def config_history(self, history):
         history.requires(step=1, point=1, value=1)
 
     def __call__(self, history):
-        payload = self._owner._build_progress_payload(
+        payload = self._payload_builder(
             problem=self._problem,
             iteration=int(history.step[0]),
             point=np.asarray(history.point[0]),
@@ -77,7 +75,7 @@ class Bumps(MinimizerBase):
         self,
         obj,  #: ObjBase,
         fit_function: Callable,
-        minimizer_enum: Optional[AvailableMinimizers] = None,
+        minimizer_enum: AvailableMinimizers | None = None,
     ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """Initialize the fitting engine with a `ObjBase` and an
         arbitrary fitting function.
@@ -107,14 +105,14 @@ class Bumps(MinimizerBase):
         x: np.ndarray,
         y: np.ndarray,
         weights: np.ndarray,
-        model: Optional[Callable] = None,
-        parameters: Optional[Parameter] = None,
-        method: Optional[str] = None,
-        tolerance: Optional[float] = None,
-        max_evaluations: Optional[int] = None,
-        progress_callback: Optional[Callable[[dict], Optional[bool]]] = None,
-        minimizer_kwargs: Optional[dict] = None,
-        engine_kwargs: Optional[dict] = None,
+        model: Callable | None = None,
+        parameters: List[Parameter] | None = None,
+        method: str | None = None,
+        tolerance: float | None = None,
+        max_evaluations: int | None = None,
+        progress_callback: Callable[[dict], bool | None] | None = None,
+        minimizer_kwargs: dict | None = None,
+        engine_kwargs: dict | None = None,
         **kwargs,
     ) -> FitResults:
         """Perform a fit using the BUMPS engine.
@@ -159,8 +157,10 @@ class Bumps(MinimizerBase):
         minimizer_kwargs.update(engine_kwargs)
 
         if tolerance is not None:
-            minimizer_kwargs['ftol'] = tolerance
-            minimizer_kwargs['xtol'] = tolerance
+            minimizer_kwargs['ftol'] = tolerance # tolerance for change in function value
+            minimizer_kwargs['xtol'] = (
+                tolerance  # tolerance for change in parameter value, could be an independent value
+            )
         if max_evaluations is not None:
             minimizer_kwargs['steps'] = max_evaluations
 
@@ -179,14 +179,16 @@ class Bumps(MinimizerBase):
         step_counter = _StepCounterMonitor()
         monitors = [step_counter]
         if progress_callback is not None:
-            monitors.append(_BumpsProgressMonitor(self, problem, progress_callback))
+            if not callable(progress_callback):
+                raise ValueError("progress_callback must be callable")
+            monitors.append(
+                _BumpsProgressMonitor(problem, progress_callback, self._build_progress_payload)
+            )
 
-        mapper = SerialMapper.start_mapper(problem, [])
         driver = FitDriver(
             fitclass=fitclass,
             problem=problem,
             monitors=monitors,
-            mapper=mapper,
             **minimizer_kwargs,
         )
         driver.clip()
@@ -221,11 +223,9 @@ class Bumps(MinimizerBase):
         self, problem, iteration: int, point: np.ndarray, nllf: float
     ) -> dict:
         # Use the nllf already computed by the fitter to avoid a costly
-        # model re-evaluation.  For Gaussian likelihoods:
-        #   nllf = sum(residuals**2) / 2  =>  chi2 = 2 * nllf
-        chi2 = 2.0 * nllf
-        dof = problem.dof
-        reduced_chi2 = chi2 / dof if dof > 0 else chi2
+        # model re-evaluation, and let BUMPS apply its own chisq scaling.
+        chi2 = float(problem.chisq(nllf=nllf, norm=False))
+        reduced_chi2 = float(problem.chisq(nllf=nllf, norm=True))
 
         parameter_values = self._current_parameter_snapshot(problem, point)
 
@@ -247,7 +247,7 @@ class Bumps(MinimizerBase):
             snapshot[dict_name] = float(value)
         return snapshot
 
-    def convert_to_pars_obj(self, par_list: Optional[List] = None) -> List[BumpsParameter]:
+    def convert_to_pars_obj(self, par_list: List[Parameter] | None = None) -> List[BumpsParameter]:
         """Create a container with the `Parameters` converted from the
         base object.
 
@@ -282,7 +282,7 @@ class Bumps(MinimizerBase):
             fixed=obj.fixed,
         )
 
-    def _make_model(self, parameters: Optional[List[BumpsParameter]] = None) -> Callable:
+    def _make_model(self, parameters: List[BumpsParameter] | None = None) -> Callable:
         """Generate a bumps model from the supplied `fit_function` and
         parameters in the base object. Note that this makes a callable
         as it needs to be initialized with *x*, *y*, *weights*
@@ -334,9 +334,7 @@ class Bumps(MinimizerBase):
         stderr = driver.stderr()
 
         if stack_status:
-            for name in pars.keys():
-                pars[name].value = self._cached_pars_vals[name][0]
-                pars[name].error = self._cached_pars_vals[name][1]
+            self._restore_parameter_values()
             global_object.stack.enabled = True
             global_object.stack.beginMacro('Fitting routine')
 
@@ -353,7 +351,7 @@ class Bumps(MinimizerBase):
         fx: float,
         driver: FitDriver,
         n_evaluations: int = 0,
-        max_evaluations: Optional[int] = None,
+        max_evaluations: int | None = None,
         **kwargs,
     ) -> FitResults:
         """Convert fit results into the unified `FitResults` format.

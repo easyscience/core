@@ -248,14 +248,15 @@ class TestDFOFit:
         assert state.evaluation == 2
         assert all(state.xk == np.array([1222, 2333]))
 
-    def test_fit_callback_every_must_be_positive(self, minimizer: DFO) -> None:
+    @pytest.mark.parametrize('callback_every', [0, 1.3])
+    def test_fit_callback_every_must_be_positive(self, minimizer: DFO, callback_every) -> None:
         with pytest.raises(ValueError, match='callback_every must be a positive integer'):
             minimizer.fit(
                 x=np.array([1.0]),
                 y=np.array([1.0]),
                 weights=np.array([1.0]),
                 callback=MagicMock(),
-                callback_every=0,
+                callback_every=callback_every,
             )
 
     def test_set_parameter_fit_result_no_stack_status(self, minimizer: DFO):
@@ -367,7 +368,8 @@ class TestDFOFit:
         minimizer._p_0 = 'p_0'
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
-        domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
+        with pytest.warns(UserWarning, match='Objective has been called MAXFUN times'):
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
 
         assert domain_fit_results.success == False
         assert domain_fit_results.n_evaluations == 50

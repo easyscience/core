@@ -61,12 +61,6 @@ class TestBumpsFit:
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
         )
 
-        mock_SerialMapper = MagicMock()
-        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
-        )
-
         # Prepare a mock parameter with .name = 'pmock_parm_1'
         mock_bumps_param = MagicMock()
         mock_bumps_param.name = 'pmock_parm_1'
@@ -310,12 +304,6 @@ class TestBumpsFit:
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
         )
 
-        mock_SerialMapper = MagicMock()
-        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
-        )
-
         mock_bumps_param = MagicMock()
         mock_bumps_param.name = 'pmock_parm_1'
         mock_FitProblem_instance = MagicMock()
@@ -348,16 +336,19 @@ class TestBumpsFit:
         assert len(monitors) == 2
         assert isinstance(monitors[0], _StepCounterMonitor)
         assert isinstance(monitors[1], _BumpsProgressMonitor)
+        assert monitors[1]._problem is mock_FitProblem_instance
+        assert monitors[1]._callback is progress_callback
+        assert monitors[1]._payload_builder == minimizer._build_progress_payload
 
     def test_build_progress_payload(self, minimizer: Bumps) -> None:
         # When
         mock_problem = MagicMock()
-        mock_problem.dof = 2
+        mock_problem.chisq.side_effect = [25.0, 12.5]
         mock_problem.labels.return_value = ['palpha', 'pbeta']
         mock_problem.getp.return_value = np.array([1.0, 2.0])
 
         point = np.array([1.0, 2.0])
-        nllf = 12.5  # chi2 = 2 * 12.5 = 25.0; reduced = 25.0 / 2 = 12.5
+        nllf = 12.5
 
         # Then
         payload = minimizer._build_progress_payload(mock_problem, 7, point, nllf)
@@ -371,13 +362,15 @@ class TestBumpsFit:
             'refresh_plots': False,
             'finished': False,
         }
+        mock_problem.chisq.assert_any_call(nllf=nllf, norm=False)
+        mock_problem.chisq.assert_any_call(nllf=nllf, norm=True)
         # setp should NOT be called – the monitor avoids model re-evaluation
         mock_problem.setp.assert_not_called()
 
     def test_build_progress_payload_keys_match_lmfit(self, minimizer: Bumps) -> None:
         # When
         mock_problem = MagicMock()
-        mock_problem.dof = 2
+        mock_problem.chisq.side_effect = [10.0, 5.0]
         mock_problem.labels.return_value = ['pa']
         mock_problem.getp.return_value = np.array([5.0])
 
@@ -404,9 +397,9 @@ class TestBumpsFit:
         assert payload['finished'] is False
 
     def test_build_progress_payload_reduced_chi2_positive_dof(self, minimizer: Bumps) -> None:
-        # When - dof = 2, nllf = 5.0 -> chi2 = 10.0 -> reduced = 5.0
+        # When - use BUMPS chisq helpers for raw and normalized values
         mock_problem = MagicMock()
-        mock_problem.dof = 2
+        mock_problem.chisq.side_effect = [10.0, 5.0]
         mock_problem.labels.return_value = ['pa']
         mock_problem.getp.return_value = np.array([5.0])
 
@@ -416,8 +409,12 @@ class TestBumpsFit:
         payload = minimizer._build_progress_payload(mock_problem, 1, np.array([5.0]), nllf=5.0)
 
         # Expect
-        assert payload['chi2'] == 10.0  # 2 * nllf
-        assert payload['reduced_chi2'] == 5.0  # 10.0 / 2
+        assert payload['chi2'] == 10.0
+        assert payload['reduced_chi2'] == 5.0
+        assert mock_problem.chisq.call_args_list == [
+            (( ), {'nllf': 5.0, 'norm': False}),
+            (( ), {'nllf': 5.0, 'norm': True}),
+        ]
 
     def test_current_parameter_snapshot(self, minimizer: Bumps) -> None:
         # When
@@ -436,9 +433,9 @@ class TestBumpsFit:
         # When
         callback = MagicMock(return_value=True)
         mock_problem = MagicMock()
+        payload_builder = MagicMock(return_value={'iteration': 1})
 
-        monitor = _BumpsProgressMonitor(minimizer, mock_problem, callback)
-        minimizer._build_progress_payload = MagicMock(return_value={'iteration': 1})
+        monitor = _BumpsProgressMonitor(mock_problem, callback, payload_builder)
 
         mock_history = MagicMock()
         mock_history.step = [5]
@@ -450,7 +447,7 @@ class TestBumpsFit:
 
         # Expect
         callback.assert_called_once_with({'iteration': 1})
-        minimizer._build_progress_payload.assert_called_once_with(
+        payload_builder.assert_called_once_with(
             problem=mock_problem,
             iteration=5,
             point=ANY,
@@ -476,12 +473,6 @@ class TestBumpsFit:
         mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
-        )
-
-        mock_SerialMapper = MagicMock()
-        mock_SerialMapper.start_mapper = MagicMock(return_value='mapper')
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps, 'SerialMapper', mock_SerialMapper
         )
 
         mock_FitProblem_instance = MagicMock()

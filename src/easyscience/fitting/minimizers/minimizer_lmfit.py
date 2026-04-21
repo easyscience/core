@@ -3,7 +3,6 @@
 
 from typing import Callable
 from typing import List
-from typing import Optional
 
 import numpy as np
 from lmfit import Model as LMModel
@@ -34,7 +33,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         self,
         obj,  #: ObjBase,
         fit_function: Callable,
-        minimizer_enum: Optional[AvailableMinimizers] = None,
+        minimizer_enum: AvailableMinimizers | None = None,
     ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """Initialize the minimizer with the `ObjBase` and the
         `fit_function` to be used.
@@ -81,14 +80,14 @@ class LMFit(MinimizerBase):  # noqa: S101
         x: np.ndarray,
         y: np.ndarray,
         weights: np.ndarray = None,
-        model: Optional[LMModel] = None,
-        parameters: Optional[LMParameters] = None,
-        method: Optional[str] = None,
-        tolerance: Optional[float] = None,
-        max_evaluations: Optional[int] = None,
-        progress_callback: Optional[Callable[[dict], Optional[bool]]] = None,
-        minimizer_kwargs: Optional[dict] = None,
-        engine_kwargs: Optional[dict] = None,
+        model: LMModel | None = None,
+        parameters: LMParameters | None = None,
+        method: str | None = None,
+        tolerance: float | None = None,
+        max_evaluations: int | None = None,
+        progress_callback: Callable[[dict], bool | None] | None = None,
+        minimizer_kwargs: dict | None = None,
+        engine_kwargs: dict | None = None,
         **kwargs,
     ) -> FitResults:
         """Perform a fit using the lmfit engine.
@@ -168,8 +167,8 @@ class LMFit(MinimizerBase):  # noqa: S101
 
     def _create_iter_callback(
         self,
-        progress_callback: Optional[Callable[[dict], Optional[bool]]],
-    ) -> Optional[Callable]:
+        progress_callback: Callable[[dict], bool | None] | None,
+    ) -> Callable | None:
         if progress_callback is None:
             return None
 
@@ -218,7 +217,7 @@ class LMFit(MinimizerBase):  # noqa: S101
                 minimizer_kwargs['tol'] = tolerance
         return minimizer_kwargs
 
-    def convert_to_pars_obj(self, parameters: Optional[List[Parameter]] = None) -> LMParameters:
+    def convert_to_pars_obj(self, parameters: List[Parameter] | None = None) -> LMParameters:
         """Create an lmfit compatible container with the `Parameters`
         converted from the base object.
 
@@ -254,7 +253,7 @@ class LMFit(MinimizerBase):  # noqa: S101
             brute_step=None,
         )
 
-    def _make_model(self, pars: Optional[LMParameters] = None) -> LMModel:
+    def _make_model(self, pars: LMParameters | None = None) -> LMModel:
         """Generate a lmfit model from the supplied `fit_function` and
         parameters in the base object.
 
@@ -304,9 +303,7 @@ class LMFit(MinimizerBase):  # noqa: S101
 
         pars = self._cached_pars
         if stack_status:
-            for name in pars.keys():
-                pars[name].value = self._cached_pars_vals[name][0]
-                pars[name].error = self._cached_pars_vals[name][1]
+            self._restore_parameter_values()
             global_object.stack.enabled = True
             global_object.stack.beginMacro('Fitting routine')
         for name in pars.keys():
