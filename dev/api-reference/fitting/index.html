@@ -4845,7 +4845,20 @@ It allows for the Bumps fitting engine to use parameters declared in an <code>Ea
 <span class="normal">339</span>
 <span class="normal">340</span>
 <span class="normal">341</span>
-<span class="normal">342</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Bumps</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Bumps</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is a wrapper to Bumps: https://bumps.readthedocs.io/</span>
 <span class="sd">    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.</span>
@@ -5091,10 +5104,23 @@ It allows for the Bumps fitting engine to use parameters declared in an <code>Ea
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="n">n_evaluations</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_counter</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_counter</span><span class="o">.</span><span class="n">count</span>
-        <span class="n">stopped_on_budget</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">max_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="o">&gt;=</span> <span class="n">max_evaluations</span>
+        <span class="c1"># BUMPS exposes `nit` as the last reported optimizer step index rather than the</span>
+        <span class="c1"># total number of objective calls. We keep `n_evaluations` as objective-call</span>
+        <span class="c1"># count for cross-backend consistency with LMFit (`nfev`) and DFO-LS (`nf`).</span>
+        <span class="n">n_iterations</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fit_results</span><span class="p">,</span> <span class="s1">&#39;nit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># Convert the zero-based step index into the number of optimizer steps that have</span>
+        <span class="c1"># actually been consumed against the configured BUMPS `steps` budget.</span>
+        <span class="n">n_steps_used</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">n_iterations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">n_iterations</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">stopped_on_budget</span> <span class="o">=</span> <span class="n">max_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="c1"># For BUMPS, `max_evaluations` is forwarded as `steps`, so budget</span>
+            <span class="c1"># exhaustion must be checked against consumed optimizer steps, not raw</span>
+            <span class="c1"># objective evaluations, which can legitimately exceed the step budget.</span>
+            <span class="p">(</span><span class="n">n_steps_used</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_steps_used</span> <span class="o">&gt;=</span> <span class="n">max_evaluations</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span>
+                <span class="n">n_iterations</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">n_evaluations</span> <span class="o">&gt;=</span> <span class="n">max_evaluations</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
         <span class="n">results</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">success</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">stopped_on_budget</span>
