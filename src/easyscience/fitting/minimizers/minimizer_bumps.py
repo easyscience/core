@@ -290,10 +290,23 @@ class Bumps(MinimizerBase):
             if getattr(results, name, False):
                 setattr(results, name, value)
         n_evaluations = None if self._eval_counter is None else self._eval_counter.count
-        stopped_on_budget = (
-            max_evaluations is not None
-            and n_evaluations is not None
-            and n_evaluations >= max_evaluations
+        # BUMPS exposes `nit` as the last reported optimizer step index rather than the
+        # total number of objective calls. We keep `n_evaluations` as objective-call
+        # count for cross-backend consistency with LMFit (`nfev`) and DFO-LS (`nf`).
+        n_iterations = getattr(fit_results, 'nit', None)
+        # Convert the zero-based step index into the number of optimizer steps that have
+        # actually been consumed against the configured BUMPS `steps` budget.
+        n_steps_used = None if n_iterations is None else n_iterations + 1
+        stopped_on_budget = max_evaluations is not None and (
+            # For BUMPS, `max_evaluations` is forwarded as `steps`, so budget
+            # exhaustion must be checked against consumed optimizer steps, not raw
+            # objective evaluations, which can legitimately exceed the step budget.
+            (n_steps_used is not None and n_steps_used >= max_evaluations)
+            or (
+                n_iterations is None
+                and n_evaluations is not None
+                and n_evaluations >= max_evaluations
+            )
         )
 
         results.success = fit_results.success and not stopped_on_budget

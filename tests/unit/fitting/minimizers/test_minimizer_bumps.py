@@ -186,7 +186,7 @@ class TestBumpsFit:
 
         mock_fit_result = MagicMock()
         mock_fit_result.success = True
-        mock_fit_result.nit = 2  # nit >= max_evaluations - 1 → budget exhausted
+        mock_fit_result.nit = 2
 
         mock_cached_model = MagicMock()
         mock_cached_model.x = 'x'
@@ -238,9 +238,7 @@ class TestBumpsFit:
             'x', minimizer_parameters={'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
         )
 
-    def test_gen_fit_results_uses_n_evaluations_for_budget_check(
-        self, minimizer: Bumps, monkeypatch
-    ):
+    def test_gen_fit_results_uses_nit_for_budget_check(self, minimizer: Bumps, monkeypatch):
         mock_domain_fit_results = MagicMock()
         mock_FitResults = MagicMock(return_value=mock_domain_fit_results)
         monkeypatch.setattr(
@@ -266,11 +264,12 @@ class TestBumpsFit:
         minimizer._eval_counter = MagicMock(count=2)
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
-        with warnings.catch_warnings(record=True) as record:
-            warnings.simplefilter('always')
+        with pytest.warns(UserWarning, match='maximum optimizer steps of 3'):
             domain_fit_results = minimizer._gen_fit_results(mock_fit_result, max_evaluations=3)
 
-        assert len(record) == 0
-        assert domain_fit_results.success == True
+        assert domain_fit_results.success == False
         assert domain_fit_results.n_evaluations == 2
-        assert domain_fit_results.message == ''
+        assert (
+            domain_fit_results.message
+            == 'Fit stopped: reached maximum optimizer steps (3); objective evaluated 2 times'
+        )
