@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import warnings
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -89,7 +90,11 @@ class TestBumpsFit:
         assert result == 'gen_fit_results'
         mock_bumps_fit.assert_called_once_with(mock_FitProblem_instance, method='amoeba')
         minimizer._make_model.assert_called_once_with(parameters=None)
-        minimizer._gen_fit_results.assert_called_once_with('fit', max_evaluations=None)
+        minimizer._gen_fit_results.assert_called_once_with(
+            'fit',
+            max_evaluations=None,
+            tolerance=None,
+        )
         mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
 
@@ -201,11 +206,12 @@ class TestBumpsFit:
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
         # Then
-        domain_fit_results = minimizer._gen_fit_results(
-            mock_fit_result,
-            max_evaluations=3,
-            **{'kwargs_set_key': 'kwargs_set_val'},
-        )
+        with pytest.warns(UserWarning, match='maximum optimizer steps of 3'):
+            domain_fit_results = minimizer._gen_fit_results(
+                mock_fit_result,
+                max_evaluations=3,
+                **{'kwargs_set_key': 'kwargs_set_val'},
+            )
 
         # Expect
         assert domain_fit_results == mock_domain_fit_results
@@ -218,7 +224,10 @@ class TestBumpsFit:
         assert domain_fit_results.y_calc == 'evaluate'
         assert domain_fit_results.y_err == 'dy'
         assert domain_fit_results.n_evaluations == 7
-        assert domain_fit_results.message == 'Fit stopped: reached maximum evaluations (3)'
+        assert (
+            domain_fit_results.message
+            == 'Fit stopped: reached maximum optimizer steps (3); objective evaluated 7 times'
+        )
         assert (
             str(domain_fit_results.minimizer_engine)
             == "<class 'easyscience.fitting.minimizers.minimizer_bumps.Bumps'>"
@@ -257,8 +266,11 @@ class TestBumpsFit:
         minimizer._eval_counter = MagicMock(count=2)
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
-        domain_fit_results = minimizer._gen_fit_results(mock_fit_result, max_evaluations=3)
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter('always')
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, max_evaluations=3)
 
+        assert len(record) == 0
         assert domain_fit_results.success == True
         assert domain_fit_results.n_evaluations == 2
         assert domain_fit_results.message == ''

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import warnings
 from typing import Callable
 from typing import Dict
 from typing import List
@@ -213,6 +214,8 @@ class DFO(MinimizerBase):
             if getattr(results, name, False):
                 setattr(results, name, value)
         results.success = fit_results.flag == fit_results.EXIT_SUCCESS
+        if fit_results.flag == fit_results.EXIT_MAXFUN_WARNING:
+            warnings.warn(str(fit_results.msg), UserWarning)
 
         pars = {}
         for p_name, par in self._cached_pars.items():
@@ -265,6 +268,8 @@ class DFO(MinimizerBase):
 
         results = dfols.solve(model, pars_values, bounds=bounds, **kwargs)
 
+        # DFO-LS uses EXIT_MAXFUN_WARNING when it stops on the evaluation budget;
+        # we still return the partial fit result and let the unified result mark it as non-success.
         if results.flag in {results.EXIT_SUCCESS, results.EXIT_MAXFUN_WARNING}:
             return results
 

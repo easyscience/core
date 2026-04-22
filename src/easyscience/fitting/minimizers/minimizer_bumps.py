@@ -4,6 +4,7 @@
 import copy
 import functools
 import inspect
+import warnings
 from typing import Callable
 from typing import List
 from typing import Optional
@@ -164,7 +165,11 @@ class Bumps(MinimizerBase):
         try:
             model_results = bumps_fit(problem, **method_dict, **minimizer_kwargs, **kwargs)
             self._set_parameter_fit_result(model_results, stack_status, problem._parameters)
-            results = self._gen_fit_results(model_results, max_evaluations=max_evaluations)
+            results = self._gen_fit_results(
+                model_results,
+                max_evaluations=max_evaluations,
+                tolerance=tolerance,
+            )
         except Exception as e:
             for key in self._cached_pars.keys():
                 self._cached_pars[key].value = self._cached_pars_vals[key][0]
@@ -270,6 +275,7 @@ class Bumps(MinimizerBase):
         self,
         fit_results,
         max_evaluations: Optional[int] = None,
+        tolerance: Optional[float] = None,
         **kwargs,
     ) -> FitResults:
         """Convert fit results into the unified `FitResults` format.
@@ -278,8 +284,8 @@ class Bumps(MinimizerBase):
         :return: fit results container
         :rtype: FitResults
         """
-
         results = FitResults()
+
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
@@ -305,11 +311,28 @@ class Bumps(MinimizerBase):
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = self._cached_model.dy
         results.n_evaluations = n_evaluations
-        results.message = (
-            f'Fit stopped: reached maximum evaluations ({max_evaluations})'
-            if stopped_on_budget
-            else ''
-        )
+        results.message = ''
+        if stopped_on_budget:
+            results.message = (
+                f'Fit stopped: reached maximum optimizer steps ({max_evaluations}); '
+                f'objective evaluated {n_evaluations} times'
+            )
+        if stopped_on_budget:
+            if tolerance is None:
+                warnings.warn(
+                    f'Fit did not converge within the maximum optimizer steps of {max_evaluations} '
+                    f'({n_evaluations} objective evaluations). '
+                    'Consider increasing the maximum number of evaluations or adjusting the tolerance.',
+                    UserWarning,
+                )
+            else:
+                warnings.warn(
+                    f'Fit did not reach the desired tolerance of {tolerance} within the maximum optimizer steps of {max_evaluations} '
+                    f'({n_evaluations} objective evaluations). '
+                    'Consider increasing the maximum number of evaluations or adjusting the tolerance.',
+                    UserWarning,
+                )
+
         # results.residual = results.y_obs - results.y_calc
         # results.goodness_of_fit = np.sum(results.residual**2)
         results.minimizer_engine = self.__class__

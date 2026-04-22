@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import warnings
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -221,12 +222,32 @@ class TestLMFit:
         fit_results.nfev = 9
         fit_results.message = 'max evaluations reached'
 
-        result = minimizer._gen_fit_results(fit_results)
+        with pytest.warns(UserWarning, match='max evaluations reached'):
+            result = minimizer._gen_fit_results(fit_results)
 
         assert result.success is False
         assert result.n_evaluations == 9
         assert result.message == 'max evaluations reached'
         assert result.engine_result == fit_results
+
+    def test_gen_fit_results_success_does_not_warn(self, minimizer: LMFit) -> None:
+        fit_results = MagicMock()
+        fit_results.success = True
+        fit_results.data = 'data'
+        fit_results.userkws = {'x': 'x'}
+        fit_results.values = {'p1': 1.0}
+        fit_results.init_values = {'p1': 0.5}
+        fit_results.best_fit = 'best_fit'
+        fit_results.weights = 2
+        fit_results.nfev = 3
+        fit_results.message = 'success'
+
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter('always')
+            result = minimizer._gen_fit_results(fit_results)
+
+        assert len(record) == 0
+        assert result.success is True
 
     def test_convert_to_pars_obj(self, minimizer: LMFit, monkeypatch) -> None:
         # When
