@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import copy
+import warnings
 from typing import Callable
 from typing import List
 
@@ -364,8 +365,8 @@ class Bumps(MinimizerBase):
         :return: fit results container
         :rtype: FitResults
         """
-
         results = FitResults()
+
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
@@ -375,6 +376,11 @@ class Bumps(MinimizerBase):
         if max_evaluations is not None and n_evaluations >= max_evaluations - 1:
             results.success = False
             results.message = f'Maximum number of evaluations ({max_evaluations}) reached'
+            warnings.warn(
+                f'Fit did not converge within the maximum number of evaluations ({max_evaluations}). '
+                'Consider increasing the maximum number of evaluations or adjusting the tolerance.',
+                UserWarning,
+            )
         else:
             results.success = True
             results.message = 'Optimization terminated successfully'
