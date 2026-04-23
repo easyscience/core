@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import warnings
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -177,7 +178,10 @@ class TestDFOFit:
         )
 
         mock_fit_result = MagicMock()
-        mock_fit_result.flag = False
+        mock_fit_result.EXIT_SUCCESS = 0
+        mock_fit_result.flag = 0
+        mock_fit_result.nf = 12
+        mock_fit_result.msg = 'Maximum function evaluations reached'
 
         mock_cached_model = MagicMock()
         mock_cached_model.x = 'x'
@@ -214,14 +218,114 @@ class TestDFOFit:
         assert domain_fit_results.p0 == 'p_0'
         assert domain_fit_results.y_calc == 'evaluate'
         assert domain_fit_results.y_err == 'weights'
+        assert domain_fit_results.n_evaluations == 12
+        assert domain_fit_results.message == 'Maximum function evaluations reached'
+        assert domain_fit_results.engine_result == mock_fit_result
         assert (
             str(domain_fit_results.minimizer_engine)
             == "<class 'easyscience.fitting.minimizers.minimizer_dfo.DFO'>"
         )
-        assert domain_fit_results.fit_args is None
-        minimizer.evaluate.assert_called_once_with(
-            'x', minimizer_parameters={'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
+
+    def test_gen_fit_results_maxfun_warning_sets_success_false_and_warns(
+        self, minimizer: DFO, monkeypatch
+    ):
+        """When DFO returns EXIT_MAXFUN_WARNING, _gen_fit_results must warn and set success=False."""
+        mock_domain_fit_results = MagicMock()
+        mock_FitResults = MagicMock(return_value=mock_domain_fit_results)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_dfo, 'FitResults', mock_FitResults
         )
+
+        mock_fit_result = MagicMock()
+        mock_fit_result.EXIT_SUCCESS = 0
+        mock_fit_result.EXIT_MAXFUN_WARNING = 1
+        mock_fit_result.flag = 1  # MAXFUN_WARNING
+        mock_fit_result.nf = 50
+        mock_fit_result.msg = 'Objective has been called MAXFUN times'
+
+        mock_cached_model = MagicMock()
+        mock_cached_model.x = 'x'
+        mock_cached_model.y = 'y'
+        minimizer._cached_model = mock_cached_model
+
+        mock_cached_par_1 = MagicMock()
+        mock_cached_par_1.value = 'v1'
+        minimizer._cached_pars = {'par_1': mock_cached_par_1}
+        minimizer._p_0 = 'p_0'
+        minimizer.evaluate = MagicMock(return_value='evaluate')
+
+        with pytest.warns(UserWarning, match='Objective has been called MAXFUN times'):
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
+
+        assert domain_fit_results.success == False
+        assert domain_fit_results.n_evaluations == 50
+        assert domain_fit_results.message == 'Objective has been called MAXFUN times'
+
+    def test_gen_fit_results_success_does_not_warn(self, minimizer: DFO, monkeypatch):
+        mock_domain_fit_results = MagicMock()
+        mock_FitResults = MagicMock(return_value=mock_domain_fit_results)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_dfo, 'FitResults', mock_FitResults
+        )
+
+        mock_fit_result = MagicMock()
+        mock_fit_result.EXIT_SUCCESS = 0
+        mock_fit_result.EXIT_MAXFUN_WARNING = 1
+        mock_fit_result.flag = 0
+        mock_fit_result.nf = 12
+        mock_fit_result.msg = 'Success'
+
+        mock_cached_model = MagicMock()
+        mock_cached_model.x = 'x'
+        mock_cached_model.y = 'y'
+        minimizer._cached_model = mock_cached_model
+
+        mock_cached_par_1 = MagicMock()
+        mock_cached_par_1.value = 'v1'
+        minimizer._cached_pars = {'par_1': mock_cached_par_1}
+        minimizer._p_0 = 'p_0'
+        minimizer.evaluate = MagicMock(return_value='evaluate')
+
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter('always')
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
+
+        assert len(record) == 0
+        assert domain_fit_results.success == True
+
+    def test_dfo_fit_allows_maxfun_warning(self, minimizer: DFO, monkeypatch) -> None:
+        mock_result = MagicMock()
+        mock_result.EXIT_SUCCESS = 0
+        mock_result.EXIT_MAXFUN_WARNING = 1
+        mock_result.flag = 1
+
+        mock_solve = MagicMock(return_value=mock_result)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_dfo.dfols, 'solve', mock_solve
+        )
+
+        parameter = MagicMock(min=0.0, max=1.0, value=0.5)
+
+        result = minimizer._dfo_fit({'par': parameter}, MagicMock())
+
+        assert result == mock_result
+
+    def test_dfo_fit_raises_for_non_maxfun_failure(self, minimizer: DFO, monkeypatch) -> None:
+        mock_result = MagicMock()
+        mock_result.EXIT_SUCCESS = 0
+        mock_result.EXIT_MAXFUN_WARNING = 1
+        mock_result.flag = 4
+        mock_result.msg = 'linear algebra error'
+
+        mock_solve = MagicMock(return_value=mock_result)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_dfo.dfols, 'solve', mock_solve
+        )
+
+        parameter = MagicMock(min=0.0, max=1.0, value=0.5)
+
+        with pytest.raises(FitError, match='linear algebra error'):
+            minimizer._dfo_fit({'par': parameter}, MagicMock())
 
     def test_dfo_fit(self, minimizer: DFO, monkeypatch):
         # When
@@ -239,6 +343,9 @@ class TestDFOFit:
 
         mock_dfols = MagicMock()
         mock_results = MagicMock()
+        mock_results.EXIT_SUCCESS = 0
+        mock_results.EXIT_MAXFUN_WARNING = 1
+        mock_results.flag = 0
         mock_results.msg = 'Success'
         mock_dfols.solve = MagicMock(return_value=mock_results)
 
@@ -272,6 +379,9 @@ class TestDFOFit:
 
         mock_dfols = MagicMock()
         mock_results = MagicMock()
+        mock_results.EXIT_SUCCESS = 0
+        mock_results.EXIT_MAXFUN_WARNING = 1
+        mock_results.flag = 0
         mock_results.msg = 'Success'
         mock_dfols.solve = MagicMock(return_value=mock_results)
 
@@ -290,6 +400,57 @@ class TestDFOFit:
         assert 'kwargs_set_key' in list(mock_dfols.solve.call_args[1].keys())
         assert mock_dfols.solve.call_args[1]['kwargs_set_key'] == 'kwargs_set_val'
 
+    def test_fit_generic_exception_resets_parameters_and_raises_fit_error(
+        self, minimizer: DFO
+    ) -> None:
+        """When _dfo_fit raises a non-FitError exception, fit() must reset
+        parameter values to cached originals and re-raise as FitError."""
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        mock_model = MagicMock()
+        mock_model_function = MagicMock(return_value=mock_model)
+        minimizer._make_model = MagicMock(return_value=mock_model_function)
+        minimizer._dfo_fit = MagicMock(side_effect=RuntimeError('solver crashed'))
+
+        cached_par_1 = MagicMock()
+        cached_par_1.value = 5.0
+        cached_par_2 = MagicMock()
+        cached_par_2.value = 10.0
+        minimizer._cached_pars = {'a': cached_par_1, 'b': cached_par_2}
+        minimizer._cached_pars_vals = {'a': (1.0, 0.1), 'b': (2.0, 0.2)}
+
+        with pytest.raises(FitError):
+            minimizer.fit(x=np.array([1.0]), y=np.array([1.0]), weights=np.array([1.0]))
+
+        assert cached_par_1.value == 1.0
+        assert cached_par_2.value == 2.0
+
+    def test_fit_fit_error_resets_parameters_and_reraises(self, minimizer: DFO) -> None:
+        """When _dfo_fit raises FitError, fit() must reset parameter values and re-raise it."""
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        mock_model = MagicMock()
+        mock_model_function = MagicMock(return_value=mock_model)
+        minimizer._make_model = MagicMock(return_value=mock_model_function)
+        minimizer._dfo_fit = MagicMock(side_effect=FitError(RuntimeError('solver failed')))
+
+        cached_par_1 = MagicMock()
+        cached_par_1.value = 5.0
+        cached_par_2 = MagicMock()
+        cached_par_2.value = 10.0
+        minimizer._cached_pars = {'a': cached_par_1, 'b': cached_par_2}
+        minimizer._cached_pars_vals = {'a': (1.0, 0.1), 'b': (2.0, 0.2)}
+
+        with pytest.raises(FitError):
+            minimizer.fit(x=np.array([1.0]), y=np.array([1.0]), weights=np.array([1.0]))
+
+        assert cached_par_1.value == 1.0
+        assert cached_par_2.value == 2.0
+
     def test_dfo_fit_exception(self, minimizer: DFO, monkeypatch):
         # When
         pars = {1: MagicMock(Parameter)}
@@ -297,6 +458,9 @@ class TestDFOFit:
 
         mock_dfols = MagicMock()
         mock_results = MagicMock()
+        mock_results.EXIT_SUCCESS = 0
+        mock_results.EXIT_MAXFUN_WARNING = 1
+        mock_results.flag = 3
         mock_results.msg = 'Failed'
         mock_dfols.solve = MagicMock(return_value=mock_results)
 

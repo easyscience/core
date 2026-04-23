@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import warnings
 from typing import Callable
 from typing import Dict
 from typing import List
@@ -122,6 +123,10 @@ class DFO(MinimizerBase):
             model_results = self._dfo_fit(self._cached_pars, model, **kwargs)
             self._set_parameter_fit_result(model_results, stack_status)
             results = self._gen_fit_results(model_results, weights)
+        except FitError:
+            for key in self._cached_pars.keys():
+                self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            raise
         except Exception as e:
             for key in self._cached_pars.keys():
                 self._cached_pars[key].value = self._cached_pars_vals[key][0]
@@ -208,7 +213,11 @@ class DFO(MinimizerBase):
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
-        results.success = not bool(fit_results.flag)
+        # DFO-LS stores fixed exit-code constants on each result object;
+        # EXIT_SUCCESS is 0 and EXIT_MAXFUN_WARNING keeps a different flag value.
+        results.success = fit_results.flag == fit_results.EXIT_SUCCESS
+        if fit_results.flag == fit_results.EXIT_MAXFUN_WARNING:
+            warnings.warn(str(fit_results.msg), UserWarning)
 
         pars = {}
         for p_name, par in self._cached_pars.items():
@@ -220,11 +229,14 @@ class DFO(MinimizerBase):
         results.y_obs = self._cached_model.y
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = weights
+        results.n_evaluations = int(fit_results.nf)
+        results.message = str(fit_results.msg)
         # results.residual = results.y_obs - results.y_calc
         # results.goodness_of_fit = fit_results.f
 
         results.minimizer_engine = self.__class__
         results.fit_args = None
+        results.engine_result = fit_results
         # results.check_sanity()
 
         return results
@@ -258,10 +270,12 @@ class DFO(MinimizerBase):
 
         results = dfols.solve(model, pars_values, bounds=bounds, **kwargs)
 
-        if 'Success' not in results.msg:
-            raise FitError(f'Fit failed with message: {results.msg}')
+        # DFO-LS uses EXIT_MAXFUN_WARNING when it stops on the evaluation budget;
+        # we still return the partial fit result and let the unified result mark it as non-success.
+        if results.flag in {results.EXIT_SUCCESS, results.EXIT_MAXFUN_WARNING}:
+            return results
 
-        return results
+        raise FitError(f'Fit failed with message: {results.msg}')
 
     @staticmethod
     def _prepare_kwargs(
