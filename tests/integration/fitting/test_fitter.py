@@ -252,6 +252,35 @@ def test_max_evaluations_populates_fit_result_fields(fit_engine):
 
 
 @pytest.mark.fast
+def test_bumps_max_evaluations_counts_objective_calls() -> None:
+    """Bumps reports actual objective calls, which can exceed the step budget."""
+    ref_sin = AbsSin(0.2, np.pi)
+    sp_sin = AbsSin(0.354, 3.05)
+
+    x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
+    y = ref_sin(x)
+
+    sp_sin.offset.fixed = False
+    sp_sin.phase.fixed = False
+
+    f = Fitter(sp_sin, sp_sin)
+    try:
+        f.switch_minimizer(AvailableMinimizers.Bumps)
+    except AttributeError:
+        pytest.skip(msg=f'{AvailableMinimizers.Bumps} is not installed')
+
+    f.max_evaluations = 3
+    result = f.fit(x=x, y=y, weights=weights)
+
+    assert result.success is False
+    assert result.n_evaluations is not None
+    assert result.n_evaluations > f.max_evaluations
+    assert f'maximum optimizer steps ({f.max_evaluations})' in result.message
+    assert f'objective evaluated {result.n_evaluations} times' in result.message
+
+
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine,tolerance',
     [

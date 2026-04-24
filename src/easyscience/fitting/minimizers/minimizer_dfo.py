@@ -364,6 +364,8 @@ class DFO(MinimizerBase):
         # DFO-LS stores fixed exit-code constants on each result object;
         # EXIT_SUCCESS is 0 and EXIT_MAXFUN_WARNING keeps a different flag value.
         results.success = fit_results.flag == fit_results.EXIT_SUCCESS
+        if fit_results.flag == fit_results.EXIT_MAXFUN_WARNING:
+            warnings.warn(str(fit_results.msg), UserWarning)
 
         pars = {}
         for p_name, par in self._cached_pars.items():
