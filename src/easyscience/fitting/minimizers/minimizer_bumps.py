@@ -343,7 +343,8 @@ class Bumps(MinimizerBase):
         """Update parameters to their final values and assign a std
         error to them.
 
-        :param fit_result: BUMPS OptimizeResult containing best-fit values and errors
+        :param fit_result: BUMPS OptimizeResult containing best-fit
+            values and errors
         :param stack_status: Whether the undo stack was enabled
         :param par_list: List of BUMPS parameter objects
         """
