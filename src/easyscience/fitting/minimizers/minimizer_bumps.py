@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import copy
+import functools
+import inspect
 import warnings
 from typing import Callable
 from typing import List
@@ -10,6 +12,7 @@ import numpy as np
 from bumps.fitters import FIT_AVAILABLE_IDS
 from bumps.fitters import FITTERS
 from bumps.fitters import FitDriver
+from bumps.fitters import fit as bumps_fit
 from bumps.monitor import Monitor
 from bumps.names import Curve
 from bumps.names import FitProblem
@@ -43,6 +46,19 @@ class _StepCounterMonitor(Monitor):
 
     def __call__(self, history):
         self.last_step = int(history.step[0])
+
+
+class _EvalCounter:
+    def __init__(self, fn: Callable):
+        self._fn = fn
+        self.count = 0
+        self.__name__ = getattr(fn, '__name__', self.__class__.__name__)
+        self.__signature__ = inspect.signature(fn)
+        functools.update_wrapper(self, fn)
+
+    def __call__(self, *args, **kwargs):
+        self.count += 1
+        return self._fn(*args, **kwargs)
 
 
 class _BumpsProgressMonitor(Monitor):
@@ -90,6 +106,7 @@ class Bumps(MinimizerBase):
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
         self._p_0 = {}
+        self._eval_counter: _EvalCounter | None = None
 
     @staticmethod
     def all_methods() -> List[str]:
@@ -201,10 +218,12 @@ class Bumps(MinimizerBase):
         global_object.stack.enabled = False
 
         try:
-            x_result, fx = driver.fit()
-            self._set_parameter_fit_result(x_result, driver, stack_status, problem._parameters)
+            model_results = bumps_fit(problem, **method_dict, **minimizer_kwargs, **kwargs)
+            self._set_parameter_fit_result(model_results, stack_status, problem._parameters)
             results = self._gen_fit_results(
-                x_result, fx, driver, step_counter.last_step, max_evaluations
+                model_results,
+                max_evaluations=max_evaluations,
+                tolerance=tolerance,
             )
         except Exception as e:
             self._restore_parameter_values()
@@ -293,7 +312,8 @@ class Bumps(MinimizerBase):
         :return: Callable to make a bumps Curve model
         :rtype: Callable
         """
-        fit_func = self._generate_fit_function()
+        fit_func = _EvalCounter(self._generate_fit_function())
+        self._eval_counter = fit_func
 
         def _outer(obj):
             def _make_func(x, y, weights):
@@ -316,23 +336,22 @@ class Bumps(MinimizerBase):
 
     def _set_parameter_fit_result(
         self,
-        x_result: np.ndarray,
-        driver: FitDriver,
+        fit_result,
         stack_status: bool,
         par_list: List[BumpsParameter],
     ):
         """Update parameters to their final values and assign a std
         error to them.
 
-        :param x_result: Optimized parameter values from FitDriver
-        :param driver: The FitDriver instance (provides stderr)
+        :param fit_result: BUMPS OptimizeResult containing best-fit values and errors
         :param stack_status: Whether the undo stack was enabled
         :param par_list: List of BUMPS parameter objects
         """
         from easyscience import global_object
 
         pars = self._cached_pars
-        stderr = driver.stderr()
+        x_result = np.asarray(fit_result.x)
+        stderr = np.asarray(fit_result.dx)
 
         if stack_status:
             self._restore_parameter_values()
@@ -348,11 +367,9 @@ class Bumps(MinimizerBase):
 
     def _gen_fit_results(
         self,
-        x_result: np.ndarray,
-        fx: float,
-        driver: FitDriver,
-        n_evaluations: int = 0,
+        fit_results,
         max_evaluations: int | None = None,
+        tolerance: float | None = None,
         **kwargs,
     ) -> FitResults:
         """Convert fit results into the unified `FitResults` format.
@@ -370,20 +387,27 @@ class Bumps(MinimizerBase):
         for name, value in kwargs.items():
             if getattr(results, name, False):
                 setattr(results, name, value)
-        results.n_evaluations = n_evaluations
-        # Bumps step counter is 0-indexed, so the last step of a budget of N
-        # is N-1.  We therefore compare with ``max_evaluations - 1``.
-        if max_evaluations is not None and n_evaluations >= max_evaluations - 1:
-            results.success = False
-            results.message = f'Maximum number of evaluations ({max_evaluations}) reached'
-            warnings.warn(
-                f'Fit did not converge within the maximum number of evaluations ({max_evaluations}). '
-                'Consider increasing the maximum number of evaluations or adjusting the tolerance.',
-                UserWarning,
+        n_evaluations = None if self._eval_counter is None else self._eval_counter.count
+        # BUMPS exposes `nit` as the last reported optimizer step index rather than the
+        # total number of objective calls. We keep `n_evaluations` as objective-call
+        # count for cross-backend consistency with LMFit (`nfev`) and DFO-LS (`nf`).
+        n_iterations = getattr(fit_results, 'nit', None)
+        # Convert the zero-based step index into the number of optimizer steps that have
+        # actually been consumed against the configured BUMPS `steps` budget.
+        n_steps_used = None if n_iterations is None else n_iterations + 1
+        stopped_on_budget = max_evaluations is not None and (
+            # For BUMPS, `max_evaluations` is forwarded as `steps`, so budget
+            # exhaustion must be checked against consumed optimizer steps, not raw
+            # objective evaluations, which can legitimately exceed the step budget.
+            (n_steps_used is not None and n_steps_used >= max_evaluations)
+            or (
+                n_iterations is None
+                and n_evaluations is not None
+                and n_evaluations >= max_evaluations
             )
-        else:
-            results.success = True
-            results.message = 'Optimization terminated successfully'
+        )
+
+        results.success = fit_results.success and not stopped_on_budget
         pars = self._cached_pars
         item = {}
         for index, name in enumerate(self._cached_model.pars.keys()):
@@ -396,7 +420,32 @@ class Bumps(MinimizerBase):
         results.y_obs = self._cached_model.y
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = self._cached_model.dy
+        results.n_evaluations = n_evaluations
+        results.message = ''
+        if stopped_on_budget:
+            results.message = (
+                f'Fit stopped: reached maximum optimizer steps ({max_evaluations}); '
+                f'objective evaluated {n_evaluations} times'
+            )
+        if stopped_on_budget:
+            if tolerance is None:
+                warnings.warn(
+                    f'Fit did not converge within the maximum optimizer steps of {max_evaluations} '
+                    f'({n_evaluations} objective evaluations). '
+                    'Consider increasing the maximum number of evaluations or adjusting the tolerance.',
+                    UserWarning,
+                )
+            else:
+                warnings.warn(
+                    f'Fit did not reach the desired tolerance of {tolerance} within the maximum optimizer steps of {max_evaluations} '
+                    f'({n_evaluations} objective evaluations). '
+                    'Consider increasing the maximum number of evaluations or adjusting the tolerance.',
+                    UserWarning,
+                )
+
+        # results.residual = results.y_obs - results.y_calc
+        # results.goodness_of_fit = np.sum(results.residual**2)
         results.minimizer_engine = self.__class__
         results.fit_args = None
-        results.engine_result = driver
+        results.engine_result = fit_results
         return results

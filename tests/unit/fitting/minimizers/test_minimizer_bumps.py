@@ -53,12 +53,19 @@ class TestBumpsFit:
 
         # Mock FitDriver
         mock_driver_instance = MagicMock()
-        mock_driver_instance.fit.return_value = (np.array([42.0]), 0.5)
-        mock_driver_instance.stderr.return_value = np.array([0.1])
         mock_driver_instance.clip = MagicMock()
         mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        mock_fit_result = MagicMock()
+        mock_fit_result.x = np.array([42.0])
+        mock_fit_result.dx = np.array([0.1])
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps,
+            'bumps_fit',
+            MagicMock(return_value=mock_fit_result),
         )
 
         # Prepare a mock parameter with .name = 'pmock_parm_1'
@@ -84,10 +91,10 @@ class TestBumpsFit:
         minimizer._cached_pars_vals = {'mock_parm_1': (1, 0.0)}
 
         # Patch _set_parameter_fit_result
-        def fake_set_parameter_fit_result(x_result, driver, stack_status, par_list):
+        def fake_set_parameter_fit_result(fit_result, stack_status, par_list):
             for index, name in enumerate([par.name for par in par_list]):
                 dict_name = name[len('p') :]
-                minimizer._cached_pars[dict_name].value = x_result[index]
+            minimizer._cached_pars[dict_name].value = fit_result.x[index]
 
         minimizer._set_parameter_fit_result = fake_set_parameter_fit_result
 
@@ -102,8 +109,12 @@ class TestBumpsFit:
         assert result == 'gen_fit_results'
         mock_FitDriver.assert_called_once()
         mock_driver_instance.clip.assert_called_once()
-        mock_driver_instance.fit.assert_called_once()
         minimizer._make_model.assert_called_once_with(parameters=None)
+        minimizer._gen_fit_results.assert_called_once_with(
+            mock_fit_result,
+            max_evaluations=None,
+            tolerance=None,
+        )
         mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
 
@@ -141,10 +152,13 @@ class TestBumpsFit:
         curve_for_model = model(
             x=np.array([1, 2]), y=np.array([10, 20]), weights=np.array([100, 200])
         )
+        wrapped_fit_function = mock_Curve.call_args[0][0]
+        wrapped_fit_function(np.array([1, 2]), pmock_parm_1=3)
 
         # Expect
         minimizer._generate_fit_function.assert_called_once_with()
-        assert mock_Curve.call_args[0][0] == mock_fit_function
+        assert minimizer._eval_counter is wrapped_fit_function
+        assert minimizer._eval_counter.count == 1
         assert all(mock_Curve.call_args[0][1] == np.array([1, 2]))
         assert all(mock_Curve.call_args[0][2] == np.array([10, 20]))
         assert curve_for_model == 'curve'
@@ -162,9 +176,9 @@ class TestBumpsFit:
         mock_cached_model.pars = {'pa': 0, 'pb': 0}
         minimizer._cached_model = mock_cached_model
 
-        x_result = np.array([1.0, 2.0])
-        mock_driver = MagicMock()
-        mock_driver.stderr.return_value = np.array([0.1, 0.2])
+        mock_fit_result = MagicMock()
+        mock_fit_result.x = np.array([1.0, 2.0])
+        mock_fit_result.dx = np.array([0.1, 0.2])
 
         # The new argument: par_list (list of mock parameters)
         mock_par_a = MagicMock()
@@ -174,7 +188,7 @@ class TestBumpsFit:
         par_list = [mock_par_a, mock_par_b]
 
         # Then
-        minimizer._set_parameter_fit_result(x_result, mock_driver, False, par_list)
+        minimizer._set_parameter_fit_result(mock_fit_result, False, par_list)
 
         # Expect
         assert minimizer._cached_pars['a'].value == 1.0
@@ -190,9 +204,9 @@ class TestBumpsFit:
             easyscience.fitting.minimizers.minimizer_bumps, 'FitResults', mock_FitResults
         )
 
-        x_result = np.array([1.0, 2.0])
-        fx = 0.5
-        mock_driver = MagicMock()
+        mock_fit_result = MagicMock()
+        mock_fit_result.success = True
+        mock_fit_result.nit = 2
 
         mock_cached_model = MagicMock()
         mock_cached_model.x = 'x'
@@ -208,29 +222,38 @@ class TestBumpsFit:
         minimizer._cached_pars = {'par_1': mock_cached_par_1, 'par_2': mock_cached_par_2}
 
         minimizer._p_0 = 'p_0'
+        minimizer._eval_counter = MagicMock(count=7)
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
         # Then
-        domain_fit_results = minimizer._gen_fit_results(
-            x_result, fx, mock_driver, **{'kwargs_set_key': 'kwargs_set_val'}
-        )
+        with pytest.warns(UserWarning, match='maximum optimizer steps of 3'):
+            domain_fit_results = minimizer._gen_fit_results(
+                mock_fit_result,
+                max_evaluations=3,
+                **{'kwargs_set_key': 'kwargs_set_val'},
+            )
 
         # Expect
         assert domain_fit_results == mock_domain_fit_results
         assert domain_fit_results.kwargs_set_key == 'kwargs_set_val'
-        assert domain_fit_results.success is True
+        assert domain_fit_results.success == False
         assert domain_fit_results.y_obs == 'y'
         assert domain_fit_results.x == 'x'
         assert domain_fit_results.p == {'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
         assert domain_fit_results.p0 == 'p_0'
         assert domain_fit_results.y_calc == 'evaluate'
         assert domain_fit_results.y_err == 'dy'
+        assert domain_fit_results.n_evaluations == 7
+        assert (
+            domain_fit_results.message
+            == 'Fit stopped: reached maximum optimizer steps (3); objective evaluated 7 times'
+        )
         assert (
             str(domain_fit_results.minimizer_engine)
             == "<class 'easyscience.fitting.minimizers.minimizer_bumps.Bumps'>"
         )
         assert domain_fit_results.fit_args is None
-        assert domain_fit_results.engine_result == mock_driver
+        assert domain_fit_results.engine_result == mock_fit_result
         minimizer.evaluate.assert_called_once_with(
             'x', minimizer_parameters={'ppar_1': 'par_value_1', 'ppar_2': 'par_value_2'}
         )
@@ -265,13 +288,14 @@ class TestBumpsFit:
         mock_par.value = 1.0
         minimizer._cached_pars = {'par_1': mock_par}
         minimizer._p_0 = 'p_0'
+        minimizer._eval_counter = MagicMock(count=n_evaluations)
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
-        mock_driver = MagicMock()
+        mock_fit_result = MagicMock()
+        mock_fit_result.success = True
+        mock_fit_result.nit = n_evaluations
 
-        minimizer._gen_fit_results(
-            np.array([1.0]), 0.5, mock_driver, n_evaluations, max_evaluations
-        )
+        minimizer._gen_fit_results(mock_fit_result, max_evaluations=max_evaluations)
 
         assert mock_domain_fit_results.success is expected_success
 
@@ -296,12 +320,16 @@ class TestBumpsFit:
         progress_callback = MagicMock(return_value=True)
 
         mock_driver_instance = MagicMock()
-        mock_driver_instance.fit.return_value = (np.array([42.0]), 0.5)
-        mock_driver_instance.stderr.return_value = np.array([0.1])
         mock_driver_instance.clip = MagicMock()
         mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps,
+            'bumps_fit',
+            MagicMock(return_value=MagicMock(x=np.array([42.0]), dx=np.array([0.1]))),
         )
 
         mock_bumps_param = MagicMock()
@@ -348,12 +376,17 @@ class TestBumpsFit:
         global_object.stack.enabled = False
 
         mock_driver_instance = MagicMock()
-        mock_driver_instance.fit.return_value = (np.array([3.0]), 0.5)
-        mock_driver_instance.stderr.return_value = np.array([0.1])
         mock_driver_instance.clip = MagicMock()
         mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        mock_bumps_fit = MagicMock(return_value=MagicMock(x=np.array([3.0]), dx=np.array([0.1])))
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps,
+            'bumps_fit',
+            mock_bumps_fit,
         )
 
         mock_bumps_param = MagicMock()
@@ -397,6 +430,12 @@ class TestBumpsFit:
         assert fit_driver_kwargs['ftol'] == 0.25
         assert fit_driver_kwargs['xtol'] == 0.25
         assert fit_driver_kwargs['steps'] == 7
+        assert mock_bumps_fit.call_args.kwargs['method'] == 'amoeba'
+        assert mock_bumps_fit.call_args.kwargs['existing_option'] == 'minimizer'
+        assert mock_bumps_fit.call_args.kwargs['engine_option'] == 'engine'
+        assert mock_bumps_fit.call_args.kwargs['ftol'] == 0.25
+        assert mock_bumps_fit.call_args.kwargs['xtol'] == 0.25
+        assert mock_bumps_fit.call_args.kwargs['steps'] == 7
 
     def test_fit_rejects_non_callable_progress_callback(
         self, minimizer: Bumps, monkeypatch
@@ -610,3 +649,39 @@ class TestBumpsFit:
             minimizer.fit(x=1.0, y=2.0, weights=1)
 
         assert parameter.value == 1.0
+
+    def test_gen_fit_results_uses_nit_for_budget_check(self, minimizer: Bumps, monkeypatch):
+        mock_domain_fit_results = MagicMock()
+        mock_FitResults = MagicMock(return_value=mock_domain_fit_results)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitResults', mock_FitResults
+        )
+
+        mock_fit_result = MagicMock()
+        mock_fit_result.success = True
+        mock_fit_result.nit = 99
+
+        mock_cached_model = MagicMock()
+        mock_cached_model.x = 'x'
+        mock_cached_model.y = 'y'
+        mock_cached_model.dy = 'dy'
+        mock_cached_model.pars = {'ppar_1': 0}
+        minimizer._cached_model = mock_cached_model
+
+        mock_cached_par = MagicMock()
+        mock_cached_par.value = 'par_value_1'
+        minimizer._cached_pars = {'par_1': mock_cached_par}
+
+        minimizer._p_0 = 'p_0'
+        minimizer._eval_counter = MagicMock(count=2)
+        minimizer.evaluate = MagicMock(return_value='evaluate')
+
+        with pytest.warns(UserWarning, match='maximum optimizer steps of 3'):
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, max_evaluations=3)
+
+        assert domain_fit_results.success == False
+        assert domain_fit_results.n_evaluations == 2
+        assert (
+            domain_fit_results.message
+            == 'Fit stopped: reached maximum optimizer steps (3); objective evaluated 2 times'
+        )
