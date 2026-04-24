@@ -456,6 +456,38 @@ class TestDFOFit:
         assert domain_fit_results.n_evaluations == 50
         assert domain_fit_results.message == 'Objective has been called MAXFUN times'
 
+    def test_gen_fit_results_success_does_not_warn(self, minimizer: DFO, monkeypatch):
+        mock_domain_fit_results = MagicMock()
+        mock_FitResults = MagicMock(return_value=mock_domain_fit_results)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_dfo, 'FitResults', mock_FitResults
+        )
+
+        mock_fit_result = MagicMock()
+        mock_fit_result.EXIT_SUCCESS = 0
+        mock_fit_result.EXIT_MAXFUN_WARNING = 1
+        mock_fit_result.flag = 1  # MAXFUN_WARNING
+        mock_fit_result.nf = 50
+        mock_fit_result.msg = 'Objective has been called MAXFUN times'
+
+        mock_cached_model = MagicMock()
+        mock_cached_model.x = 'x'
+        mock_cached_model.y = 'y'
+        minimizer._cached_model = mock_cached_model
+
+        mock_cached_par_1 = MagicMock()
+        mock_cached_par_1.value = 'v1'
+        minimizer._cached_pars = {'par_1': mock_cached_par_1}
+        minimizer._p_0 = 'p_0'
+        minimizer.evaluate = MagicMock(return_value='evaluate')
+
+        with pytest.warns(UserWarning, match='Objective has been called MAXFUN times'):
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
+
+        assert domain_fit_results.success == False
+        assert domain_fit_results.n_evaluations == 50
+        assert domain_fit_results.message == 'Objective has been called MAXFUN times'
+
     def test_dfo_fit_allows_maxfun_warning(self, minimizer: DFO, monkeypatch) -> None:
         mock_result = MagicMock()
         mock_result.EXIT_SUCCESS = 0
