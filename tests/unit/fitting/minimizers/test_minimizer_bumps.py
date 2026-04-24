@@ -340,6 +340,83 @@ class TestBumpsFit:
         assert monitors[1]._callback is progress_callback
         assert monitors[1]._payload_builder == minimizer._build_progress_payload
 
+    def test_fit_uses_supplied_model_and_optional_kwargs(
+        self, minimizer: Bumps, monkeypatch
+    ) -> None:
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        mock_driver_instance = MagicMock()
+        mock_driver_instance.fit.return_value = (np.array([3.0]), 0.5)
+        mock_driver_instance.stderr.return_value = np.array([0.1])
+        mock_driver_instance.clip = MagicMock()
+        mock_FitDriver = MagicMock(return_value=mock_driver_instance)
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
+        )
+
+        mock_bumps_param = MagicMock()
+        mock_bumps_param.name = 'pmock_parm_1'
+        mock_problem = MagicMock()
+        mock_problem._parameters = [mock_bumps_param]
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps,
+            'FitProblem',
+            MagicMock(return_value=mock_problem),
+        )
+
+        minimizer._make_model = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+        minimizer._resolve_fitclass = MagicMock(return_value=MagicMock(id='amoeba'))
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._cached_pars = {'mock_parm_1': MagicMock(value=1.0)}
+        minimizer._cached_pars_vals = {'mock_parm_1': (1.0, 0.0)}
+
+        supplied_model = MagicMock()
+        minimizer_kwargs = {'existing_option': 'minimizer'}
+        engine_kwargs = {'engine_option': 'engine'}
+
+        result = minimizer.fit(
+            x=np.array([1.0]),
+            y=np.array([2.0]),
+            weights=np.array([1.0]),
+            model=supplied_model,
+            tolerance=0.25,
+            max_evaluations=7,
+            minimizer_kwargs=minimizer_kwargs,
+            engine_kwargs=engine_kwargs,
+        )
+
+        assert result == 'gen_fit_results'
+        minimizer._make_model.assert_not_called()
+        fit_driver_kwargs = mock_FitDriver.call_args.kwargs
+        assert fit_driver_kwargs['problem'] is mock_problem
+        assert fit_driver_kwargs['existing_option'] == 'minimizer'
+        assert fit_driver_kwargs['engine_option'] == 'engine'
+        assert fit_driver_kwargs['ftol'] == 0.25
+        assert fit_driver_kwargs['xtol'] == 0.25
+        assert fit_driver_kwargs['steps'] == 7
+
+    def test_fit_rejects_non_callable_progress_callback(
+        self, minimizer: Bumps, monkeypatch
+    ) -> None:
+        monkeypatch.setattr(
+            easyscience.fitting.minimizers.minimizer_bumps,
+            'FitProblem',
+            MagicMock(return_value=MagicMock()),
+        )
+        minimizer._resolve_fitclass = MagicMock(return_value=MagicMock(id='amoeba'))
+
+        with pytest.raises(ValueError, match='progress_callback must be callable'):
+            minimizer.fit(
+                x=np.array([1.0]),
+                y=np.array([2.0]),
+                weights=np.array([1.0]),
+                model=MagicMock(),
+                progress_callback='not-callable',
+            )
+
     def test_build_progress_payload(self, minimizer: Bumps) -> None:
         # When
         mock_problem = MagicMock()
@@ -428,6 +505,47 @@ class TestBumpsFit:
 
         # Expect
         assert snapshot == {'alpha': 1.5, 'beta': 2.5}
+
+    @pytest.mark.parametrize('par_list', [None, [MagicMock(unique_name='alpha')]])
+    def test_convert_to_pars_obj_optional_parameter_list(
+        self, minimizer: Bumps, par_list, monkeypatch
+    ) -> None:
+        object_parameters = [MagicMock(unique_name='beta')]
+        minimizer._object = MagicMock()
+        minimizer._object.get_fit_parameters = MagicMock(return_value=object_parameters)
+        monkeypatch.setattr(
+            Bumps,
+            'convert_to_par_object',
+            staticmethod(lambda parameter: parameter.unique_name),
+        )
+
+        converted = minimizer.convert_to_pars_obj(par_list)
+
+        expected_parameters = object_parameters if par_list is None else par_list
+        assert converted == [parameter.unique_name for parameter in expected_parameters]
+        if par_list is None:
+            minimizer._object.get_fit_parameters.assert_called_once_with()
+        else:
+            minimizer._object.get_fit_parameters.assert_not_called()
+
+    def test_make_model_without_parameters_uses_cached_parameters(
+        self, minimizer: Bumps, monkeypatch
+    ) -> None:
+        minimizer._generate_fit_function = MagicMock(
+            return_value=MagicMock(return_value=np.array([2.0]))
+        )
+        minimizer._cached_pars = {'alpha': MagicMock(value=1.0)}
+        minimizer.convert_to_par_object = MagicMock(return_value='converted-alpha')
+
+        mock_curve = MagicMock(return_value='curve')
+        monkeypatch.setattr(easyscience.fitting.minimizers.minimizer_bumps, 'Curve', mock_curve)
+
+        model = minimizer._make_model()
+        curve = model(np.array([1.0]), np.array([2.0]), np.array([3.0]))
+
+        assert curve == 'curve'
+        minimizer.convert_to_par_object.assert_called_once_with(minimizer._cached_pars['alpha'])
+        assert mock_curve.call_args.kwargs['palpha'] == 'converted-alpha'
 
     def test_bumps_progress_monitor_calls_callback(self, minimizer: Bumps) -> None:
         # When

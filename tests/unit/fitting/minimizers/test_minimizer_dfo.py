@@ -104,6 +104,68 @@ class TestDFOFit:
             callback_on_improvement_only=False,
         )
 
+    def test_fit_wraps_supplied_model_with_explicit_callback(self, minimizer: DFO) -> None:
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        supplied_model = MagicMock()
+        wrapped_model = MagicMock()
+        explicit_callback = MagicMock()
+
+        minimizer._make_model = MagicMock()
+        minimizer._wrap_model_with_callback = MagicMock(return_value=wrapped_model)
+        minimizer._get_callback_parameter_names = MagicMock(return_value=['palpha'])
+        minimizer._dfo_fit = MagicMock(return_value='fit')
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+        minimizer._cached_pars = {'alpha': MagicMock(value=1.0)}
+
+        result = minimizer.fit(
+            x=np.array([1.0]),
+            y=np.array([2.0]),
+            weights=np.array([1.0]),
+            model=supplied_model,
+            callback=explicit_callback,
+        )
+
+        assert result == 'gen_fit_results'
+        minimizer._make_model.assert_not_called()
+        minimizer._wrap_model_with_callback.assert_called_once_with(
+            supplied_model,
+            ['palpha'],
+            explicit_callback,
+            1,
+            False,
+        )
+        minimizer._dfo_fit.assert_called_once_with(minimizer._cached_pars, wrapped_model)
+
+    def test_fit_uses_supplied_model_without_callback(self, minimizer: DFO) -> None:
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+
+        supplied_model = MagicMock()
+
+        minimizer._make_model = MagicMock()
+        minimizer._wrap_model_with_callback = MagicMock()
+        minimizer._dfo_fit = MagicMock(return_value='fit')
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+        minimizer._cached_pars = {'alpha': MagicMock(value=1.0)}
+
+        result = minimizer.fit(
+            x=np.array([1.0]),
+            y=np.array([2.0]),
+            weights=np.array([1.0]),
+            model=supplied_model,
+        )
+
+        assert result == 'gen_fit_results'
+        minimizer._make_model.assert_not_called()
+        minimizer._wrap_model_with_callback.assert_not_called()
+        minimizer._dfo_fit.assert_called_once_with(minimizer._cached_pars, supplied_model)
+
     def test_generate_fit_function(self, minimizer: DFO) -> None:
         # When
         minimizer._original_fit_function = MagicMock(return_value='fit_function_result')
@@ -247,6 +309,22 @@ class TestDFOFit:
         state = callback.call_args[0][0]
         assert state.evaluation == 2
         assert all(state.xk == np.array([1222, 2333]))
+
+    def test_make_model_without_parameters_uses_cached_parameters(self, minimizer: DFO) -> None:
+        mock_fit_function = MagicMock(return_value=np.array([11.0]))
+        minimizer._generate_fit_function = MagicMock(return_value=mock_fit_function)
+        minimizer._cached_pars = {'alpha': MagicMock(value=1000.0)}
+
+        model = minimizer._make_model()
+        residuals_for_model = model(
+            x=np.array([1.0]),
+            y=np.array([10.0]),
+            weights=np.array([0.5]),
+        )
+
+        residuals_for_model(np.array([1111.0]))
+
+        assert mock_fit_function.call_args.kwargs == {'palpha': 1111.0}
 
     @pytest.mark.parametrize('callback_every', [0, 1.3])
     def test_fit_callback_every_must_be_positive(self, minimizer: DFO, callback_every) -> None:
@@ -594,6 +672,50 @@ class TestDFOFit:
 
         call_kwargs = minimizer._make_model.call_args[1]
         assert call_kwargs['callback'] is explicit_cb
+
+    @pytest.mark.parametrize(
+        ('parameters', 'expected_names'),
+        [
+            ([MagicMock(unique_name='alpha')], ['palpha']),
+            (None, ['pbeta']),
+        ],
+    )
+    def test_get_callback_parameter_names_optional_parameters(
+        self, minimizer: DFO, parameters, expected_names
+    ) -> None:
+        minimizer._cached_pars = {'beta': MagicMock(value=1.0)}
+
+        parameter_names = minimizer._get_callback_parameter_names(parameters)
+
+        assert parameter_names == expected_names
+
+    def test_wrap_model_with_callback_improvement_only(self, minimizer: DFO) -> None:
+        callback = MagicMock()
+        wrapped_model = minimizer._wrap_model_with_callback(
+            lambda pars_values: np.asarray([pars_values[0] - 1.0]),
+            ['palpha'],
+            callback,
+            callback_every=1,
+            callback_on_improvement_only=True,
+        )
+
+        wrapped_model([0.5])
+
+        callback.assert_called_once()
+        assert callback.call_args.args[0].improved is True
+
+    def test_prepare_kwargs_with_optional_arguments(self, minimizer: DFO) -> None:
+        kwargs = minimizer._prepare_kwargs(tolerance=0.05, max_evaluations=11, keep=True)
+
+        assert kwargs == {
+            'keep': True,
+            'maxfun': 11,
+            'rhoend': 0.05,
+        }
+
+    def test_prepare_kwargs_rejects_large_tolerance(self, minimizer: DFO) -> None:
+        with pytest.raises(ValueError, match='Tolerance must be equal or smaller than 0.1'):
+            minimizer._prepare_kwargs(tolerance=0.2)
 
     def test_make_progress_adapter_payload_format(self) -> None:
         """The adapter must produce the standard progress payload dict."""
