@@ -340,7 +340,9 @@ class TestBumpsFit:
         assert monitors[1]._callback is progress_callback
         assert monitors[1]._payload_builder == minimizer._build_progress_payload
 
-    def test_fit_uses_supplied_model_and_optional_kwargs(self, minimizer: Bumps, monkeypatch) -> None:
+    def test_fit_uses_supplied_model_and_optional_kwargs(
+        self, minimizer: Bumps, monkeypatch
+    ) -> None:
         from easyscience import global_object
 
         global_object.stack.enabled = False
@@ -396,7 +398,9 @@ class TestBumpsFit:
         assert fit_driver_kwargs['xtol'] == 0.25
         assert fit_driver_kwargs['steps'] == 7
 
-    def test_fit_rejects_non_callable_progress_callback(self, minimizer: Bumps, monkeypatch) -> None:
+    def test_fit_rejects_non_callable_progress_callback(
+        self, minimizer: Bumps, monkeypatch
+    ) -> None:
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps,
             'FitProblem',
@@ -524,8 +528,12 @@ class TestBumpsFit:
         else:
             minimizer._object.get_fit_parameters.assert_not_called()
 
-    def test_make_model_without_parameters_uses_cached_parameters(self, minimizer: Bumps, monkeypatch) -> None:
-        minimizer._generate_fit_function = MagicMock(return_value=MagicMock(return_value=np.array([2.0])))
+    def test_make_model_without_parameters_uses_cached_parameters(
+        self, minimizer: Bumps, monkeypatch
+    ) -> None:
+        minimizer._generate_fit_function = MagicMock(
+            return_value=MagicMock(return_value=np.array([2.0]))
+        )
         minimizer._cached_pars = {'alpha': MagicMock(value=1.0)}
         minimizer.convert_to_par_object = MagicMock(return_value='converted-alpha')
 
