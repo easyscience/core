@@ -12,7 +12,6 @@ import numpy as np
 from bumps.fitters import FIT_AVAILABLE_IDS
 from bumps.fitters import FITTERS
 from bumps.fitters import FitDriver
-from bumps.fitters import fit as bumps_fit
 from bumps.monitor import Monitor
 from bumps.names import Curve
 from bumps.names import FitProblem
@@ -208,6 +207,7 @@ class Bumps(MinimizerBase):
             problem=problem,
             monitors=monitors,
             **minimizer_kwargs,
+            **kwargs,
         )
         driver.clip()
 
@@ -218,7 +218,22 @@ class Bumps(MinimizerBase):
         global_object.stack.enabled = False
 
         try:
-            model_results = bumps_fit(problem, **method_dict, **minimizer_kwargs, **kwargs)
+            # Drive the fit through the local FitDriver instance so the supplied
+            # `monitors` (including the optional progress callback monitor) are
+            # invoked. `bumps.fitters.fit` constructs its own driver.
+            x, fx = driver.fit()
+            from scipy.optimize import OptimizeResult
+
+            model_results = OptimizeResult(
+                x=x,
+                dx=driver.stderr(),
+                fun=fx,
+                success=True,
+                status=0,
+                message='successful termination',
+                nit=driver.monitor_runner.history.step[0],
+            )
+            model_results.state = driver.fitter.state
             self._set_parameter_fit_result(model_results, stack_status, problem._parameters)
             results = self._gen_fit_results(
                 model_results,

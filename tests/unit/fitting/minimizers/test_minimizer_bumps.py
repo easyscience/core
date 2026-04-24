@@ -51,21 +51,15 @@ class TestBumpsFit:
 
         global_object.stack.enabled = False
 
-        # Mock FitDriver
+        # Mock FitDriver. driver.fit() returns (x, fx); driver.stderr() returns dx.
         mock_driver_instance = MagicMock()
         mock_driver_instance.clip = MagicMock()
+        mock_driver_instance.fit = MagicMock(return_value=(np.array([42.0]), 0.0))
+        mock_driver_instance.stderr = MagicMock(return_value=np.array([0.1]))
+        mock_driver_instance.monitor_runner.history.step = [0]
         mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
-        )
-
-        mock_fit_result = MagicMock()
-        mock_fit_result.x = np.array([42.0])
-        mock_fit_result.dx = np.array([0.1])
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps,
-            'bumps_fit',
-            MagicMock(return_value=mock_fit_result),
         )
 
         # Prepare a mock parameter with .name = 'pmock_parm_1'
@@ -109,12 +103,17 @@ class TestBumpsFit:
         assert result == 'gen_fit_results'
         mock_FitDriver.assert_called_once()
         mock_driver_instance.clip.assert_called_once()
+        mock_driver_instance.fit.assert_called_once()
         minimizer._make_model.assert_called_once_with(parameters=None)
-        minimizer._gen_fit_results.assert_called_once_with(
-            mock_fit_result,
-            max_evaluations=None,
-            tolerance=None,
-        )
+        # _gen_fit_results is called with the OptimizeResult built from driver.fit()
+        minimizer._gen_fit_results.assert_called_once()
+        passed_result = minimizer._gen_fit_results.call_args.args[0]
+        assert np.array_equal(passed_result.x, np.array([42.0]))
+        assert np.array_equal(passed_result.dx, np.array([0.1]))
+        assert minimizer._gen_fit_results.call_args.kwargs == {
+            'max_evaluations': None,
+            'tolerance': None,
+        }
         mock_model_function.assert_called_once_with(1.0, 2.0, 1)
         mock_FitProblem.assert_called_once_with(mock_model)
 
@@ -321,15 +320,12 @@ class TestBumpsFit:
 
         mock_driver_instance = MagicMock()
         mock_driver_instance.clip = MagicMock()
+        mock_driver_instance.fit = MagicMock(return_value=(np.array([42.0]), 0.0))
+        mock_driver_instance.stderr = MagicMock(return_value=np.array([0.1]))
+        mock_driver_instance.monitor_runner.history.step = [0]
         mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
-        )
-
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps,
-            'bumps_fit',
-            MagicMock(return_value=MagicMock(x=np.array([42.0]), dx=np.array([0.1]))),
         )
 
         mock_bumps_param = MagicMock()
@@ -377,16 +373,12 @@ class TestBumpsFit:
 
         mock_driver_instance = MagicMock()
         mock_driver_instance.clip = MagicMock()
+        mock_driver_instance.fit = MagicMock(return_value=(np.array([3.0]), 0.0))
+        mock_driver_instance.stderr = MagicMock(return_value=np.array([0.1]))
+        mock_driver_instance.monitor_runner.history.step = [0]
         mock_FitDriver = MagicMock(return_value=mock_driver_instance)
         monkeypatch.setattr(
             easyscience.fitting.minimizers.minimizer_bumps, 'FitDriver', mock_FitDriver
-        )
-
-        mock_bumps_fit = MagicMock(return_value=MagicMock(x=np.array([3.0]), dx=np.array([0.1])))
-        monkeypatch.setattr(
-            easyscience.fitting.minimizers.minimizer_bumps,
-            'bumps_fit',
-            mock_bumps_fit,
         )
 
         mock_bumps_param = MagicMock()
@@ -430,12 +422,7 @@ class TestBumpsFit:
         assert fit_driver_kwargs['ftol'] == 0.25
         assert fit_driver_kwargs['xtol'] == 0.25
         assert fit_driver_kwargs['steps'] == 7
-        assert mock_bumps_fit.call_args.kwargs['method'] == 'amoeba'
-        assert mock_bumps_fit.call_args.kwargs['existing_option'] == 'minimizer'
-        assert mock_bumps_fit.call_args.kwargs['engine_option'] == 'engine'
-        assert mock_bumps_fit.call_args.kwargs['ftol'] == 0.25
-        assert mock_bumps_fit.call_args.kwargs['xtol'] == 0.25
-        assert mock_bumps_fit.call_args.kwargs['steps'] == 7
+        mock_driver_instance.fit.assert_called_once()
 
     def test_fit_rejects_non_callable_progress_callback(
         self, minimizer: Bumps, monkeypatch
