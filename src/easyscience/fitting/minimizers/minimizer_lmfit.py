@@ -189,12 +189,14 @@ class LMFit(MinimizerBase):  # noqa: S101
         degrees_of_freedom = residual_array.size - varied_parameter_count
         reduced_chi2 = chi2 / degrees_of_freedom if degrees_of_freedom > 0 else chi2
 
-        parameter_values = {}
+        parameter_values = {
+            parameter_name[len(MINIMIZER_PARAMETER_PREFIX) :]: float(parameter.value)
+            for parameter_name, parameter in params.items()
+            if parameter_name.startswith(MINIMIZER_PARAMETER_PREFIX)
+        }
         for parameter_name, parameter in self._cached_pars.items():
             lmfit_parameter_name = f'{MINIMIZER_PARAMETER_PREFIX}{parameter_name}'
-            if lmfit_parameter_name in params:
-                parameter_values[parameter_name] = float(params[lmfit_parameter_name].value)
-            else:
+            if lmfit_parameter_name not in params:
                 parameter_values[parameter_name] = float(parameter.value)
 
         return {

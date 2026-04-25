@@ -725,10 +725,6 @@ class TestDFOFit:
         minimizer._set_parameter_fit_result = MagicMock()
         minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
 
-        cached_par = MagicMock()
-        cached_par.value = 1
-        minimizer._cached_pars = {'mock_parm_1': cached_par}
-
         progress_cb = MagicMock()
 
         minimizer.fit(
@@ -742,6 +738,24 @@ class TestDFOFit:
         call_kwargs = minimizer._make_model.call_args[1]
         assert call_kwargs['callback'] is not None
         assert callable(call_kwargs['callback'])
+
+        call_kwargs['callback'](
+            DFOCallbackState(
+                evaluation=1,
+                xk=np.array([1.0]),
+                residuals=np.array([1.0, 1.0, 2.0]),
+                objective=6.0,
+                parameters={'pmock_parm_1': 1.0},
+                best_xk=np.array([1.0]),
+                best_objective=6.0,
+                best_parameters={'pmock_parm_1': 1.0},
+                improved=True,
+            )
+        )
+
+        payload = progress_cb.call_args[0][0]
+        assert payload['reduced_chi2'] == pytest.approx(3.0)
+        assert payload['parameter_values'] == {'mock_parm_1': 1.0}
 
     def test_progress_callback_not_used_when_explicit_callback_given(self, minimizer: DFO) -> None:
         """When both progress_callback and callback are given, the explicit
@@ -822,14 +836,13 @@ class TestDFOFit:
     def test_make_progress_adapter_payload_format(self) -> None:
         """The adapter must produce the standard progress payload dict."""
         progress_cb = MagicMock()
-        dof = 5
 
-        adapter = DFO._make_progress_adapter(progress_cb, dof)
+        adapter = DFO._make_progress_adapter(progress_cb)
 
         state = DFOCallbackState(
             evaluation=10,
             xk=np.array([1.0, 2.0]),
-            residuals=np.array([0.1, 0.2]),
+            residuals=np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]),
             objective=0.05,
             parameters={'pmock_parm_1': 1.0, 'pmock_parm_2': 2.0},
             best_xk=np.array([1.0, 2.0]),

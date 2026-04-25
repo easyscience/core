@@ -130,8 +130,7 @@ class DFO(MinimizerBase):
 
         # Bridge progress_callback into the DFO callback mechanism
         if progress_callback is not None and callback is None:
-            dof = max(len(x) - len(self._cached_pars), 1)
-            callback = self._make_progress_adapter(progress_callback, dof)
+            callback = self._make_progress_adapter(progress_callback)
 
         if model is None:
             model_function = self._make_model(
@@ -293,19 +292,18 @@ class DFO(MinimizerBase):
     @staticmethod
     def _make_progress_adapter(
         progress_callback: Callable[[dict], bool | None],
-        dof: int,
     ) -> Callable[['DFOCallbackState'], None]:
         """Create a DFO callback that translates DFOCallbackState into
         the standard progress_callback dict format used by the GUI.
 
         :param progress_callback: Standard progress callback (dict ->
             bool|None)
-        :param dof: Degrees of freedom for reduced chi2 calculation
         :return: DFO-compatible callback
         """
 
         def adapter(state: 'DFOCallbackState') -> None:
             chi2 = state.best_objective
+            dof = max(np.asarray(state.residuals).size - len(state.best_parameters), 1)
             reduced_chi2 = chi2 / dof if dof > 0 else chi2
             param_snapshot = {
                 name[len(MINIMIZER_PARAMETER_PREFIX) :]: float(val)

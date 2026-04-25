@@ -218,6 +218,40 @@ class TestLMFit:
         iter_cb = mock_model.fit.call_args.kwargs['iter_cb']
         assert callable(iter_cb)
 
+    def test_fit_progress_callback_with_supplied_model_uses_iter_params(
+        self, minimizer: LMFit
+    ) -> None:
+        progress_callback = MagicMock(return_value=True)
+        mock_model = MagicMock()
+        mock_param_alpha = MagicMock()
+        mock_param_alpha.value = 1.0
+        mock_param_alpha.vary = True
+        params = {'palpha': mock_param_alpha}
+
+        mock_model.fit = MagicMock(
+            side_effect=lambda *args, **kwargs: (
+                kwargs['iter_cb'](params, 4, np.array([3.0, 4.0])) or 'fit'
+            )
+        )
+        minimizer._make_model = MagicMock(return_value=mock_model)
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+
+        result = minimizer.fit(
+            x=np.array([1.0, 2.0]),
+            y=np.array([1.0, 2.0]),
+            weights=np.array([1.0, 1.0]),
+            model=mock_model,
+            progress_callback=progress_callback,
+        )
+
+        assert result == 'gen_fit_results'
+        minimizer._make_model.assert_not_called()
+        payload = progress_callback.call_args[0][0]
+        assert payload['parameter_values'] == {'alpha': 1.0}
+        assert payload['chi2'] == 25.0
+        assert payload['reduced_chi2'] == 25.0
+
     def test_create_iter_callback_no_callback(self, minimizer: LMFit) -> None:
         # When Then Expect
         assert minimizer._create_iter_callback(None) is None
@@ -259,6 +293,23 @@ class TestLMFit:
             'chi2': 25.0,
             'reduced_chi2': 25.0,
             'parameter_values': {'alpha': 1.0, 'beta': 2.0},
+            'refresh_plots': False,
+            'finished': False,
+        }
+
+    def test_build_progress_payload_without_cached_pars(self, minimizer: LMFit) -> None:
+        mock_param_alpha = MagicMock()
+        mock_param_alpha.value = 1.0
+        mock_param_alpha.vary = True
+        params = {'palpha': mock_param_alpha}
+
+        payload = minimizer._build_progress_payload(params, 4, np.array([3.0, 4.0]))
+
+        assert payload == {
+            'iteration': 4,
+            'chi2': 25.0,
+            'reduced_chi2': 25.0,
+            'parameter_values': {'alpha': 1.0},
             'refresh_plots': False,
             'finished': False,
         }
