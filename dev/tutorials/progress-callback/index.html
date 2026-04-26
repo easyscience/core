@@ -2296,10 +2296,18 @@ to build a realistic dataset.</p>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">20260426</span><span class="p">)</span>
 
 <span class="n">truth</span> <span class="o">=</span> <span class="n">MultiPeak</span><span class="p">(</span>
-    <span class="n">a0</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">a1</span><span class="o">=-</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">a2</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
-    <span class="n">A1</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">mu1</span><span class="o">=-</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">sigma1</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
-    <span class="n">A2</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span> <span class="n">mu2</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>  <span class="n">sigma2</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
-    <span class="n">A3</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span> <span class="n">mu3</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>  <span class="n">sigma3</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">a0</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">a1</span><span class="o">=-</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">a2</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">A1</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">mu1</span><span class="o">=-</span><span class="mf">3.0</span><span class="p">,</span>
+    <span class="n">sigma1</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+    <span class="n">A2</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span>
+    <span class="n">mu2</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">sigma2</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+    <span class="n">A3</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+    <span class="n">mu3</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+    <span class="n">sigma3</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
@@ -2318,10 +2326,18 @@ to build a realistic dataset.</p>
 <div class="clipboard-copy-txt" id="cell-3">rng = np.random.default_rng(seed=20260426)
 
 truth = MultiPeak(
-    a0=0.5, a1=-0.05, a2=0.01,
-    A1=2.0, mu1=-3.0, sigma1=0.6,
-    A2=3.5, mu2=0.5,  sigma2=0.4,
-    A3=1.8, mu3=4.0,  sigma3=1.0,
+    a0=0.5,
+    a1=-0.05,
+    a2=0.01,
+    A1=2.0,
+    mu1=-3.0,
+    sigma1=0.6,
+    A2=3.5,
+    mu2=0.5,
+    sigma2=0.4,
+    A3=1.8,
+    mu3=4.0,
+    sigma3=1.0,
 )
 
 x = np.linspace(-6.0, 7.0, 400)
@@ -2385,10 +2401,18 @@ plt.show()</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">make_initial_model</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">MultiPeak</span><span class="p">:</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">MultiPeak</span><span class="p">(</span>
-        <span class="n">a0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">a1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>  <span class="n">a2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-        <span class="n">A1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">mu1</span><span class="o">=-</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-        <span class="n">A2</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">mu2</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>  <span class="n">sigma2</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
-        <span class="n">A3</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">mu3</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>  <span class="n">sigma3</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+        <span class="n">a0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">a1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">a2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">A1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">mu1</span><span class="o">=-</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">sigma1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">A2</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">mu2</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">sigma2</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+        <span class="n">A3</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">mu3</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+        <span class="n">sigma3</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">():</span>
         <span class="n">p</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="kc">False</span>
@@ -2396,10 +2420,18 @@ plt.show()</div>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-4">def make_initial_model() -&gt; MultiPeak:
     model = MultiPeak(
-        a0=0.0, a1=0.0,  a2=0.0,
-        A1=1.0, mu1=-2.0, sigma1=1.0,
-        A2=2.0, mu2=1.0,  sigma2=0.8,
-        A3=1.0, mu3=3.0,  sigma3=1.2,
+        a0=0.0,
+        a1=0.0,
+        a2=0.0,
+        A1=1.0,
+        mu1=-2.0,
+        sigma1=1.0,
+        A2=2.0,
+        mu2=1.0,
+        sigma2=0.8,
+        A3=1.0,
+        mu3=3.0,
+        sigma3=1.2,
     )
     for p in model.get_parameters():
         p.fixed = False
@@ -2716,7 +2748,7 @@ callback. Skip this cell if <code>tqdm</code> is not installed.</p>
             <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
             <span class="c1"># wait 0.1 seconds to make the progress bar more visible in the demo</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
-        <span class="n">pbar</span><span class="o">.</span><span class="n">set_postfix</span><span class="p">(</span><span class="n">reduced_chi2</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s1">'reduced_chi2'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">pbar</span><span class="o">.</span><span class="n">set_postfix</span><span class="p">(</span><span class="n">reduced_chi2</span><span class="o">=</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s2">"reduced_chi2"</span><span class="p">]</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="n">progress</span><span class="p">)</span>
     <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -2742,7 +2774,7 @@ else:
             pbar.update(n)
             # wait 0.1 seconds to make the progress bar more visible in the demo
             time.sleep(0.01)
-        pbar.set_postfix(reduced_chi2=f"{payload['reduced_chi2']:.3g}")
+        pbar.set_postfix(reduced_chi2=f'{payload["reduced_chi2"]:.3g}')
 
     result = fitter.fit(x=x, y=y, weights=weights, progress_callback=progress)
     pbar.close()
