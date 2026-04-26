@@ -32,21 +32,6 @@ FIT_AVAILABLE_IDS_FILTERED = copy.copy(FIT_AVAILABLE_IDS)
 FIT_AVAILABLE_IDS_FILTERED.remove('pt')
 
 
-class _StepCounterMonitor(Monitor):
-    """Lightweight monitor that ensures step count is recorded in
-    history.
-    """
-
-    def __init__(self):
-        self.last_step = 0
-
-    def config_history(self, history):
-        history.requires(step=1)
-
-    def __call__(self, history):
-        self.last_step = int(history.step[0])
-
-
 class _EvalCounter:
     def __init__(self, fn: Callable):
         self._fn = fn
@@ -145,8 +130,24 @@ class Bumps(MinimizerBase):
         :type parameters: List[BumpsParameter]
         :param method: Method for minimization
         :type method: str
-        :param progress_callback: Optional callback for progress updates
+        :param max_evaluations: Maximum number of optimizer steps. Forwarded to BUMPS as
+            its ``steps`` parameter. If ``None``, the default value defined by the
+            selected BUMPS fitter (``fitclass.settings``) is used.
+        :type max_evaluations: int | None
+        :param progress_callback: Optional callback for progress updates. The payload
+            field ``iteration`` carries the BUMPS optimizer step index.
         :type progress_callback: Callable
+
+        .. note::
+            The :class:`FitResults` field ``n_evaluations`` reports the number of
+            **objective-function evaluations** consumed by the fit, for cross-backend
+            consistency with LMFit (``nfev``) and DFO-LS (``nf``). For BUMPS this is
+            distinct from the optimizer **step count** that ``max_evaluations`` (i.e.
+            BUMPS ``steps``) is budgeted against; a single step may trigger several
+            objective evaluations, so ``n_evaluations`` can legitimately exceed
+            ``max_evaluations``. The budget-exhaustion check is performed against the
+            consumed step count, not ``n_evaluations``.
+
         :return: Fit results
         :rtype: FitResults
         """
@@ -173,6 +174,21 @@ class Bumps(MinimizerBase):
             minimizer_kwargs = {}
         minimizer_kwargs.update(engine_kwargs)
 
+        method_str = method_dict.get('method', self._method)
+        fitclass = self._resolve_fitclass(method_str)
+
+        # Resolve BUMPS-native defaults so the budget reported back to the caller (and
+        # used by the budget-exhaustion check in `_gen_fit_results`) reflects the values
+        # actually consumed by the fitter, even when the caller passes None.
+        fitter_settings = dict(fitclass.settings)
+        if max_evaluations is None:
+            max_evaluations = fitter_settings.get('steps')
+        if tolerance is None:
+            ftol = fitter_settings.get('ftol')
+            xtol = fitter_settings.get('xtol')
+            tols = [t for t in (ftol, xtol) if t is not None]
+            tolerance = min(tols) if tols else None
+
         if tolerance is not None:
             minimizer_kwargs['ftol'] = tolerance  # tolerance for change in function value
             minimizer_kwargs['xtol'] = (
@@ -190,11 +206,7 @@ class Bumps(MinimizerBase):
 
         problem = FitProblem(model)
 
-        method_str = method_dict.get('method', self._method)
-        fitclass = self._resolve_fitclass(method_str)
-
-        step_counter = _StepCounterMonitor()
-        monitors = [step_counter]
+        monitors = []
         if progress_callback is not None:
             if not callable(progress_callback):
                 raise ValueError('progress_callback must be callable')
@@ -224,6 +236,11 @@ class Bumps(MinimizerBase):
             x, fx = driver.fit()
             from scipy.optimize import OptimizeResult
 
+            # BUMPS' `MonitorRunner.history.step` is populated by the driver itself
+            # (independently of any user-supplied monitors) and exposes the canonical
+            # last-step index reached by the fitter, so we use it as `nit`.
+            history_step = getattr(getattr(driver, 'monitor_runner', None), 'history', None)
+            nit_value = int(history_step.step[0]) if history_step is not None else None
             model_results = OptimizeResult(
                 x=x,
                 dx=driver.stderr(),
@@ -231,7 +248,7 @@ class Bumps(MinimizerBase):
                 success=True,
                 status=0,
                 message='successful termination',
-                nit=driver.monitor_runner.history.step[0],
+                nit=nit_value,
             )
             model_results.state = driver.fitter.state
             self._set_parameter_fit_result(model_results, stack_status, problem._parameters)

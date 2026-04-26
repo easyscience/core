@@ -11,7 +11,6 @@ import pytest
 import easyscience.fitting.minimizers.minimizer_bumps
 from easyscience.fitting.minimizers.minimizer_bumps import Bumps
 from easyscience.fitting.minimizers.minimizer_bumps import _BumpsProgressMonitor
-from easyscience.fitting.minimizers.minimizer_bumps import _StepCounterMonitor
 from easyscience.fitting.minimizers.utils import FitError
 
 
@@ -264,7 +263,7 @@ class TestBumpsFit:
             (2, 3, False),  # last step (2) == budget-1 (2) => budget consumed => failure
             (3, 3, False),  # last step (3) > budget-1 (2) => failure
             (0, 1, False),  # 0 >= 0 => failure (budget of 1, step counter 0-indexed)
-            (5, None, True),  # no budget => always success
+            (5, 1000, True),  # well below budget => success
         ],
     )
     def test_gen_fit_results_max_evaluations_boundary(
@@ -357,12 +356,11 @@ class TestBumpsFit:
         assert result == 'gen_fit_results'
         driver_call_kwargs = mock_FitDriver.call_args
         monitors = driver_call_kwargs.kwargs.get('monitors', driver_call_kwargs[1].get('monitors'))
-        assert len(monitors) == 2
-        assert isinstance(monitors[0], _StepCounterMonitor)
-        assert isinstance(monitors[1], _BumpsProgressMonitor)
-        assert monitors[1]._problem is mock_FitProblem_instance
-        assert monitors[1]._callback is progress_callback
-        assert monitors[1]._payload_builder == minimizer._build_progress_payload
+        assert len(monitors) == 1
+        assert isinstance(monitors[0], _BumpsProgressMonitor)
+        assert monitors[0]._problem is mock_FitProblem_instance
+        assert monitors[0]._callback is progress_callback
+        assert monitors[0]._payload_builder == minimizer._build_progress_payload
 
     def test_fit_uses_supplied_model_and_optional_kwargs(
         self, minimizer: Bumps, monkeypatch

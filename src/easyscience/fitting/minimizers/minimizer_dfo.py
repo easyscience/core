@@ -3,7 +3,6 @@
 
 import warnings
 from dataclasses import dataclass
-from numbers import Integral
 from typing import Callable
 from typing import Dict
 from typing import List
@@ -122,7 +121,7 @@ class DFO(MinimizerBase):
         if (weights <= 0).any():
             raise ValueError('Weights must be strictly positive and non-zero.')
 
-        if not isinstance(callback_every, Integral) or isinstance(callback_every, bool):
+        if isinstance(callback_every, bool) or not isinstance(callback_every, int):
             raise ValueError('callback_every must be a positive integer.')
 
         if callback_every < 1:
