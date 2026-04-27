@@ -5015,7 +5015,9 @@ It allows for the Bumps fitting engine to use parameters declared in an <code>Ea
 <span class="normal">481</span>
 <span class="normal">482</span>
 <span class="normal">483</span>
-<span class="normal">484</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Bumps</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Bumps</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is a wrapper to Bumps: https://bumps.readthedocs.io/</span>
 <span class="sd">    It allows for the Bumps fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.</span>
@@ -5094,10 +5096,11 @@ It allows for the Bumps fitting engine to use parameters declared in an <code>Ea
 <span class="sd">            **objective-function evaluations** consumed by the fit, for cross-backend</span>
 <span class="sd">            consistency with LMFit (``nfev``) and DFO-LS (``nf``). For BUMPS this is</span>
 <span class="sd">            distinct from the optimizer **step count** that ``max_evaluations`` (i.e.</span>
-<span class="sd">            BUMPS ``steps``) is budgeted against; a single step may trigger several</span>
-<span class="sd">            objective evaluations, so ``n_evaluations`` can legitimately exceed</span>
-<span class="sd">            ``max_evaluations``. The budget-exhaustion check is performed against the</span>
-<span class="sd">            consumed step count, not ``n_evaluations``.</span>
+<span class="sd">            BUMPS ``steps``) is budgeted against and returned as</span>
+<span class="sd">            :class:`FitResults.iterations`; a single step may trigger several objective</span>
+<span class="sd">            evaluations, so ``n_evaluations`` can legitimately exceed</span>
+<span class="sd">            ``max_evaluations``. The budget-exhaustion check is performed against</span>
+<span class="sd">            ``iterations``, not ``n_evaluations``.</span>
 
 <span class="sd">        :return: Fit results</span>
 <span class="sd">        :rtype: FitResults</span>
@@ -5405,6 +5408,7 @@ It allows for the Bumps fitting engine to use parameters declared in an <code>Ea
         <span class="n">results</span><span class="o">.</span><span class="n">y_calc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">minimizer_parameters</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
         <span class="n">results</span><span class="o">.</span><span class="n">y_err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_model</span><span class="o">.</span><span class="n">dy</span>
         <span class="n">results</span><span class="o">.</span><span class="n">n_evaluations</span> <span class="o">=</span> <span class="n">n_evaluations</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">iterations</span> <span class="o">=</span> <span class="n">n_steps_used</span>
         <span class="n">results</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">if</span> <span class="n">stopped_on_budget</span><span class="p">:</span>
             <span class="n">results</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
@@ -5546,8 +5550,7 @@ Parameter object.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/easyscience/fitting/minimizers/minimizer_bumps.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">319</span>
-<span class="normal">320</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">320</span>
 <span class="normal">321</span>
 <span class="normal">322</span>
 <span class="normal">323</span>
@@ -5562,7 +5565,8 @@ Parameter object.</p>
 <span class="normal">332</span>
 <span class="normal">333</span>
 <span class="normal">334</span>
-<span class="normal">335</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="normal">335</span>
+<span class="normal">336</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_par_object</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BumpsParameter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an `EasyScience.variable.Parameter` object to a bumps</span>
 <span class="sd">    Parameter object.</span>
@@ -5615,8 +5619,7 @@ base object.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/easyscience/fitting/minimizers/minimizer_bumps.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">302</span>
-<span class="normal">303</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">303</span>
 <span class="normal">304</span>
 <span class="normal">305</span>
 <span class="normal">306</span>
@@ -5629,7 +5632,8 @@ base object.</p>
 <span class="normal">313</span>
 <span class="normal">314</span>
 <span class="normal">315</span>
-<span class="normal">316</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">convert_to_pars_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">par_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Parameter</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BumpsParameter</span><span class="p">]:</span>
+<span class="normal">316</span>
+<span class="normal">317</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">convert_to_pars_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">par_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Parameter</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BumpsParameter</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a container with the `Parameters` converted from the</span>
 <span class="sd">    base object.</span>
 
@@ -5690,10 +5694,11 @@ base object.</p>
     <strong>objective-function evaluations</strong> consumed by the fit, for cross-backend
     consistency with LMFit (<code>nfev</code>) and DFO-LS (<code>nf</code>). For BUMPS this is
     distinct from the optimizer <strong>step count</strong> that <code>max_evaluations</code> (i.e.
-    BUMPS <code>steps</code>) is budgeted against; a single step may trigger several
-    objective evaluations, so <code>n_evaluations</code> can legitimately exceed
-    <code>max_evaluations</code>. The budget-exhaustion check is performed against the
-    consumed step count, not <code>n_evaluations</code>.</p>
+    BUMPS <code>steps</code>) is budgeted against and returned as
+    :class:<code>FitResults.iterations</code>; a single step may trigger several objective
+    evaluations, so <code>n_evaluations</code> can legitimately exceed
+    <code>max_evaluations</code>. The budget-exhaustion check is performed against
+    <code>iterations</code>, not <code>n_evaluations</code>.</p>
 <p>:return: Fit results
 :rtype: FitResults</p>
 <!-- prettier-ignore-start -->
@@ -5863,7 +5868,8 @@ base object.</p>
 <span class="normal">262</span>
 <span class="normal">263</span>
 <span class="normal">264</span>
-<span class="normal">265</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
+<span class="normal">265</span>
+<span class="normal">266</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -5904,10 +5910,11 @@ base object.</p>
 <span class="sd">        **objective-function evaluations** consumed by the fit, for cross-backend</span>
 <span class="sd">        consistency with LMFit (``nfev``) and DFO-LS (``nf``). For BUMPS this is</span>
 <span class="sd">        distinct from the optimizer **step count** that ``max_evaluations`` (i.e.</span>
-<span class="sd">        BUMPS ``steps``) is budgeted against; a single step may trigger several</span>
-<span class="sd">        objective evaluations, so ``n_evaluations`` can legitimately exceed</span>
-<span class="sd">        ``max_evaluations``. The budget-exhaustion check is performed against the</span>
-<span class="sd">        consumed step count, not ``n_evaluations``.</span>
+<span class="sd">        BUMPS ``steps``) is budgeted against and returned as</span>
+<span class="sd">        :class:`FitResults.iterations`; a single step may trigger several objective</span>
+<span class="sd">        evaluations, so ``n_evaluations`` can legitimately exceed</span>
+<span class="sd">        ``max_evaluations``. The budget-exhaustion check is performed against</span>
+<span class="sd">        ``iterations``, not ``n_evaluations``.</span>
 
 <span class="sd">    :return: Fit results</span>
 <span class="sd">    :rtype: FitResults</span>
@@ -6526,7 +6533,32 @@ base object.</p>
 <span class="normal">437</span>
 <span class="normal">438</span>
 <span class="normal">439</span>
-<span class="normal">440</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DFO</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DFO</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is a wrapper to Derivative Free Optimisation for Least Square: https://numericalalgorithmsgroup.github.io/dfols/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -6865,6 +6897,7 @@ base object.</p>
         <span class="n">results</span><span class="o">.</span><span class="n">y_calc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">minimizer_parameters</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
         <span class="n">results</span><span class="o">.</span><span class="n">y_err</span> <span class="o">=</span> <span class="n">weights</span>
         <span class="n">results</span><span class="o">.</span><span class="n">n_evaluations</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fit_results</span><span class="o">.</span><span class="n">nf</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">iterations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_iterations</span><span class="p">(</span><span class="n">fit_results</span><span class="p">)</span>
         <span class="n">results</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fit_results</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
             <span class="n">warning_message</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">message</span> <span class="ow">or</span> <span class="s1">&#39;DFO fit did not succeed.&#39;</span>
@@ -6878,6 +6911,27 @@ base object.</p>
         <span class="c1"># results.check_sanity()</span>
 
         <span class="k">return</span> <span class="n">results</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_iterations</span><span class="p">(</span><span class="n">fit_results</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">diagnostic_info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fit_results</span><span class="p">,</span> <span class="s1">&#39;diagnostic_info&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">diagnostic_info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">diagnostic_info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">diagnostic_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iters_total&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">columns</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">diagnostic_info</span><span class="p">,</span> <span class="s1">&#39;columns&#39;</span><span class="p">,</span> <span class="p">())</span>
+        <span class="k">if</span> <span class="s1">&#39;iters_total&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">series</span> <span class="o">=</span> <span class="n">diagnostic_info</span><span class="p">[</span><span class="s1">&#39;iters_total&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">series</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_dfo_fit</span><span class="p">(</span>
@@ -6927,6 +6981,9 @@ base object.</p>
             <span class="k">if</span> <span class="mf">0.1</span> <span class="o">&lt;</span> <span class="n">tolerance</span><span class="p">:</span>  <span class="c1"># dfo module throws errer if larger value</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Tolerance must be equal or smaller than 0.1&#39;</span><span class="p">)</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rhoend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tolerance</span>  <span class="c1"># size of the trust region</span>
+        <span class="n">user_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_params&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">user_params</span><span class="p">[</span><span class="s1">&#39;logging.save_diagnostic_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;user_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_params</span>
         <span class="k">return</span> <span class="n">kwargs</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -7848,7 +7905,11 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
 <span class="normal">351</span>
 <span class="normal">352</span>
 <span class="normal">353</span>
-<span class="normal">354</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">LMFit</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>  <span class="c1"># noqa: S101</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">LMFit</span><span class="p">(</span><span class="n">MinimizerBase</span><span class="p">):</span>  <span class="c1"># noqa: S101</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is a wrapper to the extended Levenberg-Marquardt Fit: https://lmfit.github.io/lmfit-py/</span>
 <span class="sd">    It allows for the lmfit fitting engine to use parameters declared in an `EasyScience.base_classes.ObjBase`.</span>
@@ -7874,6 +7935,7 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
 <span class="sd">        :type method: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span> <span class="n">fit_function</span><span class="o">=</span><span class="n">fit_function</span><span class="p">,</span> <span class="n">minimizer_enum</span><span class="o">=</span><span class="n">minimizer_enum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_iteration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">all_methods</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -7971,6 +8033,7 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
             <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_model</span><span class="p">()</span>
 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_iteration</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">iter_cb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_iter_callback</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">)</span>
             <span class="n">model_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
                 <span class="n">y</span><span class="p">,</span>
@@ -7984,7 +8047,7 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
                 <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_parameter_fit_result</span><span class="p">(</span><span class="n">model_results</span><span class="p">,</span> <span class="n">stack_status</span><span class="p">)</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_fit_results</span><span class="p">(</span><span class="n">model_results</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_fit_results</span><span class="p">(</span><span class="n">model_results</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_iteration</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_restore_parameter_values</span><span class="p">()</span>
             <span class="k">raise</span> <span class="n">FitError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -7996,10 +8059,11 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">progress_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">],</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
         <span class="k">def</span><span class="w"> </span><span class="nf">iter_cb</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">iteration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">residuals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">iteration</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_iteration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
             <span class="n">payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_progress_payload</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">iteration</span><span class="p">,</span> <span class="n">residuals</span><span class="p">)</span>
             <span class="n">progress_callback</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -8169,6 +8233,7 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
         <span class="n">results</span><span class="o">.</span><span class="n">y_calc</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">best_fit</span>
         <span class="n">results</span><span class="o">.</span><span class="n">y_err</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">weights</span>
         <span class="n">results</span><span class="o">.</span><span class="n">n_evaluations</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">nfev</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">iterations</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iterations&#39;</span><span class="p">)</span>
         <span class="n">results</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">message</span>
         <span class="k">if</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">success</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">message</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fit_results</span><span class="o">.</span><span class="n">message</span><span class="p">),</span> <span class="ne">UserWarning</span><span class="p">)</span>
@@ -8235,7 +8300,8 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
 <span class="normal">47</span>
 <span class="normal">48</span>
 <span class="normal">49</span>
-<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">50</span>
+<span class="normal">51</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">obj</span><span class="p">,</span>  <span class="c1">#: ObjBase,</span>
     <span class="n">fit_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
@@ -8253,6 +8319,7 @@ It allows for the lmfit fitting engine to use parameters declared in an <code>Ea
 <span class="sd">    :type method: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span> <span class="n">fit_function</span><span class="o">=</span><span class="n">fit_function</span><span class="p">,</span> <span class="n">minimizer_enum</span><span class="o">=</span><span class="n">minimizer_enum</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_last_iteration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -8290,10 +8357,7 @@ object.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/easyscience/fitting/minimizers/minimizer_lmfit.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">242</span>
 <span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
@@ -8308,7 +8372,10 @@ object.</p>
 <span class="normal">254</span>
 <span class="normal">255</span>
 <span class="normal">256</span>
-<span class="normal">257</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_par_object</span><span class="p">(</span><span class="n">parameter</span><span class="p">:</span> <span class="n">Parameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LMParameter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an EasyScience Parameter object to a lmfit Parameter</span>
 <span class="sd">    object.</span>
@@ -8361,10 +8428,7 @@ converted from the base object.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/easyscience/fitting/minimizers/minimizer_lmfit.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">226</span>
 <span class="normal">227</span>
 <span class="normal">228</span>
 <span class="normal">229</span>
@@ -8375,7 +8439,10 @@ converted from the base object.</p>
 <span class="normal">234</span>
 <span class="normal">235</span>
 <span class="normal">236</span>
-<span class="normal">237</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">convert_to_pars_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Parameter</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LMParameters</span><span class="p">:</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">convert_to_pars_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Parameter</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LMParameters</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an lmfit compatible container with the `Parameters`</span>
 <span class="sd">    converted from the base object.</span>
 
@@ -8441,8 +8508,7 @@ converted from the base object.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/easyscience/fitting/minimizers/minimizer_lmfit.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 79</span>
-<span class="normal"> 80</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 80</span>
 <span class="normal"> 81</span>
 <span class="normal"> 82</span>
 <span class="normal"> 83</span>
@@ -8529,7 +8595,9 @@ converted from the base object.</p>
 <span class="normal">164</span>
 <span class="normal">165</span>
 <span class="normal">166</span>
-<span class="normal">167</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -8598,6 +8666,7 @@ converted from the base object.</p>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_model</span><span class="p">()</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_iteration</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">iter_cb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_iter_callback</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">)</span>
         <span class="n">model_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
             <span class="n">y</span><span class="p">,</span>
@@ -8611,7 +8680,7 @@ converted from the base object.</p>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_parameter_fit_result</span><span class="p">(</span><span class="n">model_results</span><span class="p">,</span> <span class="n">stack_status</span><span class="p">)</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_fit_results</span><span class="p">(</span><span class="n">model_results</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_fit_results</span><span class="p">(</span><span class="n">model_results</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_iteration</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_restore_parameter_values</span><span class="p">()</span>
         <span class="k">raise</span> <span class="n">FitError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -8799,7 +8868,10 @@ fit parameters.</p>
 <span class="normal">89</span>
 <span class="normal">90</span>
 <span class="normal">91</span>
-<span class="normal">92</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FitResults</span><span class="p">:</span>
+<span class="normal">92</span>
+<span class="normal">93</span>
+<span class="normal">94</span>
+<span class="normal">95</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FitResults</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;At the moment this is just a dummy way of unifying the returned</span>
 <span class="sd">    fit parameters.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -8816,6 +8888,7 @@ fit parameters.</p>
         <span class="s1">&#39;y_calc&#39;</span><span class="p">,</span>
         <span class="s1">&#39;y_err&#39;</span><span class="p">,</span>
         <span class="s1">&#39;n_evaluations&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;iterations&#39;</span><span class="p">,</span>
         <span class="s1">&#39;message&#39;</span><span class="p">,</span>
         <span class="s1">&#39;engine_result&#39;</span><span class="p">,</span>
         <span class="s1">&#39;total_results&#39;</span><span class="p">,</span>
@@ -8833,6 +8906,7 @@ fit parameters.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_calc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">([])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">([])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_evaluations</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iterations</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">engine_result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_results</span> <span class="o">=</span> <span class="kc">None</span>
@@ -8860,6 +8934,7 @@ fit parameters.</p>
             <span class="sa">f</span><span class="s1">&#39;  n_pars=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pars</span><span class="si">}</span><span class="s1">, n_points=</span><span class="si">{</span><span class="n">n_points</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="sa">f</span><span class="s1">&#39;  chi2=</span><span class="si">{</span><span class="n">chi2</span><span class="si">}</span><span class="s1">, reduced_chi2=</span><span class="si">{</span><span class="n">reduced</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="sa">f</span><span class="s1">&#39;  n_evaluations=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_evaluations</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;  iterations=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">iterations</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="sa">f</span><span class="s1">&#39;  minimizer=</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">:</span>
@@ -9138,7 +9213,8 @@ minimizer.</p>
 <span class="normal">147</span>
 <span class="normal">148</span>
 <span class="normal">149</span>
-<span class="normal">150</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MultiFitter</span><span class="p">(</span><span class="n">Fitter</span><span class="p">):</span>
+<span class="normal">150</span>
+<span class="normal">151</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MultiFitter</span><span class="p">(</span><span class="n">Fitter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extension of Fitter to enable multiple dataset/fit function</span>
 <span class="sd">    fitting.</span>
 
@@ -9258,6 +9334,7 @@ minimizer.</p>
             <span class="n">current_results</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">fit_result_obj</span><span class="o">.</span><span class="n">p</span>
             <span class="n">current_results</span><span class="o">.</span><span class="n">p0</span> <span class="o">=</span> <span class="n">fit_result_obj</span><span class="o">.</span><span class="n">p0</span>
             <span class="n">current_results</span><span class="o">.</span><span class="n">n_evaluations</span> <span class="o">=</span> <span class="n">fit_result_obj</span><span class="o">.</span><span class="n">n_evaluations</span>
+            <span class="n">current_results</span><span class="o">.</span><span class="n">iterations</span> <span class="o">=</span> <span class="n">fit_result_obj</span><span class="o">.</span><span class="n">iterations</span>
             <span class="n">current_results</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">fit_result_obj</span><span class="o">.</span><span class="n">message</span>
             <span class="n">current_results</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">this_x</span>
             <span class="n">current_results</span><span class="o">.</span><span class="n">y_obs</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
