@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import copy
-import functools
-import inspect
 import warnings
 from typing import Callable
 from typing import List
@@ -12,7 +10,6 @@ import numpy as np
 from bumps.fitters import FIT_AVAILABLE_IDS
 from bumps.fitters import FITTERS
 from bumps.fitters import FitDriver
-from bumps.monitor import Monitor
 from bumps.names import Curve
 from bumps.names import FitProblem
 from bumps.parameter import Parameter as BumpsParameter
@@ -22,6 +19,8 @@ from bumps.parameter import Parameter as BumpsParameter
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
+from .bumps_utils import BumpsProgressMonitor
+from .bumps_utils import EvalCounter
 from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
 from .utils import FitError
@@ -30,38 +29,6 @@ from .utils import FitResults
 FIT_AVAILABLE_IDS_FILTERED = copy.copy(FIT_AVAILABLE_IDS)
 # Considered experimental
 FIT_AVAILABLE_IDS_FILTERED.remove('pt')
-
-
-class _EvalCounter:
-    def __init__(self, fn: Callable):
-        self._fn = fn
-        self.count = 0
-        self.__name__ = getattr(fn, '__name__', self.__class__.__name__)
-        self.__signature__ = inspect.signature(fn)
-        functools.update_wrapper(self, fn)
-
-    def __call__(self, *args, **kwargs):
-        self.count += 1
-        return self._fn(*args, **kwargs)
-
-
-class _BumpsProgressMonitor(Monitor):
-    def __init__(self, problem, callback, payload_builder):
-        self._problem = problem
-        self._callback = callback
-        self._payload_builder = payload_builder
-
-    def config_history(self, history):
-        history.requires(step=1, point=1, value=1)
-
-    def __call__(self, history):
-        payload = self._payload_builder(
-            problem=self._problem,
-            iteration=int(history.step[0]),
-            point=np.asarray(history.point[0]),
-            nllf=float(history.value[0]),
-        )
-        self._callback(payload)
 
 
 class Bumps(MinimizerBase):
@@ -90,7 +57,7 @@ class Bumps(MinimizerBase):
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
         self._p_0 = {}
-        self._eval_counter: _EvalCounter | None = None
+        self._eval_counter: EvalCounter | None = None
 
     @staticmethod
     def all_methods() -> List[str]:
@@ -212,7 +179,7 @@ class Bumps(MinimizerBase):
             if not callable(progress_callback):
                 raise ValueError('progress_callback must be callable')
             monitors.append(
-                _BumpsProgressMonitor(problem, progress_callback, self._build_progress_payload)
+                BumpsProgressMonitor(problem, progress_callback, self._build_progress_payload)
             )
 
         driver = FitDriver(
@@ -345,7 +312,7 @@ class Bumps(MinimizerBase):
         :return: Callable to make a bumps Curve model
         :rtype: Callable
         """
-        fit_func = _EvalCounter(self._generate_fit_function())
+        fit_func = EvalCounter(self._generate_fit_function())
         self._eval_counter = fit_func
 
         def _outer(obj):

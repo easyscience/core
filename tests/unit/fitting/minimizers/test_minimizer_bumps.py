@@ -9,8 +9,8 @@ import numpy as np
 import pytest
 
 import easyscience.fitting.minimizers.minimizer_bumps
+from easyscience.fitting.minimizers.bumps_utils import BumpsProgressMonitor
 from easyscience.fitting.minimizers.minimizer_bumps import Bumps
-from easyscience.fitting.minimizers.minimizer_bumps import _BumpsProgressMonitor
 from easyscience.fitting.minimizers.utils import FitError
 
 
@@ -358,7 +358,7 @@ class TestBumpsFit:
         driver_call_kwargs = mock_FitDriver.call_args
         monitors = driver_call_kwargs.kwargs.get('monitors', driver_call_kwargs[1].get('monitors'))
         assert len(monitors) == 1
-        assert isinstance(monitors[0], _BumpsProgressMonitor)
+        assert isinstance(monitors[0], BumpsProgressMonitor)
         assert monitors[0]._problem is mock_FitProblem_instance
         assert monitors[0]._callback is progress_callback
         assert monitors[0]._payload_builder == minimizer._build_progress_payload
@@ -578,7 +578,7 @@ class TestBumpsFit:
         mock_problem = MagicMock()
         payload_builder = MagicMock(return_value={'iteration': 1})
 
-        monitor = _BumpsProgressMonitor(mock_problem, callback, payload_builder)
+        monitor = BumpsProgressMonitor(mock_problem, callback, payload_builder)
 
         mock_history = MagicMock()
         mock_history.step = [5]
