@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import warnings
+from unittest.mock import ANY
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -130,11 +131,12 @@ class TestLMFit:
         # Expect
         assert result == 'gen_fit_results'
         mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, iter_cb=None, fit_kws={}, method='leastsq'
+            2.0, x=1.0, weights=1, max_nfev=None, iter_cb=ANY, fit_kws={}, method='leastsq'
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
         minimizer._make_model.assert_called_once_with()
         minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
-        minimizer._gen_fit_results.assert_called_once_with('fit')
+        minimizer._gen_fit_results.assert_called_once_with('fit', iterations=None)
 
     def test_fit_model(self, minimizer: LMFit) -> None:
         # When
@@ -149,8 +151,9 @@ class TestLMFit:
 
         # Expect
         mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, iter_cb=None, fit_kws={}, method='leastsq'
+            2.0, x=1.0, weights=1, max_nfev=None, iter_cb=ANY, fit_kws={}, method='leastsq'
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
         minimizer._make_model.assert_not_called()
 
     def test_fit_method(self, minimizer: LMFit) -> None:
@@ -168,8 +171,15 @@ class TestLMFit:
 
         # Expect
         mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, iter_cb=None, fit_kws={}, method='method_passed'
+            2.0,
+            x=1.0,
+            weights=1,
+            max_nfev=None,
+            iter_cb=ANY,
+            fit_kws={},
+            method='method_passed',
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
         minimizer.supported_methods.assert_called_once_with()
 
     def test_fit_kwargs(self, minimizer: LMFit) -> None:
@@ -195,11 +205,12 @@ class TestLMFit:
             x=1.0,
             weights=1,
             max_nfev=None,
-            iter_cb=None,
+            iter_cb=ANY,
             fit_kws={'minimizer_key': 'minimizer_val'},
             method='leastsq',
             engine_key='engine_val',
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
 
     def test_fit_progress_callback(self, minimizer: LMFit) -> None:
         # When
@@ -253,8 +264,13 @@ class TestLMFit:
         assert payload['reduced_chi2'] == 25.0
 
     def test_create_iter_callback_no_callback(self, minimizer: LMFit) -> None:
-        # When Then Expect
-        assert minimizer._create_iter_callback(None) is None
+        # When
+        iter_cb = minimizer._create_iter_callback(None)
+
+        # Then Expect
+        assert callable(iter_cb)
+        assert iter_cb(MagicMock(), 5, np.array([1.0, -2.0])) is False
+        assert minimizer._last_iteration == 5
 
     def test_create_iter_callback_invokes_progress(self, minimizer: LMFit) -> None:
         # When
@@ -337,10 +353,11 @@ class TestLMFit:
         fit_results.message = 'max evaluations reached'
 
         with pytest.warns(UserWarning, match='max evaluations reached'):
-            result = minimizer._gen_fit_results(fit_results)
+            result = minimizer._gen_fit_results(fit_results, iterations=4)
 
         assert result.success is False
         assert result.n_evaluations == 9
+        assert result.iterations == 4
         assert result.message == 'max evaluations reached'
         assert result.engine_result == fit_results
 

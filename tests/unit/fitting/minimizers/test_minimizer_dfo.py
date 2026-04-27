@@ -67,7 +67,9 @@ class TestDFOFit:
 
         # Expect
         assert result == 'gen_fit_results'
-        minimizer._dfo_fit.assert_called_once_with(cached_pars, mock_model)
+        minimizer._dfo_fit.assert_called_once_with(
+            cached_pars, mock_model, user_params={'logging.save_diagnostic_info': True}
+        )
         minimizer._make_model.assert_called_once_with(
             parameters=None,
             callback=None,
@@ -139,7 +141,11 @@ class TestDFOFit:
             1,
             False,
         )
-        minimizer._dfo_fit.assert_called_once_with(minimizer._cached_pars, wrapped_model)
+        minimizer._dfo_fit.assert_called_once_with(
+            minimizer._cached_pars,
+            wrapped_model,
+            user_params={'logging.save_diagnostic_info': True},
+        )
 
     def test_fit_uses_supplied_model_without_callback(self, minimizer: DFO) -> None:
         from easyscience import global_object
@@ -165,7 +171,11 @@ class TestDFOFit:
         assert result == 'gen_fit_results'
         minimizer._make_model.assert_not_called()
         minimizer._wrap_model_with_callback.assert_not_called()
-        minimizer._dfo_fit.assert_called_once_with(minimizer._cached_pars, supplied_model)
+        minimizer._dfo_fit.assert_called_once_with(
+            minimizer._cached_pars,
+            supplied_model,
+            user_params={'logging.save_diagnostic_info': True},
+        )
 
     def test_generate_fit_function(self, minimizer: DFO) -> None:
         # When
@@ -376,6 +386,7 @@ class TestDFOFit:
         mock_fit_result.EXIT_SUCCESS = 0
         mock_fit_result.flag = 0
         mock_fit_result.nf = 12
+        mock_fit_result.diagnostic_info = {'iters_total': [3]}
         mock_fit_result.msg = 'Maximum function evaluations reached'
 
         mock_cached_model = MagicMock()
@@ -414,6 +425,7 @@ class TestDFOFit:
         assert domain_fit_results.y_calc == 'evaluate'
         assert domain_fit_results.y_err == 'weights'
         assert domain_fit_results.n_evaluations == 12
+        assert domain_fit_results.iterations == 3
         assert domain_fit_results.message == 'Maximum function evaluations reached'
         assert domain_fit_results.engine_result == mock_fit_result
         assert (
@@ -455,6 +467,12 @@ class TestDFOFit:
         assert domain_fit_results.success == False
         assert domain_fit_results.n_evaluations == 50
         assert domain_fit_results.message == 'Objective has been called MAXFUN times'
+
+    def test_extract_iterations_from_diagnostic_dict(self) -> None:
+        fit_results = MagicMock()
+        fit_results.diagnostic_info = {'iters_total': [1, 2, 5]}
+
+        assert DFO._extract_iterations(fit_results) == 5
 
     def test_gen_fit_results_success_does_not_warn(self, minimizer: DFO, monkeypatch):
         mock_domain_fit_results = MagicMock()
@@ -827,6 +845,7 @@ class TestDFOFit:
             'keep': True,
             'maxfun': 11,
             'rhoend': 0.05,
+            'user_params': {'logging.save_diagnostic_info': True},
         }
 
     def test_prepare_kwargs_rejects_large_tolerance(self, minimizer: DFO) -> None:

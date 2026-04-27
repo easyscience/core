@@ -48,6 +48,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         :type method: str
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
+        self._last_iteration: int | None = None
 
     @staticmethod
     def all_methods() -> List[str]:
@@ -145,6 +146,7 @@ class LMFit(MinimizerBase):  # noqa: S101
             if model is None:
                 model = self._make_model()
 
+            self._last_iteration = None
             iter_cb = self._create_iter_callback(progress_callback)
             model_results = model.fit(
                 y,
@@ -158,7 +160,7 @@ class LMFit(MinimizerBase):  # noqa: S101
                 **kwargs,
             )
             self._set_parameter_fit_result(model_results, stack_status)
-            results = self._gen_fit_results(model_results)
+            results = self._gen_fit_results(model_results, iterations=self._last_iteration)
         except Exception as e:
             self._restore_parameter_values()
             raise FitError(e)
@@ -170,10 +172,11 @@ class LMFit(MinimizerBase):  # noqa: S101
         self,
         progress_callback: Callable[[dict], bool | None] | None,
     ) -> Callable | None:
-        if progress_callback is None:
-            return None
-
         def iter_cb(params, iteration: int, residuals: np.ndarray, *args, **kwargs) -> bool:
+            if iteration >= 0:
+                self._last_iteration = int(iteration)
+            if progress_callback is None:
+                return False
             payload = self._build_progress_payload(params, iteration, residuals)
             progress_callback(payload)
             return False
@@ -343,6 +346,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         results.y_calc = fit_results.best_fit
         results.y_err = 1 / fit_results.weights
         results.n_evaluations = fit_results.nfev
+        results.iterations = kwargs.get('iterations')
         results.message = fit_results.message
         if fit_results.success is False and fit_results.message:
             warnings.warn(str(fit_results.message), UserWarning)

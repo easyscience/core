@@ -143,10 +143,11 @@ class Bumps(MinimizerBase):
             **objective-function evaluations** consumed by the fit, for cross-backend
             consistency with LMFit (``nfev``) and DFO-LS (``nf``). For BUMPS this is
             distinct from the optimizer **step count** that ``max_evaluations`` (i.e.
-            BUMPS ``steps``) is budgeted against; a single step may trigger several
-            objective evaluations, so ``n_evaluations`` can legitimately exceed
-            ``max_evaluations``. The budget-exhaustion check is performed against the
-            consumed step count, not ``n_evaluations``.
+            BUMPS ``steps``) is budgeted against and returned as
+            :class:`FitResults.iterations`; a single step may trigger several objective
+            evaluations, so ``n_evaluations`` can legitimately exceed
+            ``max_evaluations``. The budget-exhaustion check is performed against
+            ``iterations``, not ``n_evaluations``.
 
         :return: Fit results
         :rtype: FitResults
@@ -454,6 +455,7 @@ class Bumps(MinimizerBase):
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = self._cached_model.dy
         results.n_evaluations = n_evaluations
+        results.iterations = n_steps_used
         results.message = ''
         if stopped_on_budget:
             results.message = (

@@ -17,6 +17,7 @@ class TestFitResultsRepr:
         r.y_err = np.array([0.1, 0.1, 0.1])
         r.p = {'pa': 1.234, 'pb': 5.678}
         r.n_evaluations = 42
+        r.iterations = 7
         r.minimizer_engine = type('Bumps', (), {'__name__': 'Bumps'})
         for k, v in overrides.items():
             setattr(r, k, v)
@@ -48,6 +49,10 @@ class TestFitResultsRepr:
     def test_repr_contains_n_evaluations(self):
         r = self._make_result()
         assert 'n_evaluations=42' in repr(r)
+
+    def test_repr_contains_iterations(self):
+        r = self._make_result()
+        assert 'iterations=7' in repr(r)
 
     def test_repr_contains_minimizer_name(self):
         r = self._make_result()
@@ -82,4 +87,5 @@ class TestFitResultsRepr:
         assert 'n_pars=0' in text
         assert 'n_points=0' in text
         assert 'n_evaluations=None' in text
+        assert 'iterations=None' in text
         assert 'chi2=N/A' in text

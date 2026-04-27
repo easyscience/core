@@ -242,6 +242,7 @@ class TestBumpsFit:
         assert domain_fit_results.y_calc == 'evaluate'
         assert domain_fit_results.y_err == 'dy'
         assert domain_fit_results.n_evaluations == 7
+        assert domain_fit_results.iterations == 3
         assert (
             domain_fit_results.message
             == 'Fit stopped: reached maximum optimizer steps (3); objective evaluated 7 times'
@@ -666,6 +667,7 @@ class TestBumpsFit:
 
         assert domain_fit_results.success == False
         assert domain_fit_results.n_evaluations == 2
+        assert domain_fit_results.iterations == 100
         assert (
             domain_fit_results.message
             == 'Fit stopped: reached maximum optimizer steps (3); objective evaluated 2 times'

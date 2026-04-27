@@ -375,6 +375,7 @@ class DFO(MinimizerBase):
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
         results.y_err = weights
         results.n_evaluations = int(fit_results.nf)
+        results.iterations = self._extract_iterations(fit_results)
         results.message = str(fit_results.msg)
         if not results.success:
             warning_message = results.message or 'DFO fit did not succeed.'
@@ -388,6 +389,27 @@ class DFO(MinimizerBase):
         # results.check_sanity()
 
         return results
+
+    @staticmethod
+    def _extract_iterations(fit_results) -> int | None:
+        diagnostic_info = getattr(fit_results, 'diagnostic_info', None)
+        if diagnostic_info is None:
+            return None
+
+        if isinstance(diagnostic_info, dict):
+            values = diagnostic_info.get('iters_total')
+            if values is None or len(values) == 0:
+                return None
+            return int(values[-1])
+
+        columns = getattr(diagnostic_info, 'columns', ())
+        if 'iters_total' not in columns:
+            return None
+
+        series = diagnostic_info['iters_total'].dropna()
+        if series.empty:
+            return None
+        return int(series.iloc[-1])
 
     @staticmethod
     def _dfo_fit(
@@ -437,4 +459,7 @@ class DFO(MinimizerBase):
             if 0.1 < tolerance:  # dfo module throws errer if larger value
                 raise ValueError('Tolerance must be equal or smaller than 0.1')
             kwargs['rhoend'] = tolerance  # size of the trust region
+        user_params = dict(kwargs.get('user_params') or {})
+        user_params['logging.save_diagnostic_info'] = True
+        kwargs['user_params'] = user_params
         return kwargs

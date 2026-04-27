@@ -104,8 +104,8 @@ def test_multi_fit(fit_engine):
 
 
 @pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
-def test_multi_fit_propagates_n_evaluations_and_message(fit_engine):
-    """Verify that n_evaluations and message are copied into each per-dataset result."""
+def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
+    """Verify that fit metadata and message are copied into each per-dataset result."""
     ref_sin_1 = AbsSin(0.2, np.pi)
     sp_sin_1 = AbsSin(0.354, 3.05)
     ref_sin_2 = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
@@ -140,6 +140,9 @@ def test_multi_fit_propagates_n_evaluations_and_message(fit_engine):
         assert result.n_evaluations is not None
         assert isinstance(result.n_evaluations, int)
         assert result.n_evaluations > 0
+        assert result.iterations is not None
+        assert isinstance(result.iterations, int)
+        assert result.iterations >= 0
         assert isinstance(result.message, str)
 
 
