@@ -83,7 +83,7 @@ def test_multi_fit(fit_engine):
         try:
             f.switch_minimizer(fit_engine)
         except AttributeError:
-            pytest.skip(msg=f'{fit_engine} is not installed')
+            pytest.skip(reason=f'{fit_engine} is not installed')
 
     results = f.fit(x=[x1, x2], y=[y1, y2], weights=[weights, weights])
     X = [x1, x2]
