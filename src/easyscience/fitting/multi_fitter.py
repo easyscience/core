@@ -18,6 +18,10 @@ class MultiFitter(Fitter):
 
     We can fit these types of data simultaneously:
     - Multiple models on multiple datasets.
+
+    The inherited ``fit`` wrapper from ``Fitter`` is used unchanged,
+    including support for forwarding progress callbacks to the active
+    minimizer.
     """
 
     def __init__(
@@ -128,6 +132,7 @@ class MultiFitter(Fitter):
             current_results.p = fit_result_obj.p
             current_results.p0 = fit_result_obj.p0
             current_results.n_evaluations = fit_result_obj.n_evaluations
+            current_results.iterations = fit_result_obj.iterations
             current_results.message = fit_result_obj.message
             current_results.x = this_x
             current_results.y_obs = y[idx]

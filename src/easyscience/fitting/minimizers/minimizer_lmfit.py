@@ -4,7 +4,6 @@
 import warnings
 from typing import Callable
 from typing import List
-from typing import Optional
 
 import numpy as np
 from lmfit import Model as LMModel
@@ -35,7 +34,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         self,
         obj,  #: ObjBase,
         fit_function: Callable,
-        minimizer_enum: Optional[AvailableMinimizers] = None,
+        minimizer_enum: AvailableMinimizers | None = None,
     ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
         """Initialize the minimizer with the `ObjBase` and the
         `fit_function` to be used.
@@ -49,6 +48,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         :type method: str
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
+        self._last_iteration: int | None = None
 
     @staticmethod
     def all_methods() -> List[str]:
@@ -82,13 +82,14 @@ class LMFit(MinimizerBase):  # noqa: S101
         x: np.ndarray,
         y: np.ndarray,
         weights: np.ndarray = None,
-        model: Optional[LMModel] = None,
-        parameters: Optional[LMParameters] = None,
-        method: Optional[str] = None,
-        tolerance: Optional[float] = None,
-        max_evaluations: Optional[int] = None,
-        minimizer_kwargs: Optional[dict] = None,
-        engine_kwargs: Optional[dict] = None,
+        model: LMModel | None = None,
+        parameters: LMParameters | None = None,
+        method: str | None = None,
+        tolerance: float | None = None,
+        max_evaluations: int | None = None,
+        progress_callback: Callable[[dict], bool | None] | None = None,
+        minimizer_kwargs: dict | None = None,
+        engine_kwargs: dict | None = None,
         **kwargs,
     ) -> FitResults:
         """Perform a fit using the lmfit engine.
@@ -145,23 +146,70 @@ class LMFit(MinimizerBase):  # noqa: S101
             if model is None:
                 model = self._make_model()
 
+            self._last_iteration = None
+            iter_cb = self._create_iter_callback(progress_callback)
             model_results = model.fit(
                 y,
                 x=x,
                 weights=weights,
                 max_nfev=max_evaluations,
+                iter_cb=iter_cb,
                 fit_kws=fit_kws_dict,
                 **method_kwargs,
                 **engine_kwargs,
                 **kwargs,
             )
             self._set_parameter_fit_result(model_results, stack_status)
-            results = self._gen_fit_results(model_results)
+            results = self._gen_fit_results(model_results, iterations=self._last_iteration)
         except Exception as e:
-            for key in self._cached_pars.keys():
-                self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            self._restore_parameter_values()
             raise FitError(e)
+        finally:
+            global_object.stack.enabled = stack_status
         return results
+
+    def _create_iter_callback(
+        self,
+        progress_callback: Callable[[dict], bool | None] | None,
+    ) -> Callable | None:
+        def iter_cb(params, iteration: int, residuals: np.ndarray, *args, **kwargs) -> bool:
+            if iteration >= 0:
+                self._last_iteration = int(iteration)
+            if progress_callback is None:
+                return False
+            payload = self._build_progress_payload(params, iteration, residuals)
+            progress_callback(payload)
+            return False
+
+        return iter_cb
+
+    def _build_progress_payload(self, params, iteration: int, residuals: np.ndarray) -> dict:
+        residual_array = np.asarray(residuals)
+        chi2 = float(np.square(residual_array).sum())
+        varied_parameter_count = sum(
+            1 for parameter in params.values() if getattr(parameter, 'vary', False)
+        )
+        degrees_of_freedom = residual_array.size - varied_parameter_count
+        reduced_chi2 = chi2 / degrees_of_freedom if degrees_of_freedom > 0 else chi2
+
+        parameter_values = {
+            parameter_name[len(MINIMIZER_PARAMETER_PREFIX) :]: float(parameter.value)
+            for parameter_name, parameter in params.items()
+            if parameter_name.startswith(MINIMIZER_PARAMETER_PREFIX)
+        }
+        for parameter_name, parameter in self._cached_pars.items():
+            lmfit_parameter_name = f'{MINIMIZER_PARAMETER_PREFIX}{parameter_name}'
+            if lmfit_parameter_name not in params:
+                parameter_values[parameter_name] = float(parameter.value)
+
+        return {
+            'iteration': int(iteration),
+            'chi2': chi2,
+            'reduced_chi2': reduced_chi2,
+            'parameter_values': parameter_values,
+            'refresh_plots': False,
+            'finished': False,
+        }
 
     def _get_fit_kws(
         self, method: str, tolerance: float, minimizer_kwargs: dict[str:str]
@@ -175,7 +223,7 @@ class LMFit(MinimizerBase):  # noqa: S101
                 minimizer_kwargs['tol'] = tolerance
         return minimizer_kwargs
 
-    def convert_to_pars_obj(self, parameters: Optional[List[Parameter]] = None) -> LMParameters:
+    def convert_to_pars_obj(self, parameters: List[Parameter] | None = None) -> LMParameters:
         """Create an lmfit compatible container with the `Parameters`
         converted from the base object.
 
@@ -211,7 +259,7 @@ class LMFit(MinimizerBase):  # noqa: S101
             brute_step=None,
         )
 
-    def _make_model(self, pars: Optional[LMParameters] = None) -> LMModel:
+    def _make_model(self, pars: LMParameters | None = None) -> LMModel:
         """Generate a lmfit model from the supplied `fit_function` and
         parameters in the base object.
 
@@ -261,9 +309,7 @@ class LMFit(MinimizerBase):  # noqa: S101
 
         pars = self._cached_pars
         if stack_status:
-            for name in pars.keys():
-                pars[name].value = self._cached_pars_vals[name][0]
-                pars[name].error = self._cached_pars_vals[name][1]
+            self._restore_parameter_values()
             global_object.stack.enabled = True
             global_object.stack.beginMacro('Fitting routine')
         for name in pars.keys():
@@ -300,6 +346,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         results.y_calc = fit_results.best_fit
         results.y_err = 1 / fit_results.weights
         results.n_evaluations = fit_results.nfev
+        results.iterations = kwargs.get('iterations')
         results.message = fit_results.message
         if fit_results.success is False and fit_results.message:
             warnings.warn(str(fit_results.message), UserWarning)

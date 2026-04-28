@@ -23,3 +23,6 @@ The tutorials are organized into the following categories:
 - [Fitting SANS](fitting-sans.ipynb) – A tutorial demonstrating how to
   fit a small-angle neutron scattering (SANS) data using EasyScience
   framework.
+- [Progress Callback](progress-callback.ipynb) – A tutorial showing how
+  to monitor fitting progress across minimizer backends and update a
+  notebook UI while a fit is running.

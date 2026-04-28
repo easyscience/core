@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import warnings
+from unittest.mock import ANY
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -130,11 +131,12 @@ class TestLMFit:
         # Expect
         assert result == 'gen_fit_results'
         mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq'
+            2.0, x=1.0, weights=1, max_nfev=None, iter_cb=ANY, fit_kws={}, method='leastsq'
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
         minimizer._make_model.assert_called_once_with()
         minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
-        minimizer._gen_fit_results.assert_called_once_with('fit')
+        minimizer._gen_fit_results.assert_called_once_with('fit', iterations=None)
 
     def test_fit_model(self, minimizer: LMFit) -> None:
         # When
@@ -149,8 +151,9 @@ class TestLMFit:
 
         # Expect
         mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='leastsq'
+            2.0, x=1.0, weights=1, max_nfev=None, iter_cb=ANY, fit_kws={}, method='leastsq'
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
         minimizer._make_model.assert_not_called()
 
     def test_fit_method(self, minimizer: LMFit) -> None:
@@ -168,8 +171,15 @@ class TestLMFit:
 
         # Expect
         mock_model.fit.assert_called_once_with(
-            2.0, x=1.0, weights=1, max_nfev=None, fit_kws={}, method='method_passed'
+            2.0,
+            x=1.0,
+            weights=1,
+            max_nfev=None,
+            iter_cb=ANY,
+            fit_kws={},
+            method='method_passed',
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
         minimizer.supported_methods.assert_called_once_with()
 
     def test_fit_kwargs(self, minimizer: LMFit) -> None:
@@ -195,10 +205,130 @@ class TestLMFit:
             x=1.0,
             weights=1,
             max_nfev=None,
+            iter_cb=ANY,
             fit_kws={'minimizer_key': 'minimizer_val'},
             method='leastsq',
             engine_key='engine_val',
         )
+        assert callable(mock_model.fit.call_args.kwargs['iter_cb'])
+
+    def test_fit_progress_callback(self, minimizer: LMFit) -> None:
+        # When
+        progress_callback = MagicMock(return_value=True)
+        mock_model = MagicMock()
+        mock_model.fit = MagicMock(return_value='fit')
+        minimizer._make_model = MagicMock(return_value=mock_model)
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+
+        # Then
+        minimizer.fit(x=1.0, y=2.0, weights=1, progress_callback=progress_callback)
+
+        # Expect
+        assert mock_model.fit.call_count == 1
+        iter_cb = mock_model.fit.call_args.kwargs['iter_cb']
+        assert callable(iter_cb)
+
+    def test_fit_progress_callback_with_supplied_model_uses_iter_params(
+        self, minimizer: LMFit
+    ) -> None:
+        progress_callback = MagicMock(return_value=True)
+        mock_model = MagicMock()
+        mock_param_alpha = MagicMock()
+        mock_param_alpha.value = 1.0
+        mock_param_alpha.vary = True
+        params = {'palpha': mock_param_alpha}
+
+        mock_model.fit = MagicMock(
+            side_effect=lambda *args, **kwargs: (
+                kwargs['iter_cb'](params, 4, np.array([3.0, 4.0])) or 'fit'
+            )
+        )
+        minimizer._make_model = MagicMock(return_value=mock_model)
+        minimizer._set_parameter_fit_result = MagicMock()
+        minimizer._gen_fit_results = MagicMock(return_value='gen_fit_results')
+
+        result = minimizer.fit(
+            x=np.array([1.0, 2.0]),
+            y=np.array([1.0, 2.0]),
+            weights=np.array([1.0, 1.0]),
+            model=mock_model,
+            progress_callback=progress_callback,
+        )
+
+        assert result == 'gen_fit_results'
+        minimizer._make_model.assert_not_called()
+        payload = progress_callback.call_args[0][0]
+        assert payload['parameter_values'] == {'alpha': 1.0}
+        assert payload['chi2'] == 25.0
+        assert payload['reduced_chi2'] == 25.0
+
+    def test_create_iter_callback_no_callback(self, minimizer: LMFit) -> None:
+        # When
+        iter_cb = minimizer._create_iter_callback(None)
+
+        # Then Expect
+        assert callable(iter_cb)
+        assert iter_cb(MagicMock(), 5, np.array([1.0, -2.0])) is False
+        assert minimizer._last_iteration == 5
+
+    def test_create_iter_callback_invokes_progress(self, minimizer: LMFit) -> None:
+        # When
+        progress_callback = MagicMock(return_value=False)
+        iter_cb = minimizer._create_iter_callback(progress_callback)
+
+        # Then
+        result = iter_cb(MagicMock(), 5, np.array([1.0, -2.0]))
+
+        # Expect — progress callback is notified, but its return value is ignored
+        progress_callback.assert_called_once()
+        assert result is False
+
+    def test_build_progress_payload(self, minimizer: LMFit) -> None:
+        # When
+        parameter_a = MagicMock(Parameter)
+        parameter_a.value = 1.5
+        parameter_b = MagicMock(Parameter)
+        parameter_b.value = 2.5
+        minimizer._cached_pars = {'alpha': parameter_a, 'beta': parameter_b}
+
+        mock_param_alpha = MagicMock()
+        mock_param_alpha.value = 1.0
+        mock_param_alpha.vary = True
+        mock_param_beta = MagicMock()
+        mock_param_beta.value = 2.0
+        mock_param_beta.vary = False
+        params = {'palpha': mock_param_alpha, 'pbeta': mock_param_beta}
+
+        # Then
+        payload = minimizer._build_progress_payload(params, 7, np.array([3.0, 4.0]))
+
+        # Expect
+        assert payload == {
+            'iteration': 7,
+            'chi2': 25.0,
+            'reduced_chi2': 25.0,
+            'parameter_values': {'alpha': 1.0, 'beta': 2.0},
+            'refresh_plots': False,
+            'finished': False,
+        }
+
+    def test_build_progress_payload_without_cached_pars(self, minimizer: LMFit) -> None:
+        mock_param_alpha = MagicMock()
+        mock_param_alpha.value = 1.0
+        mock_param_alpha.vary = True
+        params = {'palpha': mock_param_alpha}
+
+        payload = minimizer._build_progress_payload(params, 4, np.array([3.0, 4.0]))
+
+        assert payload == {
+            'iteration': 4,
+            'chi2': 25.0,
+            'reduced_chi2': 25.0,
+            'parameter_values': {'alpha': 1.0},
+            'refresh_plots': False,
+            'finished': False,
+        }
 
     def test_fit_exception(self, minimizer: LMFit) -> None:
         # When
@@ -223,10 +353,11 @@ class TestLMFit:
         fit_results.message = 'max evaluations reached'
 
         with pytest.warns(UserWarning, match='max evaluations reached'):
-            result = minimizer._gen_fit_results(fit_results)
+            result = minimizer._gen_fit_results(fit_results, iterations=4)
 
         assert result.success is False
         assert result.n_evaluations == 9
+        assert result.iterations == 4
         assert result.message == 'max evaluations reached'
         assert result.engine_result == fit_results
 

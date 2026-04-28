@@ -21,6 +21,7 @@ class FitResults:
         'y_calc',
         'y_err',
         'n_evaluations',
+        'iterations',
         'message',
         'engine_result',
         'total_results',
@@ -38,6 +39,7 @@ class FitResults:
         self.y_calc = np.ndarray([])
         self.y_err = np.ndarray([])
         self.n_evaluations = None
+        self.iterations = None
         self.message = ''
         self.engine_result = None
         self.total_results = None
@@ -48,7 +50,7 @@ class FitResults:
             chi2_val = self.chi2
             reduced_val = self.reduced_chi2
             if not np.isfinite(chi2_val) or not np.isfinite(reduced_val):
-                raise ValueError
+                raise ValueError('Chi2 or reduced chi2 is not finite')
             chi2 = f'{chi2_val:.4g}'
             reduced = f'{reduced_val:.4g}'
         except Exception:
@@ -65,6 +67,7 @@ class FitResults:
             f'  n_pars={self.n_pars}, n_points={n_points}',
             f'  chi2={chi2}, reduced_chi2={reduced}',
             f'  n_evaluations={self.n_evaluations}',
+            f'  iterations={self.iterations}',
             f'  minimizer={engine_name}',
         ]
         if self.message:

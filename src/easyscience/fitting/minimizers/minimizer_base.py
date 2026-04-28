@@ -9,7 +9,6 @@ from inspect import _empty
 from typing import Callable
 from typing import Dict
 from typing import List
-from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -58,17 +57,23 @@ class MinimizerBase(metaclass=ABCMeta):
     def name(self) -> str:
         return self._minimizer_enum.name
 
+    def _restore_parameter_values(self) -> None:
+        for key in self._cached_pars.keys():
+            self._cached_pars[key].value = self._cached_pars_vals[key][0]
+            self._cached_pars[key].error = self._cached_pars_vals[key][1]
+
     @abstractmethod
     def fit(
         self,
         x: np.ndarray,
         y: np.ndarray,
         weights: np.ndarray,
-        model: Optional[Callable] = None,
-        parameters: Optional[Parameter] = None,
-        method: Optional[str] = None,
-        tolerance: Optional[float] = None,
-        max_evaluations: Optional[int] = None,
+        model: Callable | None = None,
+        parameters: List[Parameter] | None = None,
+        method: str | None = None,
+        tolerance: float | None = None,
+        max_evaluations: int | None = None,
+        progress_callback: Callable[[dict], bool | None] | None = None,
         **kwargs,
     ) -> FitResults:
         """Perform a fit using the  engine.
@@ -88,7 +93,7 @@ class MinimizerBase(metaclass=ABCMeta):
         """
 
     def evaluate(
-        self, x: np.ndarray, minimizer_parameters: Optional[dict[str, float]] = None, **kwargs
+        self, x: np.ndarray, minimizer_parameters: dict[str, float] | None = None, **kwargs
     ) -> np.ndarray:
         """Evaluate the fit function for values of x. Parameters used
         are either the latest or user supplied. If the parameters are
@@ -117,7 +122,7 @@ class MinimizerBase(metaclass=ABCMeta):
 
         return self._fit_function(x, **minimizer_parameters, **kwargs)
 
-    def _get_method_kwargs(self, passed_method: Optional[str] = None) -> dict[str, str]:
+    def _get_method_kwargs(self, passed_method: str | None = None) -> dict[str, str]:
         if passed_method is not None:
             if passed_method not in self.supported_methods():
                 raise FitError(f'Method {passed_method} not available in {self.__class__}')
@@ -129,7 +134,7 @@ class MinimizerBase(metaclass=ABCMeta):
         return {}
 
     @abstractmethod
-    def convert_to_pars_obj(self, par_list: Optional[Union[list]] = None):
+    def convert_to_pars_obj(self, par_list: List[Parameter] | None = None):
         """Create an engine compatible container with the `Parameters`
         converted from the base object.
 

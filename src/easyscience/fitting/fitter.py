@@ -209,6 +209,7 @@ class Fitter:
             y: np.ndarray,
             weights: Optional[np.ndarray] = None,
             vectorized: bool = False,
+            progress_callback: Callable[[dict], bool | None] | None = None,
             **kwargs,
         ) -> FitResults:
             """This is a wrapped callable which performs the actual
@@ -237,6 +238,7 @@ class Fitter:
                 weights=weights,
                 tolerance=self._tolerance,
                 max_evaluations=self._max_evaluations,
+                progress_callback=progress_callback,
                 **kwargs,
             )
 
