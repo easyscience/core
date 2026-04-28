@@ -373,7 +373,9 @@ class DFO(MinimizerBase):
         results.x = self._cached_model.x
         results.y_obs = self._cached_model.y
         results.y_calc = self.evaluate(results.x, minimizer_parameters=results.p)
-        results.y_err = weights
+        # `weights` here are 1/sigma (residuals are multiplied by them in `_make_model`).
+        # `FitResults.chi2` divides residuals by `y_err`, so `y_err` must be sigma, not the weight.
+        results.y_err = 1 / np.asarray(weights)
         results.n_evaluations = int(fit_results.nf)
         results.iterations = self._extract_iterations(fit_results)
         results.message = str(fit_results.msg)

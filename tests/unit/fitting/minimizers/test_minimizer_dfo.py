@@ -407,8 +407,9 @@ class TestDFOFit:
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
         # Then
+        weights = np.array([2.0, 4.0])
         domain_fit_results = minimizer._gen_fit_results(
-            mock_fit_result, 'weights', **{'kwargs_set_key': 'kwargs_set_val'}
+            mock_fit_result, weights, **{'kwargs_set_key': 'kwargs_set_val'}
         )
 
         # Expect
@@ -423,7 +424,7 @@ class TestDFOFit:
         }
         assert domain_fit_results.p0 == 'p_0'
         assert domain_fit_results.y_calc == 'evaluate'
-        assert domain_fit_results.y_err == 'weights'
+        np.testing.assert_array_equal(domain_fit_results.y_err, 1 / weights)
         assert domain_fit_results.n_evaluations == 12
         assert domain_fit_results.iterations == 3
         assert domain_fit_results.message == 'Maximum function evaluations reached'
@@ -462,7 +463,7 @@ class TestDFOFit:
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
         with pytest.warns(UserWarning, match='Objective has been called MAXFUN times'):
-            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, np.array([1.0]))
 
         assert domain_fit_results.success == False
         assert domain_fit_results.n_evaluations == 50
@@ -500,7 +501,7 @@ class TestDFOFit:
         minimizer.evaluate = MagicMock(return_value='evaluate')
 
         with pytest.warns(UserWarning, match='Objective has been called MAXFUN times'):
-            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, np.array([1.0]))
 
         assert domain_fit_results.success == False
         assert domain_fit_results.n_evaluations == 50
@@ -544,7 +545,7 @@ class TestDFOFit:
 
         with warnings.catch_warnings(record=True) as record:
             warnings.simplefilter('always')
-            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, 'weights')
+            domain_fit_results = minimizer._gen_fit_results(mock_fit_result, np.array([1.0]))
 
         assert len(record) == 0
         assert domain_fit_results.success == True
