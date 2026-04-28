@@ -82,8 +82,6 @@ class DFO(MinimizerBase):
         max_evaluations: int | None = None,
         progress_callback: Callable[[dict], bool | None] | None = None,
         callback: Callable[[DFOCallbackState], None] | None = None,
-        callback_every: int = 1,
-        callback_on_improvement_only: bool = False,
         **kwargs,
     ) -> FitResults:
         """Perform a fit using the DFO-ls engine.
@@ -121,12 +119,6 @@ class DFO(MinimizerBase):
         if (weights <= 0).any():
             raise ValueError('Weights must be strictly positive and non-zero.')
 
-        if isinstance(callback_every, bool) or not isinstance(callback_every, int):
-            raise ValueError('callback_every must be a positive integer.')
-
-        if callback_every < 1:
-            raise ValueError('callback_every must be a positive integer.')
-
         # Bridge progress_callback into the DFO callback mechanism
         if progress_callback is not None and callback is None:
             callback = self._make_progress_adapter(progress_callback)
@@ -135,8 +127,6 @@ class DFO(MinimizerBase):
             model_function = self._make_model(
                 parameters=parameters,
                 callback=callback,
-                callback_every=callback_every,
-                callback_on_improvement_only=callback_on_improvement_only,
             )
             model = model_function(x, y, weights)
         elif callback is not None:
@@ -144,8 +134,6 @@ class DFO(MinimizerBase):
                 model,
                 self._get_callback_parameter_names(parameters),
                 callback,
-                callback_every,
-                callback_on_improvement_only,
             )
         self._cached_model = model
         self._cached_model.x = x
@@ -188,8 +176,6 @@ class DFO(MinimizerBase):
         self,
         parameters: List[Parameter] | None = None,
         callback: Callable[[DFOCallbackState], None] | None = None,
-        callback_every: int = 1,
-        callback_on_improvement_only: bool = False,
     ) -> Callable:
         """Generate a model from the supplied `fit_function` and
         parameters in the base object. Note that this makes a callable
@@ -219,8 +205,6 @@ class DFO(MinimizerBase):
                     _residuals,
                     list(dfo_pars.keys()),
                     callback,
-                    callback_every,
-                    callback_on_improvement_only,
                 )
 
             return _make_func
@@ -239,8 +223,6 @@ class DFO(MinimizerBase):
         model: Callable,
         parameter_names: list[str],
         callback: Callable[[DFOCallbackState], None] | None,
-        callback_every: int,
-        callback_on_improvement_only: bool,
     ) -> Callable:
         if callback is None:
             return model
@@ -265,24 +247,19 @@ class DFO(MinimizerBase):
                 best_xk = xk.copy()
                 best_parameters = parameters.copy()
 
-            should_notify = evaluation % callback_every == 0
-            if callback_on_improvement_only:
-                should_notify = should_notify and improved
-
-            if should_notify:
-                callback(
-                    DFOCallbackState(
-                        evaluation=evaluation,
-                        xk=xk,
-                        residuals=residuals.copy(),
-                        objective=objective,
-                        parameters=parameters,
-                        best_xk=best_xk.copy(),
-                        best_objective=best_objective,
-                        best_parameters=best_parameters.copy(),
-                        improved=improved,
-                    )
+            callback(
+                DFOCallbackState(
+                    evaluation=evaluation,
+                    xk=xk,
+                    residuals=residuals.copy(),
+                    objective=objective,
+                    parameters=parameters,
+                    best_xk=best_xk.copy(),
+                    best_objective=best_objective,
+                    best_parameters=best_parameters.copy(),
+                    improved=improved,
                 )
+            )
 
             return residuals
 

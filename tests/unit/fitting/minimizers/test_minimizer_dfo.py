@@ -73,8 +73,6 @@ class TestDFOFit:
         minimizer._make_model.assert_called_once_with(
             parameters=None,
             callback=None,
-            callback_every=1,
-            callback_on_improvement_only=False,
         )
         minimizer._set_parameter_fit_result.assert_called_once_with('fit', False)
         minimizer._gen_fit_results.assert_called_once_with('fit', 1)
@@ -103,8 +101,6 @@ class TestDFOFit:
         minimizer._make_model.assert_called_once_with(
             parameters=None,
             callback=callback,
-            callback_every=1,
-            callback_on_improvement_only=False,
         )
 
     def test_fit_wraps_supplied_model_with_explicit_callback(self, minimizer: DFO) -> None:
@@ -138,8 +134,6 @@ class TestDFOFit:
             supplied_model,
             ['palpha'],
             explicit_callback,
-            1,
-            False,
         )
         minimizer._dfo_fit.assert_called_once_with(
             minimizer._cached_pars,
@@ -289,38 +283,6 @@ class TestDFOFit:
             'pmock_parm_2': 2222.0,
         }
 
-    def test_make_model_callback_every(self, minimizer: DFO) -> None:
-        mock_fit_function = MagicMock(return_value=np.array([11, 22]))
-        minimizer._generate_fit_function = MagicMock(return_value=mock_fit_function)
-
-        mock_parm_1 = MagicMock()
-        mock_parm_1.unique_name = 'mock_parm_1'
-        mock_parm_1.value = 1000.0
-        mock_parm_2 = MagicMock()
-        mock_parm_2.unique_name = 'mock_parm_2'
-        mock_parm_2.value = 2000.0
-
-        callback = MagicMock()
-
-        model = minimizer._make_model(
-            parameters=[mock_parm_1, mock_parm_2],
-            callback=callback,
-            callback_every=2,
-        )
-        residuals_for_model = model(
-            x=np.array([1, 2]),
-            y=np.array([10, 20]),
-            weights=np.array([1 / 100, 1 / 200]),
-        )
-
-        residuals_for_model(np.array([1111, 2222]))
-        residuals_for_model(np.array([1222, 2333]))
-
-        callback.assert_called_once()
-        state = callback.call_args[0][0]
-        assert state.evaluation == 2
-        assert all(state.xk == np.array([1222, 2333]))
-
     def test_make_model_without_parameters_uses_cached_parameters(self, minimizer: DFO) -> None:
         mock_fit_function = MagicMock(return_value=np.array([11.0]))
         minimizer._generate_fit_function = MagicMock(return_value=mock_fit_function)
@@ -336,17 +298,6 @@ class TestDFOFit:
         residuals_for_model(np.array([1111.0]))
 
         assert mock_fit_function.call_args.kwargs == {'palpha': 1111.0}
-
-    @pytest.mark.parametrize('callback_every', [0, 1.3])
-    def test_fit_callback_every_must_be_positive(self, minimizer: DFO, callback_every) -> None:
-        with pytest.raises(ValueError, match='callback_every must be a positive integer'):
-            minimizer.fit(
-                x=np.array([1.0]),
-                y=np.array([1.0]),
-                weights=np.array([1.0]),
-                callback=MagicMock(),
-                callback_every=callback_every,
-            )
 
     def test_set_parameter_fit_result_no_stack_status(self, minimizer: DFO):
         # When
@@ -824,14 +775,12 @@ class TestDFOFit:
 
         assert parameter_names == expected_names
 
-    def test_wrap_model_with_callback_improvement_only(self, minimizer: DFO) -> None:
+    def test_wrap_model_with_callback_invokes_on_each_evaluation(self, minimizer: DFO) -> None:
         callback = MagicMock()
         wrapped_model = minimizer._wrap_model_with_callback(
             lambda pars_values: np.asarray([pars_values[0] - 1.0]),
             ['palpha'],
             callback,
-            callback_every=1,
-            callback_on_improvement_only=True,
         )
 
         wrapped_model([0.5])
