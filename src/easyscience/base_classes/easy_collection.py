@@ -88,7 +88,7 @@ class EasyCollection(EasyList[CollectionItem]):
     ) -> None:
         """Set collection items and keep graph state synchronized."""
         if isinstance(idx, int):
-            # cast(CollectionItem, value) tells the type checker: 
+            # cast(CollectionItem, value) tells the type checker:
             # “for this branch, treat value as one item.”
             self._set_single_item(idx, cast(CollectionItem, value))
             return
@@ -234,7 +234,9 @@ class EasyCollection(EasyList[CollectionItem]):
         )
 
     @classmethod
-    def _normalize_protected_types(cls, protected_types: list[Type[NewBase]] | Type[NewBase] | None) -> list[Type[NewBase]]:
+    def _normalize_protected_types(
+        cls, protected_types: list[Type[NewBase]] | Type[NewBase] | None
+    ) -> list[Type[NewBase]]:
         """Return protected types as a validated list of ``NewBase``
         subclasses.
         """
@@ -242,10 +244,14 @@ class EasyCollection(EasyList[CollectionItem]):
             return list(cls._DEFAULT_PROTECTED_TYPES)
         if isinstance(protected_types, type) and issubclass(protected_types, NewBase):
             protected_types = [protected_types]
-        elif isinstance(protected_types, Iterable) and all(issubclass(t, NewBase) for t in protected_types):
+        elif isinstance(protected_types, Iterable) and all(
+            issubclass(t, NewBase) for t in protected_types
+        ):
             protected_types = list(protected_types)
         else:
-            raise TypeError('protected_types must be a NewBase subclass or an iterable of NewBase subclasses')
+            raise TypeError(
+                'protected_types must be a NewBase subclass or an iterable of NewBase subclasses'
+            )
         return protected_types
 
     @staticmethod
@@ -302,7 +308,9 @@ class EasyCollection(EasyList[CollectionItem]):
         replaced = self._data[idx]
         new_values = list(value)
         if len(new_values) != len(replaced):
-            raise ValueError('Length of new values must match the length of the slice being replaced')
+            raise ValueError(
+                'Length of new values must match the length of the slice being replaced'
+            )
         for new_value in new_values:
             self._validate_item(new_value)
 
@@ -370,7 +378,9 @@ class EasyCollection(EasyList[CollectionItem]):
         return SerializerBase()._recursive_encoder(item, skip=skip)
 
     @staticmethod
-    def _deserialize_protected_types(protected_types: list[dict[str, str]] | None) -> list[Type] | None:
+    def _deserialize_protected_types(
+        protected_types: list[dict[str, str]] | None,
+    ) -> list[Type] | None:
         """Convert serialized protected-type metadata back into Python
         classes.
         """

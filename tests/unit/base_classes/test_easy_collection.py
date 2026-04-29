@@ -101,7 +101,9 @@ class TestEasyCollection:
     def test_to_dict_and_from_dict_round_trip(self):
         first = Alpha(unique_name='first')
         second = Alpha(unique_name='second')
-        collection = EasyCollection(first, second, unique_name='collection_key', protected_types=Alpha)
+        collection = EasyCollection(
+            first, second, unique_name='collection_key', protected_types=Alpha
+        )
 
         collection_dict = collection.to_dict()
         global_object.map._clear()
