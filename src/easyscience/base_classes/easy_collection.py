@@ -122,7 +122,9 @@ class EasyCollection(EasyList[CollectionItem]):
         raise TypeError('Index must be an int, slice, or str')
 
     def insert(self, index: int, value: CollectionItem) -> None:
-        """Insert an item and register it as a child of the collection."""
+        """Insert an item and register it as a child of the
+        collection.
+        """
         if not isinstance(index, int):
             raise TypeError('Index must be an integer')
         self._validate_item(value)
@@ -155,13 +157,17 @@ class EasyCollection(EasyList[CollectionItem]):
         raise TypeError('Index must be an int or str')
 
     def __contains__(self, item: CollectionItem | str) -> bool:
-        """Return whether an item object or unique name exists in the collection."""
+        """Return whether an item object or unique name exists in the
+        collection.
+        """
         if isinstance(item, str):
             return self._contains_key(item)
         return item in self._data
 
     def index(self, value: CollectionItem | str, start: int = 0, stop: int | None = None) -> int:
-        """Return the index of an item object or the first item with the given unique name."""
+        """Return the index of an item object or the first item with the
+        given unique name.
+        """
         if stop is None:
             stop = len(self._data)
         if isinstance(value, str):
@@ -218,7 +224,9 @@ class EasyCollection(EasyList[CollectionItem]):
         return cls(*data, protected_types=protected_types, **kwargs)
 
     def _new_like(self, data: Iterable[CollectionItem]) -> EasyCollection:
-        """Create a same-class collection for slice and duplicate-name results."""
+        """Create a same-class collection for slice and duplicate-name
+        results.
+        """
         return self.__class__(
             list(data),
             protected_types=self._protected_types,
@@ -227,7 +235,9 @@ class EasyCollection(EasyList[CollectionItem]):
 
     @classmethod
     def _normalize_protected_types(cls, protected_types: list[Type[NewBase]] | Type[NewBase] | None) -> list[Type[NewBase]]:
-        """Return protected types as a validated list of ``NewBase`` subclasses."""
+        """Return protected types as a validated list of ``NewBase``
+        subclasses.
+        """
         if protected_types is None:
             return list(cls._DEFAULT_PROTECTED_TYPES)
         if isinstance(protected_types, type) and issubclass(protected_types, NewBase):
@@ -240,7 +250,9 @@ class EasyCollection(EasyList[CollectionItem]):
 
     @staticmethod
     def _flatten_items(args: tuple[Any, ...]) -> list[CollectionItem]:
-        """Flatten positional item lists into the sequence inserted into the collection."""
+        """Flatten positional item lists into the sequence inserted into
+        the collection.
+        """
         items = []
         for item in args:
             if isinstance(item, list):
@@ -250,16 +262,22 @@ class EasyCollection(EasyList[CollectionItem]):
         return items
 
     def _validate_item(self, value: CollectionItem) -> None:
-        """Raise if the value is not one of the configured protected types."""
+        """Raise if the value is not one of the configured protected
+        types.
+        """
         if not isinstance(value, tuple(self._protected_types)):
             raise TypeError(f'Items must be one of {self._protected_types}, got {type(value)}')
 
     def _contains_key(self, key: str) -> bool:
-        """Return whether the collection contains an item with the given unique name."""
+        """Return whether the collection contains an item with the given
+        unique name.
+        """
         return any(self._get_key(item) == key for item in self._data)
 
     def _set_single_item(self, idx: int, value: CollectionItem) -> None:
-        """Replace one item while preserving unique-name and graph invariants."""
+        """Replace one item while preserving unique-name and graph
+        invariants.
+        """
         self._validate_item(value)
         old_item = self._data[idx]
         value_key = self._get_key(value)
@@ -278,7 +296,9 @@ class EasyCollection(EasyList[CollectionItem]):
         self._add_child_relation(value)
 
     def _set_slice(self, idx: slice, value: Iterable[CollectionItem]) -> None:
-        """Replace a slice while preserving length, unique-name, and graph invariants."""
+        """Replace a slice while preserving length, unique-name, and
+        graph invariants.
+        """
         replaced = self._data[idx]
         new_values = list(value)
         if len(new_values) != len(replaced):
@@ -326,7 +346,9 @@ class EasyCollection(EasyList[CollectionItem]):
         self._global_object.map.prune_vertex_from_edge(self, value)
 
     def _metadata_dict(self) -> Dict[str, Any]:
-        """Return serialization metadata for the concrete collection class."""
+        """Return serialization metadata for the concrete collection
+        class.
+        """
         dict_repr: Dict[str, Any] = {'@module': self.__module__, '@class': self.__class__.__name__}
         try:
             module_version = import_module('easyscience').__version__
@@ -337,7 +359,9 @@ class EasyCollection(EasyList[CollectionItem]):
 
     @staticmethod
     def _item_to_dict(item: CollectionItem, skip: List[str]) -> Any:
-        """Serialize one collection item using the best available EasyScience encoder."""
+        """Serialize one collection item using the best available
+        EasyScience encoder.
+        """
         if hasattr(item, 'to_dict'):
             return item.to_dict(skip=skip)
         as_dict = getattr(item, 'as_dict', None)
@@ -347,7 +371,9 @@ class EasyCollection(EasyList[CollectionItem]):
 
     @staticmethod
     def _deserialize_protected_types(protected_types: list[dict[str, str]] | None) -> list[Type] | None:
-        """Convert serialized protected-type metadata back into Python classes."""
+        """Convert serialized protected-type metadata back into Python
+        classes.
+        """
         if protected_types is None:
             return None
         deserialized_types = []
