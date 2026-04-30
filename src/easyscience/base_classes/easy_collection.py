@@ -66,7 +66,9 @@ class EasyCollection(EasyList[CollectionItem]):
 
         String lookup returns the single item with the matching ``unique_name``.
         Duplicate ``unique_name`` values are rejected at insertion time, so a
-        successful lookup always resolves to exactly one item.
+        successful lookup always resolves to exactly one item. Slice lookup
+        returns a new collection that references the same item objects and
+        registers them as children of the sliced collection in the global map.
         """
         if isinstance(idx, int):
             return self._data[idx]
@@ -168,10 +170,9 @@ class EasyCollection(EasyList[CollectionItem]):
         """Return the index of an item object or the first item with the
         given unique name.
         """
-        if stop is None:
-            stop = len(self._data)
         if isinstance(value, str):
-            for i in range(start, min(stop, len(self._data))):
+            start_index, stop_index, _ = slice(start, stop).indices(len(self._data))
+            for i in range(start_index, stop_index):
                 item = self._data[i]
                 if self._get_key(item) == value:
                     return i

@@ -96,7 +96,30 @@ class TestEasyCollection:
 
         assert isinstance(sliced, EasyCollection)
         assert sliced.display_name == collection.display_name
+        assert sliced[0] is first
         assert list(sliced) == [first]
+        assert first.unique_name in global_object.map.get_edges(sliced)
+
+    def test_index_by_unique_name_uses_python_slice_bounds(self):
+        first = Alpha(unique_name='first')
+        second = Alpha(unique_name='second')
+        third = Alpha(unique_name='third')
+        collection = EasyCollection(first, second, third)
+
+        assert collection.index('second', 0, -1) == 1
+        assert collection.index('second', -2) == 1
+        with pytest.raises(ValueError, match='third is not in EasyCollection'):
+            collection.index('third', 0, -1)
+
+    def test_index_by_unique_name_rejects_non_int_bounds(self):
+        first = Alpha(unique_name='first')
+        second = Alpha(unique_name='second')
+        collection = EasyCollection(first, second)
+
+        with pytest.raises(TypeError, match='slice indices'):
+            collection.index('second', 0.0)
+        with pytest.raises(TypeError, match='slice indices'):
+            collection.index('second', 0, 2.0)
 
     def test_to_dict_and_from_dict_round_trip(self):
         first = Alpha(unique_name='first')
