@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2024 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 import warnings
 from dataclasses import dataclass
 from enum import Enum
@@ -13,7 +16,11 @@ try:
     lmfit_engine_available = True
 except ImportError:
     # TODO make this a proper message (use logging?)
-    warnings.warn('LMFit minimization is not available. Probably lmfit has not been installed.', ImportWarning, stacklevel=2)
+    warnings.warn(
+        'LMFit minimization is not available. Probably lmfit has not been installed.',
+        ImportWarning,
+        stacklevel=2,
+    )
 
 bumps_engine_available = False
 try:
@@ -22,7 +29,11 @@ try:
     bumps_engine_available = True
 except ImportError:
     # TODO make this a proper message (use logging?)
-    warnings.warn('Bumps minimization is not available. Probably bumps has not been installed.', ImportWarning, stacklevel=2)
+    warnings.warn(
+        'Bumps minimization is not available. Probably bumps has not been installed.',
+        ImportWarning,
+        stacklevel=2,
+    )
 
 dfo_engine_available = False
 try:
@@ -31,7 +42,11 @@ try:
     dfo_engine_available = True
 except ImportError:
     # TODO make this a proper message (use logging?)
-    warnings.warn('DFO minimization is not available. Probably dfols has not been installed.', ImportWarning, stacklevel=2)
+    warnings.warn(
+        'DFO minimization is not available. Probably dfols has not been installed.',
+        ImportWarning,
+        stacklevel=2,
+    )
 
 
 @dataclass

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from .descriptor_any_type import DescriptorAnyType
 from .descriptor_array import DescriptorArray
 from .descriptor_base import DescriptorBase

@@ -1,0 +1,15 @@
+{% if ( config.theme.logo_light_mode and config.theme.logo_dark_mode ) %}
+<img
+  id="logo_light_mode"
+  src="{{ config.theme.logo_light_mode | url }}"
+  alt="logo"
+/>
+<img
+  id="logo_dark_mode"
+  src="{{ config.theme.logo_dark_mode | url }}"
+  alt="logo"
+/>
+{% elif config.theme.logo %}
+<img src="{{ config.theme.logo | url }}" alt="logo" />
+{% else %} {% set icon = config.theme.icon.logo or "material/library" %} {%
+include ".icons/" ~ icon ~ ".svg" %} {% endif %}

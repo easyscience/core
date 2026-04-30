@@ -1,0 +1,40 @@
+name: 'Setup EasyScience bot for pushing'
+description: 'Create GitHub App token and configure git identity + origin remote'
+inputs:
+  app-id:
+    description: 'GitHub App ID'
+    required: true
+  private-key:
+    description: 'GitHub App private key (PEM)'
+    required: true
+  repositories:
+    description: 'Additional repositories to grant access to (newline-separated)'
+    required: false
+    default: ''
+
+outputs:
+  token:
+    description: 'Installation access token'
+    value: ${{ steps.app-token.outputs.token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create GitHub App installation token
+      id: app-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.private-key }}
+        repositories: ${{ inputs.repositories }}
+
+    - name: Configure git for pushing
+      shell: bash
+      run: |
+        git config user.name "easyscience[bot]"
+        git config user.email "${{ inputs.app-id }}+easyscience[bot]@users.noreply.github.com"
+
+    - name: Configure origin remote to use the bot token
+      shell: bash
+      run: |
+        git remote set-url origin https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git

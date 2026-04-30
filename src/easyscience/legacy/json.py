@@ -1,11 +1,10 @@
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
 __author__ = 'https://github.com/materialsvirtuallab/monty/blob/master/monty/json.py'
 __version__ = '3.0.0'
-
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 
 
 import json
@@ -20,8 +19,8 @@ if TYPE_CHECKING:
 
 class JsonSerializer(BaseEncoderDecoder):
     def encode(self, obj: ComponentSerializer, skip: List[str] = []) -> str:
-        """
-        Returns a json string representation of the ComponentSerializer object.
+        """Returns a json string representation of the
+        ComponentSerializer object.
         """
         ENCODER = type(
             JsonEncoderTemplate.__name__,
@@ -37,8 +36,8 @@ class JsonSerializer(BaseEncoderDecoder):
 
 class JsonDataSerializer(BaseEncoderDecoder):
     def encode(self, obj: ComponentSerializer, skip: List[str] = []) -> str:
-        """
-        Returns a json string representation of the ComponentSerializer object.
+        """Returns a json string representation of the
+        ComponentSerializer object.
         """
         from .dict import DataDictSerializer
 
@@ -57,13 +56,15 @@ class JsonDataSerializer(BaseEncoderDecoder):
 
     @classmethod
     def decode(cls, data: str) -> ComponentSerializer:
-        raise NotImplementedError('It is not possible to reconstitute objects from data only objects.')
+        raise NotImplementedError(
+            'It is not possible to reconstitute objects from data only objects.'
+        )
 
 
 class JsonEncoderTemplate(json.JSONEncoder):
-    """
-    A Json Encoder which supports the ComponentSerializer API, plus adds support for
-    numpy arrays, datetime objects, bson ObjectIds (requires bson).
+    """A Json Encoder which supports the ComponentSerializer API, plus
+    adds support for numpy arrays, datetime objects, bson ObjectIds
+    (requires bson).
 
     Usage::
 
@@ -92,13 +93,12 @@ class JsonEncoderTemplate(json.JSONEncoder):
 
 
 class JsonDecoderTemplate(json.JSONDecoder):
-    """
-    A Json Decoder which supports the ComponentSerializer API. By default, the
-    decoder attempts to find a module and name associated with a dict. If
-    found, the decoder will generate a Pymatgen as a priority.  If that fails,
-    the original decoded dictionary from the string is returned. Note that
-    nested lists and dicts containing pymatgen object will be decoded correctly
-    as well.
+    """A Json Decoder which supports the ComponentSerializer API. By
+    default, the decoder attempts to find a module and name associated
+    with a dict. If found, the decoder will generate a Pymatgen as a
+    priority.  If that fails, the original decoded dictionary from the
+    string is returned. Note that nested lists and dicts containing
+    pymatgen object will be decoded correctly as well.
 
     Usage:
 
@@ -109,8 +109,7 @@ class JsonDecoderTemplate(json.JSONDecoder):
     _converter = BaseEncoderDecoder._convert_from_dict
 
     def decode(self, s):
-        """
-        Overrides decode from JSONDecoder.
+        """Overrides decode from JSONDecoder.
 
         :param s: string
         :return: Object.

@@ -1,8 +1,8 @@
+# SPDX-FileCopyrightText: 2025 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
 from typing import TYPE_CHECKING
 
 from easyscience.variable.descriptor_number import DescriptorNumber
@@ -20,9 +20,9 @@ from .new_base import NewBase
 
 
 class ModelBase(NewBase):
-    """
-    This is the base class for all model classes in EasyScience.
-    It provides methods to get parameters for fitting and analysis as well as proper serialization/deserialization for
+    """This is the base class for all model classes in EasyScience. It
+    provides methods to get parameters for fitting and analysis as well
+    as proper serialization/deserialization for
     DescriptorNumber/Parameter attributes.
 
     It assumes that Parameters/DescriptorNumbers are assigned as properties with the getters returning the parameter
@@ -32,6 +32,7 @@ class ModelBase(NewBase):
     @property
     def my_param(self) -> Parameter:
         return self._my_param
+
 
     @my_param.setter
     def my_param(self, new_value: float) -> None:
@@ -43,8 +44,7 @@ class ModelBase(NewBase):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
     def get_all_variables(self) -> List[DescriptorBase]:
-        """
-        Get all `Descriptor` and `Parameter` objects as a list.
+        """Get all `Descriptor` and `Parameter` objects as a list.
 
         :return: List of `Descriptor` and `Parameter` objects.
         """
@@ -58,40 +58,39 @@ class ModelBase(NewBase):
         return vars
 
     def get_all_parameters(self) -> List[Parameter]:
-        """
-        Get all `Parameter` objects as a list.
+        """Get all `Parameter` objects as a list.
 
         :return: List of `Parameter` objects.
         """
         return [param for param in self.get_all_variables() if isinstance(param, Parameter)]
 
     def get_fittable_parameters(self) -> List[Parameter]:
-        """
-        Get all parameters which can be fitted as a list.
+        """Get all parameters which can be fitted as a list.
 
         :return: List of `Parameter` objects.
         """
         return [param for param in self.get_all_parameters() if param.independent]
 
     def get_free_parameters(self) -> List[Parameter]:
-        """
-        Get all parameters which are currently free to be fitted as a list.
+        """Get all parameters which are currently free to be fitted as a
+        list.
 
         :return: List of `Parameter` objects.
         """
         return [param for param in self.get_fittable_parameters() if not param.fixed]
 
     def get_fit_parameters(self) -> List[Parameter]:
-        """
-        This is an alias for `get_free_parameters`.
-        To be removed when fully moved to new base classes and minimizer can be changed.
+        """This is an alias for `get_free_parameters`.
+
+        To be removed when fully moved to new base classes and minimizer
+        can be changed.
         """
         return self.get_free_parameters()
 
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> ModelBase:
-        """
-        Re-create an EasyScience object with DescriptorNumber attributes from a full encoded dictionary.
+        """Re-create an EasyScience object with DescriptorNumber
+        attributes from a full encoded dictionary.
 
         :param obj_dict: dictionary containing the serialized contents (from `SerializerDict`) of an EasyScience object
         :return: Reformed EasyScience object
@@ -116,4 +115,6 @@ class ModelBase(NewBase):
                             This should be fixed in the class definition. Error: {e}""") from e
             return cls_instance
         else:
-            raise ValueError(f'Class name in dictionary does not match the expected class: {cls.__name__}.')
+            raise ValueError(
+                f'Class name in dictionary does not match the expected class: {cls.__name__}.'
+            )

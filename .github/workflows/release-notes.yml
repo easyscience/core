@@ -1,0 +1,71 @@
+# Drafts your next Release notes as pull requests are merged into
+# default branch
+
+name: Release draft update
+
+on:
+  # Runs on pushes targeting the default branch (updates the real draft release)
+  push:
+    branches: [master, main]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  draft-release-notes:
+    permissions:
+      # write permission is required to create a github release
+      contents: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history with tags to get the version number
+
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+
+      - name: Setup easyscience[bot]
+        id: bot
+        uses: ./.github/actions/setup-easyscience-bot
+        with:
+          app-id: ${{ vars.EASYSCIENCE_APP_ID }}
+          private-key: ${{ secrets.EASYSCIENCE_APP_KEY }}
+
+      - name: Drafts the next release notes
+        id: draft
+        uses: enhantica/drafterino@v2
+        with:
+          config: |
+            title: 'easyscience $COMPUTED_VERSION'
+            tag: 'v$COMPUTED_VERSION'
+            note-template: '- $PR_TITLE (#$PR_NUMBER)'
+
+            default-bump: post
+
+            major-bump-labels: ['[scope] significant']
+            minor-bump-labels: ['[scope] enhancement']
+            patch-bump-labels: ['[scope] bug', '[scope] maintenance']
+            post-bump-labels: ['[scope] documentation']
+
+            release-notes:
+              - title: 'Added'
+                labels: ['[scope] significant', '[scope] enhancement']
+              - title: 'Fixed'
+                labels: ['[scope] bug']
+              - title: 'Changed'
+                labels: ['[scope] maintenance', '[scope] documentation']
+        env:
+          GITHUB_TOKEN: ${{ steps.bot.outputs.token }}
+
+      - name: Create GitHub draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          tag_name: ${{ steps.draft.outputs.tag_name }}
+          name: ${{ steps.draft.outputs.release_name }}
+          body: ${{ steps.draft.outputs.release_notes }}
+        env:
+          GITHUB_TOKEN: ${{ steps.bot.outputs.token }}

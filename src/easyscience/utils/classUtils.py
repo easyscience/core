@@ -1,19 +1,16 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from functools import wraps
 
 
 def singleton(cls):
-    """
-    This decorator can be used to create a singleton out of a class.
+    """This decorator can be used to create a singleton out of a class.
 
     Usage::
 
         @singleton
-        class MySingleton():
-
+        class MySingleton:
             def __init__():
                 pass
     """
@@ -29,10 +26,9 @@ def singleton(cls):
 
 
 def cached_class(klass):
-    """
-    Decorator to cache class instances by constructor arguments.
-    This results in a class that behaves like a singleton for each
-    set of constructor arguments, ensuring efficiency.
+    """Decorator to cache class instances by constructor arguments. This
+    results in a class that behaves like a singleton for each set of
+    constructor arguments, ensuring efficiency.
 
     Note that this should be used for *immutable classes only*.  Having
     a cached mutable class makes very little sense.  For efficiency,
@@ -40,10 +36,9 @@ def cached_class(klass):
     constructor arguments permutations.
 
     The keywords argument dictionary is converted to a tuple because
-    dicts are mutable; keywords themselves are strings and
-    so are always hashable, but if any arguments (keyword
-    or positional) are non-hashable, that set of arguments
-    is not cached.
+    dicts are mutable; keywords themselves are strings and so are always
+    hashable, but if any arguments (keyword or positional) are non-
+    hashable, that set of arguments is not cached.
     """
     cache = {}
 
@@ -54,8 +49,8 @@ def cached_class(klass):
         __doc__ = klass.__doc__
 
         def __new__(cls, *args, **kwargs):
-            """
-            Pass through...
+            """Pass through...
+
             :param args:
             :param kwargs:
             :return:

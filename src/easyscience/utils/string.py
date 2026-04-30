@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from fractions import Fraction
 
@@ -9,11 +8,13 @@ This module provides utility classes for string operations.
 """
 
 
-def transformation_to_string(matrix, translation_vec=(0, 0, 0), components=('x', 'y', 'z'), c='', delim=','):
-    """
-    Convenience method. Given matrix returns string, e.g. x+2y+1/4
-    :param matrix
-    :param translation_vec
+def transformation_to_string(
+    matrix, translation_vec=(0, 0, 0), components=('x', 'y', 'z'), c='', delim=','
+):
+    """Convenience method.
+
+    Given matrix returns string, e.g. x+2y+1/4
+    :param matrix : param translation_vec
     :param components: either ('x', 'y', 'z') or ('a', 'b', 'c')
     :param c: optional additional character to print (used for magmoms)
     :param delim: delimiter

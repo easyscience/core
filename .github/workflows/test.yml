@@ -1,0 +1,271 @@
+# This is the main workflow for testing the code before and after
+# packaging it.
+# The workflow is divided into three jobs:
+# 1. env-prepare:
+#    - Prepare the environment for testing
+# 2. source-test:
+#    - Test the code base against the latest code in the repository
+#    - Create the Python package
+#    - Upload the Python package for the next job
+# 3. package-test:
+#    - Download the Python package (including extra files) from the previous job
+#    - Install the downloaded Python package
+#    - Test the code base against the installed package
+# 4. dashboard-build-trigger:
+#    - Trigger the dashboard build workflow to update the code quality
+#      metrics on the dashboard
+
+name: Code and package tests
+
+on:
+  # Trigger the workflow on push
+  push:
+    branches-ignore: [master, main] # Already verified in PR
+    # But do not run this workflow on creating a new tag starting with
+    # 'v', e.g. 'v1.0.3' (see publish-pypi.yml)
+    tags-ignore: ['v*']
+  # Trigger the workflow on pull request
+  pull_request:
+    branches: ['**']
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Need permissions to trigger the dashboard build workflow
+permissions:
+  actions: write
+  contents: read
+
+# Allow only one concurrent workflow, skipping runs queued between the run
+# in-progress and latest queued. And cancel in-progress runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Set the environment variables to be used in all jobs defined in this workflow
+env:
+  CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+  PY_VERSIONS: '3.11 3.13'
+  PIXI_ENVS: 'py-311-env py-313-env'
+
+jobs:
+  # Job 1: Set up environment variables
+  env-prepare:
+    runs-on: [ubuntu-latest]
+
+    outputs:
+      pytest-marks: ${{ steps.set-mark.outputs.pytest_marks }}
+
+    steps:
+      # Determine if integration tests should be run fully or only the fast ones
+      # (to save time on branches other than master and develop)
+      - name: Set mark for integration tests
+        id: set-mark
+        run: |
+          if [[ "${{ env.CI_BRANCH }}" == "master" || "${{ env.CI_BRANCH }}" == "develop" ]]; then
+            echo "pytest_marks=" >> $GITHUB_OUTPUT
+          else
+            echo "pytest_marks=-m fast" >> $GITHUB_OUTPUT
+          fi
+
+  # Job 2: Test code
+  source-test:
+    needs: env-prepare # depend on previous job
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+        with:
+          environments: ${{ env.PIXI_ENVS }}
+
+      - name: Run unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for py_ver in $PY_VERSIONS; do
+            echo
+            echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
+
+            env="py-$(echo $py_ver | tr -d .)-env" # Converts 3.11 -> py-311-env
+
+            echo "Running tests in environment: $env"
+            pixi run --environment $env unit-tests
+          done
+
+      - name: Run integration tests ${{ needs.env-prepare.outputs.pytest-marks }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for py_ver in $PY_VERSIONS; do
+            echo
+            echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
+
+            env="py-$(echo $py_ver | tr -d .)-env" # Converts 3.11 -> py-311-env
+
+            echo "Running tests in environment: $env"
+            pixi run --environment $env integration-tests ${{ needs.env-prepare.outputs.pytest-marks }}
+          done
+
+      # Delete all local tags when not on a tagged commit to force versioningit
+      # to fall back to the configured default-tag, which is '999.0.0' in our case.
+      # This is needed for testing the package in the next job, as its version
+      # must be higher than the PyPI version for pip to prefer the local version.
+      - name: Force using versioningit default tag (non tagged release)
+        if: startsWith(github.ref , 'refs/tags/v') != true
+        run: git tag --delete $(git tag)
+
+      - name: Build package wheels for all Python versions
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for py_ver in $PY_VERSIONS; do
+            echo
+            echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
+
+            env="py-$(echo $py_ver | tr -d .)-env" # Converts 3.11 -> py-311-env
+
+            echo "Building wheel in environment: $env"
+            pixi run --environment $env dist-build
+
+            echo "Moving built wheel to dist/py$py_ver/"
+            pixi run mkdir -p dist/py$py_ver
+            pixi run mv dist/*.whl dist/py$py_ver/
+          done
+
+      - name: Remove Python cache files before uploading
+        shell: bash
+        run: pixi run clean-pycache
+
+      # More than one file/dir need to be specified in 'path', to preserve the
+      # structure of the dist/ directory, not only its contents.
+      - name: Upload package (incl. extras) for next job
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: easyscience_${{ matrix.os }}_${{ runner.arch }}
+          path: dist/
+
+  # Job 3: Test the package
+  package-test:
+    needs: source-test # depend on previous job
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download package (incl. extras) from previous job
+        uses: ./.github/actions/download-artifact
+        with:
+          # name and path should be taken from the upload step of the previous job
+          name: easyscience_${{ matrix.os }}_${{ runner.arch }}
+          path: dist/
+
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+        with:
+          environments: ''
+          activate-environment: ''
+          run-install: false
+          frozen: false
+
+      - name: Install easyscience from the built wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for py_ver in $PY_VERSIONS; do
+            echo
+            echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
+
+            echo "Initializing pixi project"
+            pixi init easyscience_py$py_ver
+            cd easyscience_py$py_ver
+
+            echo "Adding Python $py_ver"
+            pixi add "python=$py_ver"
+
+            echo "Adding Conda dependencies"
+            pixi add gsl
+
+            #echo "Adding PyPI dependencies"
+            #pixi add --pypi pytest pytest-xdist
+
+            echo "Looking for wheel in ../dist/py$py_ver/"
+            ls -l "../dist/py$py_ver/"
+
+            whl_path=(../dist/"py$py_ver"/*.whl)
+            if [[ ! -f "${whl_path[0]}" ]]; then
+              echo "❌ No wheel found in ../dist/py$py_ver/"
+              exit 1
+            fi
+
+            whl_url="file://$(python -c 'import os,sys; print(os.path.abspath(sys.argv[1]))' "${whl_path[0]}")"
+
+            echo "Adding easyscience from: $whl_url"
+            pixi add --pypi "easyscience[dev] @ ${whl_url}"
+
+            echo "Exiting pixi project directory"
+            cd ..
+          done
+
+      - name: Run unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for py_ver in $PY_VERSIONS; do
+            echo
+            echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
+
+            echo "Entering pixi project directory easyscience_py$py_ver"
+            cd easyscience_py$py_ver
+
+            echo "Running tests"
+            pixi run python -m pytest ../tests/unit/ --color=yes -v
+
+            echo "Exiting pixi project directory"
+            cd ..
+          done
+
+      - name: Run integration tests ${{ needs.env-prepare.outputs.pytest-marks }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for py_ver in $PY_VERSIONS; do
+            echo
+            echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
+
+            echo "Entering pixi project directory easyscience_py$py_ver"
+            cd easyscience_py$py_ver
+
+            echo "Running tests"
+            pixi run python -m pytest ../tests/integration/ --color=yes -n auto -v ${{ needs.env-prepare.outputs.pytest-marks }}
+
+            echo "Exiting pixi project directory"
+            cd ..
+          done
+
+  # Job 4: Build and publish dashboard (reusable workflow)
+  run-reusable-workflows:
+    needs: package-test # depend on previous job
+    uses: ./.github/workflows/dashboard.yml
+    secrets: inherit

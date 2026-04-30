@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 import gc
 import sys
@@ -79,7 +78,8 @@ class Map:
 
         Some callers iterate over __type_dict while other threads or
         weakref finalizers may modify it. Creating a list snapshot (with
-        a retry loop) prevents RuntimeError: dictionary changed size during iteration.
+        a retry loop) prevents RuntimeError: dictionary changed size
+        during iteration.
         """
         while True:
             try:
@@ -92,7 +92,8 @@ class Map:
         """Returns the vertices of a map.
 
         Uses a retry loop to handle RuntimeError that can occur when the
-        WeakValueDictionary is modified during iteration (e.g., by garbage collection).
+        WeakValueDictionary is modified during iteration (e.g., by
+        garbage collection).
         """
         while True:
             try:
@@ -102,7 +103,7 @@ class Map:
                 continue
 
     def edges(self):
-        """returns the edges of a map"""
+        """Returns the edges of a map."""
         return self.__generate_edges()
 
     @property
@@ -186,10 +187,10 @@ class Map:
             raise AttributeError
 
     def __generate_edges(self) -> list:
-        """A static method generating the edges of the
-        map. Edges are represented as sets
-        with one (a loop back to the vertex) or two
-        vertices
+        """A static method generating the edges of the map.
+
+        Edges are represented as sets with one (a loop back to the
+        vertex) or two vertices
         """
         edges = []
         # Iterate over a snapshot of items and snapshot neighbour lists to
@@ -221,7 +222,7 @@ class Map:
                 del self._store[key]
 
     def find_isolated_vertices(self) -> list:
-        """returns a list of isolated vertices."""
+        """Returns a list of isolated vertices."""
         isolated = []
         for vertex, neighbours in self._snapshot_items():
             if not list(neighbours):
@@ -229,8 +230,7 @@ class Map:
         return isolated
 
     def find_path(self, start_vertex: str, end_vertex: str, path=[]) -> list:
-        """find a path from start_vertex to end_vertex
-        in map"""
+        """Find a path from start_vertex to end_vertex in map."""
 
         graph = self.__type_dict
         path = path + [start_vertex]
@@ -246,8 +246,7 @@ class Map:
         return []
 
     def find_all_paths(self, start_vertex: str, end_vertex: str, path=[]) -> list:
-        """find all paths from start_vertex to
-        end_vertex in map"""
+        """Find all paths from start_vertex to end_vertex in map."""
 
         graph = self.__type_dict
         path = path + [start_vertex]
@@ -264,9 +263,11 @@ class Map:
         return paths
 
     def reverse_route(self, end_vertex: str, start_vertex: Optional[str] = None) -> List:
-        """
-        In this case we have an object and want to know the connections to get to another in reverse.
-        We might not know the start_object. In which case we follow the shortest path to a base vertex.
+        """In this case we have an object and want to know the
+        connections to get to another in reverse.
+
+        We might not know the start_object. In which case we follow the
+        shortest path to a base vertex.
         :param end_obj:
         :type end_obj:
         :param start_obj:
@@ -291,7 +292,7 @@ class Map:
         return optimum_path
 
     def is_connected(self, vertices_encountered=None, start_vertex=None) -> bool:
-        """determines if the map is connected"""
+        """Determines if the map is connected."""
         if vertices_encountered is None:
             vertices_encountered = set()
         graph = self.__type_dict
@@ -302,14 +303,19 @@ class Map:
         vertices_encountered.add(start_vertex)
         if len(vertices_encountered) != len(vertices):
             for vertex in list(graph[start_vertex]):
-                if vertex not in vertices_encountered and self.is_connected(vertices_encountered, vertex):
+                if vertex not in vertices_encountered and self.is_connected(
+                    vertices_encountered, vertex
+                ):
                     return True
         else:
             return True
         return False
 
     def _clear(self):
-        """Reset the map to an empty state. Only to be used for testing"""
+        """Reset the map to an empty state.
+
+        Only to be used for testing
+        """
         self._store.clear()
         self.__type_dict.clear()
         gc.collect()

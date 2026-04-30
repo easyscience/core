@@ -1,52 +1,45 @@
-# QtCreator
-*.autosave
-
-# QtCreator Qml
-*.qmlproject.user
-*.qmlproject.user.*
-
-# QtCreator Python
-*.pyproject.user
-*.pyproject.user.*
-
-# QtCreator CMake
-CMakeLists.txt.user*
-
 # Python
-__pycache__
-.venv
+__pycache__/
+.venv/
 .coverage
 .pyc
-
-# Poetry
-dist
-poetry.lock
-*.egg-info
 
 # Pixi
 .pixi/
 
 # PyInstaller
-build
+dist/
+build/
 *.spec
 
-# Jupyter
+# MkDocs
+docs/site/
+
+# Jupyter Notebooks
 .ipynb_checkpoints
+
+# Node
+node_modules/
+
+# QtCreator
+*.autosave
+*.qmlproject.user
+*.qmlproject.user.*
+*.pyproject.user
+*.pyproject.user.*
+CMakeLists.txt.user*
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
 
 # macOS
 .DS_Store
 *.app
 *.dmg
 
-# Docs
-docs/_build
-
-# VSCode
-.vscode
-
 # Misc
-..*
 *.log
 *.zip
-.ci/
-.idea/

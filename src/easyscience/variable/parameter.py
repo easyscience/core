@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 from __future__ import annotations
 
@@ -29,8 +28,9 @@ from .descriptor_number import notify_observers
 
 
 class Parameter(DescriptorNumber):
-    """
-    A Parameter is a DescriptorNumber which can be used in fitting. It has additional fields to facilitate this.
+    """A Parameter is a DescriptorNumber which can be used in fitting.
+
+    It has additional fields to facilitate this.
     """
 
     # Used by serializer
@@ -55,10 +55,10 @@ class Parameter(DescriptorNumber):
         parent: Optional[Any] = None,
         **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
-        """
-        This class is an extension of a `DescriptorNumber`. Where the descriptor was for static
-        objects, a `Parameter` is for dynamic objects. A parameter has the ability to be used in fitting and has
-        additional fields to facilitate this.
+        """This class is an extension of a `DescriptorNumber`. Where the
+        descriptor was for static objects, a `Parameter` is for dynamic
+        objects. A parameter has the ability to be used in fitting and
+        has additional fields to facilitate this.
 
         :param name: Name of this object
         :param value: Value of this object
@@ -91,7 +91,9 @@ class Parameter(DescriptorNumber):
         if value > max:
             raise ValueError(f'{value=} can not be greater than {max=}')
         if np.isclose(min, max, rtol=1e-9, atol=0.0):
-            raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+            raise ValueError(
+                'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
+            )
         if not isinstance(fixed, bool):
             raise TypeError('`fixed` must be either True or False')
         self._independent = True
@@ -128,14 +130,20 @@ class Parameter(DescriptorNumber):
         desired_unit: str | sc.Unit | None = None,
         **kwargs,
     ) -> Parameter:  # noqa: E501
-        """
-        Create a dependent Parameter directly from a dependency expression.
+        """Create a dependent Parameter directly from a dependency
+        expression.
 
         :param name: The name of the parameter
-        :param dependency_expression: The dependency expression to evaluate. This should be a string which can be evaluated by the ASTEval interpreter.
-        :param dependency_map: A dictionary of dependency expression symbol name and dependency object pairs. This is inserted into the asteval interpreter to resolve dependencies.
-        :param desired_unit: The desired unit of the dependent parameter.
-        :param kwargs: Additional keyword arguments to pass to the Parameter constructor.
+        :param dependency_expression: The dependency expression to
+            evaluate. This should be a string which can be evaluated by
+            the ASTEval interpreter.
+        :param dependency_map: A dictionary of dependency expression
+            symbol name and dependency object pairs. This is inserted
+            into the asteval interpreter to resolve dependencies.
+        :param desired_unit: The desired unit of the dependent
+            parameter.
+        :param kwargs: Additional keyword arguments to pass to the
+            Parameter constructor.
         :return: A new dependent Parameter object.
         """  # noqa: E501
         # Set default values for required parameters for the constructor, they get overwritten by the dependency anyways
@@ -151,8 +159,10 @@ class Parameter(DescriptorNumber):
         return parameter
 
     def _update(self) -> None:
-        """
-        Update the parameter. This is called by the DescriptorNumbers/Parameters who have this Parameter as a dependency.
+        """Update the parameter.
+
+        This is called by the DescriptorNumbers/Parameters who have this
+        Parameter as a dependency.
         """
         if not self._independent:
             # Update the value of the parameter using the dependency interpreter
@@ -161,10 +171,14 @@ class Parameter(DescriptorNumber):
             self._scalar.unit = temporary_parameter.unit
             self._scalar.variance = temporary_parameter.variance
             self._min.value = (
-                temporary_parameter.min if isinstance(temporary_parameter, Parameter) else temporary_parameter.value
+                temporary_parameter.min
+                if isinstance(temporary_parameter, Parameter)
+                else temporary_parameter.value
             )  # noqa: E501
             self._max.value = (
-                temporary_parameter.max if isinstance(temporary_parameter, Parameter) else temporary_parameter.value
+                temporary_parameter.max
+                if isinstance(temporary_parameter, Parameter)
+                else temporary_parameter.value
             )  # noqa: E501
             self._min.unit = temporary_parameter.unit
             self._max.unit = temporary_parameter.unit
@@ -182,8 +196,8 @@ class Parameter(DescriptorNumber):
         dependency_map: Optional[dict] = None,
         desired_unit: str | sc.Unit | None = None,
     ) -> None:
-        """
-        Make this parameter dependent on another parameter. This will overwrite the current value, unit, variance, min and max.
+        """Make this parameter dependent on another parameter. This will
+        overwrite the current value, unit, variance, min and max.
 
         How to use the dependency map:
         If a parameter c has a dependency expression of 'a + b', where a and b are parameters belonging to the model class,
@@ -204,10 +218,11 @@ class Parameter(DescriptorNumber):
 
         :param desired_unit:
             The desired unit of the dependent parameter. If None, the default unit of the dependency expression result is used.
-
         """  # noqa: E501
         if not isinstance(dependency_expression, str):
-            raise TypeError('`dependency_expression` must be a string representing a valid dependency expression.')
+            raise TypeError(
+                '`dependency_expression` must be a string representing a valid dependency expression.'
+            )
         if not (isinstance(dependency_map, dict) or dependency_map is None):
             raise TypeError(
                 '`dependency_map` must be a dictionary of dependencies and their'
@@ -242,7 +257,9 @@ class Parameter(DescriptorNumber):
         self._independent = False
         self._dependency_string = dependency_expression
         self._dependency_map = dependency_map if dependency_map is not None else {}
-        if desired_unit is not None and not (isinstance(desired_unit, str) or isinstance(desired_unit, sc.Unit)):
+        if desired_unit is not None and not (
+            isinstance(desired_unit, str) or isinstance(desired_unit, sc.Unit)
+        ):
             raise TypeError('`desired_unit` must be a string representing a valid unit.')
         self._desired_unit = desired_unit
         # List of allowed python constructs for the asteval interpreter
@@ -283,7 +300,9 @@ class Parameter(DescriptorNumber):
             value._attach_observer(self)
         # Check the dependency expression for errors
         try:
-            dependency_result = self._dependency_interpreter.eval(self._clean_dependency_string, raise_errors=True)
+            dependency_result = self._dependency_interpreter.eval(
+                self._clean_dependency_string, raise_errors=True
+            )
         except NameError as message:
             self._revert_dependency()
             raise NameError(
@@ -329,9 +348,9 @@ class Parameter(DescriptorNumber):
         self._update()
 
     def make_independent(self) -> None:
-        """
-        Make this parameter independent.
-        This will remove the dependency expression, the dependency map and the dependency interpreter.
+        """Make this parameter independent. This will remove the
+        dependency expression, the dependency map and the dependency
+        interpreter.
 
         :return: None
         """
@@ -349,8 +368,7 @@ class Parameter(DescriptorNumber):
 
     @property
     def independent(self) -> bool:
-        """
-        Is the parameter independent?
+        """Is the parameter independent?
 
         :return: True = independent, False = dependent
         """
@@ -364,8 +382,7 @@ class Parameter(DescriptorNumber):
 
     @property
     def dependency_expression(self) -> str:
-        """
-        Get the dependency expression of this parameter.
+        """Get the dependency expression of this parameter.
 
         :return: The dependency expression of this parameter.
         """
@@ -382,8 +399,7 @@ class Parameter(DescriptorNumber):
 
     @property
     def dependency_map(self) -> Dict[str, DescriptorNumber]:
-        """
-        Get the dependency map of this parameter.
+        """Get the dependency map of this parameter.
 
         :return: The dependency map of this parameter.
         """
@@ -394,12 +410,13 @@ class Parameter(DescriptorNumber):
 
     @dependency_map.setter
     def dependency_map(self, new_map: Dict[str, DescriptorNumber]) -> None:
-        raise AttributeError('Dependency map is read-only. Use `make_dependent_on` to change the dependency map.')
+        raise AttributeError(
+            'Dependency map is read-only. Use `make_dependent_on` to change the dependency map.'
+        )
 
     @property
     def value_no_call_back(self) -> numbers.Number:
-        """
-        Get the currently hold value of self suppressing call back.
+        """Get the currently hold value of self suppressing call back.
 
         :return: Value of self without unit.
         """
@@ -407,9 +424,9 @@ class Parameter(DescriptorNumber):
 
     @property
     def full_value(self) -> Variable:
-        """
-        Get the value of self as a scipp scalar. This is should be usable for most cases.
-        If a scipp scalar is not acceptable then the raw value can be obtained through `obj.value`.
+        """Get the value of self as a scipp scalar. This is should be
+        usable for most cases. If a scipp scalar is not acceptable then
+        the raw value can be obtained through `obj.value`.
 
         :return: Value of self with unit and variance.
         """
@@ -423,8 +440,7 @@ class Parameter(DescriptorNumber):
 
     @property
     def value(self) -> numbers.Number:
-        """
-        Get the value of self as a Number.
+        """Get the value of self as a Number.
 
         :return: Value of self without unit.
         """
@@ -437,8 +453,8 @@ class Parameter(DescriptorNumber):
     @value.setter
     @property_stack
     def value(self, value: numbers.Number) -> None:
-        """
-        Set the value of self. This only updates the value of the scipp scalar.
+        """Set the value of self. This only updates the value of the
+        scipp scalar.
 
         :param value: New value of self
         """
@@ -460,35 +476,39 @@ class Parameter(DescriptorNumber):
             # Notify observers of the change
             self._notify_observers()
         else:
-            raise AttributeError('This is a dependent parameter, its value cannot be set directly.')
+            raise AttributeError(
+                'This is a dependent parameter, its value cannot be set directly.'
+            )
 
     @DescriptorNumber.variance.setter
     def variance(self, variance_float: float) -> None:
-        """
-        Set the variance.
+        """Set the variance.
 
         :param variance_float: Variance as a float
         """
         if self._independent:
             DescriptorNumber.variance.fset(self, variance_float)
         else:
-            raise AttributeError('This is a dependent parameter, its variance cannot be set directly.')
+            raise AttributeError(
+                'This is a dependent parameter, its variance cannot be set directly.'
+            )
 
     @DescriptorNumber.error.setter
     def error(self, value: float) -> None:
-        """
-        Set the standard deviation for the parameter.
+        """Set the standard deviation for the parameter.
 
         :param value: New error value
         """
         if self._independent:
             DescriptorNumber.error.fset(self, value)
         else:
-            raise AttributeError('This is a dependent parameter, its error cannot be set directly.')
+            raise AttributeError(
+                'This is a dependent parameter, its error cannot be set directly.'
+            )
 
     def _convert_unit(self, unit_str: str) -> None:
-        """
-        Perform unit conversion. The value, max and min can change on unit change.
+        """Perform unit conversion. The value, max and min can change on
+        unit change.
 
         :param new_unit: new unit
         :return: None
@@ -500,8 +520,8 @@ class Parameter(DescriptorNumber):
 
     @notify_observers
     def convert_unit(self, unit_str: str) -> None:
-        """
-        Perform unit conversion. The value, max and min can change on unit change.
+        """Perform unit conversion. The value, max and min can change on
+        unit change.
 
         :param new_unit: new unit
         :return: None
@@ -509,14 +529,16 @@ class Parameter(DescriptorNumber):
         self._convert_unit(unit_str)
 
     def set_desired_unit(self, unit_str: str | sc.Unit | None) -> None:
-        """
-        Set the desired unit for a dependent Parameter. This will convert the parameter to the desired unit.
+        """Set the desired unit for a dependent Parameter. This will
+        convert the parameter to the desired unit.
 
         :param unit_str: The desired unit as a string.
         """
 
         if self._independent:
-            raise AttributeError('This is an independent parameter, desired unit can only be set for dependent parameters.')
+            raise AttributeError(
+                'This is an independent parameter, desired unit can only be set for dependent parameters.'
+            )
         if not (isinstance(unit_str, str) or isinstance(unit_str, sc.Unit) or unit_str is None):
             raise TypeError('`unit_str` must be a string representing a valid unit.')
 
@@ -525,15 +547,16 @@ class Parameter(DescriptorNumber):
                 old_unit_for_message = self.unit
                 self._convert_unit(unit_str)
             except Exception as e:
-                raise UnitError(f'Failed to convert unit from {old_unit_for_message} to {unit_str}: {e}')
+                raise UnitError(
+                    f'Failed to convert unit from {old_unit_for_message} to {unit_str}: {e}'
+                )
 
         self._desired_unit = unit_str
         self._update()
 
     @property
     def min(self) -> numbers.Number:
-        """
-        Get the minimum value for fitting.
+        """Get the minimum value for fitting.
 
         :return: minimum value
         """
@@ -553,19 +576,24 @@ class Parameter(DescriptorNumber):
             if not isinstance(min_value, numbers.Number):
                 raise TypeError('`min` must be a number')
             if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
-                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+                raise ValueError(
+                    'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
+                )
             if min_value <= self.value:
                 self._min.value = min_value
             else:
-                raise ValueError(f'The current value ({self.value}) is smaller than the desired min value ({min_value}).')
+                raise ValueError(
+                    f'The current value ({self.value}) is smaller than the desired min value ({min_value}).'
+                )
             self._notify_observers()
         else:
-            raise AttributeError('This is a dependent parameter, its minimum value cannot be set directly.')
+            raise AttributeError(
+                'This is a dependent parameter, its minimum value cannot be set directly.'
+            )
 
     @property
     def max(self) -> numbers.Number:
-        """
-        Get the maximum value for fitting.
+        """Get the maximum value for fitting.
 
         :return: maximum value
         """
@@ -585,19 +613,24 @@ class Parameter(DescriptorNumber):
             if not isinstance(max_value, numbers.Number):
                 raise TypeError('`max` must be a number')
             if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
-                raise ValueError('The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.')
+                raise ValueError(
+                    'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
+                )
             if max_value >= self.value:
                 self._max.value = max_value
             else:
-                raise ValueError(f'The current value ({self.value}) is greater than the desired max value ({max_value}).')
+                raise ValueError(
+                    f'The current value ({self.value}) is greater than the desired max value ({max_value}).'
+                )
             self._notify_observers()
         else:
-            raise AttributeError('This is a dependent parameter, its maximum value cannot be set directly.')
+            raise AttributeError(
+                'This is a dependent parameter, its maximum value cannot be set directly.'
+            )
 
     @property
     def fixed(self) -> bool:
-        """
-        Can the parameter vary while fitting?
+        """Can the parameter vary while fitting?
 
         :return: True = fixed, False = can vary
         """
@@ -620,7 +653,9 @@ class Parameter(DescriptorNumber):
             if self._global_object.stack.enabled:
                 # Remove the recorded change from the stack
                 global_object.stack.pop()
-            raise AttributeError('This is a dependent parameter, dependent parameters cannot be fixed.')
+            raise AttributeError(
+                'This is a dependent parameter, dependent parameters cannot be fixed.'
+            )
 
     # Is this alias really needed?
     @property
@@ -632,7 +667,9 @@ class Parameter(DescriptorNumber):
         self.fixed = not value
 
     def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        """Overwrite the as_dict method to handle dependency information."""
+        """Overwrite the as_dict method to handle dependency
+        information.
+        """
         raw_dict = super().as_dict(skip=skip)
 
         # Add dependency information for dependent parameters
@@ -649,13 +686,17 @@ class Parameter(DescriptorNumber):
             # Convert dependency_map to use serializer_ids
             raw_dict['_dependency_map_serializer_ids'] = {}
             for key, obj in self._dependency_map.items():
-                raw_dict['_dependency_map_serializer_ids'][key] = obj._DescriptorNumber__serializer_id
+                raw_dict['_dependency_map_serializer_ids'][key] = (
+                    obj._DescriptorNumber__serializer_id
+                )
 
         return raw_dict
 
     def _revert_dependency(self, skip_detach=False) -> None:
-        """
-        Revert the dependency to the old dependency. This is used when an error is raised during setting the dependency.
+        """Revert the dependency to the old dependency.
+
+        This is used when an error is raised during setting the
+        dependency.
         """
         if self._previous_independent is True:
             self.make_independent()
@@ -671,10 +712,11 @@ class Parameter(DescriptorNumber):
         del self._previous_independent
 
     def _process_dependency_unique_names(self, dependency_expression: str):
-        """
-        Add the unique names of the parameters to the ASTEval interpreter. This is used to evaluate the dependency expression.
+        """Add the unique names of the parameters to the ASTEval
+        interpreter. This is used to evaluate the dependency expression.
 
-        :param dependency_expression: The dependency expression to be evaluated
+        :param dependency_expression: The dependency expression to be
+            evaluated
         """
         # Get the unique_names from the expression string regardless of the quotes used
         inputted_unique_names = re.findall("('.+?')", dependency_expression)
@@ -692,7 +734,9 @@ class Parameter(DescriptorNumber):
             dependent_parameter = self._global_object.map.get_item_by_key(stripped_name)
             if isinstance(dependent_parameter, DescriptorNumber):
                 self._dependency_map['__' + stripped_name + '__'] = dependent_parameter
-                clean_dependency_string = clean_dependency_string.replace(name, '__' + stripped_name + '__')
+                clean_dependency_string = clean_dependency_string.replace(
+                    name, '__' + stripped_name + '__'
+                )
             else:
                 raise ValueError(
                     f'The object with unique_name {stripped_name} is not a Parameter or DescriptorNumber. '
@@ -702,8 +746,8 @@ class Parameter(DescriptorNumber):
 
     @classmethod
     def from_dict(cls, obj_dict: dict) -> 'Parameter':
-        """
-        Custom deserialization to handle parameter dependencies.
+        """Custom deserialization to handle parameter dependencies.
+
         Override the parent method to handle dependency information.
         """
         # Extract dependency information before creating the parameter
@@ -733,9 +777,7 @@ class Parameter(DescriptorNumber):
         return new_obj
 
     def __repr__(self) -> str:
-        """
-        Return printable representation of a Parameter object.
-        """
+        """Return printable representation of a Parameter object."""
         super_str = super().__repr__()
         super_str = super_str[:-1]
         s = []
@@ -756,19 +798,29 @@ class Parameter(DescriptorNumber):
             new_full_value = self.full_value + other
             min_value = self.min + other
             max_value = self.max + other
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             other_unit = other.unit
             try:
                 other._convert_unit(self.unit)
             except UnitError:
-                raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be added') from None
+                raise UnitError(
+                    f'Values with units {self.unit} and {other.unit} cannot be added'
+                ) from None
             new_full_value = self.full_value + other.full_value
-            min_value = self.min + other.min if isinstance(other, Parameter) else self.min + other.value
-            max_value = self.max + other.max if isinstance(other, Parameter) else self.max + other.value
+            min_value = (
+                self.min + other.min if isinstance(other, Parameter) else self.min + other.value
+            )
+            max_value = (
+                self.max + other.max if isinstance(other, Parameter) else self.max + other.value
+            )
             other._convert_unit(other_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter.name = parameter.unique_name
         return parameter
 
@@ -779,19 +831,25 @@ class Parameter(DescriptorNumber):
             new_full_value = self.full_value + other
             min_value = self.min + other
             max_value = self.max + other
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             original_unit = self.unit
             try:
                 self._convert_unit(other.unit)
             except UnitError:
-                raise UnitError(f'Values with units {other.unit} and {self.unit} cannot be added') from None
+                raise UnitError(
+                    f'Values with units {other.unit} and {self.unit} cannot be added'
+                ) from None
             new_full_value = self.full_value + other.full_value
             min_value = self.min + other.value
             max_value = self.max + other.value
             self._convert_unit(original_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter.name = parameter.unique_name
         return parameter
 
@@ -802,12 +860,16 @@ class Parameter(DescriptorNumber):
             new_full_value = self.full_value - other
             min_value = self.min - other
             max_value = self.max - other
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             other_unit = other.unit
             try:
                 other._convert_unit(self.unit)
             except UnitError:
-                raise UnitError(f'Values with units {self.unit} and {other.unit} cannot be subtracted') from None
+                raise UnitError(
+                    f'Values with units {self.unit} and {other.unit} cannot be subtracted'
+                ) from None
             new_full_value = self.full_value - other.full_value
             if isinstance(other, Parameter):
                 min_value = self.min - other.max if other.max != np.inf else -np.inf
@@ -818,7 +880,9 @@ class Parameter(DescriptorNumber):
             other._convert_unit(other_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter.name = parameter.unique_name
         return parameter
 
@@ -829,19 +893,25 @@ class Parameter(DescriptorNumber):
             new_full_value = other - self.full_value
             min_value = other - self.max
             max_value = other - self.min
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             original_unit = self.unit
             try:
                 self._convert_unit(other.unit)
             except UnitError:
-                raise UnitError(f'Values with units {other.unit} and {self.unit} cannot be subtracted') from None
+                raise UnitError(
+                    f'Values with units {other.unit} and {self.unit} cannot be subtracted'
+                ) from None
             new_full_value = other.full_value - self.full_value
             min_value = other.value - self.max
             max_value = other.value - self.min
             self._convert_unit(original_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter.name = parameter.unique_name
         return parameter
 
@@ -849,16 +919,22 @@ class Parameter(DescriptorNumber):
         if isinstance(other, numbers.Number):
             new_full_value = self.full_value * other
             if other == 0:
-                descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_full_value)
+                descriptor_number = DescriptorNumber.from_scipp(
+                    name=self.name, full_value=new_full_value
+                )
                 descriptor_number.name = descriptor_number.unique_name
                 return descriptor_number
             combinations = [self.min * other, self.max * other]
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             new_full_value = self.full_value * other.full_value
             if (
                 other.value == 0 and type(other) is DescriptorNumber
             ):  # Only return DescriptorNumber if other is strictly 0, i.e. not a parameter  # noqa: E501
-                descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_full_value)
+                descriptor_number = DescriptorNumber.from_scipp(
+                    name=self.name, full_value=new_full_value
+                )
                 descriptor_number.name = descriptor_number.unique_name
                 return descriptor_number
             if isinstance(other, Parameter):
@@ -881,7 +957,9 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
@@ -890,14 +968,20 @@ class Parameter(DescriptorNumber):
         if isinstance(other, numbers.Number):
             new_full_value = other * self.full_value
             if other == 0:
-                descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_full_value)
+                descriptor_number = DescriptorNumber.from_scipp(
+                    name=self.name, full_value=new_full_value
+                )
                 descriptor_number.name = descriptor_number.unique_name
                 return descriptor_number
             combinations = [other * self.min, other * self.max]
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             new_full_value = other.full_value * self.full_value
             if other.value == 0:
-                descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_full_value)
+                descriptor_number = DescriptorNumber.from_scipp(
+                    name=self.name, full_value=new_full_value
+                )
                 descriptor_number.name = descriptor_number.unique_name
                 return descriptor_number
             combinations = [self.min * other.value, self.max * other.value]
@@ -905,7 +989,9 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
@@ -916,7 +1002,9 @@ class Parameter(DescriptorNumber):
                 raise ZeroDivisionError('Cannot divide by zero')
             new_full_value = self.full_value / other
             combinations = [self.min / other, self.max / other]
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             other_value = other.value
             if other_value == 0:
                 raise ZeroDivisionError('Cannot divide by zero')
@@ -951,7 +1039,9 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
@@ -964,14 +1054,20 @@ class Parameter(DescriptorNumber):
             new_full_value = other / self.full_value
             other_value = other
             if other_value == 0:
-                descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_full_value)
+                descriptor_number = DescriptorNumber.from_scipp(
+                    name=self.name, full_value=new_full_value
+                )
                 descriptor_number.name = descriptor_number.unique_name
                 return descriptor_number
-        elif isinstance(other, DescriptorNumber):  # Parameter inherits from DescriptorNumber and is also handled here
+        elif isinstance(
+            other, DescriptorNumber
+        ):  # Parameter inherits from DescriptorNumber and is also handled here
             new_full_value = other.full_value / self.full_value
             other_value = other.value
             if other_value == 0:
-                descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_full_value)
+                descriptor_number = DescriptorNumber.from_scipp(
+                    name=self.name, full_value=new_full_value
+                )
                 descriptor_number.name = descriptor_number.unique_name
                 return descriptor_number
         else:
@@ -992,7 +1088,9 @@ class Parameter(DescriptorNumber):
             combinations = [other_value / self.min, other_value / self.max]
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter._convert_unit(parameter._base_unit())
         parameter.name = parameter.unique_name
         return parameter
@@ -1000,7 +1098,9 @@ class Parameter(DescriptorNumber):
     def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
         if isinstance(other, numbers.Number):
             exponent = other
-        elif type(other) is DescriptorNumber:  # Strictly a DescriptorNumber, We can't raise to the power of a Parameter
+        elif (
+            type(other) is DescriptorNumber
+        ):  # Strictly a DescriptorNumber, We can't raise to the power of a Parameter
             if other.unit != 'dimensionless':
                 raise UnitError('Exponents must be dimensionless')
             if other.variance is not None:
@@ -1017,7 +1117,9 @@ class Parameter(DescriptorNumber):
         if np.isnan(new_full_value.value):
             raise ValueError('The result of the exponentiation is not a number')
         if exponent == 0:
-            descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_full_value)
+            descriptor_number = DescriptorNumber.from_scipp(
+                name=self.name, full_value=new_full_value
+            )
             descriptor_number.name = descriptor_number.unique_name
             return descriptor_number
         elif exponent < 0:
@@ -1041,7 +1143,9 @@ class Parameter(DescriptorNumber):
             combinations = [combination for combination in combinations if combination >= 0]
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter.name = parameter.unique_name
         return parameter
 
@@ -1049,7 +1153,9 @@ class Parameter(DescriptorNumber):
         new_full_value = -self.full_value
         min_value = -self.max
         max_value = -self.min
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter.name = parameter.unique_name
         return parameter
 
@@ -1060,15 +1166,18 @@ class Parameter(DescriptorNumber):
             combinations.append(0.0)
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(name=self.name, full_value=new_full_value, min=min_value, max=max_value)
+        parameter = Parameter.from_scipp(
+            name=self.name, full_value=new_full_value, min=min_value, max=max_value
+        )
         parameter.name = parameter.unique_name
         return parameter
 
     def resolve_pending_dependencies(self) -> None:
         """Resolve pending dependencies after deserialization.
 
-        This method should be called after all parameters have been deserialized
-        to establish dependency relationships using serializer_ids.
+        This method should be called after all parameters have been
+        deserialized to establish dependency relationships using
+        serializer_ids.
         """
         if hasattr(self, '_pending_dependency_string'):
             dependency_string = self._pending_dependency_string
@@ -1083,7 +1192,9 @@ class Parameter(DescriptorNumber):
                     if dep_obj is not None:
                         dependency_map[key] = dep_obj
                     else:
-                        raise ValueError(f"Cannot find parameter with serializer_id '{serializer_id}'")
+                        raise ValueError(
+                            f"Cannot find parameter with serializer_id '{serializer_id}'"
+                        )
 
             # Establish the dependency relationship
             try:
@@ -1101,9 +1212,13 @@ class Parameter(DescriptorNumber):
             delattr(self, '_pending_desired_unit')
 
     def _find_parameter_by_serializer_id(self, serializer_id: str) -> Optional['DescriptorNumber']:
-        """Find a parameter by its serializer_id from all parameters in the global map."""
+        """Find a parameter by its serializer_id from all parameters in
+        the global map.
+        """
         for obj in self._global_object.map._store.values():
-            if isinstance(obj, DescriptorNumber) and hasattr(obj, '_DescriptorNumber__serializer_id'):
+            if isinstance(obj, DescriptorNumber) and hasattr(
+                obj, '_DescriptorNumber__serializer_id'
+            ):
                 if obj._DescriptorNumber__serializer_id == serializer_id:
                     return obj
         return None

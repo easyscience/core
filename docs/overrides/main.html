@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if page.nb_url %}
+  {# Parse notebook path/URL #}
+  {% set parts = page.nb_url.split('/') %}
+  {% set tutorial_name = parts[-2] %}
+  {% set filename = parts[-1] %}
+
+  {# Colab url #}
+  {% set base_colab_url = "https://colab.research.google.com/github/" %}
+  {% set colab_url =
+    base_colab_url ~ config.extra.vars.github_repository ~
+    "/blob/gh-pages/" ~ config.extra.vars.docs_version ~
+    "/tutorials/" ~ tutorial_name ~ "/" ~ filename
+  %}
+
+  {# Download link: relative to the current page #}
+  {% set file_url = filename %}
+
+  {# Open in Colab (absolute GitHub URL; works anywhere) #}
+  <a href="{{ colab_url }}"
+     title="Open in Google Colab"
+     class="md-content__button md-icon">
+    {% include ".icons/google-colab.svg" %}
+  </a>
+
+  {# Download: use a RELATIVE link to the file next to this page #}
+  <a href="{{ file_url }}"
+     download="{{ file_url }}"
+     title="Download Notebook"
+     class="md-content__button md-icon">
+    {% include ".icons/material/download.svg" %}
+  </a>
+{% endif %}
+
+{{ super() }}
+{% endblock content %}

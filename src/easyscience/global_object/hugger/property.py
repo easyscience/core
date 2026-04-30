@@ -1,6 +1,5 @@
-#  SPDX-FileCopyrightText: 2025 EasyScience contributors  <core@easyscience.software>
-#  SPDX-License-Identifier: BSD-3-Clause
-#  © 2021-2025 Contributors to the EasyScience project <https://github.com/easyScience/EasyScience
+# SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
 
 import sys
 from functools import wraps
@@ -15,8 +14,9 @@ from .hugger import Store
 
 
 class LoggedProperty(property):
-    """
-    Pump up python properties. In this case we can see who has called this property and
+    """Pump up python properties.
+
+    In this case we can see who has called this property and
     then do something if a criteria is met. In this case if the caller is not a member of
     the `ObjBase` class. Note that all high level `EasyScience` objects should be built from
     `ObjBase`.
@@ -81,7 +81,9 @@ class LoggedProperty(property):
         if not test and self._get_id is not None and self._my_self is not None:
             Store().append_log(self.makeEntry('set', value))
             if global_object.debug:  # noqa: S1006
-                print(f"I'm {self._my_self} and {self._get_id} has been set to {value} from the outside!")
+                print(
+                    f"I'm {self._my_self} and {self._get_id} has been set to {value} from the outside!"
+                )
         return super().__set__(instance, value)
 
     def makeEntry(self, log_type, returns, *args, **kwargs) -> str:
@@ -174,7 +176,9 @@ class PropertyHugger(PatcherFactory):
         @wraps(func)
         def inner(*args, **kwargs):
             if global_object.debug:
-                print(f'{self.klass.__name__}.{self.prop_name} has been called with {args[1:]}, {kwargs}')
+                print(
+                    f'{self.klass.__name__}.{self.prop_name} has been called with {args[1:]}, {kwargs}'
+                )
             res = func(*args, **kwargs)
             self._append_args(*args, **kwargs)
             self._append_result(res)
@@ -187,7 +191,9 @@ class PropertyHugger(PatcherFactory):
         @wraps(func)
         def inner(*args, **kwargs):
             if global_object.debug:
-                print(f'{self.klass.__name__}.{self.prop_name} has been set with {args[1:]}, {kwargs}')
+                print(
+                    f'{self.klass.__name__}.{self.prop_name} has been set with {args[1:]}, {kwargs}'
+                )
             self._append_args(*args, **kwargs)
             self._append_log(self.makeEntry('set', None, *args, **kwargs))
             return func(*args, **kwargs)
