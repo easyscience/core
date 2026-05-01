@@ -165,3 +165,81 @@ class TestEasyCollection:
         # batch already contained ``duplicate``.
         assert collection[0] is duplicate
         assert collection[1] is second
+
+    def test_getitem_rejects_unsupported_type(self):
+        collection = EasyCollection(Alpha(unique_name='first'))
+
+        with pytest.raises(TypeError, match='Index must be an int, slice, or str'):
+            _ = collection[1.0]
+
+    def test_setitem_rejects_non_iterable_slice_assignment(self):
+        collection = EasyCollection(Alpha(unique_name='first'))
+
+        with pytest.raises(TypeError, match='Value must be an iterable for slice assignment'):
+            collection[0:1] = Alpha(unique_name='other')  # type: ignore[arg-type]
+
+    def test_delitem_rejects_invalid_type(self):
+        collection = EasyCollection(Alpha(unique_name='first'))
+
+        with pytest.raises(TypeError, match='Index must be an int, slice, or str'):
+            del collection[1.0]
+
+    def test_insert_rejects_non_integer_index(self):
+        collection = EasyCollection(Alpha(unique_name='first'))
+
+        with pytest.raises(TypeError, match='Index must be an integer'):
+            collection.insert('0', Alpha(unique_name='second'))  # type: ignore[arg-type]
+
+    def test_pop_rejects_invalid_type(self):
+        collection = EasyCollection(Alpha(unique_name='first'))
+
+        with pytest.raises(TypeError, match='Index must be an int or str'):
+            collection.pop(1.0)  # type: ignore[arg-type]
+
+    def test_contains_checks_unique_name_and_item_object(self):
+        first = Alpha(unique_name='first')
+        second = Alpha(unique_name='second')
+        collection = EasyCollection(first, second)
+
+        assert 'first' in collection
+        assert first in collection
+        assert 'missing' not in collection
+
+    def test_to_dict_respects_skip_keys(self):
+        collection = EasyCollection(
+            Alpha(unique_name='alpha'),
+            unique_name='collection_key',
+            protected_types=Alpha,
+        )
+
+        collection_dict = collection.to_dict(skip=['unique_name', 'protected_types'])
+
+        assert 'unique_name' not in collection_dict
+        assert 'protected_types' not in collection_dict
+        assert 'data' in collection_dict
+
+    def test_from_dict_raises_for_invalid_serialized_dict(self):
+        with pytest.raises(
+            ValueError,
+            match='Input must be a dictionary representing an EasyScience EasyCollection object.',
+        ):
+            EasyCollection.from_dict({'foo': 'bar'})
+
+    def test_from_dict_raises_for_mismatched_class(self):
+        collection = EasyCollection(Alpha(unique_name='alpha'))
+        collection_dict = collection.to_dict()
+        collection_dict['@class'] = 'WrongClass'
+
+        global_object.map._clear()
+        with pytest.raises(
+            ValueError,
+            match='Class name in dictionary does not match the expected class: EasyCollection.',
+        ):
+            EasyCollection.from_dict(collection_dict)
+
+    def test_protected_types_accepts_iterable_types(self):
+        collection = EasyCollection(protected_types=[Alpha])
+
+        collection.append(Alpha(unique_name='alpha'))
+        with pytest.raises(TypeError, match='Items must be one of'):
+            collection.append(NewBase(unique_name='new-base'))
