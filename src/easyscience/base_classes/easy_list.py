@@ -17,8 +17,17 @@ from typing import TypeVar
 from typing import overload
 
 from easyscience.io.serializer_base import SerializerBase
+from easyscience.variable.descriptor_base import DescriptorBase
 
 from .new_base import NewBase
+
+
+# Import ModelBase lazily to avoid circular imports at module level
+def _get_model_base():
+    from .model_base import ModelBase
+
+    return ModelBase
+
 
 ProtectedType_ = TypeVar('ProtectedType', bound=NewBase)
 
@@ -190,6 +199,25 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
         :rtype: str
         """
         return obj.unique_name
+
+    def get_all_variables(self) -> List[DescriptorBase]:
+        """Get all `Descriptor` and `Parameter` objects from all
+        elements that are derived from `ModelBase`.
+
+        For each element that is a `ModelBase` instance, the element's
+        own `get_all_variables()` method is called and the results are
+        collected into a single flat list.
+
+        :return: Flat list of all `DescriptorBase` objects from all
+            `ModelBase` elements.
+        :rtype: List[DescriptorBase]
+        """
+        ModelBase = _get_model_base()
+        all_vars: List[DescriptorBase] = []
+        for item in self._data:
+            if isinstance(item, ModelBase):
+                all_vars.extend(item.get_all_variables())
+        return all_vars
 
     # Overwriting methods
 
