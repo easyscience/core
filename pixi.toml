@@ -34,6 +34,18 @@ platforms = ['win-64', 'linux-64', 'osx-64', 'osx-arm64']
 # Channels for fetching packages
 channels = ['conda-forge']
 
+#####################
+# SYSTEM REQUIREMENTS
+#####################
+
+[system-requirements]
+
+# Set minimum supported version for macOS to be 14.0 to ensure packages
+# like `skipp` that only have wheels for macOS 14.0+ (macosx_14_0_arm64)
+# are used instead of building from source. This is a workaround for
+# Pixi, see https://github.com/prefix-dev/pixi/issues/5667
+macos = '14.0'
+
 ##########
 # FEATURES
 ##########
