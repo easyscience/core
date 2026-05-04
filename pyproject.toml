@@ -29,7 +29,7 @@ dependencies = [
   'dfo-ls',        # Derivative-free optimization
   'uncertainties', # Propagation of uncertainties in calculations
   'numpy',         # Numerical computing
-  'scipp<26.1.0',  # Handling and analysis of scientific data
+  'scipp',         # Handling and analysis of scientific data
   'pooch',         # Data downloader
   'matplotlib',    # Plotting library
   'jupyterlab',    # Jupyter notebooks
