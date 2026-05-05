@@ -643,3 +643,41 @@ class TestEasyList:
             from easyscience.variable.descriptor_base import DescriptorBase
 
             assert isinstance(v, DescriptorBase)
+
+    def test_get_all_variables_nested_easylist(self):
+        """An EasyList containing another EasyList with mixed NewBase/ModelBase elements
+        should collect variables from the inner EasyList's ModelBase items,
+        skipping plain NewBase items."""
+        inner_model = MockModel(unique_name='inner_m', temperature=50, volume=3.0)
+        inner_plain = Alpha(unique_name='inner_a')
+        inner_list = EasyList(inner_model, inner_plain)
+        outer_model = MockModel(unique_name='outer_m', temperature=70, volume=4.0)
+        outer_list = EasyList(inner_list, outer_model)
+
+        # --- outer_list structure ---
+        assert len(outer_list) == 2
+        assert outer_list[0] is inner_list
+        assert outer_list[1] is outer_model
+
+        # --- inner_list structure ---
+        assert len(inner_list) == 2
+        assert inner_list[0] is inner_model
+        assert inner_list[1] is inner_plain
+        # inner_list own get_all_variables should only see inner_model (skip Alpha)
+        inner_vars = inner_list.get_all_variables()
+        assert len(inner_vars) == 2
+
+        # --- outer_list.get_all_variables ---
+        vars = outer_list.get_all_variables()
+        # inner_model: temperature (50), volume (3.0); outer_model: temperature (70), volume (4.0)
+        assert len(vars) == 4
+
+        # Verify all returned items are DescriptorBase instances
+        for v in vars:
+            assert isinstance(v, DescriptorNumber)
+
+        # Collect temperatures and volumes from both models
+        temps = {v.value for v in vars if v.name == 'temperature'}
+        vols = {v.value for v in vars if v.name == 'volume'}
+        assert temps == {50, 70}
+        assert vols == {3.0, 4.0}

@@ -19,20 +19,13 @@ from typing import overload
 from easyscience.io.serializer_base import SerializerBase
 from easyscience.variable.descriptor_base import DescriptorBase
 
+from .model_base import ModelBase
 from .new_base import NewBase
-
-
-# Import ModelBase lazily to avoid circular imports at module level
-def _get_model_base():
-    from .model_base import ModelBase
-
-    return ModelBase
-
 
 ProtectedType_ = TypeVar('ProtectedType', bound=NewBase)
 
 
-class EasyList(NewBase, MutableSequence[ProtectedType_]):
+class EasyList(ModelBase, MutableSequence[ProtectedType_]):
     # If we were to inherit from List instead of MutableSequence,
     # we would have to overwrite "extend", "remove", "__iadd__", "count", "append", "__iter__" and "clear"
     def __init__(
@@ -212,7 +205,6 @@ class EasyList(NewBase, MutableSequence[ProtectedType_]):
             `ModelBase` elements.
         :rtype: List[DescriptorBase]
         """
-        ModelBase = _get_model_base()
         all_vars: List[DescriptorBase] = []
         for item in self._data:
             if isinstance(item, ModelBase):
