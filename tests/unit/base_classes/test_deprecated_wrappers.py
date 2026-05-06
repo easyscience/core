@@ -27,6 +27,7 @@ def _clear_map():
 # Deprecated wrapper: easyscience.base_classes.collection_base
 # ---------------------------------------------------------------------------
 
+
 def test_import_collection_base_warns():
     """Importing easyscience.base_classes.collection_base emits DeprecationWarning."""
     with warnings.catch_warnings(record=True) as w:
@@ -58,6 +59,7 @@ def test_collection_base_still_works_from_deprecated():
 # ---------------------------------------------------------------------------
 # Deprecated wrapper: easyscience.base_classes.obj_base
 # ---------------------------------------------------------------------------
+
 
 def test_import_obj_base_warns():
     """Importing easyscience.base_classes.obj_base emits DeprecationWarning."""
