@@ -334,6 +334,90 @@ class Bumps(MinimizerBase):
 
         return _outer(self)
 
+    def sample(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        weights: np.ndarray,
+        samples: int = 10000,
+        burn: int = 2000,
+        thin: int = 10,
+        chains: int | None = None,
+        population: int | None = None,
+        seed: int | None = None,
+        sampler_kwargs: dict | None = None,
+    ) -> dict:
+        """Run Bayesian MCMC sampling using the BUMPS DREAM sampler.
+
+        Builds a BUMPS :class:`~bumps.names.FitProblem` from the current
+        model and runs the DREAM sampler.  This is the public minimizer-level
+        entry point for Bayesian sampling; the higher-level
+        :meth:`easyscience.fitting.multi_fitter.MultiFitter.sample` delegates
+        to this method after flattening multi-dataset arrays.
+
+        :param x: Flattened independent variable array.
+        :type x: np.ndarray
+        :param y: Flattened dependent variable array.
+        :type y: np.ndarray
+        :param weights: Flattened weight array.
+        :type weights: np.ndarray
+        :param samples: Number of retained DREAM samples requested from BUMPS.
+        :type samples: int
+        :param burn: Burn-in steps.
+        :type burn: int
+        :param thin: Thinning interval.
+        :type thin: int
+        :param chains: User-friendly alias for BUMPS DREAM population count.
+        :type chains: int | None
+        :param population: BUMPS DREAM population count (``pop``) for advanced users.
+        :type population: int | None
+        :param seed: Best-effort random seed passed to ``numpy.random.seed``.
+            BUMPS DREAM may use additional internal RNG state that is not
+            controlled by this seed, so exact reproducibility is not guaranteed.
+        :type seed: int | None
+        :param sampler_kwargs: Additional keyword arguments forwarded to
+            :func:`bumps.fitters.fit`.
+        :type sampler_kwargs: dict | None
+        :return: Dictionary with keys ``'draws'``, ``'param_names'``, ``'state'``,
+            and ``'logp'``.
+        :rtype: dict
+        """
+        from bumps.fitters import fit as bumps_fit
+        from bumps.names import FitProblem
+
+        # Build the BUMPS Curve model using the minimizer's existing machinery
+        model_func = self._make_model()
+        x_flat = np.linspace(0, y.size - 1, y.size)
+        curve = model_func(x_flat, y, weights)
+        problem = FitProblem(curve)
+
+        # Best-effort seed: sets numpy's global RNG state just before DREAM starts.
+        # BUMPS DREAM may have its own internal RNG paths that are not fully
+        # controlled by this, so exact reproducibility is not guaranteed.
+        if seed is not None:
+            np.random.seed(seed)
+
+        # Run DREAM sampler
+        dream_kwargs: dict = {'samples': samples, 'burn': burn, 'thin': thin}
+        if chains is not None or population is not None:
+            pop = chains if chains is not None else population
+            dream_kwargs['pop'] = pop
+        if sampler_kwargs:
+            dream_kwargs.update(sampler_kwargs)
+        result = bumps_fit(problem, method='dream', **dream_kwargs)
+
+        # Extract posterior
+        draws = result.state.draw().points
+        param_names = [p.name[len(MINIMIZER_PARAMETER_PREFIX) :] for p in problem._parameters]
+        logp = getattr(result.state, 'logp', None)
+
+        return {
+            'draws': draws,
+            'param_names': param_names,
+            'state': result.state,
+            'logp': logp,
+        }
+
     def _set_parameter_fit_result(
         self,
         fit_result,
