@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+from collections.abc import Sequence
 from typing import Callable
 
 import numpy as np
@@ -25,8 +26,8 @@ class MultiFitter(Fitter):
 
     def __init__(
         self,
-        fit_objects: list | None = None,
-        fit_functions: list[Callable] | None = None,
+        fit_objects: Sequence | None = None,
+        fit_functions: Sequence[Callable] | None = None,
     ):
         # Both arguments default to None so the constructor can be called
         # empty; normalise to empty sequences so nothing below has to
