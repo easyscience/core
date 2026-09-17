@@ -80,7 +80,7 @@ class DescriptorNumber(DescriptorBase):
         self,
         name: str,
         value: numbers.Number,
-        unit: Optional[Union[str, sc.Unit]] = '',
+        unit: Optional[Union[str, sc.Unit]] = "",
         variance: Optional[numbers.Number] = None,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
@@ -103,20 +103,20 @@ class DescriptorNumber(DescriptorBase):
         self._observers: List[DescriptorNumber] = []
 
         # Extract serializer_id if provided during deserialization
-        if '__serializer_id' in kwargs:
-            self.__serializer_id = kwargs.pop('__serializer_id')
+        if "__serializer_id" in kwargs:
+            self.__serializer_id = kwargs.pop("__serializer_id")
 
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
-            raise TypeError(f'{value=} must be a number')
+            raise TypeError(f"{value=} must be a number")
         if variance is not None:
             if not isinstance(variance, numbers.Number) or isinstance(variance, bool):
-                raise TypeError(f'{variance=} must be a number or None')
+                raise TypeError(f"{variance=} must be a number or None")
             if variance < 0:
-                raise ValueError(f'{variance=} must be positive')
+                raise ValueError(f"{variance=} must be positive")
             variance = float(variance)
         if not isinstance(unit, sc.Unit) and not isinstance(unit, str):
             raise TypeError(
-                f'{unit=} must be a scipp unit or a string representing a valid scipp unit'
+                f"{unit=} must be a scipp unit or a string representing a valid scipp unit"
             )
         try:
             self._scalar = sc.scalar(float(value), unit=unit, variance=variance)
@@ -175,9 +175,9 @@ class DescriptorNumber(DescriptorBase):
             If ``full_value`` is not a scalar scipp ``Variable``.
         """
         if not isinstance(full_value, Variable):
-            raise TypeError(f'{full_value=} must be a scipp scalar')
+            raise TypeError(f"{full_value=} must be a scipp scalar")
         if len(full_value.dims) != 0:
-            raise TypeError(f'{full_value=} must be a scipp scalar')
+            raise TypeError(f"{full_value=} must be a scipp scalar")
         return cls(
             name=name,
             value=full_value.value,
@@ -189,7 +189,7 @@ class DescriptorNumber(DescriptorBase):
     def _attach_observer(self, observer: DescriptorNumber) -> None:
         """Attach an observer to the descriptor."""
         self._observers.append(observer)
-        if not hasattr(self, '_DescriptorNumber__serializer_id'):
+        if not hasattr(self, "_DescriptorNumber__serializer_id"):
             self.__serializer_id = str(uuid.uuid4())
 
     def _detach_observer(self, observer: DescriptorNumber) -> None:
@@ -221,9 +221,9 @@ class DescriptorNumber(DescriptorBase):
         """
         if origin == self.unique_name:
             raise RuntimeError(
-                '\n Cyclic dependency detected!\n'
-                + f'An update of {self.unique_name} leads to it updating itself.\n'
-                + 'Please check your dependencies.'
+                "\n Cyclic dependency detected!\n"
+                + f"An update of {self.unique_name} leads to it updating itself.\n"
+                + "Please check your dependencies."
             )
         if origin is None:
             origin = self.unique_name
@@ -247,7 +247,7 @@ class DescriptorNumber(DescriptorBase):
     @full_value.setter
     def full_value(self, full_value: Variable) -> None:
         raise AttributeError(
-            f'Full_value is read-only. Change the value and variance seperately. Or create a new {self.__class__.__name__}.'
+            f"Full_value is read-only. Change the value and variance seperately. Or create a new {self.__class__.__name__}."
         )
 
     @property
@@ -286,7 +286,7 @@ class DescriptorNumber(DescriptorBase):
             If ``value`` is not a number.
         """
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
-            raise TypeError(f'{value=} must be a number')
+            raise TypeError(f"{value=} must be a number")
         self._scalar.value = float(value)
 
     @property
@@ -305,7 +305,10 @@ class DescriptorNumber(DescriptorBase):
         str
             Unit as a string.
         """
-        if self._input_unit_parsed is not None and self._input_unit_parsed == self._scalar.unit:
+        if (
+            self._input_unit_parsed is not None
+            and self._input_unit_parsed == self._scalar.unit
+        ):
             return self._input_unit
         return str(self._scalar.unit)
 
@@ -313,8 +316,8 @@ class DescriptorNumber(DescriptorBase):
     def unit(self, unit_str: str) -> None:
         raise AttributeError(
             (
-                f'Unit is read-only. Use convert_unit to change the unit between allowed types '
-                f'or create a new {self.__class__.__name__} with the desired unit.'
+                f"Unit is read-only. Use convert_unit to change the unit between allowed types "
+                f"or create a new {self.__class__.__name__} with the desired unit."
             )
         )  # noqa: E501
 
@@ -351,9 +354,9 @@ class DescriptorNumber(DescriptorBase):
         """
         if variance_float is not None:
             if not isinstance(variance_float, numbers.Number):
-                raise TypeError(f'{variance_float=} must be a number or None')
+                raise TypeError(f"{variance_float=} must be a number or None")
             if variance_float < 0:
-                raise ValueError(f'{variance_float=} must be positive')
+                raise ValueError(f"{variance_float=} must be positive")
             variance_float = float(variance_float)
         self._scalar.variance = variance_float
 
@@ -392,9 +395,9 @@ class DescriptorNumber(DescriptorBase):
         """
         if value is not None:
             if not isinstance(value, numbers.Number):
-                raise TypeError(f'{value=} must be a number or None')
+                raise TypeError(f"{value=} must be a number or None")
             if value < 0:
-                raise ValueError(f'{value=} must be positive')
+                raise ValueError(f"{value=} must be positive")
             value = float(value)
             self._scalar.variance = value**2
         else:
@@ -421,9 +424,11 @@ class DescriptorNumber(DescriptorBase):
             If ``unit_str`` is not a string.
         UnitError
             If the unit conversion fails.
-        """
+        """  # noqa: DOC503. UnitError re-raised after restoring the unit state
         if not isinstance(unit_str, str):
-            raise TypeError(f'{unit_str=} must be a string representing a valid scipp unit')
+            raise TypeError(
+                f"{unit_str=} must be a string representing a valid scipp unit"
+            )
         new_unit = sc.Unit(unit_str)
 
         # Save the current state for undo/redo
@@ -444,7 +449,7 @@ class DescriptorNumber(DescriptorBase):
                     _set_unit_state,
                     old_state,
                     self._unit_state(),
-                    text=f'Convert unit to {unit_str}',
+                    text=f"Convert unit to {unit_str}",
                 )
             )
 
@@ -470,7 +475,7 @@ class DescriptorNumber(DescriptorBase):
         try:
             self._scalar = self._scalar.to(unit=new_unit)
         except Exception as e:
-            raise UnitError(f'Failed to convert unit: {e}') from e
+            raise UnitError(f"Failed to convert unit: {e}") from e
 
     @staticmethod
     def _spelling_from_sources(unit: sc.Unit, sources: tuple) -> Union[str, sc.Unit]:
@@ -499,7 +504,7 @@ class DescriptorNumber(DescriptorBase):
             offers one.
         """
         for source in sources:
-            parsed_unit = getattr(source, '_input_unit_parsed', None)
+            parsed_unit = getattr(source, "_input_unit_parsed", None)
             if parsed_unit is not None and parsed_unit == unit:
                 return source._input_unit
         return unit
@@ -577,43 +582,45 @@ class DescriptorNumber(DescriptorBase):
 
     def __repr__(self) -> str:
         """Return printable representation."""
-        string = '<'
-        string += self.__class__.__name__ + ' '
+        string = "<"
+        string += self.__class__.__name__ + " "
         string += f"'{self._name}': "
         if np.abs(self._scalar.value) > 1e4 or (
             np.abs(self._scalar.value) < 1e-4 and self._scalar.value != 0
         ):
             # Use scientific notation for large or small values
-            string += f'{self._scalar.value:.3e}'
+            string += f"{self._scalar.value:.3e}"
             if self.variance:
-                string += f' \u00b1 {self.error:.3e}'
+                string += f" \u00b1 {self.error:.3e}"
         else:
-            string += f'{self._scalar.value:.4f}'
+            string += f"{self._scalar.value:.4f}"
             if self.variance:
-                string += f' \u00b1 {self.error:.4f}'
+                string += f" \u00b1 {self.error:.4f}"
         obj_unit = self.unit
-        if obj_unit == 'dimensionless':
-            obj_unit = ''
+        if obj_unit == "dimensionless":
+            obj_unit = ""
         else:
-            obj_unit = f' {obj_unit}'
+            obj_unit = f" {obj_unit}"
         string += obj_unit
-        string += '>'
+        string += ">"
         return string
         # return f"<{class_name} '{obj_name}': {obj_value:0.04f}{obj_unit}>"
 
     def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         raw_dict = super().as_dict(skip=skip)
-        raw_dict['value'] = self._scalar.value
-        raw_dict['unit'] = self.unit
-        raw_dict['variance'] = self._scalar.variance
-        if hasattr(self, '_DescriptorNumber__serializer_id'):
-            raw_dict['__serializer_id'] = self.__serializer_id
+        raw_dict["value"] = self._scalar.value
+        raw_dict["unit"] = self.unit
+        raw_dict["variance"] = self._scalar.variance
+        if hasattr(self, "_DescriptorNumber__serializer_id"):
+            raw_dict["__serializer_id"] = self.__serializer_id
         return raw_dict
 
-    def __add__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
+    def __add__(
+        self, other: Union[DescriptorNumber, numbers.Number]
+    ) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
-            if self.unit != 'dimensionless':
-                raise UnitError('Numbers can only be added to dimensionless values')
+            if self.unit != "dimensionless":
+                raise UnitError("Numbers can only be added to dimensionless values")
             new_value = self.full_value + other
         elif type(other) is DescriptorNumber:
             original_unit = other.unit
@@ -621,7 +628,7 @@ class DescriptorNumber(DescriptorBase):
                 other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be added'
+                    f"Values with units {self.unit} and {other.unit} cannot be added"
                 ) from None
             new_value = self.full_value + other.full_value
             other._convert_unit(original_unit)
@@ -635,8 +642,8 @@ class DescriptorNumber(DescriptorBase):
 
     def __radd__(self, other: numbers.Number) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
-            if self.unit != 'dimensionless':
-                raise UnitError('Numbers can only be added to dimensionless values')
+            if self.unit != "dimensionless":
+                raise UnitError("Numbers can only be added to dimensionless values")
             new_value = other + self.full_value
         else:
             return NotImplemented
@@ -646,10 +653,14 @@ class DescriptorNumber(DescriptorBase):
         descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
-    def __sub__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
+    def __sub__(
+        self, other: Union[DescriptorNumber, numbers.Number]
+    ) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
-            if self.unit != 'dimensionless':
-                raise UnitError('Numbers can only be subtracted from dimensionless values')
+            if self.unit != "dimensionless":
+                raise UnitError(
+                    "Numbers can only be subtracted from dimensionless values"
+                )
             new_value = self.full_value - other
         elif type(other) is DescriptorNumber:
             original_unit = other.unit
@@ -657,7 +668,7 @@ class DescriptorNumber(DescriptorBase):
                 other._convert_unit(self.unit)
             except UnitError:
                 raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be subtracted'
+                    f"Values with units {self.unit} and {other.unit} cannot be subtracted"
                 ) from None
             new_value = self.full_value - other.full_value
             other._convert_unit(original_unit)
@@ -671,8 +682,10 @@ class DescriptorNumber(DescriptorBase):
 
     def __rsub__(self, other: numbers.Number) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
-            if self.unit != 'dimensionless':
-                raise UnitError('Numbers can only be subtracted from dimensionless values')
+            if self.unit != "dimensionless":
+                raise UnitError(
+                    "Numbers can only be subtracted from dimensionless values"
+                )
             new_value = other - self.full_value
         else:
             return NotImplemented
@@ -682,7 +695,9 @@ class DescriptorNumber(DescriptorBase):
         descriptor.name = descriptor.unique_name
         return descriptor
 
-    def __mul__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
+    def __mul__(
+        self, other: Union[DescriptorNumber, numbers.Number]
+    ) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
             new_value = self.full_value * other
         elif type(other) is DescriptorNumber:
@@ -706,14 +721,16 @@ class DescriptorNumber(DescriptorBase):
         descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
-    def __truediv__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
+    def __truediv__(
+        self, other: Union[DescriptorNumber, numbers.Number]
+    ) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
             if other == 0:
-                raise ZeroDivisionError('Cannot divide by zero')
+                raise ZeroDivisionError("Cannot divide by zero")
             new_value = self.full_value / other
         elif type(other) is DescriptorNumber:
             if other.value == 0:
-                raise ZeroDivisionError('Cannot divide by zero')
+                raise ZeroDivisionError("Cannot divide by zero")
             new_value = self.full_value / other.full_value
         else:
             return NotImplemented
@@ -726,7 +743,7 @@ class DescriptorNumber(DescriptorBase):
     def __rtruediv__(self, other: numbers.Number) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
             if self.value == 0:
-                raise ZeroDivisionError('Cannot divide by zero')
+                raise ZeroDivisionError("Cannot divide by zero")
             new_value = other / self.full_value
         else:
             return NotImplemented
@@ -736,14 +753,16 @@ class DescriptorNumber(DescriptorBase):
         descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
-    def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
+    def __pow__(
+        self, other: Union[DescriptorNumber, numbers.Number]
+    ) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
             exponent = other
         elif type(other) is DescriptorNumber:
-            if other.unit != 'dimensionless':
-                raise UnitError('Exponents must be dimensionless')
+            if other.unit != "dimensionless":
+                raise UnitError("Exponents must be dimensionless")
             if other.variance is not None:
-                raise ValueError('Exponents must not have variance')
+                raise ValueError("Exponents must not have variance")
             exponent = other.value
         else:
             return NotImplemented
@@ -752,7 +771,7 @@ class DescriptorNumber(DescriptorBase):
         except Exception as message:
             raise message from None
         if np.isnan(new_value.value):
-            raise ValueError('The result of the exponentiation is not a number')
+            raise ValueError("The result of the exponentiation is not a number")
         descriptor_number = DescriptorNumber.from_scipp(
             name=self.name, full_value=new_value, sources=(self, other)
         )
@@ -761,10 +780,10 @@ class DescriptorNumber(DescriptorBase):
 
     def __rpow__(self, other: numbers.Number) -> numbers.Number:
         if isinstance(other, numbers.Number):
-            if self.unit != 'dimensionless':
-                raise UnitError('Exponents must be dimensionless')
+            if self.unit != "dimensionless":
+                raise UnitError("Exponents must be dimensionless")
             if self.variance is not None:
-                raise ValueError('Exponents must not have variance')
+                raise ValueError("Exponents must not have variance")
             new_value = other**self.value
         else:
             return NotImplemented
