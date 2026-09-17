@@ -16,6 +16,8 @@ import numpy as np
 from easyscience import global_object
 
 from .engine_base import PARAMETER_PREFIX
+from .reshaping import inject_x_multi
+from .reshaping import reshape_datasets
 
 if TYPE_CHECKING:  # avoid import cycles; only needed for type hints
     from bumps.dream.state import MCMCDraw
@@ -165,7 +167,7 @@ def load_chain(path: str | os.PathLike, skip: int = 0) -> tuple[MCMCDraw, list[s
     """Reload a DREAM chain state saved by ``Sampler.save``.
 
     This is the standalone reader: unlike ``Sampler.load_state`` it needs no
-    fitter, model or data, so a saved chain can be inspected or post-processed
+    model or data, so a saved chain can be inspected or post-processed
     on a machine that does not have the model. Parameter names are restored
     from the sidecar when available (schema versions 1 and 2), falling back to
     the state's labels with the minimizer prefix stripped.
@@ -254,28 +256,25 @@ class Sampler:
     effect on the sampler, and there are deliberately no setters: to sample
     different data, create a new ``Sampler``.
 
-    Construct directly with a configured ``Fitter`` (or ``MultiFitter``).
-    The only requirement is an installed ``bumps`` package. **Running a fit
-    first is not required**; sampling from the initial parameter values
-    works fine.
-
-    It is often worth fitting first anyway. DREAM seeds its whole starting
-    population inside a tiny ball around the parameters' *current* values
-    (BUMPS' default ``init='eps'``), so sampling from fitted values starts the
-    chain in the right region and shortens the burn-in needed to reach the
-    typical set. From a poor initial guess, expect to burn for longer.
+    ``Sampler`` is a parallel entry point to ``Fitter``: it takes the same
+    ``(fit_object, fit_function)`` pair plus the data.
 
     Parameters
     ----------
-    fitter : Fitter
-        A configured ``Fitter`` (or ``MultiFitter``) supplying the model and
-        fit function.
+    fit_object : object
+        The EasyScience model object holding the ``Parameter`` instances to
+        sample. For multiple datasets this is one object exposing all the
+        parameters (for example an ``EasyList`` of models, or the
+        ``fit_object`` of a ``MultiFitter``).
+    fit_function : Callable | list[Callable]
+        The model function, or one per dataset when ``x``, ``y`` and
+        ``weights`` are lists of arrays.
     x : np.ndarray | list[np.ndarray]
-        Independent variable array (or list of arrays for ``MultiFitter``).
+        Independent variable array (or list of arrays, one per dataset).
     y : np.ndarray | list[np.ndarray]
-        Dependent variable array (or list of arrays for ``MultiFitter``).
+        Dependent variable array (or list of arrays, one per dataset).
     weights : np.ndarray | list[np.ndarray]
-        Weight array (or list of arrays for ``MultiFitter``). Required:
+        Weight array (or list of arrays, one per dataset). Required:
         sampling has no default weighting, so a missing weight array is
         rejected here rather than deep inside the sampling engine.
     vectorized : bool, default=False
@@ -289,14 +288,14 @@ class Sampler:
     Raises
     ------
     TypeError
-        If ``fitter`` is not Fitter-shaped (no ``fit_function``),
-        if any dataset in ``x``/``y``/``weights`` is not a numeric array
-        (e.g. a string), or ``vectorized``/``sampler_kwargs`` have the wrong
-        type.
+        If ``fit_object`` has no ``get_fit_parameters``, ``fit_function``
+        is not callable, any dataset in ``x``/``y``/``weights`` is not a
+        numeric array (e.g. a string), or ``vectorized``/``sampler_kwargs``
+        have the wrong type.
     ValueError
-        If ``x``, ``y`` and ``weights`` do not hold matching structures
-        (all arrays, or lists of the same length), or any dataset is a
-        scalar or empty array.
+        If ``fit_function``, ``x``, ``y`` and ``weights`` do not hold
+        matching structures (all single, or lists of the same length), or
+        any dataset is a scalar or empty array.
 
     Notes
     -----
@@ -329,7 +328,7 @@ class Sampler:
     the whole chain::
 
         sampler = Sampler(
-            fitter, x, y, weights=w, sampler_kwargs={'trim': False}
+            model, model, x, y, weights=w, sampler_kwargs={'trim': False}
         )
 
     Note also that trimming does not survive a ``save()``/``load_state()``
@@ -340,29 +339,26 @@ class Sampler:
 
     def __init__(
         self,
-        fitter: 'Fitter',
+        fit_object: object,
+        fit_function: Callable | list[Callable],
         x: np.ndarray | list[np.ndarray],
         y: np.ndarray | list[np.ndarray],
         weights: np.ndarray | list[np.ndarray],
         vectorized: bool = False,
         sampler_kwargs: dict | None = None,
     ):
-        if not hasattr(fitter, 'fit_function'):
-            raise TypeError(
-                f'fitter must be a configured Fitter or MultiFitter, got {type(fitter).__name__}.'
-            )
-        x_is_multi = isinstance(x, (list, tuple))
-        if x_is_multi != isinstance(y, (list, tuple)):
+        is_multi = isinstance(x, (list, tuple))
+        if is_multi != isinstance(y, (list, tuple)):
             raise ValueError('x and y must either both be arrays or both be lists of arrays.')
-        if x_is_multi and len(x) != len(y):
+        if is_multi and len(x) != len(y):
             raise ValueError(
                 f'x and y must hold the same number of datasets, got {len(x)} and {len(y)}.'
             )
-        if isinstance(weights, (list, tuple)) != x_is_multi:
+        if isinstance(weights, (list, tuple)) != is_multi:
             raise ValueError(
                 'weights must match the structure of x and y (array or list of arrays).'
             )
-        if x_is_multi and len(weights) != len(x):
+        if is_multi and len(weights) != len(x):
             raise ValueError(
                 f'weights must hold the same number of datasets as x and y, '
                 f'got {len(weights)} and {len(x)}.'
@@ -370,44 +366,122 @@ class Sampler:
         _validate_dataset_arrays('x', x)
         _validate_dataset_arrays('y', y)
         _validate_dataset_arrays('weights', weights)
+        if isinstance(fit_function, (list, tuple)) != is_multi:
+            raise ValueError(
+                'fit_function must be a list of callables when x, y and weights are '
+                'lists of arrays, and a single callable otherwise.'
+            )
+        if is_multi and len(fit_function) != len(x):
+            raise ValueError(
+                f'fit_function must hold one callable per dataset, '
+                f'got {len(fit_function)} for {len(x)} datasets.'
+            )
+        fit_functions = list(fit_function) if is_multi else [fit_function]
+        if not all(callable(f) for f in fit_functions):
+            raise TypeError('fit_function must be callable (or a list of callables).')
+        if not hasattr(fit_object, 'get_fit_parameters'):
+            raise TypeError(
+                f'fit_object must be an EasyScience model object exposing the parameters '
+                f'to sample, got {type(fit_object).__name__}.'
+            )
         if not isinstance(vectorized, bool):
             raise TypeError(f'vectorized must be a bool, got {type(vectorized).__name__}.')
         if sampler_kwargs is not None and not isinstance(sampler_kwargs, dict):
             raise TypeError(
                 f'sampler_kwargs must be a dict or None, got {type(sampler_kwargs).__name__}.'
             )
-        self._fitter = fitter
-        # Defensive copies, exposed read-only: mutating the caller's arrays
-        # (or the properties) cannot desynchronise the chain and the save()
-        # fingerprint from the data actually sampled. To sample different
-        # data, create a new Sampler.
-        self._x = _copy_data(x)
-        self._y = _copy_data(y)
-        self._weights = _copy_data(weights)
+        self._is_multi = is_multi
+        self._fit_object = fit_object
+        self._fit_functions = fit_functions
+
+        self._x = _copy_data(x if is_multi else [x])
+        self._y = _copy_data(y if is_multi else [y])
+        self._weights = _copy_data(weights if is_multi else [weights])
         self._vectorized = vectorized
         self._default_sampler_kwargs = dict(sampler_kwargs or {})
         self._state: MCMCDraw | None = None  # current chain state
         self._results: SamplingResults | None = None
 
+    @classmethod
+    def from_fitter(
+        cls,
+        fitter: Fitter,
+        x: np.ndarray | list[np.ndarray],
+        y: np.ndarray | list[np.ndarray],
+        weights: np.ndarray | list[np.ndarray],
+        vectorized: bool = False,
+        sampler_kwargs: dict | None = None,
+    ) -> Sampler:
+        """Build a ``Sampler`` from the model bound to an existing ``Fitter``.
+
+        A convenience for the common fit-then-sample workflow: the sampler
+        takes the fitter's ``fit_object`` and fit function(s) and is
+        otherwise identical to one constructed directly. The fitter is not
+        retained or modified. A ``MultiFitter`` yields a multi-dataset
+        sampler, so ``x``, ``y`` and ``weights`` must then be lists of arrays.
+
+        Parameters
+        ----------
+        fitter : Fitter
+            A configured ``Fitter`` or ``MultiFitter``. It does not need to
+            have been fitted.
+        x : np.ndarray | list[np.ndarray]
+            Independent variable array (or list of arrays, one per dataset).
+        y : np.ndarray | list[np.ndarray]
+            Dependent variable array (or list of arrays, one per dataset).
+        weights : np.ndarray | list[np.ndarray]
+            Weight array (or list of arrays, one per dataset).
+        vectorized : bool, default=False
+            See ``Sampler``.
+        sampler_kwargs : dict | None, default=None
+            See ``Sampler``.
+
+        Returns
+        -------
+        Sampler
+            A sampler bound to the fitter's model and the given data.
+        """
+        # A MultiFitter exposes one function per dataset as ``fit_functions``;
+        # a plain Fitter has a single ``fit_function``.
+        fit_function = getattr(fitter, 'fit_functions', None) or fitter.fit_function
+        return cls(
+            fitter.fit_object,
+            fit_function,
+            x,
+            y,
+            weights,
+            vectorized=vectorized,
+            sampler_kwargs=sampler_kwargs,
+        )
+
+    def _single_or_list(self, data: list):
+        """Return bound data the way it was passed in: one item or a list copy."""
+        return list(data) if self._is_multi else data[0]
+
     @property
-    def fitter(self) -> Fitter:
-        """The Fitter supplying the model and minimizer (read-only)."""
-        return self._fitter
+    def fit_object(self) -> object:
+        """The EasyScience model object holding the sampled parameters (read-only)."""
+        return self._fit_object
+
+    @property
+    def fit_function(self) -> Callable | list[Callable]:
+        """The model function, or list of them for multiple datasets (read-only)."""
+        return self._single_or_list(self._fit_functions)
 
     @property
     def x(self) -> np.ndarray | list[np.ndarray]:
         """The bound independent variable data (read-only copy)."""
-        return list(self._x) if isinstance(self._x, list) else self._x
+        return self._single_or_list(self._x)
 
     @property
     def y(self) -> np.ndarray | list[np.ndarray]:
         """The bound dependent variable data (read-only copy)."""
-        return list(self._y) if isinstance(self._y, list) else self._y
+        return self._single_or_list(self._y)
 
     @property
     def weights(self) -> np.ndarray | list[np.ndarray]:
         """The bound weight data (read-only copy)."""
-        return list(self._weights) if isinstance(self._weights, list) else self._weights
+        return self._single_or_list(self._weights)
 
     @property
     def state(self) -> MCMCDraw | None:
@@ -436,12 +510,7 @@ class Sampler:
 
     def _fingerprint(self) -> str | None:
         """SHA-256 fingerprint of the bound (x, y, weights) data, or None."""
-        x_list = list(self._x) if isinstance(self._x, (list, tuple)) else [self._x]
-        y_list = list(self._y) if isinstance(self._y, (list, tuple)) else [self._y]
-        w_list = (
-            list(self._weights) if isinstance(self._weights, (list, tuple)) else [self._weights]
-        )
-        return _data_fingerprint(x_list, y_list, w_list)
+        return _data_fingerprint(self._x, self._y, self._weights)
 
     def _run(
         self,
@@ -468,19 +537,16 @@ class Sampler:
             )
         from .samplers.sampler_bumps import DreamSampler
 
-        x_fit, x_new, y_new, w_new, dims = self._fitter._precompute_reshaping(
+        x_fit, x_new, y_new, w_new, dims = reshape_datasets(
             self._x, self._y, self._weights, self._vectorized
         )
-        # The dims are passed explicitly so the fitter itself is never mutated.
-        wrapped = self._fitter._fit_function_wrapper(x_new, flatten=True, dependent_dims=dims)
+        wrapped = inject_x_multi(self._fit_functions, x_new, dims)
 
         merged_kwargs = {**self._default_sampler_kwargs, **(sampler_kwargs or {})}
 
-        # A fresh engine per run keeps the chain on the fitter's current fit
-        # function and parameters; chain continuity lives in ``resume_state``.
-        # This is where a sampler factory would plug in once there is more
-        # than one backend.
-        engine = DreamSampler(obj=self._fitter.fit_object, fit_function=wrapped)
+        # This is where a sampler factory would plug in once there
+        # is more than one backend.
+        engine = DreamSampler(obj=self._fit_object, fit_function=wrapped)
         result = engine.run(
             x=x_fit,
             y=y_new,
@@ -678,7 +744,7 @@ class Sampler:
         ``<path>.params.json`` sidecar with the parameter names, the
         easyscience version, and a fingerprint of the bound data (verified
         with a warning on ``load_state()``). Use ``load_chain`` to read the
-        files back without a fitter.
+        files back without the model.
 
         Parameters
         ----------
@@ -721,7 +787,7 @@ class Sampler:
     def load_state(self, path: str | os.PathLike, skip: int = 0) -> SamplingResults:
         """Load a previously saved chain into this sampler.
 
-        The sampler must be constructed with the same fitter and data used to
+        The sampler must be constructed with the same model and data used to
         create the chain — ``extend()`` then continues the saved chain. If the
         sidecar carries a data fingerprint and it does not match this
         sampler's bound data, a warning is logged (extending a chain against

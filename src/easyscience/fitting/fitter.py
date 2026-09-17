@@ -15,6 +15,8 @@ from .available_minimizers import from_string_to_enum
 from .minimizers import FitResults
 from .minimizers import MinimizerBase
 from .minimizers.factory import factory
+from .reshaping import inject_x
+from .reshaping import reshape_dataset
 
 DEFAULT_MINIMIZER = AvailableMinimizers.LMFit_leastsq
 
@@ -231,13 +233,10 @@ class Fitter:
         self,
         real_x: np.ndarray | None = None,
         flatten: bool = True,
-        dependent_dims: list[tuple[int, ...]] | None = None,
     ) -> Callable:
         """
-        Simple fit function which injects the real X (independent)
-        values into the optimizer function.
-
-        This will also flatten the results if needed.
+        Wrap the fit function so it evaluates on the real X (independent)
+        values instead of the optimizer's dummy x, flattening if needed.
 
         Parameters
         ----------
@@ -245,28 +244,13 @@ class Fitter:
             Independent x parameters to be injected. By default, None.
         flatten : bool, default=True
             Should the result be a flat 1D array? By default, True.
-        dependent_dims : list[tuple[int, ...]] | None, default=None
-            Unused for a single dataset; accepted so that callers can
-            pass it uniformly to ``Fitter`` and ``MultiFitter``. By
-            default, None.
 
         Returns
         -------
         Callable
             Wrapped optimizer function.
         """
-        fun = self._fit_function
-
-        @functools.wraps(fun)
-        def wrapped_fit_function(x, **kwargs):
-            if real_x is not None:
-                x = real_x
-            dependent = fun(x, **kwargs)
-            if flatten:
-                dependent = dependent.flatten()
-            return dependent
-
-        return wrapped_fit_function
+        return inject_x(self._fit_function, real_x, flatten=flatten)
 
     @property
     def fit(self) -> Callable:
@@ -328,72 +312,7 @@ class Fitter:
 
         return inner_fit_callable
 
-    @staticmethod
-    def _precompute_reshaping(
-        x: np.ndarray,
-        y: np.ndarray,
-        weights: np.ndarray | None,
-        vectorized: bool,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray | None, tuple[int, ...]]:
-        """
-        Check the dimensions of the inputs and reshape if necessary.
-
-        Parameters
-        ----------
-        x : np.ndarray
-            ND matrix of dependent points.
-        y : np.ndarray
-            N-1D matrix of independent points.
-        weights : np.ndarray | None
-            Optional weights for the fit.
-        vectorized : bool
-            Whether ``x`` already stores vectorized coordinates.
-
-        Returns
-        -------
-        tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray | None, tuple[int, ...]]
-            Reshaped x values, reshaped input data, flattened y values,
-            flattened weights, and the original x shape.
-
-        Raises
-        ------
-        ValueError
-            If the shapes of ``x`` and ``y`` are incompatible.
-        """
-        # Make sure that they are np arrays
-        x_new = np.array(x)
-        y_new = np.array(y)
-        # Get the shape
-        x_shape = x_new.shape
-        # Check if the x data is 1D
-        if len(x_shape) > 1:
-            # It is ND data
-            # Check if the data is vectorized. i.e. should x be [NxMx...x Ndims]
-            if vectorized:
-                # Assert that the shapes are the same
-                if np.all(x_shape[:-1] != y_new.shape):
-                    raise ValueError('The shape of the x and y data must be the same')
-                # If so do nothing but note that the data is vectorized
-                # x_shape = (-1,) # Should this be done?
-            else:
-                # Assert that the shapes are the same
-                if np.prod(x_new.shape[:-1]) != y_new.size:
-                    raise ValueError('The number of elements in x and y data must be the same')
-                # Reshape the data to be [len(NxMx..), Ndims] i.e. flatten to columns
-                x_new = x_new.reshape(-1, x_shape[-1], order='F')
-        else:
-            # Assert that the shapes are the same
-            if np.all(x_shape != y_new.shape):
-                raise ValueError('The shape of the x and y data must be the same')
-            # It is 1D data
-            x_new = x.flatten()
-        # The optimizer needs a 1D array, flatten the y data
-        y_new = y_new.flatten()
-        if weights is not None:
-            weights = np.array(weights).flatten()
-        # Make a 'dummy' x array for the fit function
-        x_for_fit = np.array(range(y_new.size))
-        return x_for_fit, x_new, y_new, weights, x_shape
+    _precompute_reshaping = staticmethod(reshape_dataset)
 
     @staticmethod
     def _post_compute_reshaping(
