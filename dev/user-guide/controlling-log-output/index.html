@@ -1438,12 +1438,12 @@ what output the library produces and where it goes.</p>
 can do it in one line:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">easyscience</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_object</span>
 
-<span class="n">global_object</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">'ERROR'</span>
+<span class="n">global_object</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">&#39;ERROR&#39;</span>
 </code></pre></div>
 <p>Or using the standard library directly:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'easyscience'</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;easyscience&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
 </code></pre></div>
 <p>Both forms set the package-root logger to <code>ERROR</code>, which suppresses all
 <code>WARNING</code>, <code>INFO</code>, and <code>DEBUG</code> messages from EasyScience.</p>
@@ -1467,13 +1467,13 @@ child loggers inherit the parent's effective level.</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="c1"># Suppress everything from the fitting subsystem (including bumps/lmfit/dfo)</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'easyscience.fitting'</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;easyscience.fitting&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
 
 <span class="c1"># Suppress only Bumps runtime messages</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'easyscience.fitting.bumps'</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;easyscience.fitting.bumps&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
 
 <span class="c1"># Suppress only legacy deprecation notices</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'easyscience.legacy'</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;easyscience.legacy&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="environment-variable">Environment Variable</h2>
 <p>You can control the log level <strong>before</strong> importing EasyScience by
@@ -1484,16 +1484,16 @@ EasyScience is imported.</p>
 a numeric level (e.g. <code>40</code>).</p>
 <p><strong>Example — suppressing all import-time messages:</strong></p>
 <div class="language-powershell highlight"><pre><span></span><code><span class="c"># Windows PowerShell</span>
-<span class="nv">$env:EASYSCIENCE_LOG_LEVEL</span> <span class="p">=</span> <span class="s1">'ERROR'</span>
-<span class="n">python</span> <span class="n">-c</span> <span class="s2">"import easyscience"</span>  <span class="c"># silent</span>
+<span class="nv">$env:EASYSCIENCE_LOG_LEVEL</span> <span class="p">=</span> <span class="s1">&#39;ERROR&#39;</span>
+<span class="n">python</span> <span class="n">-c</span> <span class="s2">&quot;import easyscience&quot;</span>  <span class="c"># silent</span>
 </code></pre></div>
 <div class="language-bash highlight"><pre><span></span><code><span class="c1"># Linux / macOS</span>
-<span class="nv">EASYSCIENCE_LOG_LEVEL</span><span class="o">=</span>ERROR<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import easyscience"</span><span class="w">  </span><span class="c1"># silent</span>
+<span class="nv">EASYSCIENCE_LOG_LEVEL</span><span class="o">=</span>ERROR<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import easyscience&quot;</span><span class="w">  </span><span class="c1"># silent</span>
 </code></pre></div>
 <p>Or from Python, set the environment variable before the import:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">'EASYSCIENCE_LOG_LEVEL'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'ERROR'</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;EASYSCIENCE_LOG_LEVEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ERROR&#39;</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">easyscience</span>  <span class="c1"># now silent</span>
 </code></pre></div>
 <h2 id="temporary-suppression-context-manager">Temporary Suppression (Context Manager)</h2>
@@ -1581,15 +1581,15 @@ library's messages so they don't clutter your test reports:</p>
 <h3 id="recipe-2-library-author-embedding-easyscience">Recipe 2: Library author embedding EasyScience</h3>
 <p>If you maintain a library that uses EasyScience internally, prevent
 EasyScience from writing to your users' consoles:</p>
-<div class="language-python highlight"><pre><span></span><code><span class="c1"># In your library's __init__.py, before any EasyScience import:</span>
+<div class="language-python highlight"><pre><span></span><code><span class="c1"># In your library&#39;s __init__.py, before any EasyScience import:</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'EASYSCIENCE_LOG_LEVEL'</span><span class="p">,</span> <span class="s1">'ERROR'</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;EASYSCIENCE_LOG_LEVEL&#39;</span><span class="p">,</span> <span class="s1">&#39;ERROR&#39;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="recipe-3-debug-mode-for-development">Recipe 3: Debug mode for development</h3>
 <p>When developing or debugging, see all EasyScience internal diagnostics:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">easyscience</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_object</span>
 
-<span class="n">global_object</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">'DEBUG'</span>
+<span class="n">global_object</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">&#39;DEBUG&#39;</span>
 
 <span class="c1"># Your code here — all EasyScience messages will be visible</span>
 </code></pre></div>
@@ -1597,7 +1597,7 @@ EasyScience from writing to your users' consoles:</p>
 <p>Keep the console clean but still see critical problems:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">easyscience</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_object</span>
 
-<span class="n">global_object</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">'ERROR'</span>
+<span class="n">global_object</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">&#39;ERROR&#39;</span>
 </code></pre></div>
 <h2 id="library-safe-behaviour">Library-Safe Behaviour</h2>
 <p>EasyScience follows standard library-logging best practices:</p>
