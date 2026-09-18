@@ -422,6 +422,7 @@ class TestGlobalObjectIntegration:
         # Given
         global_obj = GlobalObject()
         results = []
+        created = []  # The map holds only weak references, so keep the objects alive
         errors = []
 
         def create_objects(thread_id, count=10):
@@ -429,6 +430,7 @@ class TestGlobalObjectIntegration:
             try:
                 for i in range(count):
                     param = Parameter(name=f'thread_{thread_id}_param_{i}', value=float(i))
+                    created.append(param)
                     results.append(param.unique_name)
                     time.sleep(0.001)  # Small delay to encourage race conditions
             except Exception as e:
