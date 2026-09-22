@@ -328,7 +328,12 @@ class Sampler:
     the whole chain::
 
         sampler = Sampler(
-            model, model, x, y, weights=w, sampler_kwargs={'trim': False}
+            parameter_container,
+            model_function,
+            x,
+            y,
+            weights=w,
+            sampler_kwargs={'trim': False},
         )
 
     Note also that trimming does not survive a ``save()``/``load_state()``
