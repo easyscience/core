@@ -30,7 +30,7 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
     # we would have to overwrite "extend", "remove", "__iadd__", "count", "append", "__iter__" and "clear"
     def __init__(
         self,
-        *args: ProtectedType_ | list[ProtectedType_],
+        *args: ProtectedType_ | Iterable[ProtectedType_],
         protected_types: list[Type[NewBase]] | Type[NewBase] | None = None,
         unique_name: Optional[str] = None,
         display_name: Optional[str] = None,
@@ -41,14 +41,15 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
 
         Parameters
         ----------
-        *args : ProtectedType_ | list[ProtectedType_]
+        *args : ProtectedType_ | Iterable[ProtectedType_]
             Initial items to add to the list.
         protected_types : list[Type[NewBase]] | Type[NewBase] | None, default=None
             Types that are allowed in the list. Can be a single NewBase
             subclass or a list of them. If None, any ``NewBase`` object
-            is accepted, including descriptors and parameters. Note that
-            only ``ModelBase`` items contribute to ``get_all_variables``
-            and hence to fitting. By default, None.
+            is accepted, including descriptors and parameters. Both bare
+            descriptors and ``ModelBase`` items contribute to
+            ``get_all_variables`` and hence to fitting. By default,
+            None.
         unique_name : Optional[str], default=None
             Optional unique name for the list. By default, None.
         display_name : Optional[str], default=None
@@ -79,7 +80,7 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
 
         # Add initial items
         for item in args:
-            if isinstance(item, list):
+            if isinstance(item, (list, tuple)):
                 for sub_item in item:
                     self.append(sub_item)
             else:
@@ -269,12 +270,14 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
 
     def get_all_variables(self) -> List[DescriptorBase]:
         """
-        Get all ``Descriptor`` and ``Parameter`` objects from all
-        elements that are derived from ``ModelBase``.
+        Get all ``Descriptor`` and ``Parameter`` objects held by this
+        list.
 
-        For each element that is a ``ModelBase`` instance, the element's
-        own ``get_all_variables()`` method is called and the results are
-        collected into a single flat list.
+        Elements that are ``DescriptorBase`` instances (e.g. a bare
+        ``Parameter``) are collected directly, while elements derived
+        from ``ModelBase`` contribute the result of their own
+        ``get_all_variables()`` call. Everything is collected into a
+        single flat list.
 
         Returns
         -------
@@ -284,7 +287,9 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         """
         all_vars: List[DescriptorBase] = []
         for item in self._data:
-            if isinstance(item, ModelBase):
+            if isinstance(item, DescriptorBase):
+                all_vars.append(item)
+            elif isinstance(item, ModelBase):
                 all_vars.extend(item.get_all_variables())
         return all_vars
 

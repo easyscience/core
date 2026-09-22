@@ -638,6 +638,66 @@ class TestEasyList:
 
             assert isinstance(v, DescriptorBase)
 
+    def test_get_all_variables_bare_parameters(self):
+        """Bare Parameters passed to the constructor should be collected directly."""
+        p1 = Parameter('a', value=1.0)
+        p2 = Parameter('b', value=2.0)
+        el = EasyList(p1, p2)
+        vars = el.get_all_variables()
+        assert vars == [p1, p2]
+        assert el.get_fit_parameters() == [p1, p2]
+
+    def test_get_all_variables_bare_descriptors(self):
+        """Bare DescriptorNumbers are collected as variables but are not fit parameters."""
+        p1 = Parameter('a', value=1.0)
+        d1 = DescriptorNumber('b', value=2.0)
+        el = EasyList(p1, d1)
+        assert el.get_all_variables() == [p1, d1]
+        assert el.get_all_parameters() == [p1]
+        assert el.get_fit_parameters() == [p1]
+
+    def test_get_all_variables_fixed_parameter_not_fitted(self):
+        """A fixed bare Parameter is returned as a variable but not as a fit parameter."""
+        free = Parameter('a', value=1.0)
+        fixed = Parameter('b', value=2.0, fixed=True)
+        el = EasyList(free, fixed)
+        assert el.get_all_variables() == [free, fixed]
+        assert el.get_fit_parameters() == [free]
+
+    def test_get_all_variables_parameters_from_list(self):
+        """A plain list of Parameters should be flattened and collected."""
+        p1 = Parameter('a', value=1.0)
+        p2 = Parameter('b', value=2.0)
+        el = EasyList([p1, p2])
+        assert len(el) == 2
+        assert el.get_all_variables() == [p1, p2]
+
+    def test_get_all_variables_parameters_from_tuple(self):
+        """A plain tuple of Parameters should be flattened and collected."""
+        p1 = Parameter('a', value=1.0)
+        p2 = Parameter('b', value=2.0)
+        el = EasyList((p1, p2))
+        assert len(el) == 2
+        assert el.get_all_variables() == [p1, p2]
+
+    def test_get_all_variables_bare_parameters_and_model(self):
+        """Bare Parameters and ModelBase items should both contribute variables."""
+        p1 = Parameter('a', value=1.0)
+        m1 = MockModel(unique_name='m1', temperature=10, volume=5.0)
+        el = EasyList(p1, m1)
+        vars = el.get_all_variables()
+        assert len(vars) == 3
+        assert vars[0] is p1
+        assert {v.name for v in vars[1:]} == {'temperature', 'volume'}
+
+    def test_get_all_variables_bare_parameters_in_nested_easylist(self):
+        """Bare Parameters inside a nested EasyList should be collected by the outer list."""
+        p1 = Parameter('a', value=1.0)
+        p2 = Parameter('b', value=2.0)
+        inner_list = EasyList(p1)
+        outer_list = EasyList(inner_list, p2)
+        assert outer_list.get_all_variables() == [p1, p2]
+
     def test_get_all_variables_nested_easylist(self):
         """An EasyList containing another EasyList with mixed NewBase/ModelBase elements
         should collect variables from the inner EasyList's ModelBase items,
