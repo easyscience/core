@@ -1125,8 +1125,8 @@
 available in EasyScience.</p>
 <ul>
 <li><a href="base_classes/">base_classes</a> – Core abstract and helper base
-  classes used to build EasyScience objects (e.g. <code>ObjBase</code>,
-  <code>ModelBase</code>).</li>
+  classes used to build EasyScience objects (e.g. <code>NewBase</code>,
+  <code>ModelBase</code>, <code>EasyList</code>).</li>
 <li><a href="fitting/">fitting</a> – Fitting utilities and interfaces, including
   <code>Fitter</code> and available minimizers.</li>
 <li><a href="global_object/">global_object</a> – Global singleton providing shared
@@ -1140,7 +1140,8 @@ available in EasyScience.</p>
 <li><a href="utils/">utils</a> – Miscellaneous utility functions and helpers (class
   tools, decorators, type helpers).</li>
 <li><a href="variable/">variable</a> – Descriptor types and variable abstractions
-  (e.g. <code>DescriptorNumber</code>, <code>Parameter</code>, <code>DescriptorArray</code>).</li>
+  (e.g. <code>DescriptorNumber</code>, <code>Parameter</code>, <code>DescriptorArray</code>). All of them
+  are <code>NewBase</code> objects, serialized with <code>to_dict</code>/<code>from_dict</code>.</li>
 </ul>
 <!-- prettier-ignore-start -->
 

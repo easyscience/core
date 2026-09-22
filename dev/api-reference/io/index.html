@@ -2090,7 +2090,7 @@ via the <code>encode</code> and <code>decode</code> methods. The default encoder
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;as_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;skip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent.as_dict&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent.as_dict">as_dict</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;to_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;skip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent.to_dict&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent.to_dict">to_dict</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Convert an EasyScience object into a full dictionary using</p>
@@ -2366,8 +2366,8 @@ default, None.</p>
 <div class="doc doc-object doc-function">
 
 
-<h7 id="easyscience.io.serializer_component.SerializerComponent.as_dict" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">as_dict</span><span class="p">(</span><span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<h7 id="easyscience.io.serializer_component.SerializerComponent.to_dict" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">to_dict</span><span class="p">(</span><span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h7>
 
@@ -2377,11 +2377,11 @@ default, None.</p>
         <p>Convert an EasyScience object into a full dictionary using
 <code>SerializerDict</code>. This is a shortcut for
 <code>obj.encode(encoder=SerializerDict)</code></p>
-<h6 id="easyscience.io.serializer_component.SerializerComponent.as_dict--parameters">Parameters</h6>
+<h6 id="easyscience.io.serializer_component.SerializerComponent.to_dict--parameters">Parameters</h6>
 <p>skip : Optional[List[str]], default=None
     List of field names as strings to skip when forming
     the dictionary. By default, None.</p>
-<h6 id="easyscience.io.serializer_component.SerializerComponent.as_dict--returns">Returns</h6>
+<h6 id="easyscience.io.serializer_component.SerializerComponent.to_dict--returns">Returns</h6>
 <p>Dict[str, Any]
     Encoded object containing all information to reform an
     EasyScience object.</p>
