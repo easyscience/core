@@ -1020,6 +1020,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#easyscience.fitting.reshaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reshaping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#easyscience.fitting.sampler" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1335,6 +1346,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#easyscience.fitting.reshaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reshaping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#easyscience.fitting.sampler" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1448,6 +1470,17 @@
             <td>
               <div class="doc-md-description">
                 
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;reshaping&lt;/code&gt; (&lt;code&gt;easyscience.fitting.reshaping&lt;/code&gt;)" href="#easyscience.fitting.reshaping">reshaping</a></code></td>
+            <td>
+              <div class="doc-md-description">
+                <p>Data reshaping and fit-function wrapping shared by <code>Fitter</code> and <code>Sampler</code>.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
               </div>
             </td>
           </tr>
@@ -3670,7 +3703,7 @@ DEFAULT_MINIMIZER.</p>
     </div>
 
 </div>
-
+<h4 id="easyscience.fitting.fitter-functions">Functions:</h4>
 <h4 id="easyscience.fitting.fitter-modules">Modules</h4>
 
 
@@ -8243,6 +8276,24 @@ minimizer.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;fit_functions&lt;/span&gt;&lt;/code&gt;
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-property&quot;&gt;&lt;code&gt;property&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;easyscience.fitting.multi_fitter.MultiFitter.fit_functions&lt;/code&gt;)" href="#easyscience.fitting.multi_fitter.MultiFitter.fit_functions">fit_functions</a></code></td>
+            <td>
+                  <code><span title="list">list</span>[<span title="typing.Callable">Callable</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Get the per-dataset fit functions, in dataset order.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
             <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;available_minimizers&lt;/span&gt;&lt;/code&gt;
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
@@ -8385,6 +8436,57 @@ minimizer.</p>
 
 
 <h6 id="easyscience.fitting.multi_fitter.MultiFitter-attributes">Attributes</h6>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h7 id="easyscience.fitting.multi_fitter.MultiFitter.fit_functions" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">fit_functions</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h7>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the per-dataset fit functions, in dataset order.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="typing.Callable">Callable</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One fit function per dataset.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-attribute">
 
@@ -8920,7 +9022,690 @@ DEFAULT_MINIMIZER.</p>
     </div>
 
 </div>
+<h4 id="easyscience.fitting.multi_fitter-functions">Functions:</h4>
 
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="easyscience.fitting.reshaping" class="doc doc-heading">
+            <code>reshaping</code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+        <p>Data reshaping and fit-function wrapping shared by <code>Fitter</code> and <code>Sampler</code>.</p>
+<p>Both fitting and sampling provide the engine witha flat 1-D <code>y</code> array
+and a dummy 1-D <code>x</code> index array, while the user's fit function is called
+with the real <code>x</code>. The helpers here do the translation in one place:
+<code>reshape_dataset</code>/<code>inject_x</code> do one dataset,
+<code>reshape_datasets</code>/<code>inject_x_multi</code> do a list of datasets.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Functions:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;reshape_dataset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vectorized&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.reshaping.reshape_dataset&lt;/code&gt;)" href="#easyscience.fitting.reshaping.reshape_dataset">reshape_dataset</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Check the dimensions of the inputs and reshape if necessary.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+                </div>
+              </td>
+            </tr>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;reshape_datasets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vectorized&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.reshaping.reshape_datasets&lt;/code&gt;)" href="#easyscience.fitting.reshaping.reshape_datasets">reshape_datasets</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Convert a list of X's and Y's to an acceptable shape for fitting.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+                </div>
+              </td>
+            </tr>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;inject_x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;real_x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flatten&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.reshaping.inject_x&lt;/code&gt;)" href="#easyscience.fitting.reshaping.inject_x">inject_x</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Wrap a fit function so it ignores the engine's dummy x and evaluates</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+                </div>
+              </td>
+            </tr>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;inject_x_multi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_functions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;real_x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flatten&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.reshaping.inject_x_multi&lt;/code&gt;)" href="#easyscience.fitting.reshaping.inject_x_multi">inject_x_multi</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Wrap one fit function per dataset into a single function whose output</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+                </div>
+              </td>
+            </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+<h4 id="easyscience.fitting.reshaping-functions">Functions:</h4>
+
+<div class="doc doc-object doc-function">
+
+
+<h5 id="easyscience.fitting.reshaping.reshape_dataset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reshape_dataset</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">vectorized</span><span class="p">)</span></code>
+
+</h5>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Check the dimensions of the inputs and reshape if necessary.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>x</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Independent points; 1-D, or ND with the coordinate components on
+the last axis.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>y</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dependent points, one per observation.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>weights</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional weights for the fit.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>vectorized</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether <code>x</code> already stores vectorized coordinates.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="tuple">tuple</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | None, <span title="tuple">tuple</span>[<span title="int">int</span>, ...]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dummy x index array for the engine, reshaped x values, flattened
+y values, flattened weights, and the shape of <code>y</code> (the dependent
+dimensions; its product is the number of observations, which the
+multi-dataset helpers use to slice the combined output).</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the shapes of <code>x</code> and <code>y</code> are incompatible.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h5 id="easyscience.fitting.reshaping.reshape_datasets" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reshape_datasets</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">vectorized</span><span class="p">)</span></code>
+
+</h5>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a list of X's and Y's to an acceptable shape for fitting.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>x</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of independent variables.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>y</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of dependent variables.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>weights</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional weights for each dataset.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>vectorized</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>When <code>True</code>, each x array may be multi-dimensional (e.g. an
+<code>(N, M, 2)</code> grid for a 2D model) and is left as-is. When
+<code>False</code> (default), each x array is expected to be 1-D.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="tuple">tuple</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>, <span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>], <a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | None, <span title="list">list</span>[<span title="tuple">tuple</span>[<span title="int">int</span>, ...]]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dummy x index array for the engine, per-dataset reshaped x values,
+concatenated y values, concatenated weights, and the per-dataset
+dependent dimensions.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h5 id="easyscience.fitting.reshaping.inject_x" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">inject_x</span><span class="p">(</span><span class="n">fit_function</span><span class="p">,</span> <span class="n">real_x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h5>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Wrap a fit function so it ignores the engine's dummy x and evaluates
+on <code>real_x</code> instead, flattening the result if needed.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fit_function</code>
+            </td>
+            <td>
+                  <code><span title="typing.Callable">Callable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The user's fit function.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>real_x</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Independent x values to be injected. By default, None.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>flatten</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Should the result be a flat 1D array? By default, True.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Callable">Callable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Wrapped optimizer function.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h5 id="easyscience.fitting.reshaping.inject_x_multi" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">inject_x_multi</span><span class="p">(</span><span class="n">fit_functions</span><span class="p">,</span> <span class="n">real_x</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h5>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Wrap one fit function per dataset into a single function whose output
+is the concatenation of the per-dataset outputs.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fit_functions</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="typing.Callable">Callable</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One fit function per dataset.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>real_x</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One independent x array per dataset, injected into the matching
+fit function.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>dims</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="tuple">tuple</span>[<span title="int">int</span>, ...]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Per-dataset dependent (<code>y</code>) shapes used to slice the combined
+output, as returned by <code>reshape_datasets</code>.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>flatten</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Should each per-dataset result be flattened? By default, True.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Callable">Callable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Wrapped optimizer function.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
 
 
 
@@ -8981,7 +9766,7 @@ DEFAULT_MINIMIZER.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Sampler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fitter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vectorized&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampler_kwargs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler">Sampler</a></code></td>
+            <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Sampler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vectorized&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampler_kwargs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler">Sampler</a></code></td>
             <td>
               <div class="doc-md-description">
                 <p>Bayesian MCMC sampler for one dataset, backed by the BUMPS DREAM engine.</p>
@@ -9169,7 +9954,7 @@ fewer rows than <code>samples / thin</code> — see the notes on <code>Sampler</
 
 
 <h5 id="easyscience.fitting.sampler.Sampler" class="doc doc-heading">
-              <code class="highlight language-python"><span class="n">Sampler</span><span class="p">(</span><span class="n">fitter</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">vectorized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sampler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+              <code class="highlight language-python"><span class="n">Sampler</span><span class="p">(</span><span class="n">fit_object</span><span class="p">,</span> <span class="n">fit_function</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">vectorized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sampler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h5>
 
@@ -9187,15 +9972,8 @@ read-only copy of the caller's arrays, exposed via the <code>x</code>, <code>y</
 <code>weights</code> properties — mutating the originals after construction has no
 effect on the sampler, and there are deliberately no setters: to sample
 different data, create a new <code>Sampler</code>.</p>
-<p>Construct directly with a configured <code>Fitter</code> (or <code>MultiFitter</code>).
-The only requirement is an installed <code>bumps</code> package. <strong>Running a fit
-first is not required</strong>; sampling from the initial parameter values
-works fine.</p>
-<p>It is often worth fitting first anyway. DREAM seeds its whole starting
-population inside a tiny ball around the parameters' <em>current</em> values
-(BUMPS' default <code>init='eps'</code>), so sampling from fitted values starts the
-chain in the right region and shortens the burn-in needed to reach the
-typical set. From a poor initial guess, expect to burn for longer.</p>
+<p><code>Sampler</code> is a parallel entry point to <code>Fitter</code>: it takes the same
+<code>(fit_object, fit_function)</code> pair plus the data.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9214,15 +9992,37 @@ typical set. From a poor initial guess, expect to burn for longer.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>fitter</code>
+                <code>fit_object</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Fitter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.fitter.Fitter&lt;/code&gt;)" href="#easyscience.fitting.fitter.Fitter">Fitter</a></code>
+                  <code><span title="object">object</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A configured <code>Fitter</code> (or <code>MultiFitter</code>) supplying the model and
-fit function.</p>
+                <p>The EasyScience model object holding the <code>Parameter</code> instances to
+sample. For multiple datasets this is one object exposing all the
+parameters (for example an <code>EasyList</code> of models, or the
+<code>fit_object</code> of a <code>MultiFitter</code>).</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>fit_function</code>
+            </td>
+            <td>
+                  <code><span title="typing.Callable">Callable</span> | <span title="list">list</span>[<span title="typing.Callable">Callable</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The model function, or one per dataset when <code>x</code>, <code>y</code> and
+<code>weights</code> are lists of arrays.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9241,7 +10041,7 @@ fit function.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Independent variable array (or list of arrays for <code>MultiFitter</code>).</p>
+                <p>Independent variable array (or list of arrays, one per dataset).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9260,7 +10060,7 @@ fit function.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Dependent variable array (or list of arrays for <code>MultiFitter</code>).</p>
+                <p>Dependent variable array (or list of arrays, one per dataset).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9279,7 +10079,7 @@ fit function.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Weight array (or list of arrays for <code>MultiFitter</code>). Required:
+                <p>Weight array (or list of arrays, one per dataset). Required:
 sampling has no default weighting, so a missing weight array is
 rejected here rather than deep inside the sampling engine.</p>
 <!-- prettier-ignore-start -->
@@ -9351,10 +10151,10 @@ sampler on every run, merged with (and overridden by) per-call
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>fitter</code> is not Fitter-shaped (no <code>fit_function</code>),
-if any dataset in <code>x</code>/<code>y</code>/<code>weights</code> is not a numeric array
-(e.g. a string), or <code>vectorized</code>/<code>sampler_kwargs</code> have the wrong
-type.</p>
+                <p>If <code>fit_object</code> has no <code>get_fit_parameters</code>, <code>fit_function</code>
+is not callable, any dataset in <code>x</code>/<code>y</code>/<code>weights</code> is not a
+numeric array (e.g. a string), or <code>vectorized</code>/<code>sampler_kwargs</code>
+have the wrong type.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9367,9 +10167,9 @@ type.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>x</code>, <code>y</code> and <code>weights</code> do not hold matching structures
-(all arrays, or lists of the same length), or any dataset is a
-scalar or empty array.</p>
+                <p>If <code>fit_function</code>, <code>x</code>, <code>y</code> and <code>weights</code> do not hold
+matching structures (all single, or lists of the same length), or
+any dataset is a scalar or empty array.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9410,7 +10210,12 @@ full.logp
 option straight through <code>sampler_kwargs</code>; <code>results.draws</code> then holds
 the whole chain::</p>
 <div class="language-text highlight"><pre><span></span><code>sampler = Sampler(
-    fitter, x, y, weights=w, sampler_kwargs={&#39;trim&#39;: False}
+    parameter_container,
+    model_function,
+    x,
+    y,
+    weights=w,
+    sampler_kwargs={&#39;trim&#39;: False},
 )
 </code></pre></div>
 <p>Note also that trimming does not survive a <code>save()</code>/<code>load_state()</code>
@@ -9441,6 +10246,21 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
         </tr>
       </thead>
       <tbody>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;from_fitter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fitter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vectorized&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampler_kwargs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-classmethod&quot;&gt;&lt;code&gt;classmethod&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler.from_fitter&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler.from_fitter">from_fitter</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Build a <code>Sampler</code> from the model bound to an existing <code>Fitter</code>.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+                </div>
+              </td>
+            </tr>
             <tr class="doc-section-item">
               <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;sample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;samples&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;burn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;population&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampler_kwargs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;progress_callback&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;abort_test&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler.sample&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler.sample">sample</a></code></td>
               <td>
@@ -9502,17 +10322,35 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;fitter&lt;/span&gt;&lt;/code&gt;
+            <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;fit_object&lt;/span&gt;&lt;/code&gt;
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-property&quot;&gt;&lt;code&gt;property&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler.fitter&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler.fitter">fitter</a></code></td>
+  &lt;/span&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler.fit_object&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler.fit_object">fit_object</a></code></td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Fitter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.fitter.Fitter&lt;/code&gt;)" href="#easyscience.fitting.fitter.Fitter">Fitter</a></code>
+                  <code><span title="object">object</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The Fitter supplying the model and minimizer (read-only).</p>
+                <p>The EasyScience model object holding the sampled parameters (read-only).</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;/code&gt;
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-property&quot;&gt;&lt;code&gt;property&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler.fit_function&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler.fit_function">fit_function</a></code></td>
+            <td>
+                  <code><span title="typing.Callable">Callable</span> | <span title="list">list</span>[<span title="typing.Callable">Callable</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The model function, or list of them for multiple datasets (read-only).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9685,8 +10523,8 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
 
 
 
-<h7 id="easyscience.fitting.sampler.Sampler.fitter" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">fitter</span></code>
+<h7 id="easyscience.fitting.sampler.Sampler.fit_object" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">fit_object</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -9697,7 +10535,32 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
 
     <div class="doc doc-contents ">
 
-        <p>The Fitter supplying the model and minimizer (read-only).</p>
+        <p>The EasyScience model object holding the sampled parameters (read-only).</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h7 id="easyscience.fitting.sampler.Sampler.fit_function" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">fit_function</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h7>
+
+
+    <div class="doc doc-contents ">
+
+        <p>The model function, or list of them for multiple datasets (read-only).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9908,6 +10771,192 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
 
 
 <h6 id="easyscience.fitting.sampler.Sampler-functions">Methods:</h6>
+
+<div class="doc doc-object doc-function">
+
+
+<h7 id="easyscience.fitting.sampler.Sampler.from_fitter" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">from_fitter</span><span class="p">(</span><span class="n">fitter</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">vectorized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sampler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h7>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build a <code>Sampler</code> from the model bound to an existing <code>Fitter</code>.</p>
+<p>A convenience for the common fit-then-sample workflow: the sampler
+takes the fitter's <code>fit_object</code> and fit function(s) and is
+otherwise identical to one constructed directly. The fitter is not
+retained or modified. A <code>MultiFitter</code> yields a multi-dataset
+sampler, so <code>x</code>, <code>y</code> and <code>weights</code> must then be lists of arrays.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fitter</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Fitter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.fitter.Fitter&lt;/code&gt;)" href="#easyscience.fitting.fitter.Fitter">Fitter</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A configured <code>Fitter</code> or <code>MultiFitter</code>. It does not need to
+have been fitted.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>x</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | <span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Independent variable array (or list of arrays, one per dataset).</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>y</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | <span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dependent variable array (or list of arrays, one per dataset).</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>weights</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | <span title="list">list</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;numpy&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a class="autorefs autorefs-external" title="&lt;code&gt;numpy.ndarray&lt;/code&gt;" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Weight array (or list of arrays, one per dataset).</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>vectorized</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>See <code>Sampler</code>.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>sampler_kwargs</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>See <code>Sampler</code>.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Sampler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vectorized&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampler_kwargs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler">Sampler</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A sampler bound to the fitter's model and the given data.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
@@ -10400,7 +11449,7 @@ the <code>Sampler</code> class notes.</p>
 <code>&lt;path&gt;.params.json</code> sidecar with the parameter names, the
 easyscience version, and a fingerprint of the bound data (verified
 with a warning on <code>load_state()</code>). Use <code>load_chain</code> to read the
-files back without a fitter.</p>
+files back without the model.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10495,7 +11544,7 @@ files back without a fitter.</p>
     <div class="doc doc-contents ">
 
         <p>Load a previously saved chain into this sampler.</p>
-<p>The sampler must be constructed with the same fitter and data used to
+<p>The sampler must be constructed with the same model and data used to
 create the chain — <code>extend()</code> then continues the saved chain. If the
 sidecar carries a data fingerprint and it does not match this
 sampler's bound data, a warning is logged (extending a chain against
@@ -10672,7 +11721,7 @@ See the <code>Sampler</code> class notes.</p>
 
         <p>Reload a DREAM chain state saved by <code>Sampler.save</code>.</p>
 <p>This is the standalone reader: unlike <code>Sampler.load_state</code> it needs no
-fitter, model or data, so a saved chain can be inspected or post-processed
+model or data, so a saved chain can be inspected or post-processed
 on a machine that does not have the model. Parameter names are restored
 from the sidecar when available (schema versions 1 and 2), falling back to
 the state's labels with the minimizer prefix stripped.</p>
