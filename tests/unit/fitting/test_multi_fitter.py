@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import logging
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -8,18 +9,47 @@ import pytest
 
 from easyscience import ObjBase
 from easyscience import Parameter
+from easyscience import global_object
+from easyscience.base_classes import EasyList
+from easyscience.base_classes import ModelBase
 from easyscience.fitting.fitter import Fitter
 from easyscience.fitting.multi_fitter import MultiFitter
 
 
-class Line(ObjBase):
+class Line(ModelBase):
+    def __init__(self, m_val: float, c_val: float):
+        super().__init__()
+        self._m = Parameter('m', m_val)
+        self._c = Parameter('c', c_val)
+
+    @property
+    def m(self) -> Parameter:
+        return self._m
+
+    @m.setter
+    def m(self, value: float) -> None:
+        self._m.value = value
+
+    @property
+    def c(self) -> Parameter:
+        return self._c
+
+    @c.setter
+    def c(self, value: float) -> None:
+        self._c.value = value
+
+    def __call__(self, x):
+        return self.m.value * x + self.c.value
+
+
+class LegacyLine(ObjBase):
+    """Deprecated-hierarchy model; no longer accepted by MultiFitter."""
+
     m: Parameter
     c: Parameter
 
     def __init__(self, m_val: float, c_val: float):
-        m = Parameter('m', m_val)
-        c = Parameter('c', c_val)
-        super().__init__('line', m=m, c=c)
+        super().__init__('line', m=Parameter('m', m_val), c=Parameter('c', c_val))
 
     def __call__(self, x):
         return self.m.value * x + self.c.value
@@ -143,6 +173,33 @@ class TestPostComputeReshaping:
 
 
 # ===================================================================
+# MultiFitter._fit_function_wrapper
+# ===================================================================
+
+
+class TestFitFunctionWrapper:
+    def test_fit_function_restored_with_multiple_datasets(self):
+        """Wrapping must not leave ``fit_function`` pointing at the last
+        dataset's function (regression: sampling on a 2+ dataset MultiFitter
+        silently swapped the user-visible fit function)."""
+        fit_objects = [Line(1.0, 0.5), Line(2.0, 1.5)]
+        mf = MultiFitter(fit_objects, fit_objects)
+        original = mf.fit_function
+        assert original is fit_objects[0]
+
+        x = [np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0])]
+        mf._dependent_dims = [(3,), (2,)]
+        wrapped = mf._fit_function_wrapper(x, flatten=True)
+
+        assert mf.fit_function is original
+
+        # Each wrapped section still evaluates its own dataset's function.
+        y = wrapped(np.zeros(5))
+        expected = np.hstack([fit_objects[0](x[0]), fit_objects[1](x[1])])
+        assert np.allclose(y, expected)
+
+
+# ===================================================================
 # MultiFitter._precompute_reshaping with weights=None
 # ===================================================================
 
@@ -165,3 +222,95 @@ class TestPrecomputeReshaping:
 
         assert w_new is None
         assert len(dims) == 2
+
+    # ===================================================================
+    # The EasyList container replacing the deprecated CollectionBase
+    # ===================================================================
+
+    def test_container_is_an_easy_list(self):
+        fit_objects = [Line(1.0, 0.5), Line(2.0, 1.5)]
+
+        assert isinstance(MultiFitter(fit_objects, fit_objects).fit_object, EasyList)
+
+    def test_sequence_contract(self):
+        fit_objects = [Line(1.0, 0.5), Line(2.0, 1.5)]
+        container = MultiFitter(fit_objects, fit_objects).fit_object
+
+        assert container[0] is fit_objects[0]
+        assert container[1] is fit_objects[1]
+        assert container[-1] is fit_objects[1]
+        assert list(container[0:1]) == [fit_objects[0]]
+        assert len(container) == 2
+        assert list(container) == fit_objects
+        assert fit_objects[0] in container
+        assert container[fit_objects[0].unique_name] is fit_objects[0]
+
+    def test_get_fit_parameters_concatenates_in_order(self):
+        fit_objects = [Line(1.0, 0.5), Line(2.0, 1.5)]
+        container = MultiFitter(fit_objects, fit_objects).fit_object
+
+        assert container.get_fit_parameters() == [
+            *fit_objects[0].get_fit_parameters(),
+            *fit_objects[1].get_fit_parameters(),
+        ]
+
+    def test_rejects_foreign_object(self):
+        with pytest.raises(TypeError, match='Items must be one of'):
+            MultiFitter([Line(1.0, 0.5), 'not a model'], [None, None])
+
+    def test_rejects_bare_parameter(self):
+        """CollectionBase accepted bare parameters; the ModelBase-gated
+        EasyList does not (a Parameter is a NewBase, but EasyList only
+        harvests parameters from ModelBase members)."""
+        model = Line(1.0, 0.5)
+        with pytest.raises(TypeError, match='Items must be one of'):
+            MultiFitter([model, Parameter('p', 1.0)], [model, None])
+
+    def test_flattens_nested_list(self):
+        """Nested lists are flattened, as CollectionBase did."""
+        models = [Line(1.0, 0.5), Line(2.0, 1.5)]
+
+        container = MultiFitter([models[0], [models[1]]], models).fit_object
+
+        assert list(container) == models
+
+    def test_accepts_fit_objects_as_a_tuple(self):
+        """Any sequence works, not just a list.
+
+        easyreflectometry passes its models as a tuple; a container that
+        only flattened lists wrapped the whole tuple as a single item.
+        """
+        models = (Line(1.0, 0.5), Line(2.0, 1.5))
+
+        container = MultiFitter(models, list(models)).fit_object
+
+        assert list(container) == list(models)
+
+    # ===================================================================
+    # Constructor defaults
+    # ===================================================================
+
+    def test_default_arguments_do_not_crash(self):
+        """Both arguments default to None; construction must not index into them."""
+        mf = MultiFitter()
+
+        assert isinstance(mf.fit_object, EasyList)
+        assert len(mf.fit_object) == 0
+        assert mf._fit_functions == []
+        assert mf.fit_function is None
+
+    def test_none_arguments_are_treated_as_empty(self):
+        mf = MultiFitter(None, None)
+
+        assert len(mf.fit_object) == 0
+        assert mf._fit_functions == []
+        assert mf.fit_function is None
+
+    def test_accepts_tuple_arguments(self):
+        """Any sequence works thanks to *-unpacking, as with CollectionBase."""
+        models = (Line(1.0, 0.5), Line(2.0, 1.5))
+        mf = MultiFitter(models, models)
+
+        assert list(mf.fit_object) == list(models)
+        assert mf._fit_functions == list(models)
+        assert mf.fit_function is models[0]
