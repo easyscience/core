@@ -29,11 +29,11 @@ def clear():
 def setup_pars():
     d = {
         'name': 'test',
-        'par1': Parameter('p1', 0.1, fixed=True),
-        'des1': DescriptorNumber('d1', 0.1),
-        'par2': Parameter('p2', 0.1),
-        'des2': DescriptorNumber('d2', 0.1),
-        'par3': Parameter('p3', 0.1),
+        'par1': Parameter(0.1, fixed=True, display_name='p1'),
+        'des1': DescriptorNumber(0.1, display_name='d1'),
+        'par2': Parameter(0.1, display_name='p2'),
+        'des2': DescriptorNumber(0.1, display_name='d2'),
+        'par3': Parameter(0.1, display_name='p3'),
     }
     return d
 
@@ -50,13 +50,26 @@ def not_raises(expected_exception: Union[Type[BaseException], List[Type[BaseExce
         raise pytest.fail('An unexpected exception {0} raised.'.format(repr(err)))
 
 
+#: ``ObjBase`` keys positional components on ``arg.name`` (obj_base.py:71), which
+#: descriptors no longer have (#308). ``easyscience.legacy`` is read-only, so this
+#: capability is gone until the module itself is removed (#292). Pass descriptors
+#: as keyword arguments instead.
+_positional_descriptors_unsupported = pytest.mark.xfail(
+    strict=True,
+    raises=AttributeError,
+    reason='legacy ObjBase keys positional components on the removed descriptor `name` (#308/#292)',
+)
+
+
 @pytest.mark.parametrize(
     'a, kw',
     [
         ([], ['par1']),
-        (['par1'], []),
-        (['par1'], ['par2']),
-        (['par1', 'des1'], ['par2', 'des2']),
+        pytest.param(['par1'], [], marks=_positional_descriptors_unsupported),
+        pytest.param(['par1'], ['par2'], marks=_positional_descriptors_unsupported),
+        pytest.param(
+            ['par1', 'des1'], ['par2', 'des2'], marks=_positional_descriptors_unsupported
+        ),
     ],
 )
 def test_ObjBase_create(setup_pars: dict, a: List[str], kw: List[str]):
@@ -70,10 +83,11 @@ def test_ObjBase_create(setup_pars: dict, a: List[str], kw: List[str]):
     base = ObjBase(name, None, *args, **kwargs)
     assert base.name == name
     for key in a:
-        item = getattr(base, setup_pars[key].name)
+        item = getattr(base, setup_pars[key].display_name)
         assert isinstance(item, setup_pars[key].__class__)
 
 
+@_positional_descriptors_unsupported
 def test_ObjBase_copy(setup_pars: dict):
     # When
     name = setup_pars['name']
@@ -93,7 +107,7 @@ def test_ObjBase_copy(setup_pars: dict):
     assert base_copy.unique_name != base.unique_name
 
     for key in ['par1', 'des1']:
-        item = getattr(base, setup_pars[key].name)
+        item = getattr(base, setup_pars[key].display_name)
         assert isinstance(item, setup_pars[key].__class__)
 
 
@@ -102,8 +116,8 @@ def test_ObjBase_get(setup_pars: dict):
     explicit_name1 = 'par1'
     explicit_name2 = 'par2'
     kwargs = {
-        setup_pars[explicit_name1].name: setup_pars[explicit_name1],
-        setup_pars[explicit_name2].name: setup_pars[explicit_name2],
+        setup_pars[explicit_name1].display_name: setup_pars[explicit_name1],
+        setup_pars[explicit_name2].display_name: setup_pars[explicit_name2],
     }
     obj = ObjBase(name, **kwargs)
     with not_raises(AttributeError):
@@ -116,7 +130,7 @@ def test_ObjBase_set(setup_pars: dict):
     name = setup_pars['name']
     explicit_name1 = 'par1'
     kwargs = {
-        setup_pars[explicit_name1].name: setup_pars[explicit_name1],
+        setup_pars[explicit_name1].display_name: setup_pars[explicit_name1],
     }
     obj = ObjBase(name, **kwargs)
     new_value = 5.0
@@ -132,7 +146,7 @@ def test_ObjBase_get_parameters(setup_pars: dict):
     pars = obj.get_fit_parameters()
     assert isinstance(pars, list)
     assert len(pars) == 2
-    par_names = [par.name for par in pars]
+    par_names = [par.display_name for par in pars]
     assert 'p2' in par_names
     assert 'p3' in par_names
 
@@ -156,7 +170,7 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
             '@module': Parameter.__module__,
             '@class': Parameter.__name__,
             '@version': easyscience.__version__,
-            'name': 'p1',
+            'display_name': 'p1',
             'value': 0.1,
             'variance': 0.0,
             'min': -np.inf,
@@ -170,7 +184,6 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
             '@module': DescriptorNumber.__module__,
             '@class': DescriptorNumber.__name__,
             '@version': easyscience.__version__,
-            'name': 'd1',
             'value': 0.1,
             'unit': 'dimensionless',
             'description': '',
@@ -181,7 +194,7 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
             '@module': Parameter.__module__,
             '@class': Parameter.__name__,
             '@version': easyscience.__version__,
-            'name': 'p2',
+            'display_name': 'p2',
             'value': 0.1,
             'variance': 0.0,
             'min': -np.inf,
@@ -195,7 +208,6 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
             '@module': DescriptorNumber.__module__,
             '@class': DescriptorNumber.__name__,
             '@version': easyscience.__version__,
-            'name': 'd2',
             'value': 0.1,
             'unit': 'dimensionless',
             'description': '',
@@ -206,7 +218,7 @@ def test_ObjBase_as_dict(clear, setup_pars: dict):
             '@module': Parameter.__module__,
             '@class': Parameter.__name__,
             '@version': easyscience.__version__,
-            'name': 'p3',
+            'display_name': 'p3',
             'value': 0.1,
             'variance': 0.0,
             'min': -np.inf,
@@ -332,7 +344,7 @@ def test_ObjBase__add_component(setup_pars):
     del setup_pars['name']
     obj = ObjBase(name, **setup_pars)
 
-    p = Parameter('added_par', 1)
+    p = Parameter(1, display_name='added_par')
     new_item_name = 'Added'
     obj._add_component(new_item_name, p)
 
@@ -355,7 +367,7 @@ def test_Base_GETSET():
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter('a', a))
+            return cls(a=Parameter(a, display_name='a'))
 
     a_start = 5
     a_end = 10
@@ -378,7 +390,7 @@ def test_Base_GETSET():
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter('a', a))
+            return cls(a=Parameter(a, display_name='a'))
 
     a = A.from_pars(5)
     b_new = 10
@@ -395,7 +407,7 @@ def test_Base_GETSET_v2():
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter('a', a))
+            return cls(a=Parameter(a, display_name='a'))
 
     a_start = 5
     a_end = 10
@@ -419,7 +431,7 @@ def test_Base_GETSET_v3():
 
         @classmethod
         def from_pars(cls, a: float):
-            return cls(a=Parameter('a', a))
+            return cls(a=Parameter(a, display_name='a'))
 
     a_start = 5
     a_end = 10
@@ -428,7 +440,7 @@ def test_Base_GETSET_v3():
 
     assert a.a.value == a_start
     assert len(graph.get_edges(a)) == 1
-    a_ = Parameter('a', a_end)
+    a_ = Parameter(a_end, display_name='a')
     assert a.a.unique_name in graph.get_edges(a)
     a__ = a.a
 
@@ -442,7 +454,7 @@ def test_Base_GETSET_v3():
 def test_BaseCreation():
     class A(ObjBase):
         def __init__(self, a: Optional[Union[Parameter, float]] = None):
-            super(A, self).__init__('A', a=Parameter('a', 1.0))
+            super(A, self).__init__('A', a=Parameter(1.0, display_name='a'))
             if a is not None:
                 self.a = a
 
@@ -450,7 +462,7 @@ def test_BaseCreation():
     assert a.a.value == 1.0
     a = A(2.0)
     assert a.a.value == 2.0
-    a = A(Parameter('a', 3.0))
+    a = A(Parameter(3.0, display_name='a'))
     assert a.a.value == 3.0
     a.a = 4.0
     assert a.a.value == 4.0

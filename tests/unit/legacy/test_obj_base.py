@@ -64,7 +64,7 @@ def test_setattr_with_interface_calls_generate_bindings():
         def __init__(self, a: Parameter):
             super().__init__('A', a=a)
 
-    p1 = Parameter('a', 1.0)
+    p1 = Parameter(1.0, display_name='a')
     a = A(p1)
 
     # Attach a mock interface
@@ -72,7 +72,7 @@ def test_setattr_with_interface_calls_generate_bindings():
     a.interface = mock_iface
 
     # Replace the parameter — should trigger generate_bindings via __setattr__
-    p2 = Parameter('a', 2.0)
+    p2 = Parameter(2.0, display_name='a')
     a.a = p2
 
     mock_iface.generate_bindings.assert_called()
@@ -89,14 +89,14 @@ def test_setattr_without_annotation():
         def __init__(self, p: Parameter):
             super().__init__('A', p=p)
 
-    p1 = Parameter('p', 1.0)
+    p1 = Parameter(1.0, display_name='p')
     a = A(p1)
 
     graph = global_object.map
     edges_before = set(graph.get_edges(a))
 
     # Replace the parameter with a new one
-    p2 = Parameter('p', 2.0)
+    p2 = Parameter(2.0, display_name='p')
     a.p = p2
 
     edges_after = set(graph.get_edges(a))
@@ -113,7 +113,7 @@ def test_setter_sets_descriptor_value():
     """When setting a Descriptor via the logged property, the descriptor's value is updated."""
     from easyscience import DescriptorNumber
 
-    d = DescriptorNumber('d1', 0.5)
+    d = DescriptorNumber(0.5, display_name='d1')
     obj = ObjBase('test', d1=d)
     obj.d1 = 3.14
     assert obj.d1.value == 3.14

@@ -55,16 +55,16 @@ def test_Polynomial_default_initialization(clear):
 
 def test_Polynomial_with_Parameter_objects(clear):
     """Test Polynomial with Parameter objects as coefficients."""
-    p0 = Parameter('c0', value=1.0)
-    p1 = Parameter('c1', value=2.0)
-    p2 = Parameter('c2', value=3.0)
+    p0 = Parameter(value=1.0, display_name='c0')
+    p1 = Parameter(value=2.0, display_name='c1')
+    p2 = Parameter(value=3.0, display_name='c2')
 
     poly = Polynomial(coefficients=[p0, p1, p2])
 
     assert len(poly.coefficients) == 3
-    assert poly.coefficients[0].name == 'c0'
-    assert poly.coefficients[1].name == 'c1'
-    assert poly.coefficients[2].name == 'c2'
+    assert poly.coefficients[0].display_name == 'c0'
+    assert poly.coefficients[1].display_name == 'c1'
+    assert poly.coefficients[2].display_name == 'c2'
     assert poly.coefficients[0].value == 1.0
     assert poly.coefficients[1].value == 2.0
     assert poly.coefficients[2].value == 3.0
@@ -78,14 +78,14 @@ def test_Polynomial_with_Parameter_objects(clear):
 
 def test_Polynomial_with_mixed_coefficients(clear):
     """Test Polynomial with mixed float and Parameter coefficients."""
-    p0 = Parameter('c0', value=5.0)
+    p0 = Parameter(value=5.0, display_name='c0')
 
     poly = Polynomial(coefficients=[p0, 2.0, 1.0])
 
     assert len(poly.coefficients) == 3
-    assert poly.coefficients[0].name == 'c0'
-    assert poly.coefficients[1].name == 'c1'
-    assert poly.coefficients[2].name == 'c2'
+    assert poly.coefficients[0].display_name == 'c0'
+    assert poly.coefficients[1].display_name == 'c1'
+    assert poly.coefficients[2].display_name == 'c2'
 
     # polyval([5.0, 2.0, 1.0], x) = 5.0*x^2 + 2.0*x + 1.0
     x = np.array([1, 2, 3])
@@ -96,9 +96,9 @@ def test_Polynomial_with_mixed_coefficients(clear):
 def test_Polynomial_with_CollectionBase(clear):
     """Test Polynomial initialized with a CollectionBase."""
     collection = CollectionBase('coeffs')
-    collection.append(Parameter('c0', value=1.0))
-    collection.append(Parameter('c1', value=2.0))
-    collection.append(Parameter('c2', value=3.0))
+    collection.append(Parameter(value=1.0, display_name='c0'))
+    collection.append(Parameter(value=2.0, display_name='c1'))
+    collection.append(Parameter(value=3.0, display_name='c2'))
 
     poly = Polynomial(coefficients=collection)
 

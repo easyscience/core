@@ -37,7 +37,7 @@ class TestParameterDependencySerialization:
 
     def test_independent_parameter_serialization(self, clear_global_map):
         """Test that independent parameters serialize normally without dependency info."""
-        param = Parameter(name='test', value=5.0, unit='m', min=0, max=10)
+        param = Parameter(display_name='test', value=5.0, unit='m', min=0, max=10)
 
         # Serialize
         serialized = param.as_dict()
@@ -52,7 +52,7 @@ class TestParameterDependencySerialization:
         new_param = Parameter.from_dict(serialized)
 
         # Should be identical
-        assert new_param.name == param.name
+        assert new_param.display_name == param.display_name
         assert new_param.value == param.value
         assert new_param.unit == param.unit
         assert new_param.independent is True
@@ -60,11 +60,11 @@ class TestParameterDependencySerialization:
     def test_dependent_parameter_serialization(self, clear_global_map):
         """Test serialization of parameters with dependencies."""
         # Create independent parameter
-        a = Parameter(name='a', value=2.0, unit='m', min=0, max=10)
+        a = Parameter(display_name='a', value=2.0, unit='m', min=0, max=10)
 
         # Create dependent parameter
         b = Parameter.from_dependency(
-            name='b', dependency_expression='2 * a', dependency_map={'a': a}, unit='m'
+            display_name='b', dependency_expression='2 * a', dependency_map={'a': a}, unit='m'
         )
 
         # Serialize dependent parameter
@@ -92,11 +92,11 @@ class TestParameterDependencySerialization:
     def test_dependency_resolution_after_deserialization(self, clear_global_map):
         """Test that dependencies are properly resolved after deserialization."""
         # Create test parameters with dependencies
-        a = Parameter(name='a', value=2.0, unit='m', min=0, max=10)
-        b = Parameter(name='b', value=3.0, unit='m', min=0, max=10)
+        a = Parameter(display_name='a', value=2.0, unit='m', min=0, max=10)
+        b = Parameter(display_name='b', value=3.0, unit='m', min=0, max=10)
 
         c = Parameter.from_dependency(
-            name='c',
+            display_name='c',
             dependency_expression='a + b',
             dependency_map={'a': a, 'b': b},
             unit='m',
@@ -136,11 +136,11 @@ class TestParameterDependencySerialization:
     def test_dependency_resolution_after_deserialization_desired_unit(self, clear_global_map):
         """Test that dependencies are properly resolved after deserialization."""
         # Create test parameters with dependencies
-        a = Parameter(name='a', value=2.0, unit='m', min=0, max=10)
-        b = Parameter(name='b', value=3.0, unit='m', min=0, max=10)
+        a = Parameter(display_name='a', value=2.0, unit='m', min=0, max=10)
+        b = Parameter(display_name='b', value=3.0, unit='m', min=0, max=10)
 
         c = Parameter.from_dependency(
-            name='c',
+            display_name='c',
             dependency_expression='a + b',
             dependency_map={'a': a, 'b': b},
             desired_unit='cm',
@@ -182,13 +182,11 @@ class TestParameterDependencySerialization:
 
     def test_unique_name_dependency_serialization(self, clear_global_map):
         """Test serialization of dependencies using unique names."""
-        a = Parameter(name='a', value=3.0, unit='m', min=0, max=10)
+        a = Parameter(display_name='a', value=3.0, unit='m', min=0, max=10)
 
         # Create dependent parameter using unique name
         b = Parameter.from_dependency(
-            name='b',
-            dependency_expression='2 * "Parameter_0"',  # Using unique name
-            unit='m',
+            display_name='b', dependency_expression='2 * "Parameter_0"', unit='m'
         )
 
         # Serialize both parameters
@@ -206,7 +204,7 @@ class TestParameterDependencySerialization:
         # Deserialize both and resolve
         global_object.map._clear()
         c = Parameter(
-            name='c', value=0.0
+            display_name='c', value=0.0
         )  # Dummy to occupy unique name, to force new unique_names
 
         # Remove unique_name from serialized data to force generation of new unique names
@@ -225,11 +223,11 @@ class TestParameterDependencySerialization:
     def test_json_serialization_roundtrip(self, clear_global_map):
         """Test that parameter dependencies survive JSON serialization."""
         # Create parameters with dependencies
-        length = Parameter(name='length', value=10.0, unit='m', min=0, max=100)
-        width = Parameter(name='width', value=5.0, unit='m', min=0, max=50)
+        length = Parameter(display_name='length', value=10.0, unit='m', min=0, max=100)
+        width = Parameter(display_name='width', value=5.0, unit='m', min=0, max=50)
 
         area = Parameter.from_dependency(
-            name='area',
+            display_name='area',
             dependency_expression='length * width',
             dependency_map={'length': length, 'width': width},
             unit='m^2',
@@ -263,14 +261,14 @@ class TestParameterDependencySerialization:
     def test_multiple_dependent_parameters(self, clear_global_map):
         """Test serialization with multiple dependent parameters."""
         # Create a chain of dependencies
-        x = Parameter(name='x', value=2.0, unit='m', min=0, max=10)
+        x = Parameter(display_name='x', value=2.0, unit='m', min=0, max=10)
 
         y = Parameter.from_dependency(
-            name='y', dependency_expression='2 * x', dependency_map={'x': x}, unit='m'
+            display_name='y', dependency_expression='2 * x', dependency_map={'x': x}, unit='m'
         )
 
         z = Parameter.from_dependency(
-            name='z',
+            display_name='z',
             dependency_expression='y + x',
             dependency_map={'y': y, 'x': x},
             unit='m',
@@ -306,12 +304,10 @@ class TestParameterDependencySerialization:
 
         # When
 
-        x = DescriptorNumber(name='x', value=3.0, unit='m')
-        y = Parameter(name='y', value=4.0, unit='m')
+        x = DescriptorNumber(display_name='x', value=3.0, unit='m')
+        y = Parameter(display_name='y', value=4.0, unit='m')
         z = Parameter.from_dependency(
-            name='z',
-            dependency_expression='x + y',
-            dependency_map={'x': x, 'y': y},
+            display_name='z', dependency_expression='x + y', dependency_map={'x': x, 'y': y}
         )
 
         # Verify original functionality
@@ -344,9 +340,9 @@ class TestParameterDependencySerialization:
     def test_get_parameters_with_pending_dependencies(self, clear_global_map):
         """Test utility function for finding parameters with pending dependencies."""
         # Create parameters
-        a = Parameter(name='a', value=1.0, unit='m')
+        a = Parameter(display_name='a', value=1.0, unit='m')
         b = Parameter.from_dependency(
-            name='b', dependency_expression='2 * a', dependency_map={'a': a}, unit='m'
+            display_name='b', dependency_expression='2 * a', dependency_map={'a': a}, unit='m'
         )
 
         # Serialize and deserialize
@@ -360,7 +356,7 @@ class TestParameterDependencySerialization:
         pending = get_parameters_with_pending_dependencies(new_params)
 
         assert len(pending) == 1
-        assert pending[0].name == 'b'
+        assert pending[0].display_name == 'b'
         assert hasattr(pending[0], '_pending_dependency_string')
 
         # After resolution, should be empty
@@ -370,9 +366,9 @@ class TestParameterDependencySerialization:
 
     def test_error_handling_missing_dependency(self, clear_global_map):
         """Test error handling when dependency cannot be resolved."""
-        a = Parameter(name='a', value=1.0, unit='m')
+        a = Parameter(display_name='a', value=1.0, unit='m')
         b = Parameter.from_dependency(
-            name='b', dependency_expression='2 * a', dependency_map={'a': a}, unit='m'
+            display_name='b', dependency_expression='2 * a', dependency_map={'a': a}, unit='m'
         )
 
         # Serialize b but not a
@@ -391,9 +387,9 @@ class TestParameterDependencySerialization:
         from easyscience.io.serializer_dict import SerializerDict
 
         # Create dependent parameter
-        a = Parameter(name='a', value=2.0, unit='m')
+        a = Parameter(display_name='a', value=2.0, unit='m')
         b = Parameter.from_dependency(
-            name='b', dependency_expression='3 * a', dependency_map={'a': a}, unit='m'
+            display_name='b', dependency_expression='3 * a', dependency_map={'a': a}, unit='m'
         )
 
         # Use base serializer path (SerializerDict.decode)
@@ -405,7 +401,7 @@ class TestParameterDependencySerialization:
 
         # Should be a valid Parameter (but without dependency resolution)
         assert isinstance(deserialized, Parameter)
-        assert deserialized.name == 'b'
+        assert deserialized.display_name == 'b'
         assert deserialized.independent is True  # Base path doesn't handle dependencies
 
     @pytest.mark.parametrize(
@@ -422,11 +418,11 @@ class TestParameterDependencySerialization:
         """Test that dependency IDs allow parameters to be loaded in any order."""
         # WHEN
         # Create parameters with dependencies
-        x = Parameter(name='x', value=5.0, unit='m', min=0, max=20)
-        y = Parameter(name='y', value=10.0, unit='m', min=0, max=30)
+        x = Parameter(display_name='x', value=5.0, unit='m', min=0, max=20)
+        y = Parameter(display_name='y', value=10.0, unit='m', min=0, max=30)
 
         z = Parameter.from_dependency(
-            name='z',
+            display_name='z',
             dependency_expression='x * y',
             dependency_map={'x': x, 'y': y},
             unit='m^2',
@@ -478,11 +474,11 @@ class TestParameterDependencySerialization:
     def test_deserialize_and_resolve_parameters_helper(self, clear_global_map):
         """Test the convenience helper function for deserialization and dependency resolution."""
         # Create test parameters with dependencies
-        a = Parameter(name='a', value=2.0, unit='m', min=0, max=10)
-        b = Parameter(name='b', value=3.0, unit='m', min=0, max=10)
+        a = Parameter(display_name='a', value=2.0, unit='m', min=0, max=10)
+        b = Parameter(display_name='b', value=3.0, unit='m', min=0, max=10)
 
         c = Parameter.from_dependency(
-            name='c',
+            display_name='c',
             dependency_expression='a + b',
             dependency_map={'a': a, 'b': b},
             unit='m',
@@ -507,16 +503,16 @@ class TestParameterDependencySerialization:
         assert 'c' in new_params
 
         # Check that independent parameters work
-        assert new_params['a'].name == 'a'
+        assert new_params['a'].display_name == 'a'
         assert new_params['a'].value == 2.0
         assert new_params['a'].independent is True
 
-        assert new_params['b'].name == 'b'
+        assert new_params['b'].display_name == 'b'
         assert new_params['b'].value == 3.0
         assert new_params['b'].independent is True
 
         # Check that dependent parameter is properly resolved
-        assert new_params['c'].name == 'c'
+        assert new_params['c'].display_name == 'c'
         assert new_params['c'].value == 5.0  # 2 + 3
         assert new_params['c'].independent is False
 

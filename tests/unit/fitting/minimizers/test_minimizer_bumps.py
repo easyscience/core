@@ -1263,7 +1263,7 @@ class TestConvertToParObject:
     def test_convert_parameter_object(self) -> None:
         from easyscience.variable import Parameter
 
-        param = Parameter('thickness', 42.0, min=0.0, max=100.0)
+        param = Parameter(42.0, min=0.0, max=100.0, display_name='thickness')
         param.fixed = False
 
         result = Bumps.convert_to_par_object(param)
@@ -1277,7 +1277,7 @@ class TestConvertToParObject:
     def test_convert_fixed_parameter(self) -> None:
         from easyscience.variable import Parameter
 
-        param = Parameter('roughness', 5.0, min=0.0, max=20.0)
+        param = Parameter(5.0, min=0.0, max=20.0, display_name='roughness')
         param.fixed = True
 
         result = Bumps.convert_to_par_object(param)

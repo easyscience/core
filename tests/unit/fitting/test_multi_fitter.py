@@ -17,8 +17,8 @@ class Line(ObjBase):
     c: Parameter
 
     def __init__(self, m_val: float, c_val: float):
-        m = Parameter('m', m_val)
-        c = Parameter('c', c_val)
+        m = Parameter(m_val, display_name='m')
+        c = Parameter(c_val, display_name='c')
         super().__init__('line', m=m, c=c)
 
     def __call__(self, x):

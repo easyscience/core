@@ -141,7 +141,7 @@ class TestMap:
 
     @pytest.fixture
     def parameter_object(self):
-        return Parameter(name='test2', value=2)
+        return Parameter(display_name='test2', value=2)
 
     def test_add_vertex(self, clear, base_object, parameter_object):
         # When Then Expect
@@ -182,13 +182,15 @@ class TestMap:
         assert global_object.map.get_item_by_key(base_object.unique_name) == base_object
         assert global_object.map.get_item_by_key(parameter_object.unique_name) == parameter_object
 
-    @pytest.mark.parametrize('cls, kwargs', [(ObjBase, {}), (Parameter, {'value': 2.0})])
+    @pytest.mark.parametrize(
+        'cls, kwargs', [(ObjBase, {'name': 'test'}), (Parameter, {'value': 2.0})]
+    )
     def test_identical_unique_names_exception(self, clear, cls, kwargs):
         # When
-        test_obj = cls(name='test', unique_name='test', **kwargs)
+        test_obj = cls(unique_name='test', **kwargs)
         # Then Expect
         with pytest.raises(ValueError):
-            test_obj2 = cls(name='test2', unique_name='test', **kwargs)
+            test_obj2 = cls(unique_name='test', **kwargs)
 
     def test_unique_name_change_still_in_map(self, clear, base_object, parameter_object):
         # When
@@ -381,7 +383,7 @@ class TestMap:
         """Test type filtering properties"""
         # Given
         obj1 = ObjBase(name='obj1')  # 'created' type
-        obj2 = Parameter(name='obj2', value=1)  # 'created' type
+        obj2 = Parameter(display_name='obj2', value=1)  # 'created' type
 
         global_object.map.change_type(obj1, 'argument')
         global_object.map.change_type(obj2, 'returned')

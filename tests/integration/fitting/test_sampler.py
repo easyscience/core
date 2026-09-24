@@ -24,8 +24,8 @@ class Line(ObjBase):
     c: Parameter
 
     def __init__(self, m_val: float, c_val: float):
-        m = Parameter('m', m_val)
-        c = Parameter('c', c_val)
+        m = Parameter(m_val, display_name='m')
+        c = Parameter(c_val, display_name='c')
         super(Line, self).__init__('line', m=m, c=c)
 
     def __call__(self, x):
@@ -37,8 +37,8 @@ class AbsSin(ObjBase):
     offset: Parameter
 
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
+        offset = Parameter(offset_val, display_name='offset')
+        phase = Parameter(phase_val, display_name='phase')
         super().__init__('sin', offset=offset, phase=phase)
 
     def __call__(self, x):
@@ -50,8 +50,8 @@ class AbsSin2D(ObjBase):
     offset: Parameter
 
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
+        offset = Parameter(offset_val, display_name='offset')
+        phase = Parameter(phase_val, display_name='phase')
         super().__init__('sin2D', offset=offset, phase=phase)
 
     def __call__(self, x):

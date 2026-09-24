@@ -52,7 +52,9 @@ class Polynomial(ObjBase):
                     if issubclass(type(item), Parameter):
                         self.coefficients.append(item)
                     elif isinstance(item, float):
-                        self.coefficients.append(Parameter(name='c{}'.format(index), value=item))
+                        self.coefficients.append(
+                            Parameter(value=item, display_name='c{}'.format(index))
+                        )
                     else:
                         raise TypeError('Coefficients must be floats or Parameters')
             else:

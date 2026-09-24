@@ -16,16 +16,42 @@ class DescriptorStr(DescriptorBase):
 
     def __init__(
         self,
-        name: str,
         value: str,
+        *,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
         url: Optional[str] = None,
         display_name: Optional[str] = None,
         parent: Optional[Any] = None,
     ):
+        """
+        Constructor for the DescriptorStr class.
+
+        All arguments after ``value`` are keyword-only.
+
+        Parameters
+        ----------
+        value : str
+            Value of this object.
+        unique_name : Optional[str], default=None
+            Unique identifier for this object. By default, None.
+        description : Optional[str], default=None
+            A brief summary of what this object is. By default, None.
+        url : Optional[str], default=None
+            Lookup url for documentation/information. By default, None.
+        display_name : Optional[str], default=None
+            A pretty name for the object. Falls back to ``unique_name``
+            when not given. By default, None.
+        parent : Optional[Any], default=None
+            The object which this descriptor is attached to. By default,
+            None.
+
+        Raises
+        ------
+        ValueError
+            If ``value`` is not a string.
+        """
         super().__init__(
-            name=name,
             unique_name=unique_name,
             description=description,
             url=url,
@@ -76,7 +102,7 @@ class DescriptorStr(DescriptorBase):
     def __repr__(self) -> str:
         """Return printable representation."""
         class_name = self.__class__.__name__
-        obj_name = self._name
+        obj_name = self.display_name
         obj_value = self._string
         return f"<{class_name} '{obj_name}': {obj_value}>"
 

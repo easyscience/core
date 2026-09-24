@@ -231,7 +231,6 @@ class TestSerializerBase:
             '@module': 'easyscience.variable.parameter',
             '@class': 'Parameter',
             '@version': '0.6.0',
-            'name': 'test_param',
             'value': 5.0,
             'unit': 'm',
             'variance': 0.1,
@@ -245,7 +244,7 @@ class TestSerializerBase:
 
         result = SerializerBase._convert_from_dict(param_dict)
         assert isinstance(result, Parameter)
-        assert result.name == 'test_param'
+        assert result.display_name == 'test_param'
         assert result.value == 5.0
         assert str(result.unit) == 'm'
 
@@ -427,8 +426,8 @@ class TestSerializerBase:
         """Test _recursive_encoder with MutableSequence objects"""
         from easyscience.base_classes import CollectionBase
 
-        d0 = DescriptorNumber('a', 0)  # type: ignore
-        d1 = DescriptorNumber('b', 1)  # type: ignore
+        d0 = DescriptorNumber(0, display_name='a')  # type: ignore
+        d1 = DescriptorNumber(1, display_name='b')  # type: ignore
         collection = CollectionBase('test_collection', d0, d1)
 
         result = serializer._recursive_encoder(collection)
@@ -701,7 +700,7 @@ class TestSerializerBase:
             '_deserialize_value',
             MagicMock(
                 side_effect=[
-                    Parameter(name='param1', value=10.0),
+                    Parameter(display_name='param1', value=10.0),
                     np.array([0, 1], dtype=np.int64),
                 ]
             ),

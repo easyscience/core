@@ -4,8 +4,12 @@
 from __future__ import annotations
 
 import abc
+from inspect import signature
 from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
+from typing import Set
 
 from easyscience import global_object
 from easyscience.global_object.undo_redo import property_stack
@@ -17,10 +21,10 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
     This is the base of all variable descriptions for models.
 
     It contains all information to describe a single unique property of
-    an object. This description includes a name and value as well as
-    optionally a unit, description and url (for reference material).
-    Also implemented is a callback so that the value can be read/set
-    from a linked library object.
+    an object. This description includes a value as well as optionally a
+    unit, description and url (for reference material). Also implemented
+    is a callback so that the value can be read/set from a linked
+    library object.
 
     A ``Descriptor`` is typically something which describes part of a
     model and is non-fittable and generally changes the state of an
@@ -33,7 +37,7 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        name: str,
+        *,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
         url: Optional[str] = None,
@@ -44,17 +48,17 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         This is the base of variables for models.
 
         It contains all information to describe a single unique property
-        of an object. This description includes a name, description and
-        url (for reference material).
+        of an object. This description includes a description and url
+        (for reference material).
 
         A ``Descriptor`` is typically something which describes part of
         a model and is non-fittable and generally changes the state of
         an object.
 
+        All arguments are keyword-only.
+
         Parameters
         ----------
-        name : str
-            Name of this object.
         unique_name : Optional[str], default=None
             Unique identifier for this object. By default, None.
         description : Optional[str], default=None
@@ -62,7 +66,8 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         url : Optional[str], default=None
             Lookup url for documentation/information. By default, None.
         display_name : Optional[str], default=None
-            A pretty name for the object. By default, None.
+            A pretty name for the object. Falls back to ``unique_name``
+            when not given. By default, None.
         parent : Optional[Any], default=None
             The object which this descriptor is attached to. By default,
             None.
@@ -70,17 +75,14 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         Raises
         ------
         TypeError
-            If ``name`` is not a string or if any optional string field
-            has an invalid type.
+            If any optional string field has an invalid type.
         """
 
         if unique_name is None:
             unique_name = global_object.generate_unique_name(self.__class__.__name__)
+        elif not isinstance(unique_name, str):
+            raise TypeError('Unique name has to be a string.')
         self._unique_name = unique_name
-
-        if not isinstance(name, str):
-            raise TypeError('Name must be a string')
-        self._name: str = name
 
         if display_name is not None and not isinstance(display_name, str):
             raise TypeError('Display name must be a string or None')
@@ -106,41 +108,28 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
             global_object.map.add_edge(parent, self)
 
     @property
-    def name(self) -> str:
+    def _arg_spec(self) -> Set[str]:
         """
-        Get the name of the object.
+        Names of the constructor arguments the serializer has to collect.
 
-        Returns
-        -------
-        str
-            Name of the object.
+        ``SerializerBase.get_arg_spec`` only reports positional
+        arguments, so keyword-only arguments have to be gathered here in
+        order to survive a serialization round trip.
         """
-        return self._name
-
-    @name.setter
-    @property_stack
-    def name(self, new_name: str) -> None:
-        """
-        Set the name.
-
-        Parameters
-        ----------
-        new_name : str
-            Name of the object.
-
-        Raises
-        ------
-        TypeError
-            If ``new_name`` is not a string.
-        """
-        if not isinstance(new_name, str):
-            raise TypeError('Name must be a string')
-        self._name = new_name
+        sign = signature(self.__class__.__init__)
+        return {
+            param.name
+            for param in sign.parameters.values()
+            if param.kind in (param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY)
+            and param.name != 'self'
+        }
 
     @property
     def display_name(self) -> str:
         """
         Get a pretty display name.
+
+        Falls back to ``unique_name`` when no display name was set.
 
         Returns
         -------
@@ -149,7 +138,7 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         """
         display_name = self._display_name
         if display_name is None:
-            display_name = self._name
+            display_name = self._unique_name
         return display_name
 
     @display_name.setter
@@ -281,6 +270,31 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __repr__(self) -> str:
         """Return printable representation of the object."""
+
+    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Convert the descriptor into a full dictionary.
+
+        An unset ``display_name`` is skipped so that the automatically
+        generated fallback (``unique_name``) is not baked into the
+        serialized form as if it had been set explicitly.
+
+        Parameters
+        ----------
+        skip : Optional[List[str]], default=None
+            List of field names as strings to skip when forming the
+            dictionary. By default, None.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Encoded object containing all information to reform an
+            EasyScience object.
+        """
+        skip = [] if skip is None else list(skip)
+        if self._display_name is None and 'display_name' not in skip:
+            skip.append('display_name')
+        return super().as_dict(skip=skip)
 
     def __copy__(self) -> DescriptorBase:
         """Return a copy of the object."""

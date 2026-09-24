@@ -11,7 +11,6 @@ class TestDescriptorStr:
     @pytest.fixture
     def descriptor(self):
         descriptor = DescriptorStr(
-            name='name',
             value='string',
             description='description',
             url='url',
@@ -29,7 +28,6 @@ class TestDescriptorStr:
         assert descriptor._string == 'string'
 
         # From super
-        assert descriptor._name == 'name'
         assert descriptor._description == 'description'
         assert descriptor._url == 'url'
         assert descriptor._display_name == 'display_name'
@@ -39,7 +37,6 @@ class TestDescriptorStr:
         # When Then Expect
         with pytest.raises(ValueError):
             DescriptorStr(
-                name='name',
                 value=string,
                 description='description',
                 url='url',
@@ -69,7 +66,7 @@ class TestDescriptorStr:
         repr_str = str(descriptor)
 
         # Expect
-        assert repr_str == "<DescriptorStr 'name': string>"
+        assert repr_str == "<DescriptorStr 'display_name': string>"
 
     def test_copy(self, descriptor: DescriptorStr):
         # When Then

@@ -252,7 +252,7 @@ class TestInterfaceFactoryTemplate:
         # Given
         mock_model = MagicMock()
         mock_prop = MagicMock()
-        mock_prop.name = 'test_param'
+        mock_prop.display_name = 'test_param'
         mock_prop.value = 42
         mock_model._get_linkable_attributes.return_value = [mock_prop]
 
@@ -276,7 +276,7 @@ class TestInterfaceFactoryTemplate:
         # Given
         mock_model = MagicMock()
         mock_prop = MagicMock()
-        mock_prop.name = 'test_param'
+        mock_prop.display_name = 'test_param'
         mock_prop.value_no_call_back = 24
         mock_model._get_linkable_attributes.return_value = [mock_prop]
 
@@ -300,7 +300,7 @@ class TestInterfaceFactoryTemplate:
         # Given
         mock_model = MagicMock()
         mock_prop = MagicMock()
-        mock_prop.name = 'non_matching_param'
+        mock_prop.display_name = 'non_matching_param'
         mock_model._get_linkable_attributes.return_value = [mock_prop]
 
         mock_item = MagicMock()
@@ -391,7 +391,7 @@ class TestInterfaceFactoryTemplate:
         # Given
         mock_model = MagicMock()
         mock_prop = MagicMock()
-        mock_prop.name = 'test_param'
+        mock_prop.display_name = 'test_param'
         mock_prop.value = 99  # This will be used since no value_no_call_back attribute
         # Explicitly remove value_no_call_back to force the else branch
         del mock_prop.value_no_call_back

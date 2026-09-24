@@ -28,8 +28,8 @@ class AbsSin(ObjBase):
     offset: Parameter
 
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
+        offset = Parameter(offset_val, display_name='offset')
+        phase = Parameter(phase_val, display_name='phase')
         super().__init__('sin', offset=offset, phase=phase)
 
     def __call__(self, x):

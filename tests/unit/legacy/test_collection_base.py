@@ -16,6 +16,16 @@ from easyscience import Parameter
 from easyscience import global_object
 from easyscience.legacy.collection_base import CollectionBase
 
+#: ``CollectionBase.__getitem__`` resolves a string index against ``item.name``
+#: (collection_base.py:187), which descriptors no longer have (#308).
+#: ``easyscience.legacy`` is read-only, so string indexing is gone until the
+#: module itself is removed (#292). Index by position or ``unique_name`` instead.
+_string_indexing_unsupported = pytest.mark.xfail(
+    strict=True,
+    raises=AttributeError,
+    reason='legacy CollectionBase string indexing uses the removed descriptor `name` (#308/#292)',
+)
+
 
 @pytest.fixture(autouse=True)
 def _clear_map():
@@ -28,11 +38,11 @@ def _clear_map():
 def setup_pars():
     return {
         'name': 'test',
-        'par1': Parameter('p1', 0.1, fixed=True),
-        'des1': DescriptorNumber('d1', 0.1),
-        'par2': Parameter('p2', 0.2),
-        'des2': DescriptorNumber('d2', 0.2),
-        'par3': Parameter('p3', 0.3),
+        'par1': Parameter(0.1, fixed=True, display_name='p1'),
+        'des1': DescriptorNumber(0.1, display_name='d1'),
+        'par2': Parameter(0.2, display_name='p2'),
+        'des2': DescriptorNumber(0.2, display_name='d2'),
+        'par3': Parameter(0.3, display_name='p3'),
     }
 
 
@@ -99,12 +109,12 @@ def test_setitem_with_easyscience_object(setup_pars):
 
     n_before = len(coll)
     old_item = coll[0]
-    new_item = Parameter('replacement', 99.0)
+    new_item = Parameter(99.0, display_name='replacement')
 
     coll[0] = new_item
 
     assert len(coll) == n_before
-    assert coll[0].name == 'replacement'
+    assert coll[0].display_name == 'replacement'
     assert coll[0].value == 99.0
     # Old item should be removed from the graph
     assert old_item.unique_name not in global_object.map.get_edges(coll)
@@ -114,12 +124,13 @@ def test_setitem_with_easyscience_object(setup_pars):
 # __getitem__ with duplicate names returns a new CollectionBase
 # ---------------------------------------------------------------------------
 
+@_string_indexing_unsupported
 def test_getitem_duplicate_names_returns_collection(setup_pars):
     """When multiple items share the same name, __getitem__ returns a sub-collection."""
     name = setup_pars.pop('name')
     # Add two items with the same display name
-    p1 = Parameter('same_name', 1.0)
-    p2 = Parameter('same_name', 2.0)
+    p1 = Parameter(1.0, display_name='same_name')
+    p2 = Parameter(2.0, display_name='same_name')
     coll = CollectionBase(name, p1, p2)
 
     result = coll['same_name']
@@ -127,6 +138,7 @@ def test_getitem_duplicate_names_returns_collection(setup_pars):
     assert len(result) == 2
 
 
+@_string_indexing_unsupported
 def test_getitem_nonexistent_name_raises(setup_pars):
     """Looking up a nonexistent name raises IndexError."""
     name = setup_pars.pop('name')
@@ -146,10 +158,10 @@ def test_insert_at_specific_index(setup_pars):
     coll = CollectionBase(name, **setup_pars)
 
     n_before = len(coll)
-    new_item = Parameter('inserted', 42.0)
+    new_item = Parameter(42.0, display_name='inserted')
 
     coll.insert(2, new_item)
 
     assert len(coll) == n_before + 1
-    assert coll[2].name == 'inserted'
+    assert coll[2].display_name == 'inserted'
     assert coll[2].value == 42.0
