@@ -2149,3 +2149,20 @@ class TestParameter:
         assert result.variance == expected.variance
         assert result.min == expected.min
         assert result.max == expected.max
+
+
+@pytest.mark.parametrize('label', [None, '', 'label'], ids=['unset', 'empty', 'explicit'])
+def test_display_name_serialization_preserves_unset_state(label):
+    # Given
+    from easyscience.io.serializer_dict import SerializerDict
+
+    p = Parameter(2, display_name=label)
+
+    # When Then Expect: every encoding path stores the raw label
+    assert p.as_dict()['display_name'] == label
+    assert p.encode()['display_name'] == label
+    assert SerializerDict().encode(p)['display_name'] == label
+
+    restored = Parameter.from_dict(p.encode(skip=['unique_name']))
+    assert restored.unique_name != p.unique_name
+    assert restored.display_name == (restored.unique_name if label is None else label)

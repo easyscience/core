@@ -100,8 +100,11 @@ class DescriptorNumber(DescriptorBase):
         Raises
         ------
         TypeError
-            If ``value`` or ``variance`` is not a number, or if ``unit``
-            is not a valid scipp unit.
+            If ``value`` or ``variance`` is not a number, if ``unit`` is
+            not a string or scipp unit, or if an unexpected keyword
+            argument is given.
+        UnitError
+            If ``unit`` is not a valid scipp unit.
         ValueError
             If ``variance`` is negative.
 
@@ -115,6 +118,11 @@ class DescriptorNumber(DescriptorBase):
         # Extract serializer_id if provided during deserialization
         if '__serializer_id' in kwargs:
             self.__serializer_id = kwargs.pop('__serializer_id')
+        if kwargs:
+            raise TypeError(
+                f'{self.__class__.__name__}.__init__() got unexpected keyword '
+                f'argument(s): {", ".join(sorted(kwargs))}.'
+            )
 
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
             raise TypeError(f'{value=} must be a number')

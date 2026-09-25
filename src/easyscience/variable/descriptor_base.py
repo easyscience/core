@@ -6,8 +6,6 @@ from __future__ import annotations
 import abc
 from inspect import signature
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import Optional
 from typing import Set
 
@@ -33,7 +31,9 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
 
     _global_object = global_object
     # Used by serializer
-    _REDIRECT = {'parent': None}
+    # Serialize the raw display name so that an unset one stays unset
+    # (``None``) instead of storing the ``unique_name`` fallback.
+    _REDIRECT = {'parent': None, 'display_name': lambda obj: obj._display_name}
 
     def __init__(
         self,
@@ -270,31 +270,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __repr__(self) -> str:
         """Return printable representation of the object."""
-
-    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Convert the descriptor into a full dictionary.
-
-        An unset ``display_name`` is skipped so that the automatically
-        generated fallback (``unique_name``) is not baked into the
-        serialized form as if it had been set explicitly.
-
-        Parameters
-        ----------
-        skip : Optional[List[str]], default=None
-            List of field names as strings to skip when forming the
-            dictionary. By default, None.
-
-        Returns
-        -------
-        Dict[str, Any]
-            Encoded object containing all information to reform an
-            EasyScience object.
-        """
-        skip = [] if skip is None else list(skip)
-        if self._display_name is None and 'display_name' not in skip:
-            skip.append('display_name')
-        return super().as_dict(skip=skip)
 
     def __copy__(self) -> DescriptorBase:
         """Return a copy of the object."""

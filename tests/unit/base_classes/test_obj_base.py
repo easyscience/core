@@ -87,17 +87,11 @@ def test_ObjBase_create(setup_pars: dict, a: List[str], kw: List[str]):
         assert isinstance(item, setup_pars[key].__class__)
 
 
-@_positional_descriptors_unsupported
 def test_ObjBase_copy(setup_pars: dict):
     # When
     name = setup_pars['name']
-    args = []
-    for key in ['par1', 'des1']:
-        args.append(setup_pars[key])
-    kwargs = {}
-    for key in ['par2', 'des2']:
-        kwargs[key] = setup_pars[key]
-    base = ObjBase(name, None, *args, **kwargs)
+    kwargs = {key: setup_pars[key] for key in ['par1', 'des1', 'par2', 'des2']}
+    base = ObjBase(name, None, **kwargs)
 
     # Then
     base_copy = copy(base)
@@ -106,9 +100,12 @@ def test_ObjBase_copy(setup_pars: dict):
     assert base_copy.name == name
     assert base_copy.unique_name != base.unique_name
 
-    for key in ['par1', 'des1']:
-        item = getattr(base, setup_pars[key].display_name)
+    for key in kwargs:
+        item = getattr(base_copy, key)
         assert isinstance(item, setup_pars[key].__class__)
+        assert item.unique_name != setup_pars[key].unique_name
+        assert item.value == setup_pars[key].value
+        assert item.display_name == setup_pars[key].display_name
 
 
 def test_ObjBase_get(setup_pars: dict):
