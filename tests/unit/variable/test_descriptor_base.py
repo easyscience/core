@@ -4,6 +4,10 @@
 import pytest
 
 from easyscience import global_object
+from easyscience.base_classes import EasyList
+from easyscience.base_classes import NewBase
+from easyscience.io import SerializerComponent
+from easyscience.variable import DescriptorNumber
 from easyscience.variable.descriptor_base import DescriptorBase
 
 
@@ -15,7 +19,9 @@ class TestDesciptorBase:
         DescriptorBase.__repr__ = lambda x: 'DescriptorBase'
         self.objs_before_new_descriptor = len(global_object.map.created_objs)
         descriptor = DescriptorBase(
-            description='description', url='url', display_name='display_name', parent=None
+            description='description',
+            url='url',
+            display_name='display_name',
         )
         return descriptor
 
@@ -36,7 +42,6 @@ class TestDesciptorBase:
                 description='description',
                 url='url',
                 display_name='display_name',
-                parent=None,
             )
 
     @pytest.mark.parametrize(
@@ -48,7 +53,9 @@ class TestDesciptorBase:
         # When Then
         with pytest.raises(TypeError):
             DescriptorBase(
-                description='description', url='url', display_name=display_name, parent=None
+                description='description',
+                url='url',
+                display_name=display_name,
             )
 
     @pytest.mark.parametrize(
@@ -60,7 +67,9 @@ class TestDesciptorBase:
         # When Then
         with pytest.raises(TypeError):
             DescriptorBase(
-                description=description, url='url', display_name='display_name', parent=None
+                description=description,
+                url='url',
+                display_name='display_name',
             )
 
     @pytest.mark.parametrize(
@@ -72,7 +81,9 @@ class TestDesciptorBase:
         # When Then
         with pytest.raises(TypeError):
             DescriptorBase(
-                description='description', url=url, display_name='display_name', parent=None
+                description='description',
+                url=url,
+                display_name='display_name',
             )
 
     def test_init(self, descriptor: DescriptorBase):

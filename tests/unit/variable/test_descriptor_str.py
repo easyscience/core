@@ -15,7 +15,6 @@ class TestDescriptorStr:
             description='description',
             url='url',
             display_name='display_name',
-            parent=None,
         )
         return descriptor
 
@@ -41,7 +40,6 @@ class TestDescriptorStr:
                 description='description',
                 url='url',
                 display_name='display_name',
-                parent=None,
             )
 
     def test_value(self, descriptor: DescriptorStr):

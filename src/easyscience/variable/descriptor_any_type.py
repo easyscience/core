@@ -34,7 +34,6 @@ class DescriptorAnyType(DescriptorBase):
         description: Optional[str] = None,
         url: Optional[str] = None,
         display_name: Optional[str] = None,
-        parent: Optional[Any] = None,
     ):
         """
         Constructor for the DescriptorAnyType class.
@@ -54,9 +53,6 @@ class DescriptorAnyType(DescriptorBase):
         display_name : Optional[str], default=None
             A pretty name for the object. Falls back to ``unique_name``
             when not given. By default, None.
-        parent : Optional[Any], default=None
-            The object which this descriptor is attached to. By default,
-            None.
 
         Notes
         -----
@@ -71,7 +67,6 @@ class DescriptorAnyType(DescriptorBase):
             description=description,
             url=url,
             display_name=display_name,
-            parent=parent,
         )
 
     @property
@@ -115,7 +110,7 @@ class DescriptorAnyType(DescriptorBase):
 
         return f"<{self.__class__.__name__} '{self.display_name}': {value_repr}>"
 
-    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        raw_dict = super().as_dict(skip=skip)
+    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        raw_dict = super().to_dict(skip=skip)
         raw_dict['value'] = self._value
         return raw_dict

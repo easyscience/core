@@ -6,15 +6,17 @@ from __future__ import annotations
 import abc
 from inspect import signature
 from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Set
 
 from easyscience import global_object
+from easyscience.base_classes.new_base import NewBase
 from easyscience.global_object.undo_redo import property_stack
-from easyscience.io import SerializerComponent
 
 
-class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
+class DescriptorBase(NewBase, metaclass=abc.ABCMeta):
     """
     This is the base of all variable descriptions for models.
 
@@ -31,9 +33,7 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
 
     _global_object = global_object
     # Used by serializer
-    # Serialize the raw display name so that an unset one stays unset
-    # (``None``) instead of storing the ``unique_name`` fallback.
-    _REDIRECT = {'parent': None, 'display_name': lambda obj: obj._display_name}
+    _REDIRECT = {}
 
     def __init__(
         self,
@@ -42,7 +42,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         description: Optional[str] = None,
         url: Optional[str] = None,
         display_name: Optional[str] = None,
-        parent: Optional[Any] = None,
     ):
         """
         This is the base of variables for models.
@@ -68,9 +67,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         display_name : Optional[str], default=None
             A pretty name for the object. Falls back to ``unique_name``
             when not given. By default, None.
-        parent : Optional[Any], default=None
-            The object which this descriptor is attached to. By default,
-            None.
 
         Raises
         ------
@@ -78,15 +74,7 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
             If any optional string field has an invalid type.
         """
 
-        if unique_name is None:
-            unique_name = global_object.generate_unique_name(self.__class__.__name__)
-        elif not isinstance(unique_name, str):
-            raise TypeError('Unique name has to be a string.')
-        self._unique_name = unique_name
-
-        if display_name is not None and not isinstance(display_name, str):
-            raise TypeError('Display name must be a string or None')
-        self._display_name: str = display_name
+        super().__init__(unique_name=unique_name, display_name=display_name)
 
         if description is not None and not isinstance(description, str):
             raise TypeError('Description must be a string or None')
@@ -99,13 +87,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         if url is None:
             url = ''
         self._url: str = url
-
-        # Let the collective know we've been assimilated
-        self._parent = parent
-        global_object.map.add_vertex(self, obj_type='created')
-        # Make the connection between self and parent
-        if parent is not None:
-            global_object.map.add_edge(parent, self)
 
     @property
     def _arg_spec(self) -> Set[str]:
@@ -123,43 +104,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
             if param.kind in (param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY)
             and param.name != 'self'
         }
-
-    @property
-    def display_name(self) -> str:
-        """
-        Get a pretty display name.
-
-        Falls back to ``unique_name`` when no display name was set.
-
-        Returns
-        -------
-        str
-            The pretty display name.
-        """
-        display_name = self._display_name
-        if display_name is None:
-            display_name = self._unique_name
-        return display_name
-
-    @display_name.setter
-    @property_stack
-    def display_name(self, name: Optional[str]) -> None:
-        """
-        Set the pretty display name.
-
-        Parameters
-        ----------
-        name : Optional[str]
-            Pretty display name of the object.
-
-        Raises
-        ------
-        TypeError
-            If ``name`` is neither a string nor ``None``.
-        """
-        if name is not None and not isinstance(name, str):
-            raise TypeError('Display name must be a string or None')
-        self._display_name = name
 
     @property
     def description(self) -> str:
@@ -224,40 +168,6 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
         self._url = url
 
     @property
-    def unique_name(self) -> str:
-        """
-        Get the unique name of this object.
-
-        Returns
-        -------
-        str
-            Unique name of this object.
-        """
-        return self._unique_name
-
-    @unique_name.setter
-    def unique_name(self, new_unique_name: str):
-        """
-        Set a new unique name for the object.
-
-        The old name is still kept in the map.
-
-        Parameters
-        ----------
-        new_unique_name : str
-            New unique name for the object.
-
-        Raises
-        ------
-        TypeError
-            If ``new_unique_name`` is not a string.
-        """
-        if not isinstance(new_unique_name, str):
-            raise TypeError('Unique name has to be a string.')
-        self._unique_name = new_unique_name
-        global_object.map.add_vertex(self)
-
-    @property
     @abc.abstractmethod
     def value(self) -> Any:
         """Get the value of the object."""
@@ -270,9 +180,3 @@ class DescriptorBase(SerializerComponent, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __repr__(self) -> str:
         """Return printable representation of the object."""
-
-    def __copy__(self) -> DescriptorBase:
-        """Return a copy of the object."""
-        temp = self.as_dict(skip=['unique_name'])
-        new_obj = self.__class__.from_dict(temp)
-        return new_obj

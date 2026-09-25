@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 from typing import Optional
 
 from easyscience.global_object.undo_redo import property_stack
@@ -22,7 +21,6 @@ class DescriptorBool(DescriptorBase):
         description: Optional[str] = None,
         url: Optional[str] = None,
         display_name: Optional[str] = None,
-        parent: Optional[Any] = None,
     ):
         """
         Constructor for the DescriptorBool class.
@@ -42,9 +40,6 @@ class DescriptorBool(DescriptorBase):
         display_name : Optional[str], default=None
             A pretty name for the object. Falls back to ``unique_name``
             when not given. By default, None.
-        parent : Optional[Any], default=None
-            The object which this descriptor is attached to. By default,
-            None.
 
         Raises
         ------
@@ -58,7 +53,6 @@ class DescriptorBool(DescriptorBase):
             description=description,
             url=url,
             display_name=display_name,
-            parent=parent,
         )
         self._bool_value = value
 

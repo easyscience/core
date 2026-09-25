@@ -65,7 +65,6 @@ class DescriptorNumber(DescriptorBase):
         description: Optional[str] = None,
         url: Optional[str] = None,
         display_name: Optional[str] = None,
-        parent: Optional[Any] = None,
         **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
         """
@@ -91,9 +90,6 @@ class DescriptorNumber(DescriptorBase):
         display_name : Optional[str], default=None
             A pretty name for the object. Falls back to ``unique_name``
             when not given. By default, None.
-        parent : Optional[Any], default=None
-            The object which this descriptor is attached to. By default,
-            None.
         **kwargs : Any
             Additional keyword arguments used during (de)serialization.
 
@@ -145,7 +141,6 @@ class DescriptorNumber(DescriptorBase):
             description=description,
             url=url,
             display_name=display_name,
-            parent=parent,
         )
 
         # Call convert_unit during initialization to ensure that the unit has no numbers in it, and to ensure unit consistency.
@@ -479,8 +474,8 @@ class DescriptorNumber(DescriptorBase):
         return string
         # return f"<{class_name} '{obj_name}': {obj_value:0.04f}{obj_unit}>"
 
-    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        raw_dict = super().as_dict(skip=skip)
+    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        raw_dict = super().to_dict(skip=skip)
         raw_dict['value'] = self._scalar.value
         raw_dict['unit'] = str(self._scalar.unit)
         raw_dict['variance'] = self._scalar.variance

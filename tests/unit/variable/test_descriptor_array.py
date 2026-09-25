@@ -22,7 +22,6 @@ class TestDescriptorArray:
             description='description',
             url='url',
             display_name='display_name',
-            parent=None,
         )
         return descriptor
 
@@ -35,7 +34,6 @@ class TestDescriptorArray:
             description='description',
             url='url',
             display_name='display_name',
-            parent=None,
         )
         return descriptor
 
@@ -63,7 +61,6 @@ class TestDescriptorArray:
             description='description',
             url='url',
             display_name='display_name',
-            parent=None,
         )
 
         # Expect
@@ -81,7 +78,6 @@ class TestDescriptorArray:
                 description='description',
                 url='url',
                 display_name='display_name',
-                parent=None,
             )
 
     @pytest.mark.parametrize('value', [True, 'string'])
@@ -97,7 +93,6 @@ class TestDescriptorArray:
                 description='description',
                 url='url',
                 display_name='display_name',
-                parent=None,
             )
 
     def test_init_variance_exception(self):
@@ -112,7 +107,6 @@ class TestDescriptorArray:
                 description='description',
                 url='url',
                 display_name='display_name',
-                parent=None,
             )
 
     # test from_scipp
@@ -1540,7 +1534,6 @@ class TestDescriptorArray:
             description='description',
             url='url',
             display_name='display_name',
-            parent=None,
         )
         assert type(result) == DescriptorArray
         assert np.array_equal(result.value, expected.value)
@@ -1557,7 +1550,6 @@ class TestDescriptorArray:
             description='description',
             url='url',
             display_name='display_name',
-            parent=None,
         )
 
         # Then
