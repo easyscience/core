@@ -100,8 +100,8 @@ def test_variable_SerializerDict_from_dict(dp_kwargs: dict, dp_cls: Type[Descrip
 
 
 def test_group_encode():
-    d0 = DescriptorNumber('a', 0)
-    d1 = DescriptorNumber('b', 1)
+    d0 = DescriptorNumber(0, display_name='a')
+    d1 = DescriptorNumber(1, display_name='b')
 
     from easyscience.base_classes import CollectionBase
 
@@ -111,8 +111,8 @@ def test_group_encode():
 
 
 def test_group_encode2():
-    d0 = DescriptorNumber('a', 0)
-    d1 = DescriptorNumber('b', 1)
+    d0 = DescriptorNumber(0, display_name='a')
+    d1 = DescriptorNumber(1, display_name='b')
 
     from easyscience.base_classes import CollectionBase
 

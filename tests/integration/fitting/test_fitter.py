@@ -18,8 +18,8 @@ class AbsSin(ObjBase):
     offset: Parameter
 
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
+        offset = Parameter(offset_val, display_name='offset')
+        phase = Parameter(phase_val, display_name='phase')
         super().__init__('sin', offset=offset, phase=phase)
 
     def __call__(self, x):
@@ -31,8 +31,8 @@ class AbsSin2D(ObjBase):
     offset: Parameter
 
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
+        offset = Parameter(offset_val, display_name='offset')
+        phase = Parameter(phase_val, display_name='phase')
         super().__init__('sin2D', offset=offset, phase=phase)
 
     def __call__(self, x):
@@ -55,8 +55,8 @@ class AbsSin2DL(AbsSin2D):
 class StraightLine(ModelBase):
     def __init__(self, slope: float, intercept: float):
         super().__init__()
-        self._slope = Parameter('slope', slope)
-        self._intercept = Parameter('intercept', intercept)
+        self._slope = Parameter(slope, display_name='slope')
+        self._intercept = Parameter(intercept, display_name='intercept')
 
     @property
     def slope(self) -> Parameter:

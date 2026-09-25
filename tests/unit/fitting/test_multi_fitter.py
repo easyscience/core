@@ -19,8 +19,8 @@ from easyscience.fitting.multi_fitter import MultiFitter
 class Line(ModelBase):
     def __init__(self, m_val: float, c_val: float):
         super().__init__()
-        self._m = Parameter('m', m_val)
-        self._c = Parameter('c', c_val)
+        self._m = Parameter(m_val, display_name='m')
+        self._c = Parameter(c_val, display_name='c')
 
     @property
     def m(self) -> Parameter:
@@ -49,7 +49,9 @@ class LegacyLine(ObjBase):
     c: Parameter
 
     def __init__(self, m_val: float, c_val: float):
-        super().__init__('line', m=Parameter('m', m_val), c=Parameter('c', c_val))
+        super().__init__(
+            'line', m=Parameter(m_val, display_name='m'), c=Parameter(c_val, display_name='c')
+        )
 
     def __call__(self, x):
         return self.m.value * x + self.c.value
@@ -264,7 +266,7 @@ class TestPrecomputeReshaping:
         harvests parameters from ModelBase members)."""
         model = Line(1.0, 0.5)
         with pytest.raises(TypeError, match='Items must be one of'):
-            MultiFitter([model, Parameter('p', 1.0)], [model, None])
+            MultiFitter([model, Parameter(1.0, display_name='p')], [model, None])
 
     def test_flattens_nested_list(self):
         """Nested lists are flattened, as CollectionBase did."""

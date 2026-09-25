@@ -19,7 +19,6 @@ class TestDesciptorBase:
         DescriptorBase.__repr__ = lambda x: 'DescriptorBase'
         self.objs_before_new_descriptor = len(global_object.map.created_objs)
         descriptor = DescriptorBase(
-            name='name',
             description='description',
             url='url',
             display_name='display_name',
@@ -31,15 +30,15 @@ class TestDesciptorBase:
         global_object.map._clear()
 
     @pytest.mark.parametrize(
-        'name',
-        [1, True, 1.0, [], {}, (), None, object()],
-        ids=['int', 'bool', 'float', 'list', 'dict', 'tuple', 'None', 'object'],
+        'unique_name',
+        [1, True, 1.0, [], {}, (), object()],
+        ids=['int', 'bool', 'float', 'list', 'dict', 'tuple', 'object'],
     )
-    def test_init_name_type_error(self, name):
+    def test_init_unique_name_type_error(self, unique_name):
         # When Then
         with pytest.raises(TypeError):
             DescriptorBase(
-                name=name,
+                unique_name=unique_name,
                 description='description',
                 url='url',
                 display_name='display_name',
@@ -54,7 +53,6 @@ class TestDesciptorBase:
         # When Then
         with pytest.raises(TypeError):
             DescriptorBase(
-                name='name',
                 description='description',
                 url='url',
                 display_name=display_name,
@@ -69,7 +67,6 @@ class TestDesciptorBase:
         # When Then
         with pytest.raises(TypeError):
             DescriptorBase(
-                name='name',
                 description=description,
                 url='url',
                 display_name='display_name',
@@ -84,14 +81,12 @@ class TestDesciptorBase:
         # When Then
         with pytest.raises(TypeError):
             DescriptorBase(
-                name='name',
                 description='description',
                 url=url,
                 display_name='display_name',
             )
 
     def test_init(self, descriptor: DescriptorBase):
-        assert descriptor._name == 'name'
         assert descriptor._description == 'description'
         assert descriptor._url == 'url'
         assert descriptor._display_name == 'display_name'
@@ -105,7 +100,7 @@ class TestDesciptorBase:
         # When
         descriptor._display_name = None
         # Then Expect
-        assert descriptor.display_name == 'name'
+        assert descriptor.display_name == descriptor.unique_name
 
     def test_display_name_setter(self, descriptor: DescriptorBase):
         # When
@@ -122,22 +117,6 @@ class TestDesciptorBase:
         # When Then
         with pytest.raises(TypeError):
             descriptor.display_name = display_name
-
-    def test_name_setter(self, descriptor: DescriptorBase):
-        # When
-        descriptor.name = 'new_name'
-        # Then Expect
-        assert descriptor.name == 'new_name'
-
-    @pytest.mark.parametrize(
-        'name',
-        [1, True, 1.0, [], {}, (), object(), None],
-        ids=['int', 'bool', 'float', 'list', 'dict', 'tuple', 'object', 'None'],
-    )
-    def test_name_setter_type_error(self, descriptor: DescriptorBase, name):
-        # When Then
-        with pytest.raises(TypeError):
-            descriptor.name = name
 
     def test_description_setter(self, descriptor: DescriptorBase):
         # When
@@ -193,18 +172,17 @@ class TestDesciptorBase:
 
         # Expect
         assert type(descriptor_copy) == DescriptorBase
-        assert descriptor_copy._name == descriptor._name
         assert descriptor_copy._description == descriptor._description
         assert descriptor_copy._url == descriptor._url
         assert descriptor_copy._display_name == descriptor._display_name
 
     def test_unique_name_generator(self, clear, descriptor: DescriptorBase):
         # When
-        second_descriptor = DescriptorBase(name='test', unique_name='DescriptorBase_2')
+        second_descriptor = DescriptorBase(display_name='test', unique_name='DescriptorBase_2')
 
         # Then
-        third_descriptor = DescriptorBase(name='test2')
-        fourth_descriptor = DescriptorBase(name='test3')
+        third_descriptor = DescriptorBase(display_name='test2')
+        fourth_descriptor = DescriptorBase(display_name='test3')
 
         # Expect
         assert descriptor.unique_name == 'DescriptorBase_0'

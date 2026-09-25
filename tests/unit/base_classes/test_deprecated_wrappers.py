@@ -50,10 +50,10 @@ def test_collection_base_still_works_from_deprecated(caplog: 'pytest.LogCaptureF
 
     from easyscience import Parameter
 
-    p = Parameter('p1', 1.0)
+    p = Parameter(1.0, display_name='p1')
     coll = CollectionBase('test', p)
     assert len(coll) == 1
-    assert coll[0].name == 'p1'
+    assert coll[0].display_name == 'p1'
 
 
 # ---------------------------------------------------------------------------
@@ -82,6 +82,6 @@ def test_obj_base_still_works_from_deprecated(caplog: 'pytest.LogCaptureFixture'
 
     from easyscience import Parameter
 
-    p = Parameter('p1', 1.0)
+    p = Parameter(1.0, display_name='p1')
     obj = ObjBase('test', p1=p)
     assert obj.p1.value == 1.0

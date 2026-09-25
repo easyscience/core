@@ -32,8 +32,8 @@ class MockModel(ModelBase):
 
     def __init__(self, unique_name=None, display_name=None, temperature=25, volume=1.0):
         super().__init__(unique_name=unique_name, display_name=display_name)
-        self._temperature = Parameter(name='temperature', value=temperature)
-        self._volume = DescriptorNumber(name='volume', value=volume)
+        self._temperature = Parameter(display_name='temperature', value=temperature)
+        self._volume = DescriptorNumber(display_name='volume', value=volume)
 
     @property
     def temperature(self):
@@ -57,7 +57,7 @@ class MockModelNested(ModelBase):
 
     def __init__(self, unique_name=None, display_name=None, component=None, pressure=0):
         super().__init__(unique_name=unique_name, display_name=display_name)
-        self._pressure = Parameter(name='pressure', value=pressure)
+        self._pressure = Parameter(display_name='pressure', value=pressure)
         self._component = component or MockModel(unique_name='inner', temperature=30, volume=2.0)
 
     @property
@@ -588,13 +588,13 @@ class TestEasyList:
         el = EasyList(m1, protected_types=ModelBase)
         vars = el.get_all_variables()
         assert len(vars) == 2
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert 'temperature' in names
         assert 'volume' in names
         # Verify specific values
-        temp_var = next(v for v in vars if v.name == 'temperature')
+        temp_var = next(v for v in vars if v.display_name == 'temperature')
         assert temp_var.value == 10
-        vol_var = next(v for v in vars if v.name == 'volume')
+        vol_var = next(v for v in vars if v.display_name == 'volume')
         assert vol_var.value == 5.0
 
     def test_get_all_variables_multiple_modelbase(self):
@@ -604,7 +604,7 @@ class TestEasyList:
         el = EasyList(m1, m2, protected_types=ModelBase)
         vars = el.get_all_variables()
         assert len(vars) == 4
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert names == {'temperature', 'volume'}
 
     def test_get_all_variables_mixed_elements(self):
@@ -614,7 +614,7 @@ class TestEasyList:
         el = EasyList(m1, a1)
         vars = el.get_all_variables()
         assert len(vars) == 2
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert names == {'temperature', 'volume'}
 
     def test_get_all_variables_nested_model(self):
@@ -625,7 +625,7 @@ class TestEasyList:
         vars = el.get_all_variables()
         # parent: pressure (Parameter), inner: temperature (Parameter), volume (DescriptorNumber)
         assert len(vars) == 3
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert names == {'pressure', 'temperature', 'volume'}
 
     def test_get_all_variables_returns_descriptorbase_instances(self):
@@ -640,8 +640,8 @@ class TestEasyList:
 
     def test_get_all_variables_bare_parameters(self):
         """Bare Parameters passed to the constructor should be collected directly."""
-        p1 = Parameter('a', value=1.0)
-        p2 = Parameter('b', value=2.0)
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
         el = EasyList(p1, p2)
         vars = el.get_all_variables()
         assert vars == [p1, p2]
@@ -649,8 +649,8 @@ class TestEasyList:
 
     def test_get_all_variables_bare_descriptors(self):
         """Bare DescriptorNumbers are collected as variables but are not fit parameters."""
-        p1 = Parameter('a', value=1.0)
-        d1 = DescriptorNumber('b', value=2.0)
+        p1 = Parameter(value=1.0, display_name='a')
+        d1 = DescriptorNumber(value=2.0, display_name='b')
         el = EasyList(p1, d1)
         assert el.get_all_variables() == [p1, d1]
         assert el.get_all_parameters() == [p1]
@@ -658,42 +658,42 @@ class TestEasyList:
 
     def test_get_all_variables_fixed_parameter_not_fitted(self):
         """A fixed bare Parameter is returned as a variable but not as a fit parameter."""
-        free = Parameter('a', value=1.0)
-        fixed = Parameter('b', value=2.0, fixed=True)
+        free = Parameter(value=1.0, display_name='a')
+        fixed = Parameter(value=2.0, fixed=True, display_name='b')
         el = EasyList(free, fixed)
         assert el.get_all_variables() == [free, fixed]
         assert el.get_fit_parameters() == [free]
 
     def test_get_all_variables_parameters_from_list(self):
         """A plain list of Parameters should be flattened and collected."""
-        p1 = Parameter('a', value=1.0)
-        p2 = Parameter('b', value=2.0)
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
         el = EasyList([p1, p2])
         assert len(el) == 2
         assert el.get_all_variables() == [p1, p2]
 
     def test_get_all_variables_parameters_from_tuple(self):
         """A plain tuple of Parameters should be flattened and collected."""
-        p1 = Parameter('a', value=1.0)
-        p2 = Parameter('b', value=2.0)
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
         el = EasyList((p1, p2))
         assert len(el) == 2
         assert el.get_all_variables() == [p1, p2]
 
     def test_get_all_variables_bare_parameters_and_model(self):
         """Bare Parameters and ModelBase items should both contribute variables."""
-        p1 = Parameter('a', value=1.0)
+        p1 = Parameter(value=1.0, display_name='a')
         m1 = MockModel(unique_name='m1', temperature=10, volume=5.0)
         el = EasyList(p1, m1)
         vars = el.get_all_variables()
         assert len(vars) == 3
         assert vars[0] is p1
-        assert {v.name for v in vars[1:]} == {'temperature', 'volume'}
+        assert {v.display_name for v in vars[1:]} == {'temperature', 'volume'}
 
     def test_get_all_variables_bare_parameters_in_nested_easylist(self):
         """Bare Parameters inside a nested EasyList should be collected by the outer list."""
-        p1 = Parameter('a', value=1.0)
-        p2 = Parameter('b', value=2.0)
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
         inner_list = EasyList(p1)
         outer_list = EasyList(inner_list, p2)
         assert outer_list.get_all_variables() == [p1, p2]
@@ -731,7 +731,7 @@ class TestEasyList:
             assert isinstance(v, DescriptorNumber)
 
         # Collect temperatures and volumes from both models
-        temps = {v.value for v in vars if v.name == 'temperature'}
-        vols = {v.value for v in vars if v.name == 'volume'}
+        temps = {v.value for v in vars if v.display_name == 'temperature'}
+        vols = {v.value for v in vars if v.display_name == 'volume'}
         assert temps == {50, 70}
         assert vols == {3.0, 4.0}

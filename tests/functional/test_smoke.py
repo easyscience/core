@@ -16,5 +16,5 @@ def test_polynomial_smoke() -> None:
     model = Polynomial(name='smoke', coefficients=[1.0, 2.0, 3.0])
     x = np.array([0.0, 1.0, 2.0])
 
-    assert [coefficient.name for coefficient in model.coefficients] == ['c0', 'c1', 'c2']
+    assert [coefficient.display_name for coefficient in model.coefficients] == ['c0', 'c1', 'c2']
     assert np.allclose(model(x), np.polyval([1.0, 2.0, 3.0], x))

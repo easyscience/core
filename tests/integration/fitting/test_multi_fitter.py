@@ -13,8 +13,8 @@ from easyscience.fitting.multi_fitter import MultiFitter
 class Line(ModelBase):
     def __init__(self, m_val: float, c_val: float):
         super().__init__()
-        self._m = Parameter('m', m_val)
-        self._c = Parameter('c', c_val)
+        self._m = Parameter(m_val, display_name='m')
+        self._c = Parameter(c_val, display_name='c')
 
     @property
     def m(self) -> Parameter:
@@ -39,8 +39,8 @@ class Line(ModelBase):
 class AbsSin(ModelBase):
     def __init__(self, offset_val: float, phase_val: float):
         super().__init__()
-        self._offset = Parameter('offset', offset_val)
-        self._phase = Parameter('phase', phase_val)
+        self._offset = Parameter(offset_val, display_name='offset')
+        self._phase = Parameter(phase_val, display_name='phase')
 
     @property
     def offset(self) -> Parameter:

@@ -188,7 +188,7 @@ class InterfaceFactoryTemplate:
 
         class_links = self.__interface_obj.create(model)
         props = model._get_linkable_attributes()
-        props_names = [prop.name for prop in props]
+        props_names = [prop.display_name for prop in props]
         for item in class_links:
             for item_key in item.name_conversion.keys():
                 if item_key not in props_names:

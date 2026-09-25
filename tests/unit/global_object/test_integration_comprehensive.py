@@ -33,7 +33,7 @@ class TestGlobalObjectIntegration:
         global_obj = GlobalObject()
 
         # When - Create parameter
-        param = Parameter(name='test_param', value=10.0, unit='m')
+        param = Parameter(display_name='test_param', value=10.0, unit='m')
 
         # Then - Should be registered in global map
         assert global_obj.map.is_known(param)
@@ -78,8 +78,8 @@ class TestGlobalObjectIntegration:
         # Given
         global_obj = GlobalObject()
 
-        param1 = Parameter(name='length', value=10.0, unit='m')
-        param2 = Parameter(name='width', value=5.0, unit='m')
+        param1 = Parameter(display_name='length', value=10.0, unit='m')
+        param2 = Parameter(display_name='width', value=5.0, unit='m')
 
         # When - Create ObjBase with parameters
         obj = ObjBase(name='rectangle', length=param1, width=param2)
@@ -114,7 +114,7 @@ class TestGlobalObjectIntegration:
         # When - Create multiple objects of same type
         params = []
         for i in range(5):
-            param = Parameter(name=f'param_{i}', value=float(i))
+            param = Parameter(display_name=f'param_{i}', value=float(i))
             params.append(param)
 
         # Then - Should have unique names
@@ -127,7 +127,7 @@ class TestGlobalObjectIntegration:
 
         # When - Create mixed object types
         obj = ObjBase(name='test_obj')
-        desc = DescriptorBool(name='test_desc', value=True)
+        desc = DescriptorBool(display_name='test_desc', value=True)
 
         # Then - Should not interfere with each other's naming
         assert obj.unique_name == 'ObjBase_0'
@@ -137,7 +137,7 @@ class TestGlobalObjectIntegration:
         """Test comprehensive vertex type management"""
         # Given
         global_obj = GlobalObject()
-        param = Parameter(name='test', value=1.0)
+        param = Parameter(display_name='test', value=1.0)
 
         # When - Check initial type
         initial_types = global_obj.map.find_type(param)
@@ -168,8 +168,8 @@ class TestGlobalObjectIntegration:
         global_obj = GlobalObject()
 
         # When - Create objects
-        param1 = Parameter(name='temp1', value=1.0)
-        param2 = Parameter(name='temp2', value=2.0)
+        param1 = Parameter(display_name='temp1', value=1.0)
+        param2 = Parameter(display_name='temp2', value=2.0)
         obj = ObjBase(name='temp_obj', param1=param1, param2=param2)
 
         param1_name = param1.unique_name
@@ -206,9 +206,9 @@ class TestGlobalObjectIntegration:
         global_obj.stack.enabled = True
 
         # Create a complex object structure
-        length = Parameter(name='length', value=10.0, unit='m')
-        width = Parameter(name='width', value=5.0, unit='m')
-        height = Parameter(name='height', value=3.0, unit='m')
+        length = Parameter(display_name='length', value=10.0, unit='m')
+        width = Parameter(display_name='width', value=5.0, unit='m')
+        height = Parameter(display_name='height', value=3.0, unit='m')
 
         box = ObjBase(name='box', length=length, width=width, height=height)
 
@@ -252,7 +252,7 @@ class TestGlobalObjectIntegration:
         global_obj = GlobalObject()
 
         # Create a hierarchy: container -> sub_container -> parameter
-        param = Parameter(name='value', value=42.0)
+        param = Parameter(display_name='value', value=42.0)
         sub_container = ObjBase(name='sub', value=param)
         main_container = ObjBase(name='main', sub=sub_container)
 
@@ -277,8 +277,8 @@ class TestGlobalObjectIntegration:
         global_obj = GlobalObject()
 
         # When - Create connected objects
-        param1 = Parameter(name='connected1', value=1.0)
-        param2 = Parameter(name='connected2', value=2.0)
+        param1 = Parameter(display_name='connected1', value=1.0)
+        param2 = Parameter(display_name='connected2', value=2.0)
         container = ObjBase(name='container', p1=param1, p2=param2)
 
         # Then - Map should be connected
@@ -286,7 +286,7 @@ class TestGlobalObjectIntegration:
         # assert global_obj.map.is_connected()
 
         # When - Create isolated object
-        isolated = Parameter(name='isolated', value=99.0)
+        isolated = Parameter(display_name='isolated', value=99.0)
         # Remove its automatic connection by clearing edges
         # (In real usage, isolated objects would be rare)
 
@@ -305,7 +305,7 @@ class TestGlobalObjectIntegration:
             global_obj.map.get_item_by_key('non_existent')
 
         # When - Try to add object with duplicate name
-        param1 = Parameter(name='test', value=1.0)
+        param1 = Parameter(display_name='test', value=1.0)
         param1_name = param1.unique_name
 
         # Create another with same unique name (should fail in add_vertex)
@@ -321,7 +321,7 @@ class TestGlobalObjectIntegration:
         # When - Create many objects
         objects = []
         for i in range(100):
-            param = Parameter(name=f'param_{i}', value=float(i))
+            param = Parameter(display_name=f'param_{i}', value=float(i))
             obj = ObjBase(name=f'obj_{i}', param=param)
             objects.append((param, obj))
 
@@ -355,7 +355,7 @@ class TestGlobalObjectIntegration:
         global_obj = GlobalObject()
 
         # Create objects
-        param = Parameter(name='test_param', value=123.45, unit='kg')
+        param = Parameter(display_name='test_param', value=123.45, unit='kg')
         obj = ObjBase(name='test_obj', param=param)
 
         original_vertex_count = len(global_obj.map.vertices())
@@ -378,7 +378,7 @@ class TestGlobalObjectIntegration:
         assert global_obj.map.is_known(new_obj)
 
         # Objects should be functionally equivalent
-        assert new_param.name == param.name
+        assert new_param.display_name == param.display_name
         assert new_param.value == param.value
         assert new_param.unit == param.unit
 
@@ -397,7 +397,7 @@ class TestGlobalObjectIntegration:
             global_obj.stack.enabled = True
 
             # Create and modify objects
-            param = Parameter(name='debug_test', value=1.0)
+            param = Parameter(display_name='debug_test', value=1.0)
 
             # This should trigger debug output in property_stack decorator
             with patch('builtins.print') as mock_print:
@@ -428,7 +428,7 @@ class TestGlobalObjectIntegration:
             """Create objects in a thread"""
             try:
                 for i in range(count):
-                    param = Parameter(name=f'thread_{thread_id}_param_{i}', value=float(i))
+                    param = Parameter(display_name=f'thread_{thread_id}_param_{i}', value=float(i))
                     results.append(param.unique_name)
                     time.sleep(0.001)  # Small delay to encourage race conditions
             except Exception as e:
