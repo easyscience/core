@@ -102,11 +102,6 @@ class Parameter(DescriptorNumber):
             If ``value`` falls outside the provided bounds or if the
             bounds are invalid.
 
-        Notes
-        -----
-        Undo/Redo functionality is implemented for the attributes
-        ``value``, ``variance``, ``error``, ``min``, ``max``,
-        ``bounds``, ``fixed``, ``unit``
         """
         # Extract and ignore serialization-specific fields from kwargs
         kwargs.pop('_dependency_string', None)

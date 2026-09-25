@@ -51,9 +51,7 @@ def not_raises(expected_exception: Union[Type[BaseException], List[Type[BaseExce
 
 
 #: ``ObjBase`` keys positional components on ``arg.name`` (obj_base.py:71), which
-#: descriptors no longer have (#308). ``easyscience.legacy`` is read-only, so this
-#: capability is gone until the module itself is removed (#292). Pass descriptors
-#: as keyword arguments instead.
+#: descriptors no longer have. Pass descriptors as keyword arguments instead.
 _positional_descriptors_unsupported = pytest.mark.xfail(
     strict=True,
     raises=AttributeError,

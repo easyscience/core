@@ -17,9 +17,8 @@ from easyscience import global_object
 from easyscience.legacy.collection_base import CollectionBase
 
 #: ``CollectionBase.__getitem__`` resolves a string index against ``item.name``
-#: (collection_base.py:187), which descriptors no longer have (#308).
-#: ``easyscience.legacy`` is read-only, so string indexing is gone until the
-#: module itself is removed (#292). Index by position or ``unique_name`` instead.
+#: (collection_base.py:187), which descriptors no longer have.
+#: Index by position or ``unique_name`` instead.
 _string_indexing_unsupported = pytest.mark.xfail(
     strict=True,
     raises=AttributeError,

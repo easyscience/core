@@ -84,10 +84,6 @@ class DescriptorArray(DescriptorBase):
             contains negative entries, or if ``dimensions`` does not
             match the shape of ``value``.
 
-        Notes
-        -----
-        Undo/Redo functionality is implemented for the attributes
-        ``variance``, ``error``, ``unit`` and ``value``.
         """
 
         if not isinstance(value, (list, np.ndarray)):

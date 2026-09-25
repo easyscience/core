@@ -104,10 +104,6 @@ class DescriptorNumber(DescriptorBase):
         ValueError
             If ``variance`` is negative.
 
-        Notes
-        -----
-        Undo/Redo functionality is implemented for the attributes
-        ``variance``, ``error``, ``unit`` and ``value``.
         """
         self._observers: List[DescriptorNumber] = []
 

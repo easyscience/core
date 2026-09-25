@@ -92,10 +92,6 @@ class DescriptorBase(NewBase, metaclass=abc.ABCMeta):
     def _arg_spec(self) -> Set[str]:
         """
         Names of the constructor arguments the serializer has to collect.
-
-        ``SerializerBase.get_arg_spec`` only reports positional
-        arguments, so keyword-only arguments have to be gathered here in
-        order to survive a serialization round trip.
         """
         sign = signature(self.__class__.__init__)
         return {

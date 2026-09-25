@@ -54,10 +54,6 @@ class DescriptorAnyType(DescriptorBase):
             A pretty name for the object. Falls back to ``unique_name``
             when not given. By default, None.
 
-        Notes
-        -----
-        Undo/Redo functionality is implemented for the attribute
-        ``value``.
         """
 
         self._value = value
