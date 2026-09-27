@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from easyscience import global_object
-from easyscience.base_classes import CollectionBase
+from easyscience.base_classes import EasyList
 from easyscience.models.polynomial import Polynomial
 from easyscience.variable import Parameter
 
@@ -42,9 +42,9 @@ def test_Polynomial_pars(clear, coo):
 
 def test_Polynomial_default_initialization(clear):
     """Test Polynomial with no coefficients."""
-    poly = Polynomial(name='test_poly')
+    poly = Polynomial(display_name='test_poly')
 
-    assert poly.name == 'test_poly'
+    assert poly.display_name == 'test_poly'
     assert len(poly.coefficients) == 0
 
     # Test that calling the polynomial with empty coefficients works
@@ -93,9 +93,9 @@ def test_Polynomial_with_mixed_coefficients(clear):
     assert np.allclose(poly(x), expected)
 
 
-def test_Polynomial_with_CollectionBase(clear):
-    """Test Polynomial initialized with a CollectionBase."""
-    collection = CollectionBase('coeffs')
+def test_Polynomial_with_EasyList(clear):
+    """Test Polynomial initialized with an EasyList."""
+    collection = EasyList(protected_types=Parameter)
     collection.append(Parameter(value=1.0, display_name='c0'))
     collection.append(Parameter(value=2.0, display_name='c1'))
     collection.append(Parameter(value=3.0, display_name='c2'))
@@ -127,13 +127,13 @@ def test_Polynomial_invalid_coefficients_type(clear):
         Polynomial(coefficients='invalid')
 
     # Integer is not iterable, so it will fail with second error
-    with pytest.raises(TypeError, match='coefficients must be a list or a CollectionBase'):
+    with pytest.raises(TypeError, match='coefficients must be a list or an EasyList'):
         Polynomial(coefficients=42)
 
 
 def test_Polynomial_repr_no_coefficients(clear):
     """Test __repr__ with no coefficients."""
-    poly = Polynomial(name='empty')
+    poly = Polynomial(display_name='empty')
 
     repr_str = repr(poly)
     assert 'Polynomial(empty, )' == repr_str
@@ -190,3 +190,21 @@ def test_Polynomial_call_with_args_kwargs(clear):
     # polyval([1.0, 2.0, 3.0], x) = 1.0*x^2 + 2.0*x + 3.0
     expected = np.polyval([1.0, 2.0, 3.0], x)
     assert np.allclose(result, expected)
+
+
+def test_Polynomial_get_fit_parameters(clear):
+    """Coefficients held in the EasyList are exposed for fitting."""
+    poly = Polynomial(coefficients=[1.0, 2.0])
+
+    assert poly.get_fit_parameters() == list(poly.coefficients)
+
+
+def test_Polynomial_dict_round_trip(clear):
+    """Test that coefficients survive serialization."""
+    poly = Polynomial(display_name='round_trip', coefficients=[1.0, 2.0, 3.0])
+
+    new_poly = Polynomial.from_dict(poly.to_dict())
+
+    assert new_poly.display_name == 'round_trip'
+    assert [c.value for c in new_poly.coefficients] == [1.0, 2.0, 3.0]
+    assert [c.display_name for c in new_poly.coefficients] == ['c0', 'c1', 'c2']

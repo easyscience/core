@@ -40,8 +40,7 @@ class MultiFitter(Fitter):
         if fit_functions is None:
             fit_functions = []
         # Aggregate the fit objects so a single object can be sent to Fitter.
-        # *-unpacking keeps any sequence (list, tuple, etc) working, as the
-        # old CollectionBase container did.
+        # *-unpacking keeps any sequence (list, tuple, etc) working.
         self._fit_objects = EasyList(*fit_objects, protected_types=ModelBase)
         self._fit_functions = list(fit_functions)
         # Initialize with the first of the fit_functions, without this it is

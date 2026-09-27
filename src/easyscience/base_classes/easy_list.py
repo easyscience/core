@@ -364,23 +364,36 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
 
     # Serialization support
 
-    def to_dict(self) -> dict:
+    def _convert_to_dict(self, d: dict, encoder: Any, skip: Any = None, **kwargs: Any) -> dict:
         """
-        Convert the EasyList to a dictionary for serialization.
+        Add the list items and protected types to a serialized dict.
+
+        The serializer calls this hook, so the contents are written both
+        by ``to_dict`` and when the list is nested in another object.
+
+        Parameters
+        ----------
+        d : dict
+            Dictionary produced so far by the serializer.
+        encoder : Any
+            The serializer performing the conversion.
+        skip : Any, default=None
+            Field names to skip. Unused.
+        **kwargs : Any
+            Additional keyword arguments from the serializer. Unused.
 
         Returns
         -------
         dict
-            Dictionary representation of the EasyList.
+            The dictionary with ``protected_types`` and ``data`` added.
         """
-        dict_repr = super().to_dict()
         if self._protected_types != [NewBase]:
-            dict_repr['protected_types'] = [
+            d['protected_types'] = [
                 {'@module': cls_.__module__, '@class': cls_.__name__}
                 for cls_ in self._protected_types
             ]  # noqa: E501
-        dict_repr['data'] = [item.to_dict() for item in self._data]
-        return dict_repr
+        d['data'] = [item.to_dict() for item in self._data]
+        return d
 
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> NewBase:

@@ -13,7 +13,7 @@ def test_polynomial_smoke() -> None:
     """Exercise a minimal user-facing model workflow."""
     global_object.map._clear()
 
-    model = Polynomial(name='smoke', coefficients=[1.0, 2.0, 3.0])
+    model = Polynomial(display_name='smoke', coefficients=[1.0, 2.0, 3.0])
     x = np.array([0.0, 1.0, 2.0])
 
     assert [coefficient.display_name for coefficient in model.coefficients] == ['c0', 'c1', 'c2']

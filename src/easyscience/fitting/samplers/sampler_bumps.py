@@ -45,9 +45,9 @@ class DreamSampler(EngineBase):
 
     def __init__(
         self,
-        obj: object,  #: ObjBase,
+        obj: object,  #: ModelBase,
         fit_function: Callable,
-    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ModelBase  # noqa: E501
         """
         Initialize the sampling engine.
 

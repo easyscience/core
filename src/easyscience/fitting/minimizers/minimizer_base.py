@@ -9,7 +9,7 @@ from typing import List
 import numpy as np
 
 # causes circular import when Parameter is imported
-# from easyscience.base_classes import ObjBase
+# from easyscience.base_classes import ModelBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
@@ -26,10 +26,10 @@ class MinimizerBase(EngineBase):
 
     def __init__(
         self,
-        obj,  #: ObjBase,
+        obj,  #: ModelBase,
         fit_function: Callable,
         minimizer_enum: AvailableMinimizers,
-    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ModelBase  # noqa: E501
         if minimizer_enum.method not in self.supported_methods():
             raise FitError(f'Method {minimizer_enum.method} not available in {self.__class__}')
         super().__init__(obj=obj, fit_function=fit_function)

@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import EasyList
@@ -37,21 +36,6 @@ class Line(ModelBase):
     @c.setter
     def c(self, value: float) -> None:
         self._c.value = value
-
-    def __call__(self, x):
-        return self.m.value * x + self.c.value
-
-
-class LegacyLine(ObjBase):
-    """Deprecated-hierarchy model; no longer accepted by MultiFitter."""
-
-    m: Parameter
-    c: Parameter
-
-    def __init__(self, m_val: float, c_val: float):
-        super().__init__(
-            'line', m=Parameter(m_val, display_name='m'), c=Parameter(c_val, display_name='c')
-        )
 
     def __call__(self, x):
         return self.m.value * x + self.c.value
@@ -226,7 +210,7 @@ class TestPrecomputeReshaping:
         assert len(dims) == 2
 
     # ===================================================================
-    # The EasyList container replacing the deprecated CollectionBase
+    # The EasyList container
     # ===================================================================
 
     def test_container_is_an_easy_list(self):
@@ -261,15 +245,15 @@ class TestPrecomputeReshaping:
             MultiFitter([Line(1.0, 0.5), 'not a model'], [None, None])
 
     def test_rejects_bare_parameter(self):
-        """CollectionBase accepted bare parameters; the ModelBase-gated
-        EasyList does not (a Parameter is a NewBase, but EasyList only
-        harvests parameters from ModelBase members)."""
+        """The ModelBase-gated EasyList rejects bare parameters (a
+        Parameter is a NewBase, but EasyList only harvests parameters
+        from ModelBase members)."""
         model = Line(1.0, 0.5)
         with pytest.raises(TypeError, match='Items must be one of'):
             MultiFitter([model, Parameter(1.0, display_name='p')], [model, None])
 
     def test_flattens_nested_list(self):
-        """Nested lists are flattened, as CollectionBase did."""
+        """Nested lists are flattened."""
         models = [Line(1.0, 0.5), Line(2.0, 1.5)]
 
         container = MultiFitter([models[0], [models[1]]], models).fit_object
@@ -309,7 +293,7 @@ class TestPrecomputeReshaping:
         assert mf.fit_function is None
 
     def test_accepts_tuple_arguments(self):
-        """Any sequence works thanks to *-unpacking, as with CollectionBase."""
+        """Any sequence works thanks to *-unpacking."""
         models = (Line(1.0, 0.5), Line(2.0, 1.5))
         mf = MultiFitter(models, models)
 

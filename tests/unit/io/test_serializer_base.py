@@ -35,7 +35,6 @@ class MockSerializerComponent(SerializerComponent):
         self.name = name
         self.value = value
         self.optional_param = optional_param
-        self._kwargs = kwargs
         self.unique_name = f'mock_{name}'
         self._global_object = True
 
@@ -424,17 +423,17 @@ class TestSerializerBase:
 
     def test_recursive_encoder_with_mutable_sequence(self, serializer, clear):
         """Test _recursive_encoder with MutableSequence objects"""
-        from easyscience.base_classes import CollectionBase
+        from easyscience.base_classes import EasyList
 
         d0 = DescriptorNumber(0, display_name='a')  # type: ignore
         d1 = DescriptorNumber(1, display_name='b')  # type: ignore
-        collection = CollectionBase('test_collection', d0, d1)
+        collection = EasyList(d0, d1)
 
         result = serializer._recursive_encoder(collection)
 
         assert isinstance(result, dict)
-        assert result['@class'] == 'CollectionBase'
-        assert 'data' in result
+        assert result['@class'] == 'EasyList'
+        assert len(result['data']) == 2
 
     @patch('easyscience.io.serializer_base.import_module')
     def test_convert_to_dict_no_version(self, mock_import, serializer, clear):
@@ -472,24 +471,6 @@ class TestSerializerBase:
 
         with pytest.raises(NotImplementedError, match='Unable to automatically determine to_dict'):
             serializer._convert_to_dict(obj)
-
-    def test_convert_to_dict_with_kwargs_attribute(self, serializer, clear):
-        """Test _convert_to_dict with _kwargs attribute handling"""
-
-        class MockObjWithKwargs(SerializerComponent):
-            def __init__(self, name: str, value: int):
-                self.name = name
-                self.value = value
-                self.unique_name = f'kwargs_{name}'
-                self._global_object = True
-                # Set up _kwargs to test the kwargs handling path
-                self._kwargs = {'extra_param': 'extra_value'}
-
-        obj = MockObjWithKwargs('test', 42)
-        result = serializer._convert_to_dict(obj)
-
-        # The extra_param from _kwargs should be included
-        assert result['extra_param'] == 'extra_value'
 
     def test_convert_to_dict_varargs_handling(self, serializer, clear):
         """Test _convert_to_dict with varargs (*args) handling"""

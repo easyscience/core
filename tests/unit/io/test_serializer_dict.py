@@ -7,7 +7,7 @@ from typing import Type
 import pytest
 
 from easyscience import DescriptorNumber
-from easyscience import ObjBase
+from easyscience import Parameter
 from easyscience import global_object
 from easyscience.io.serializer_dict import SerializerDict
 
@@ -103,19 +103,20 @@ def test_group_encode():
     d0 = DescriptorNumber(0, display_name='a')
     d1 = DescriptorNumber(1, display_name='b')
 
-    from easyscience.base_classes import CollectionBase
+    from easyscience.base_classes import EasyList
 
-    b = CollectionBase('test', d0, d1)
+    b = EasyList(d0, d1)
     d = b.to_dict()
     assert isinstance(d['data'], list)
 
 
 def test_group_encode2():
-    d0 = DescriptorNumber(0, display_name='a')
-    d1 = DescriptorNumber(1, display_name='b')
+    p0 = Parameter(0, display_name='a')
+    p1 = Parameter(1, display_name='b')
 
-    from easyscience.base_classes import CollectionBase
+    from easyscience.models.polynomial import Polynomial
 
-    b = ObjBase('outer', b=CollectionBase('test', d0, d1))
+    b = Polynomial(display_name='outer', coefficients=[p0, p1])
     d = b.to_dict()
-    assert isinstance(d['b'], dict)
+    assert isinstance(d['coefficients'], dict)
+    assert len(d['coefficients']['data']) == 2
