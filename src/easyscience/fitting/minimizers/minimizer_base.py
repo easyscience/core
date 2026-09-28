@@ -8,8 +8,6 @@ from typing import List
 
 import numpy as np
 
-# causes circular import when Parameter is imported
-# from easyscience.base_classes import ModelBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers

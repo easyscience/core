@@ -11,8 +11,6 @@ from lmfit import Parameter as LMParameter
 from lmfit import Parameters as LMParameters
 from lmfit.model import ModelResult
 
-# causes circular import when Parameter is imported
-# from easyscience.base_classes import ModelBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers

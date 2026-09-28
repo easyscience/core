@@ -175,9 +175,7 @@ class InterfaceFactoryTemplate:
         Parameters
         ----------
         model : Any
-            Model whose variables should be bound. Variables are found
-            with ``_get_linkable_attributes()`` when the model provides
-            it, otherwise with ``ModelBase.get_all_variables()``.
+            Model whose variables should be bound.
         *args : Any
             Positional arguments reserved for interface-specific binding
             hooks.

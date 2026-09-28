@@ -15,8 +15,6 @@ from bumps.names import FitProblem
 from bumps.parameter import Parameter as BumpsParameter
 from scipy.optimize import OptimizeResult
 
-# causes circular import when Parameter is imported
-# from easyscience.base_classes import ModelBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
