@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
+import copy
+
 import numpy as np
 import pytest
 
@@ -208,3 +210,32 @@ def test_Polynomial_dict_round_trip(clear):
     assert new_poly.display_name == 'round_trip'
     assert [c.value for c in new_poly.coefficients] == [1.0, 2.0, 3.0]
     assert [c.display_name for c in new_poly.coefficients] == ['c0', 'c1', 'c2']
+
+
+def test_Polynomial_serializer_dict_round_trip(clear):
+    """The public dictionary decoder handles the typed coefficient list."""
+    from easyscience.io.serializer_dict import SerializerDict
+
+    poly = Polynomial(display_name='round_trip', coefficients=[1.0, 2.0])
+
+    new_poly = SerializerDict.decode(poly.to_dict())
+
+    assert isinstance(new_poly, Polynomial)
+    assert new_poly.display_name == 'round_trip'
+    assert [c.value for c in new_poly.coefficients] == [1.0, 2.0]
+    assert new_poly.coefficients._protected_types == [Parameter]
+
+
+@pytest.mark.parametrize('copier', [copy.copy, copy.deepcopy], ids=['copy', 'deepcopy'])
+def test_Polynomial_copy_with_named_coefficients(clear, copier):
+    """Copies get fresh coefficient identities, even for explicit names."""
+    poly = Polynomial(coefficients=[Parameter(1.0, unique_name='coefficient'), Parameter(2.0)])
+
+    data = poly.to_dict(skip=['unique_name'])
+    assert all('unique_name' not in c for c in data['coefficients']['data'])
+
+    new_poly = copier(poly)
+
+    assert [c.value for c in new_poly.coefficients] == [1.0, 2.0]
+    assert new_poly.coefficients[0].unique_name != 'coefficient'
+    assert all(new is not old for new, old in zip(new_poly.coefficients, poly.coefficients))

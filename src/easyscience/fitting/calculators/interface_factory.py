@@ -175,7 +175,9 @@ class InterfaceFactoryTemplate:
         Parameters
         ----------
         model : Any
-            Model whose linkable attributes should be bound.
+            Model whose variables should be bound. Variables are found
+            with ``_get_linkable_attributes()`` when the model provides
+            it, otherwise with ``ModelBase.get_all_variables()``.
         *args : Any
             Positional arguments reserved for interface-specific binding
             hooks.
@@ -187,7 +189,10 @@ class InterfaceFactoryTemplate:
         """
 
         class_links = self.__interface_obj.create(model)
-        props = model._get_linkable_attributes()
+        if hasattr(model, '_get_linkable_attributes'):
+            props = model._get_linkable_attributes()
+        else:
+            props = model.get_all_variables()
         props_names = [prop.display_name for prop in props]
         for item in class_links:
             for item_key in item.name_conversion.keys():

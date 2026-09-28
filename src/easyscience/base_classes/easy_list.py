@@ -378,7 +378,7 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         encoder : Any
             The serializer performing the conversion.
         skip : Any, default=None
-            Field names to skip. Unused.
+            Field names to skip, forwarded to each list item.
         **kwargs : Any
             Additional keyword arguments from the serializer. Unused.
 
@@ -387,12 +387,15 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         dict
             The dictionary with ``protected_types`` and ``data`` added.
         """
+        if skip is None:
+            skip = []
         if self._protected_types != [NewBase]:
             d['protected_types'] = [
                 {'@module': cls_.__module__, '@class': cls_.__name__}
                 for cls_ in self._protected_types
             ]  # noqa: E501
-        d['data'] = [item.to_dict() for item in self._data]
+        # Each item gets its own copy, as ``to_dict`` appends to ``skip``
+        d['data'] = [item.to_dict(skip=list(skip)) for item in self._data]
         return d
 
     @classmethod
