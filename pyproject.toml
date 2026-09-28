@@ -177,7 +177,7 @@ testpaths = ['tests']
 # https://docs.astral.sh/ruff/rules/
 
 [tool.ruff]
-exclude = ['tests', 'legacy']
+exclude = ['tests']
 indent-width = 4
 line-length = 99  # See also `max-line-length` in [tool.ruff.lint.pycodestyle]
 preview = true  # Enable new rules that are not yet stable, like DOC
