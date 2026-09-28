@@ -5,12 +5,12 @@ import gc
 from unittest.mock import patch
 
 import pytest
+from easy_test_models import CoefficientModel
 
 from easyscience import ModelBase
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.global_object.global_object import GlobalObject
-from easyscience.models.polynomial import Polynomial
 from easyscience.variable import DescriptorBool
 
 
@@ -373,7 +373,7 @@ class TestGlobalObjectIntegration:
 
         # Create objects
         param = Parameter(display_name='test_param', value=123.45, unit='kg')
-        obj = Polynomial(display_name='test_obj', coefficients=[param])
+        obj = CoefficientModel(display_name='test_obj', coefficients=[param])
 
         original_vertex_count = len(global_obj.map.vertices())
 
@@ -387,7 +387,7 @@ class TestGlobalObjectIntegration:
 
         # When - Deserialize objects
         new_param = Parameter.from_dict(param_dict)
-        new_obj = Polynomial.from_dict(obj_dict)
+        new_obj = CoefficientModel.from_dict(obj_dict)
 
         # Then - Should be registered in global map again
         assert len(global_obj.map.vertices()) >= 2

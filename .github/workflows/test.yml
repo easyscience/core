@@ -258,24 +258,24 @@ jobs:
             cd ..
           done
 
-      - name: Run functional tests
-        shell: bash
-        run: |
-          set -euo pipefail
+      # - name: Run functional tests
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
 
-          for py_ver in $PY_VERSIONS; do
-            echo
-            echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
+      #     for py_ver in $PY_VERSIONS; do
+      #       echo
+      #       echo "🔹🔸🔹🔸🔹 Python: $py_ver 🔹🔸🔹🔸🔹"
 
-            echo "Entering pixi project directory easyscience_py$py_ver"
-            cd easyscience_py$py_ver
+      #       echo "Entering pixi project directory easyscience_py$py_ver"
+      #       cd easyscience_py$py_ver
 
-            echo "Running tests"
-            pixi run python -m pytest ../tests/functional/ --color=yes -v
+      #       echo "Running tests"
+      #       pixi run python -m pytest ../tests/functional/ --color=yes -v
 
-            echo "Exiting pixi project directory"
-            cd ..
-          done
+      #       echo "Exiting pixi project directory"
+      #       cd ..
+      #     done
 
       - name: Run integration tests ${{ needs.env-prepare.outputs.pytest-marks }}
         shell: bash

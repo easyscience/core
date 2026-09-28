@@ -206,6 +206,5 @@ nav:
       - global_object: api-reference/global_object.md
       - io: api-reference/io.md
       - job: api-reference/job.md
-      - models: api-reference/models.md
       - utils: api-reference/utils.md
       - variable: api-reference/variable.md

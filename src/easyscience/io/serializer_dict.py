@@ -75,6 +75,13 @@ class SerializerDict(SerializerBase):
             EasyScience object.
         """
         if SerializerBase._is_serialized_easyscience_object(d):
+            # ``decode`` also receives values that are not EasyScience
+            # objects: plain dicts and lists, ``None``, and encoded numpy
+            # arrays or datetimes. Those have no ``@module``/``@class``
+            # keys, or name a module outside the ``easy*`` packages, and
+            # must stay on the generic path below. Without the check,
+            # ``d['@module']`` would fail for plain dicts, lists and None.
+
             # Local import to avoid a circular dependency
             from ..base_classes.new_base import NewBase
 

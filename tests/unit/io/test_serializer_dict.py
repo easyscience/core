@@ -114,9 +114,9 @@ def test_group_encode2():
     p0 = Parameter(0, display_name='a')
     p1 = Parameter(1, display_name='b')
 
-    from easyscience.models.polynomial import Polynomial
+    from easy_test_models import CoefficientModel
 
-    b = Polynomial(display_name='outer', coefficients=[p0, p1])
+    b = CoefficientModel(display_name='outer', coefficients=[p0, p1])
     d = b.to_dict()
     assert isinstance(d['coefficients'], dict)
     assert len(d['coefficients']['data']) == 2

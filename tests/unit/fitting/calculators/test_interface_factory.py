@@ -565,7 +565,7 @@ class TestItemContainer:
 
 def test_generate_bindings_with_model_base():
     """Bindings are generated for a real ModelBase via get_all_variables."""
-    from easyscience.models.polynomial import Polynomial
+    from easy_test_models import CoefficientModel
 
     global_object.map._clear()
     storage = {}
@@ -592,7 +592,7 @@ def test_generate_bindings_with_model_base():
         def fit_func(self, *args, **kwargs):
             return None
 
-    poly = Polynomial(coefficients=[1.0, 2.0])
+    poly = CoefficientModel(coefficients=[1.0, 2.0])
     factory = InterfaceFactoryTemplate([Calculator])
 
     factory.generate_bindings(poly)
