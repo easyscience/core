@@ -149,7 +149,7 @@ raw-metrics-json = 'radon raw -s -j src/'
 #############
 
 unit-tests-coverage = 'pixi run unit-tests --cov=src/easyscience --cov-report=term-missing'
-functional-tests-coverage = 'pixi run functional-tests --cov=src/easyscience --cov-report=term-missing'
+# functional-tests-coverage = 'pixi run functional-tests --cov=src/easyscience --cov-report=term-missing'
 integration-tests-coverage = 'pixi run integration-tests --cov=src/easyscience --cov-report=term-missing'
 docstring-coverage = 'interrogate -c pyproject.toml src/easyscience'
 
