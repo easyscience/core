@@ -175,8 +175,6 @@ class SerializerBase:
         if hasattr(obj, '_arg_spec'):
             args = obj._arg_spec
 
-        redirect = getattr(obj, '_REDIRECT', {})
-
         def runner(o):
             if full_encode:
                 return SerializerBase._encode_objs(o)
@@ -184,40 +182,36 @@ class SerializerBase:
                 return o
 
         for c in args:
-            if c not in skip:
-                if c in redirect.keys():
-                    if redirect[c] is None:
-                        continue
-                    a = runner(redirect[c](obj))
-                else:
-                    try:
-                        a = runner(obj.__getattribute__(c))
-                    except AttributeError:
-                        try:
-                            a = runner(obj.__getattribute__('_' + c))
-                        except AttributeError:
-                            err = True
-                            if hasattr(obj, 'kwargs'):
-                                # type: ignore
-                                option = getattr(obj, 'kwargs')
-                                if hasattr(option, c):
-                                    v = getattr(option, c)
-                                    delattr(option, c)
-                                    d.update(runner(v))  # pylint: disable=E1101
-                                    err = False
-                            if err:
-                                raise NotImplementedError(
-                                    'Unable to automatically determine to_dict '
-                                    'format from class. MSONAble requires all '
-                                    'args to be present as either self.argname or '
-                                    'self._argname, and kwargs to be present under'
-                                    'a self.kwargs variable to automatically '
-                                    'determine the dict format. Alternatively, '
-                                    'you can implement both to_dict and from_dict.'
-                                )
-                d[c] = self._recursive_encoder(
-                    a, skip=skip, encoder=self, full_encode=full_encode, **kwargs
-                )
+            if c in skip:
+                continue
+            try:
+                a = runner(obj.__getattribute__(c))
+            except AttributeError:
+                try:
+                    a = runner(obj.__getattribute__('_' + c))
+                except AttributeError:
+                    err = True
+                    if hasattr(obj, 'kwargs'):
+                        # type: ignore
+                        option = getattr(obj, 'kwargs')
+                        if hasattr(option, c):
+                            v = getattr(option, c)
+                            delattr(option, c)
+                            d.update(runner(v))  # pylint: disable=E1101
+                            err = False
+                    if err:
+                        raise NotImplementedError(
+                            'Unable to automatically determine to_dict '
+                            'format from class. MSONAble requires all '
+                            'args to be present as either self.argname or '
+                            'self._argname, and kwargs to be present under'
+                            'a self.kwargs variable to automatically '
+                            'determine the dict format. Alternatively, '
+                            'you can implement both to_dict and from_dict.'
+                        )
+            d[c] = self._recursive_encoder(
+                a, skip=skip, encoder=self, full_encode=full_encode, **kwargs
+            )
         if spec.varargs is not None and getattr(obj, spec.varargs, None) is not None:
             d.update({spec.varargs: getattr(obj, spec.varargs)})
         if isinstance(obj, Enum):
