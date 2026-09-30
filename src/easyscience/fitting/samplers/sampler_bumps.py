@@ -20,6 +20,7 @@ from ..minimizers.bumps_utils import build_curve_problem
 from ..minimizers.bumps_utils import parameter_names
 from ..minimizers.bumps_utils import parameter_snapshot
 from ..minimizers.utils import FitError
+from .parallel import BumpsPoolMapper
 from .validation import validate_run_settings
 
 if TYPE_CHECKING:
@@ -73,6 +74,7 @@ class DreamSampler(EngineBase):
         sampler_kwargs: dict | None = None,
         progress_callback: Callable[[dict], None] | None = None,
         abort_test: Callable[[], bool] | None = None,
+        n_workers: int | None = None,
     ) -> dict:
         """
         Run Bayesian MCMC sampling using the BUMPS DREAM sampler.
@@ -140,6 +142,13 @@ class DreamSampler(EngineBase):
             Optional callback that returns ``True`` to signal that
             sampling should be aborted. Called periodically during the
             DREAM sampling loop.
+        n_workers : int | None, default=None
+            Number of worker processes used to evaluate the DREAM
+            population. ``None`` and ``1`` evaluate sequentially in this
+            process. Values greater than ``1`` evaluate each generation
+            in a process pool, capped at the number of chains; the model
+            and fit function must then be serializable (see
+            :class:`~easyscience.fitting.samplers.parallel.BumpsPoolMapper`).
 
         Returns
         -------
@@ -151,12 +160,14 @@ class DreamSampler(EngineBase):
         ------
         ValueError
             If the input shapes or weights are invalid, if
-            ``progress_callback`` is not callable, or if ``resume_state``
-            is incompatible with the current model (parameter count,
-            names/order, or population mismatch).
+            ``progress_callback`` is not callable, if ``n_workers`` is not
+            a positive integer, or if ``resume_state`` is incompatible
+            with the current model (parameter count, names/order, or
+            population mismatch).
         FitError
             If DREAM sampling was aborted by the user (via
-            ``abort_test``).
+            ``abort_test``), or if multiprocessing was requested for a
+            problem that cannot be serialized for worker processes.
         Exception
             Re-raised from DREAM fitting if any unexpected error occurs
             (parameter values are restored beforehand).
@@ -166,6 +177,10 @@ class DreamSampler(EngineBase):
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
         validate_run_settings(samples, burn, thin)
+        if n_workers is not None and (
+            not isinstance(n_workers, int) or isinstance(n_workers, bool) or n_workers < 1
+        ):
+            raise ValueError('n_workers must be a positive integer.')
         self.validate_arrays(x, y, weights)
 
         # Build the BUMPS Curve model around the engine's wrapped fit function
@@ -204,14 +219,25 @@ class DreamSampler(EngineBase):
                 )
             )
 
-        driver = FitDriver(
-            fitclass=DreamFit,
-            problem=problem,
-            monitors=monitors,
-            abort_test=abort_test if abort_test is not None else (lambda: False),
-            **dream_kwargs,
-        )
-        driver.clip()
+        mapper = None
+        if n_workers is not None and n_workers > 1:
+            n_chains = self._chain_count(dream_kwargs.get('pop'), len(problem._parameters))
+            mapper = BumpsPoolMapper(problem, n_workers=min(n_workers, n_chains))
+
+        try:
+            driver = FitDriver(
+                fitclass=DreamFit,
+                problem=problem,
+                monitors=monitors,
+                abort_test=abort_test if abort_test is not None else (lambda: False),
+                mapper=mapper,
+                **dream_kwargs,
+            )
+            driver.clip()
+        except Exception:
+            if mapper is not None:
+                mapper.terminate()
+            raise
 
         from easyscience import global_object
 
@@ -235,6 +261,8 @@ class DreamSampler(EngineBase):
             self._restore_parameter_values()
             raise
         finally:
+            if mapper is not None:
+                mapper.close()
             global_object.stack.enabled = stack_status
 
         _draw = result_state.draw()
@@ -245,6 +273,34 @@ class DreamSampler(EngineBase):
             'internal_bumps_object': result_state,
             'logp': _draw.logp,
         }
+
+    @staticmethod
+    def _chain_count(pop: float | None, n_params: int) -> int:
+        """
+        Number of DREAM chains (points evaluated per generation).
+
+        Mirrors ``bumps.initpop.generate``: a positive ``pop`` is a scale
+        factor giving ``ceil(pop * n_params)`` chains, a negative ``pop``
+        is an absolute chain count, and ``None`` means BUMPS' default
+        scale factor of 10.
+
+        Parameters
+        ----------
+        pop : float | None
+            The DREAM ``pop`` setting.
+        n_params : int
+            Number of sampled parameters.
+
+        Returns
+        -------
+        int
+            The number of chains, at least 1.
+        """
+        if pop is None:
+            pop = 10
+        if pop < 0:
+            return max(1, int(-pop))
+        return max(1, math.ceil(pop * n_params))
 
     def _validate_resume_state(
         self,

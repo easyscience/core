@@ -27,6 +27,7 @@ dependencies = [
   'asteval',  # Safely evaluate Python expressions from strings
   'lmfit',  # Non-linear least squares fitting
   'bumps>=1.0.4',  # Bayesian uncertainty estimation
+  'cloudpickle',  # Serialize fit functions for parallel sampling
   'dfo-ls',  # Derivative-free optimization
   'numpy',  # Numerical computing
   'scipp',  # Handling and analysis of scientific data

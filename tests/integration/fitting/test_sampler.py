@@ -8,6 +8,10 @@ paths, argument validation and sidecar parsing are unit-tested in
 """
 
 import json
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -448,3 +452,86 @@ class TestSampler:
         with caplog.at_level(logging.WARNING, logger='easyscience.fitting'):
             sampler2.load_state(prefix)
         assert 'does not match the data fingerprint' in caplog.text
+
+
+#: Run as a separate script: workers are spawned, so the entry point must be
+#: guarded by ``if __name__ == '__main__'``. The model is defined in the
+#: script's ``__main__`` (as in a notebook or user script), so it can only
+#: reach the workers by value, through cloudpickle.
+_PARALLEL_SCRIPT = """
+import multiprocessing as mp
+import sys
+
+sys.path.insert(0, {src!r})
+
+import numpy as np
+
+from easyscience import Parameter
+from easyscience.base_classes import ModelBase
+from easyscience.fitting import Sampler
+
+
+class Line(ModelBase):
+    def __init__(self, m_val, c_val):
+        super().__init__()
+        self._m = Parameter(m_val, display_name='m', fixed=False, min=-10, max=10)
+        self._c = Parameter(c_val, display_name='c', fixed=False, min=-10, max=10)
+        # A dependent parameter: it and ``m`` reference each other.
+        self._d = Parameter.from_dependency('2*m', {{'m': self._m}}, display_name='d')
+
+    @property
+    def m(self):
+        return self._m
+
+    @property
+    def c(self):
+        return self._c
+
+    def __call__(self, x):
+        return self._d.value / 2 * x + self.c.value
+
+
+def main():
+    x = np.linspace(0, 1, 40)
+    y = 3.0 * x + 1.0
+    weights = np.full_like(x, 20.0)
+
+    model = Line(2.0, 0.5)
+    sampler = Sampler(model, model, x, y, weights)
+    results = sampler.sample(samples=1000, burn=50, thin=2, population=5, n_workers=2)
+    assert results.draws.ndim == 2
+    assert results.draws.shape[1] == len(results.param_names) == 2
+    means = results.draws.mean(axis=0)
+    assert np.allclose(means, [3.0, 1.0], atol=0.2), means
+
+    extended = sampler.extend(additional_samples=300, n_workers=2)
+    assert extended.draws.shape[1] == 2
+    print('ok')
+
+
+if __name__ == '__main__':
+    mp.freeze_support()
+    main()
+"""
+
+
+class TestSamplerParallel:
+    def test_n_workers_two_samples_and_extends(self, tmp_path):
+        """n_workers>1 evaluates DREAM populations in spawned worker processes."""
+        src = str(Path(__file__).resolve().parents[3] / 'src')
+        script = tmp_path / 'run_parallel_sampling.py'
+        script.write_text(textwrap.dedent(_PARALLEL_SCRIPT.format(src=src)), encoding='utf-8')
+
+        try:
+            completed = subprocess.run(
+                [sys.executable, str(script)],
+                capture_output=True,
+                text=True,
+                timeout=120,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            pytest.fail('n_workers=2 sampling subprocess timed out after 120 seconds')
+
+        assert completed.returncode == 0, completed.stdout + completed.stderr
+        assert completed.stdout.strip().endswith('ok')

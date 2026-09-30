@@ -23,7 +23,7 @@ from easyscience.io import SerializerBase
 from easyscience.io import SerializerComponent
 
 
-class TestEnum(Enum):
+class SampleEnum(Enum):
     TEST_VALUE = 'test'
     ANOTHER_VALUE = 42
 
@@ -334,18 +334,18 @@ class TestSerializerBase:
 
         # Test that enum values in objects remain as enums without full_encode
         class MockObjWithEnum(SerializerComponent):
-            def __init__(self, name: str, enum_val: TestEnum):
+            def __init__(self, name: str, enum_val: SampleEnum):
                 self.name = name
                 self.enum_val = enum_val
                 self.unique_name = f'obj_{name}'
                 self._global_object = True
 
-        obj = MockObjWithEnum('test', TestEnum.TEST_VALUE)
+        obj = MockObjWithEnum('test', SampleEnum.TEST_VALUE)
         result = serializer._convert_to_dict(obj)
 
         # The enum field should remain as an enum object (not encoded as dict)
-        assert isinstance(result['enum_val'], TestEnum)
-        assert result['enum_val'] == TestEnum.TEST_VALUE
+        assert isinstance(result['enum_val'], SampleEnum)
+        assert result['enum_val'] == SampleEnum.TEST_VALUE
 
     def test_convert_to_dict_full_encode(self, serializer, clear):
         """Test _convert_to_dict with full_encode=True"""

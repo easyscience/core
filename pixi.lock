@@ -6877,6 +6877,7 @@ packages:
   requires_dist:
   - asteval
   - bumps>=1.0.4
+  - cloudpickle
   - dfo-ls
   - lmfit
   - numpy
