@@ -4,6 +4,7 @@
 import datetime
 import json
 from enum import Enum
+from types import SimpleNamespace
 from typing import Any
 from typing import List
 from typing import Optional
@@ -378,7 +379,7 @@ class TestSerializerBase:
         assert result['name'] == 'test'
         assert 'unique_name' not in result
 
-    def test_convert_to_dict_with_arg_spec(self, serializer, clear):
+    def test_convert_to_dict_with_instance_arg_spec(self, serializer, clear):
         """Test _convert_to_dict with custom _arg_spec"""
 
         class MockObjCustomArgSpec(SerializerComponent):
@@ -492,6 +493,41 @@ class TestSerializerBase:
                 # Don't set missing_param attribute to trigger AttributeError
 
         obj = MockObjMissingAttrs('test')
+
+        with pytest.raises(NotImplementedError, match='Unable to automatically determine to_dict'):
+            serializer._convert_to_dict(obj)
+
+    def test_convert_to_dict_missing_attr_taken_from_kwargs(self, serializer, clear):
+        """A missing argument stored on self.kwargs is merged into the dict"""
+
+        class MockObjWithKwargs(SerializerComponent):
+            def __init__(self, extra: dict = None, name: str = 'test'):
+                self.name = name
+                self.kwargs = SimpleNamespace(extra={'extra_a': 1, 'extra_b': 'two'})
+                self.unique_name = f'kwargs_{name}'
+                self._global_object = True
+
+        obj = MockObjWithKwargs()
+        result = serializer._convert_to_dict(obj)
+
+        assert result['extra_a'] == 1
+        assert result['extra_b'] == 'two'
+        assert 'extra' not in result
+        assert result['name'] == 'test'
+        # The value is consumed from kwargs
+        assert not hasattr(obj.kwargs, 'extra')
+
+    def test_convert_to_dict_missing_attr_not_in_kwargs(self, serializer, clear):
+        """A missing argument absent from self.kwargs raises NotImplementedError"""
+
+        class MockObjWithEmptyKwargs(SerializerComponent):
+            def __init__(self, name: str, missing_param: str = 'default'):
+                self.name = name
+                self.kwargs = SimpleNamespace()
+                self.unique_name = f'empty_kwargs_{name}'
+                self._global_object = True
+
+        obj = MockObjWithEmptyKwargs('test')
 
         with pytest.raises(NotImplementedError, match='Unable to automatically determine to_dict'):
             serializer._convert_to_dict(obj)
