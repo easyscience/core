@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import datetime
+import json
 from enum import Enum
+from types import SimpleNamespace
 from typing import Any
 from typing import List
 from typing import Optional
@@ -16,6 +18,7 @@ import pytest
 from easyscience import DescriptorNumber
 from easyscience import Parameter
 from easyscience import global_object
+from easyscience.base_classes import ModelBase
 from easyscience.base_classes import NewBase
 from easyscience.io import SerializerBase
 from easyscience.io import SerializerComponent
@@ -39,17 +42,27 @@ class MockSerializerComponent(SerializerComponent):
         self._global_object = True
 
 
-class MockSerializerWithRedirect(SerializerComponent):
-    """Mock with _REDIRECT for testing redirect functionality"""
-
-    _REDIRECT = {'special_attr': lambda obj: obj.value * 2, 'none_attr': None}
+class MockSerializerWithArgSpec(SerializerComponent):
+    """Mock with an _arg_spec that leaves out one constructor argument"""
 
     def __init__(self, name: str = 'test', value: int = 1, special_attr: int = 5):
         self.name = name
         self.value = value
         self.special_attr = special_attr
-        self.unique_name = f'redirect_{name}'
+        self.unique_name = f'arg_spec_{name}'
         self._global_object = True
+
+    @property
+    def _arg_spec(self):
+        return {'name', 'value'}
+
+
+class MockModelWithParameter(ModelBase):
+    """Model holding a Parameter as a constructor argument"""
+
+    def __init__(self, p: Optional[Parameter] = None):
+        super().__init__()
+        self._p = p
 
 
 class MockSerializerWithConvertToDict(SerializerComponent):
@@ -288,13 +301,25 @@ class TestSerializerBase:
         assert 'value' not in result
         assert 'optional_param' not in result
 
-    def test_convert_to_dict_with_redirect(self, serializer, clear):
-        """Test _convert_to_dict with _REDIRECT"""
-        obj = MockSerializerWithRedirect('redirect_test', 10)
+    def test_convert_to_dict_with_arg_spec(self, serializer, clear):
+        """Test _convert_to_dict only collects the names in _arg_spec"""
+        obj = MockSerializerWithArgSpec('arg_spec_test', 10)
         result = serializer._convert_to_dict(obj)
 
-        assert result['special_attr'] == 20  # 10 * 2 from redirect
-        assert 'none_attr' not in result  # Should be skipped due to None redirect
+        assert result['name'] == 'arg_spec_test'
+        assert result['value'] == 10
+        assert 'special_attr' not in result
+
+    def test_convert_to_dict_nested_parameter_omits_callback(self, serializer, clear):
+        """A Parameter nested in a model serializes without its callback"""
+        model = MockModelWithParameter(p=Parameter(2.0, display_name='p'))
+        result = serializer._convert_to_dict(model)
+
+        nested = result['p']
+        assert nested['@class'] == 'Parameter'
+        assert nested['value'] == 2.0
+        assert 'callback' not in nested
+        json.dumps(nested)
 
     def test_convert_to_dict_with_custom_convert_to_dict(self, serializer, clear):
         """Test _convert_to_dict with custom _convert_to_dict method"""
@@ -354,7 +379,7 @@ class TestSerializerBase:
         assert result['name'] == 'test'
         assert 'unique_name' not in result
 
-    def test_convert_to_dict_with_arg_spec(self, serializer, clear):
+    def test_convert_to_dict_with_instance_arg_spec(self, serializer, clear):
         """Test _convert_to_dict with custom _arg_spec"""
 
         class MockObjCustomArgSpec(SerializerComponent):
@@ -468,6 +493,41 @@ class TestSerializerBase:
                 # Don't set missing_param attribute to trigger AttributeError
 
         obj = MockObjMissingAttrs('test')
+
+        with pytest.raises(NotImplementedError, match='Unable to automatically determine to_dict'):
+            serializer._convert_to_dict(obj)
+
+    def test_convert_to_dict_missing_attr_taken_from_kwargs(self, serializer, clear):
+        """A missing argument stored on self.kwargs is merged into the dict"""
+
+        class MockObjWithKwargs(SerializerComponent):
+            def __init__(self, extra: dict = None, name: str = 'test'):
+                self.name = name
+                self.kwargs = SimpleNamespace(extra={'extra_a': 1, 'extra_b': 'two'})
+                self.unique_name = f'kwargs_{name}'
+                self._global_object = True
+
+        obj = MockObjWithKwargs()
+        result = serializer._convert_to_dict(obj)
+
+        assert result['extra_a'] == 1
+        assert result['extra_b'] == 'two'
+        assert 'extra' not in result
+        assert result['name'] == 'test'
+        # The value is consumed from kwargs
+        assert not hasattr(obj.kwargs, 'extra')
+
+    def test_convert_to_dict_missing_attr_not_in_kwargs(self, serializer, clear):
+        """A missing argument absent from self.kwargs raises NotImplementedError"""
+
+        class MockObjWithEmptyKwargs(SerializerComponent):
+            def __init__(self, name: str, missing_param: str = 'default'):
+                self.name = name
+                self.kwargs = SimpleNamespace()
+                self.unique_name = f'empty_kwargs_{name}'
+                self._global_object = True
+
+        obj = MockObjWithEmptyKwargs('test')
 
         with pytest.raises(NotImplementedError, match='Unable to automatically determine to_dict'):
             serializer._convert_to_dict(obj)

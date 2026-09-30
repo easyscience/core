@@ -11,6 +11,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 from typing import Union
 
 import numpy as np
@@ -32,11 +33,6 @@ class Parameter(DescriptorNumber):
 
     It has additional fields to facilitate this.
     """
-
-    # Used by serializer
-    # We copy the parent's _REDIRECT and modify it to avoid altering the parent's class dict
-    _REDIRECT = DescriptorNumber._REDIRECT.copy()
-    _REDIRECT['callback'] = None
 
     def __init__(
         self,
@@ -888,6 +884,16 @@ class Parameter(DescriptorNumber):
     @free.setter
     def free(self, value: bool) -> None:
         self.fixed = not value
+
+    @property
+    def _arg_spec(self) -> Set[str]:
+        """
+        Names of the constructor arguments the serializer has to collect.
+
+        ``callback`` links to a calculator object.
+          Holds a ``property`` that cannot be serialized.
+        """
+        return super()._arg_spec - {'callback'}
 
     def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         """
