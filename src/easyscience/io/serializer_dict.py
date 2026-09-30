@@ -74,5 +74,23 @@ class SerializerDict(SerializerBase):
         SerializerComponent
             EasyScience object.
         """
+        if SerializerBase._is_serialized_easyscience_object(d):
+            # ``decode`` also receives values that are not EasyScience
+            # objects: plain dicts and lists, ``None``, and encoded numpy
+            # arrays or datetimes. Those have no ``@module``/``@class``
+            # keys, or name a module outside the ``easy*`` packages.
+            # Without the check, ``d['@module']`` would fail for
+            # plain dicts, lists and None.
 
+            # Local import to avoid a circular dependency
+            from ..base_classes.new_base import NewBase
+
+            try:
+                cls_ = SerializerBase._import_class(d['@module'], d['@class'])
+            except (ImportError, ValueError):
+                cls_ = None
+            # NewBase subclasses know how to rebuild nested members
+            # (e.g. EasyList protected types), so defer to their from_dict.
+            if isinstance(cls_, type) and issubclass(cls_, NewBase):
+                return cls_.from_dict(d)
         return SerializerBase._convert_from_dict(d)

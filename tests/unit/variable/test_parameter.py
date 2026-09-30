@@ -9,7 +9,7 @@ import scipp as sc
 from scipp import UnitError
 
 from easyscience import DescriptorNumber
-from easyscience import ObjBase
+from easyscience import ModelBase
 from easyscience import Parameter
 from easyscience import global_object
 
@@ -469,7 +469,7 @@ class TestParameter:
     ):
         # When
         normal_parameter._dependency_map = {}
-        base_obj = ObjBase(name='ObjBase', unique_name='base_obj')
+        base_obj = ModelBase(unique_name='base_obj')
 
         # Then Expect
         with pytest.raises(
@@ -484,7 +484,7 @@ class TestParameter:
             (2, {'a': Parameter(display_name='a', value=1)}),
             ('2*a', ['a', Parameter(display_name='a', value=1)]),
             ('2*a', {4: Parameter(display_name='a', value=1)}),
-            ('2*a', {'a': ObjBase(name='a')}),
+            ('2*a', {'a': ModelBase(display_name='a')}),
         ],
         ids=[
             'dependency_expression_not_a_string',

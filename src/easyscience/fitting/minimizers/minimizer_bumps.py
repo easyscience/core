@@ -15,8 +15,6 @@ from bumps.names import FitProblem
 from bumps.parameter import Parameter as BumpsParameter
 from scipy.optimize import OptimizeResult
 
-# causes circular import when Parameter is imported
-# from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
@@ -42,7 +40,7 @@ class Bumps(MinimizerBase):
     """
     This is a wrapper to Bumps: https://bumps.readthedocs.io/ It allows
     for the Bumps fitting engine to use parameters declared in an
-    ``EasyScience.base_classes.ObjBase``.
+    ``easyscience.base_classes.ModelBase``.
     """
 
     package = 'bumps'

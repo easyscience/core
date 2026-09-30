@@ -18,8 +18,6 @@ available in EasyScience.
   persisting EasyScience objects (serializers and components).
 - [job](job.md) – Job and experiment abstractions for running and
   organizing analyses.
-- [models](models.md) – Predefined model implementations (e.g.
-  polynomial models) used in fitting workflows.
 - [utils](utils.md) – Miscellaneous utility functions and helpers (class
   tools, decorators, type helpers).
 - [variable](variable.md) – Descriptor types and variable abstractions

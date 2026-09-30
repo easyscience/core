@@ -568,6 +568,25 @@ class TestEasyList:
         assert el2[1].unique_name == 'a2'
         assert d == el2.to_dict()  # The dicts should be the same after round trip
 
+    def test_to_dict_forwards_skip_to_items(self):
+        a1 = Alpha(unique_name='a1', display_name='first')
+        el = EasyList(a1, unique_name='my_list', protected_types=Alpha)
+
+        d = el.to_dict(skip=['display_name'])
+
+        assert 'display_name' not in d['data'][0]
+        assert d['data'][0]['unique_name'] == 'a1'
+
+    def test_convert_to_dict_without_skip(self):
+        """The serializer hook also works when called without ``skip``."""
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, protected_types=Alpha)
+
+        d = el._convert_to_dict({}, encoder=None)
+
+        assert d['data'][0]['unique_name'] == 'a1'
+        assert d['protected_types'][0]['@class'] == 'Alpha'
+
     # --- get_all_variables ---
 
     def test_get_all_variables_empty_list(self):

@@ -205,14 +205,6 @@ class SerializerBase:
                                     delattr(option, c)
                                     d.update(runner(v))  # pylint: disable=E1101
                                     err = False
-                            if hasattr(obj, '_kwargs'):
-                                # type: ignore
-                                option = getattr(obj, '_kwargs')
-                                if hasattr(option, c):
-                                    v = getattr(option, c)
-                                    delattr(option, c)
-                                    d.update(runner(v))  # pylint: disable=E1101
-                                    err = False
                             if err:
                                 raise NotImplementedError(
                                     'Unable to automatically determine to_dict '
@@ -228,27 +220,6 @@ class SerializerBase:
                 )
         if spec.varargs is not None and getattr(obj, spec.varargs, None) is not None:
             d.update({spec.varargs: getattr(obj, spec.varargs)})
-        if hasattr(obj, '_kwargs'):
-            if not issubclass(type(obj), MutableSequence):
-                d_k = list(d.keys())
-                for k, v in getattr(obj, '_kwargs').items():
-                    # We should have already obtained `key` and `_key`
-                    if k not in skip and k not in d_k:
-                        if k[0] == '_' and k[1:] in d_k:
-                            continue
-                        vv = v
-                        if k in redirect.keys():
-                            if redirect[k] is None:
-                                continue
-                            vv = redirect[k](obj)
-                        v_ = runner(vv)
-                        d[k] = self._recursive_encoder(
-                            v_,
-                            skip=skip,
-                            encoder=self,
-                            full_encode=full_encode,
-                            **kwargs,
-                        )
         if isinstance(obj, Enum):
             d.update({'value': runner(obj.value)})  # pylint: disable=E1101
         if hasattr(obj, '_convert_to_dict'):
