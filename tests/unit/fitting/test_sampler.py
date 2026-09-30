@@ -585,6 +585,57 @@ class TestSamplerExtendArithmetic:
         assert captured['samples'] == 1234
 
 
+class TestSamplerNWorkersForwarding:
+    """``n_workers`` is forwarded from ``sample()``/``extend()`` to the engine."""
+
+    @staticmethod
+    def _capture_run(monkeypatch):
+        from easyscience.fitting.samplers.sampler_bumps import DreamSampler
+
+        captured = {}
+
+        def fake_run(self, **kwargs):
+            captured.update(kwargs)
+            state = _make_state()
+            draw = state.draw()
+            return {
+                'draws': draw.points,
+                'param_names': ['offset', 'phase'],
+                'logp': draw.logp,
+                'internal_bumps_object': state,
+            }
+
+        monkeypatch.setattr(DreamSampler, 'run', fake_run)
+        return captured
+
+    def test_sample_defaults_to_sequential(self, monkeypatch):
+        captured = self._capture_run(monkeypatch)
+        sp, x, y, weights = _model_and_data()
+
+        Sampler(sp, sp, x, y, weights).sample(samples=100, burn=10, thin=2)
+
+        assert captured['n_workers'] is None
+
+    def test_sample_forwards_n_workers(self, monkeypatch):
+        captured = self._capture_run(monkeypatch)
+        sp, x, y, weights = _model_and_data()
+
+        Sampler(sp, sp, x, y, weights).sample(samples=100, burn=10, thin=2, n_workers=4)
+
+        assert captured['n_workers'] == 4
+
+    def test_extend_forwards_n_workers(self, monkeypatch):
+        captured = self._capture_run(monkeypatch)
+        sp, x, y, weights = _model_and_data()
+        sampler = Sampler(sp, sp, x, y, weights)
+        sampler.sample(samples=100, burn=10, thin=2)
+
+        sampler.extend(additional_samples=50, n_workers=3)
+
+        assert captured['n_workers'] == 3
+        assert captured['resume_state'] is not None
+
+
 class TestSamplerPersistenceRoundTrip:
     """Real ``save()``/``load_chain()``/``load_state()`` round-trips over a
     synthesized chain — no BUMPS reader mocking, unlike ``TestLoadChainSidecar``."""

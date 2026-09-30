@@ -488,3 +488,140 @@ class TestDreamSamplerProgressPayload:
             'total_steps',
         }
         assert set(payload.keys()) == expected_keys
+
+
+class TestDreamSamplerNWorkers:
+    """``n_workers`` wiring of ``DreamSampler.run()`` to the pool mapper."""
+
+    @pytest.fixture
+    def engine(self) -> DreamSampler:
+        return DreamSampler(obj='obj', fit_function='fit_function')
+
+    @pytest.fixture(autouse=True)
+    def _mock_bumps_internals(self, monkeypatch):
+        import bumps.fitters
+
+        monkeypatch.setattr(bumps.fitters, 'DreamFit', MagicMock())
+        problem = MagicMock()
+        problem._parameters = [MagicMock(), MagicMock()]  # two sampled parameters
+        monkeypatch.setattr(
+            easyscience.fitting.samplers.sampler_bumps,
+            'build_curve_problem',
+            MagicMock(return_value=(problem, MagicMock(), MagicMock())),
+        )
+
+    @staticmethod
+    def _setup_driver(monkeypatch, fit_side_effect=None):
+        from easyscience import global_object
+
+        global_object.stack.enabled = False
+        mock_driver = MagicMock()
+        if fit_side_effect is not None:
+            mock_driver.fit.side_effect = fit_side_effect
+        else:
+            mock_driver.fit.return_value = (np.array([1.0]), 0.0)
+            mock_draw = MagicMock()
+            mock_draw.points = np.array([[1.0, 2.0]])
+            mock_draw.logp = np.array([0.5])
+            mock_driver.fitter.state.draw.return_value = mock_draw
+        mock_FitDriver = MagicMock(return_value=mock_driver)
+        monkeypatch.setattr(
+            easyscience.fitting.samplers.sampler_bumps, 'FitDriver', mock_FitDriver
+        )
+        return mock_FitDriver
+
+    @staticmethod
+    def _patch_mapper(monkeypatch):
+        mock_mapper = MagicMock()
+        mock_cls = MagicMock(return_value=mock_mapper)
+        monkeypatch.setattr(
+            easyscience.fitting.samplers.sampler_bumps, 'BumpsPoolMapper', mock_cls
+        )
+        return mock_cls, mock_mapper
+
+    @staticmethod
+    def _run(engine, **kwargs):
+        return engine.run(
+            x=np.array([1.0, 2.0]),
+            y=np.array([0.1, 0.2]),
+            weights=np.array([1.0, 1.0]),
+            samples=10,
+            burn=0,
+            thin=1,
+            **kwargs,
+        )
+
+    @pytest.mark.parametrize('n_workers', [0, -2, 1.5, True, '2'])
+    def test_invalid_n_workers_raises(self, engine, monkeypatch, n_workers):
+        self._setup_driver(monkeypatch)
+        with pytest.raises(ValueError, match='n_workers must be a positive integer'):
+            self._run(engine, n_workers=n_workers)
+
+    @pytest.mark.parametrize('n_workers', [None, 1])
+    def test_sequential_does_not_create_mapper(self, engine, monkeypatch, n_workers):
+        mock_FitDriver = self._setup_driver(monkeypatch)
+        mock_cls, _ = self._patch_mapper(monkeypatch)
+
+        self._run(engine, n_workers=n_workers)
+
+        mock_cls.assert_not_called()
+        assert mock_FitDriver.call_args.kwargs['mapper'] is None
+
+    def test_parallel_creates_mapper_and_passes_to_driver(self, engine, monkeypatch):
+        mock_FitDriver = self._setup_driver(monkeypatch)
+        mock_cls, mock_mapper = self._patch_mapper(monkeypatch)
+
+        self._run(engine, n_workers=2)
+
+        mock_cls.assert_called_once()
+        assert mock_cls.call_args.kwargs['n_workers'] == 2
+        assert mock_FitDriver.call_args.kwargs['mapper'] is mock_mapper
+        mock_mapper.close.assert_called_once()
+
+    @pytest.mark.parametrize(
+        'population, expected_workers',
+        [
+            (None, 8),  # default scale 10 * 2 params = 20 chains
+            (1.5, 3),  # ceil(1.5 * 2) = 3 chains
+        ],
+    )
+    def test_n_workers_capped_at_chain_count(
+        self, engine, monkeypatch, population, expected_workers
+    ):
+        self._setup_driver(monkeypatch)
+        mock_cls, _ = self._patch_mapper(monkeypatch)
+
+        self._run(engine, n_workers=8, population=population)
+
+        assert mock_cls.call_args.kwargs['n_workers'] == expected_workers
+
+    def test_mapper_shut_down_when_sampling_fails(self, engine, monkeypatch):
+        self._setup_driver(monkeypatch, fit_side_effect=RuntimeError('driver failed'))
+        _, mock_mapper = self._patch_mapper(monkeypatch)
+        engine._restore_parameter_values = MagicMock()
+
+        with pytest.raises(RuntimeError, match='driver failed'):
+            self._run(engine, n_workers=2)
+
+        mock_mapper.close.assert_called_once()
+        engine._restore_parameter_values.assert_called_once()
+
+    def test_mapper_shut_down_when_driver_construction_fails(self, engine, monkeypatch):
+        monkeypatch.setattr(
+            easyscience.fitting.samplers.sampler_bumps,
+            'FitDriver',
+            MagicMock(side_effect=TypeError('bad option')),
+        )
+        _, mock_mapper = self._patch_mapper(monkeypatch)
+
+        with pytest.raises(TypeError, match='bad option'):
+            self._run(engine, n_workers=2)
+
+        mock_mapper.terminate.assert_called_once()
+
+    @pytest.mark.parametrize(
+        'pop, n_params, expected',
+        [(None, 3, 30), (10, 3, 30), (1.5, 3, 5), (-7, 3, 7), (0, 3, 1), (2, 0, 1)],
+    )
+    def test_chain_count(self, pop, n_params, expected):
+        assert DreamSampler._chain_count(pop, n_params) == expected

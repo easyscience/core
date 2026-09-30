@@ -527,6 +527,7 @@ class Sampler:
         sampler_kwargs: dict | None,
         progress_callback: Callable[[dict], None] | None,
         abort_test: Callable[[], bool] | None,
+        n_workers: int | None = None,
     ) -> SamplingResults:
         """Shared sampling engine for ``sample()`` and ``extend()``.
 
@@ -564,6 +565,7 @@ class Sampler:
             sampler_kwargs=merged_kwargs or None,
             progress_callback=progress_callback,
             abort_test=abort_test,
+            n_workers=n_workers,
         )
 
         results = SamplingResults(
@@ -585,6 +587,7 @@ class Sampler:
         sampler_kwargs: dict | None = None,
         progress_callback: Callable[[dict], None] | None = None,
         abort_test: Callable[[], bool] | None = None,
+        n_workers: int | None = None,
     ) -> SamplingResults:
         """Run fresh Bayesian MCMC sampling on the bound data.
 
@@ -618,6 +621,14 @@ class Sampler:
             value is ignored.
         abort_test : Callable[[], bool] | None, default=None
             Optional callable that returns ``True`` to abort sampling early.
+        n_workers : int | None, default=None
+            Number of worker processes used to evaluate the DREAM
+            population. ``None`` and ``1`` evaluate sequentially. Values
+            greater than ``1`` evaluate each generation in a process pool
+            (capped at the number of chains). The fit object and fit
+            function must then be serializable with ``cloudpickle``, and
+            scripts must guard their entry point with
+            ``if __name__ == '__main__':`` because workers are spawned.
 
         Returns
         -------
@@ -649,6 +660,7 @@ class Sampler:
             sampler_kwargs=sampler_kwargs,
             progress_callback=progress_callback,
             abort_test=abort_test,
+            n_workers=n_workers,
         )
 
     def extend(
@@ -659,6 +671,7 @@ class Sampler:
         sampler_kwargs: dict | None = None,
         progress_callback: Callable[[dict], None] | None = None,
         abort_test: Callable[[], bool] | None = None,
+        n_workers: int | None = None,
     ) -> SamplingResults:
         """Continue the existing chain with additional samples.
 
@@ -693,6 +706,14 @@ class Sampler:
             value is ignored.
         abort_test : Callable[[], bool] | None, default=None
             Optional callable that returns ``True`` to abort sampling early.
+        n_workers : int | None, default=None
+            Number of worker processes used to evaluate the DREAM
+            population. ``None`` and ``1`` evaluate sequentially. Values
+            greater than ``1`` evaluate each generation in a process pool
+            (capped at the number of chains). The fit object and fit
+            function must then be serializable with ``cloudpickle``, and
+            scripts must guard their entry point with
+            ``if __name__ == '__main__':`` because workers are spawned.
 
         Returns
         -------
@@ -739,6 +760,7 @@ class Sampler:
             sampler_kwargs=sampler_kwargs,
             progress_callback=progress_callback,
             abort_test=abort_test,
+            n_workers=n_workers,
         )
 
     def save(self, path: str | os.PathLike) -> None:
