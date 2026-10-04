@@ -50,6 +50,18 @@ class TestNewBase:
         assert 'unique_name' in arg_spec
         assert 'display_name' in arg_spec
 
+    def test_arg_spec_keyword_only(self):
+        # When
+        class KeywordOnly(NewBase):
+            def __init__(self, value, *args, unit='', unique_name=None, **kwargs):
+                super().__init__(unique_name=unique_name)
+
+        obj = KeywordOnly(1.0)
+        # Then
+        arg_spec = obj._arg_spec
+        # Expect
+        assert arg_spec == {'value', 'unit', 'unique_name'}
+
     def test_unique_name_setter(self, clear):
         # When
         obj = NewBase()

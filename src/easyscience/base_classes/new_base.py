@@ -51,12 +51,12 @@ class NewBase:
         object.
         """
         sign = signature(self.__class__.__init__)
-        names = [
+        return {
             param.name
             for param in sign.parameters.values()
-            if param.kind == param.POSITIONAL_OR_KEYWORD
-        ]
-        return set(names[1:])
+            if param.kind in (param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY)
+            and param.name != 'self'
+        }
 
     @property
     def unique_name(self) -> str:
