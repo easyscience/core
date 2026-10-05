@@ -79,6 +79,35 @@ class TestWorkerFunctions:
 
 
 # ===================================================================
+# _serialize_worker_value / _deserialize_worker_value
+# ===================================================================
+
+
+class TestWorkerValueSerialization:
+    def test_serialize_falls_back_when_scipp_unavailable(self, monkeypatch):
+        import sys
+
+        monkeypatch.setitem(sys.modules, 'scipp', None)
+        assert _parallel._serialize_worker_value(5) == 5
+
+    def test_serialize_replaces_weakref_with_none(self):
+        class _Dummy:
+            pass
+
+        obj = _Dummy()
+        ref = weakref.ref(obj)
+        assert _parallel._serialize_worker_value(ref) is None
+
+    def test_serialize_recurses_into_tuple_and_set(self):
+        assert _parallel._serialize_worker_value((1, 2)) == (1, 2)
+        assert _parallel._serialize_worker_value({1, 2}) == {1, 2}
+
+    def test_deserialize_recurses_into_tuple_and_set(self):
+        assert _parallel._deserialize_worker_value((1, 2)) == (1, 2)
+        assert _parallel._deserialize_worker_value({1, 2}) == {1, 2}
+
+
+# ===================================================================
 # _problem_pickler_class
 # ===================================================================
 
@@ -189,6 +218,14 @@ class TestBumpsPoolMapperLifecycle:
         mapper.close()
         pool.terminate.assert_called_once()
         assert mapper._pool is None
+
+    def test_remove_problem_file_ignores_missing_file(self, tmp_path):
+        mapper = BumpsPoolMapper.__new__(BumpsPoolMapper)
+        mapper._problem_path = str(tmp_path / 'already-gone.pkl')
+
+        mapper._remove_problem_file()  # must not raise
+
+        assert mapper._problem_path is None
 
 
 # ===================================================================
