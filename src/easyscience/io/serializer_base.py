@@ -9,19 +9,14 @@ from abc import abstractmethod
 from enum import Enum
 from importlib import import_module
 from inspect import getfullargspec
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import List
 from typing import MutableSequence
-from typing import Optional
 from typing import Tuple
 
 import numpy as np
-
-if TYPE_CHECKING:
-    from .serializer_component import SerializerComponent
 
 _e = json.JSONEncoder()
 
@@ -33,20 +28,19 @@ class SerializerBase:
 
     ``encode`` and ``decode`` are abstract methods to be implemented for
     each serializer. It is expected that the helper function
-    `_convert_to_dict` will be used as a base for encoding (or the
-    ``SerializerDict`` as it's more flexible).
+    `_convert_to_dict` will be used as a base for encoding.
     """
 
     @abstractmethod
-    def encode(self, obj: SerializerComponent, skip: Optional[List[str]] = None, **kwargs) -> any:
+    def encode(self, obj: Any, skip: List[str] | None = None, **kwargs) -> any:
         """
         Abstract implementation of an encoder.
 
         Parameters
         ----------
-        obj : SerializerComponent
+        obj : Any
             Object to be encoded.
-        skip : Optional[List[str]], default=None
+        skip : List[str] | None, default=None
             List of field names as strings to skip when forming the
             encoded object. By default, None.
         **kwargs :
@@ -67,7 +61,6 @@ class SerializerBase:
     def decode(cls, obj: Any) -> Any:
         """
         Re-create an EasyScience object from the output of an encoder.
-        The default decoder is ``SerializerDict``.
 
         Parameters
         ----------
@@ -148,14 +141,19 @@ class SerializerBase:
 
     def _convert_to_dict(
         self,
-        obj: SerializerComponent,
-        skip: Optional[List[str]] = None,
+        obj: Any,
+        skip: List[str] | None = None,
         full_encode: bool = False,
         **kwargs,
     ) -> dict:
         """A JSON serializable dict representation of an object."""
         if skip is None:
             skip = []
+        own_skip = list(skip)
+        if getattr(obj, '_default_unique_name', False) and 'unique_name' not in own_skip:
+            own_skip.append('unique_name')
+        if hasattr(obj, '_display_name') and obj._display_name is None:
+            own_skip.append('display_name')
 
         if full_encode:
             new_obj = SerializerBase._encode_objs(obj)
@@ -184,7 +182,7 @@ class SerializerBase:
                 return o
 
         for c in args:
-            if c not in skip:
+            if c not in own_skip:
                 if c in redirect.keys():
                     if redirect[c] is None:
                         continue
@@ -196,25 +194,14 @@ class SerializerBase:
                         try:
                             a = runner(obj.__getattribute__('_' + c))
                         except AttributeError:
-                            err = True
-                            if hasattr(obj, 'kwargs'):
-                                # type: ignore
-                                option = getattr(obj, 'kwargs')
-                                if hasattr(option, c):
-                                    v = getattr(option, c)
-                                    delattr(option, c)
-                                    d.update(runner(v))  # pylint: disable=E1101
-                                    err = False
-                            if err:
-                                raise NotImplementedError(
-                                    'Unable to automatically determine to_dict '
-                                    'format from class. MSONAble requires all '
-                                    'args to be present as either self.argname or '
-                                    'self._argname, and kwargs to be present under'
-                                    'a self.kwargs variable to automatically '
-                                    'determine the dict format. Alternatively, '
-                                    'you can implement both to_dict and from_dict.'
-                                )
+                            raise NotImplementedError(
+                                'Unable to automatically determine to_dict '
+                                'format from class. All args must be present '
+                                'as either self.argname or self._argname to '
+                                'automatically determine the dict format. '
+                                'Alternatively, you can implement both to_dict '
+                                'and from_dict.'
+                            ) from None
                 d[c] = self._recursive_encoder(
                     a, skip=skip, encoder=self, full_encode=full_encode, **kwargs
                 )
@@ -224,7 +211,11 @@ class SerializerBase:
             d.update({'value': runner(obj.value)})  # pylint: disable=E1101
         if hasattr(obj, '_convert_to_dict'):
             d = obj._convert_to_dict(d, self, skip=skip, **kwargs)
-        if hasattr(obj, '_global_object') and 'unique_name' not in d and 'unique_name' not in skip:
+        if (
+            hasattr(obj, '_global_object')
+            and 'unique_name' not in d
+            and 'unique_name' not in own_skip
+        ):
             d['unique_name'] = obj.unique_name
         return d
 
@@ -275,7 +266,9 @@ class SerializerBase:
                 return np.array(d['data'], dtype=d['dtype'])
 
         if issubclass(T_, (list, MutableSequence)):
-            return [SerializerBase._convert_from_dict(x) for x in d]
+            # Elements that are serialized EasyScience objects are rebuilt
+            # by their own ``from_dict``; anything else is decoded here.
+            return [SerializerBase._deserialize_value(x) for x in d]
         return d
 
     @staticmethod
@@ -405,7 +398,10 @@ class SerializerBase:
             ):  # strings have encode
                 return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
             elif hasattr(obj, 'to_dict') and obj.__class__.__module__.startswith('easy'):
-                return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
+                # EasyScience objects serialize themselves, so that
+                # ``to_dict`` overrides (e.g. EasyList, Parameter) apply
+                # when the object is nested as well as at the top level.
+                return obj.to_dict(skip=list(skip))
             else:
                 return [
                     self._recursive_encoder(it, skip, encoder, full_encode, **kwargs) for it in obj
@@ -420,5 +416,5 @@ class SerializerBase:
         ):  # strings have encode
             return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
         elif hasattr(obj, 'to_dict') and obj.__class__.__module__.startswith('easy'):
-            return encoder._convert_to_dict(obj, skip, full_encode, **kwargs)
+            return obj.to_dict(skip=list(skip))
         return obj

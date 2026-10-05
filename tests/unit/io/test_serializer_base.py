@@ -18,7 +18,13 @@ from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import NewBase
 from easyscience.io import SerializerBase
-from easyscience.io import SerializerComponent
+
+
+class MockSerializable:
+    """Minimal stand-in for an object that knows how to encode itself."""
+
+    def encode(self, skip: Optional[List[str]] = None, encoder=None, **kwargs) -> Any:
+        return (encoder or ConcreteSerializer)().encode(self, skip=skip, **kwargs)
 
 
 class TestEnum(Enum):
@@ -26,7 +32,7 @@ class TestEnum(Enum):
     ANOTHER_VALUE = 42
 
 
-class MockSerializerComponent(SerializerComponent):
+class MockSerializableObj(MockSerializable):
     """Mock serializer component for testing"""
 
     def __init__(
@@ -39,7 +45,7 @@ class MockSerializerComponent(SerializerComponent):
         self._global_object = True
 
 
-class MockSerializerWithRedirect(SerializerComponent):
+class MockSerializerWithRedirect(MockSerializable):
     """Mock with _REDIRECT for testing redirect functionality"""
 
     _REDIRECT = {'special_attr': lambda obj: obj.value * 2, 'none_attr': None}
@@ -52,7 +58,7 @@ class MockSerializerWithRedirect(SerializerComponent):
         self._global_object = True
 
 
-class MockSerializerWithConvertToDict(SerializerComponent):
+class MockSerializerWithConvertToDict(MockSerializable):
     """Mock with custom _convert_to_dict method"""
 
     def __init__(self, name: str = 'test', value: int = 1):
@@ -69,7 +75,7 @@ class MockSerializerWithConvertToDict(SerializerComponent):
 class ConcreteSerializer(SerializerBase):
     """Concrete implementation for testing abstract methods"""
 
-    def encode(self, obj: SerializerComponent, skip: Optional[List[str]] = None, **kwargs) -> Any:
+    def encode(self, obj: Any, skip: Optional[List[str]] = None, **kwargs) -> Any:
         return self._convert_to_dict(obj, skip=skip, **kwargs)
 
     @classmethod
@@ -95,7 +101,7 @@ class TestSerializerBase:
 
     @pytest.fixture
     def mock_obj(self):
-        return MockSerializerComponent('test_obj', 42, 'optional_value')
+        return MockSerializableObj('test_obj', 42, 'optional_value')
 
     def test_abstract_methods_are_placeholders(self):
         """Test that SerializerBase can be instantiated but abstract methods just pass"""
@@ -309,7 +315,7 @@ class TestSerializerBase:
         """Test _convert_to_dict when the object itself is an enum"""
 
         # Test that enum values in objects remain as enums without full_encode
-        class MockObjWithEnum(SerializerComponent):
+        class MockObjWithEnum(MockSerializable):
             def __init__(self, name: str, enum_val: TestEnum):
                 self.name = name
                 self.enum_val = enum_val
@@ -327,7 +333,7 @@ class TestSerializerBase:
         """Test _convert_to_dict with full_encode=True"""
         dt = datetime.datetime(2023, 10, 17, 14, 30, 45)
 
-        class MockObjWithDateTime(SerializerComponent):
+        class MockObjWithDateTime(MockSerializable):
             def __init__(self, name: str, dt: datetime.datetime):
                 self.name = name
                 self.dt = dt
@@ -344,7 +350,7 @@ class TestSerializerBase:
     def test_convert_to_dict_without_global_object(self, serializer):
         """Test _convert_to_dict with object without _global_object"""
 
-        class MockObjNoGlobal(SerializerComponent):
+        class MockObjNoGlobal(MockSerializable):
             def __init__(self, name: str):
                 self.name = name
 
@@ -357,7 +363,7 @@ class TestSerializerBase:
     def test_convert_to_dict_with_arg_spec(self, serializer, clear):
         """Test _convert_to_dict with custom _arg_spec"""
 
-        class MockObjCustomArgSpec(SerializerComponent):
+        class MockObjCustomArgSpec(MockSerializable):
             def __init__(self, name: str, value: int, extra: str = 'default'):
                 self.name = name
                 self.value = value
@@ -375,7 +381,7 @@ class TestSerializerBase:
 
     def test_recursive_encoder_with_lists(self, serializer, clear):
         """Test _recursive_encoder with lists"""
-        mock_obj = MockSerializerComponent('list_test', 1)
+        mock_obj = MockSerializableObj('list_test', 1)
         data = [mock_obj, 'string', 42, {'key': 'value'}]
 
         result = serializer._recursive_encoder(data)
@@ -390,7 +396,7 @@ class TestSerializerBase:
 
     def test_recursive_encoder_with_dicts(self, serializer, clear):
         """Test _recursive_encoder with dictionaries"""
-        mock_obj = MockSerializerComponent('dict_test', 2)
+        mock_obj = MockSerializableObj('dict_test', 2)
         data = {'obj': mock_obj, 'simple': 'value'}
 
         result = serializer._recursive_encoder(data)
@@ -402,7 +408,7 @@ class TestSerializerBase:
 
     def test_recursive_encoder_with_tuples(self, serializer, clear):
         """Test _recursive_encoder with tuples"""
-        mock_obj = MockSerializerComponent('tuple_test', 3)
+        mock_obj = MockSerializableObj('tuple_test', 3)
         data = (mock_obj, 'string', 42)
 
         result = serializer._recursive_encoder(data)
@@ -442,7 +448,7 @@ class TestSerializerBase:
         del mock_module.__version__  # Remove version attribute
         mock_import.return_value = mock_module
 
-        mock_obj = MockSerializerComponent('no_version', 1)
+        mock_obj = MockSerializableObj('no_version', 1)
         result = serializer._convert_to_dict(mock_obj)
 
         assert result['@version'] is None
@@ -452,7 +458,7 @@ class TestSerializerBase:
         """Test _convert_to_dict when import_module raises ImportError"""
         mock_import.side_effect = ImportError('Module not found')
 
-        mock_obj = MockSerializerComponent('import_error', 1)
+        mock_obj = MockSerializableObj('import_error', 1)
         result = serializer._convert_to_dict(mock_obj)
 
         assert result['@version'] is None
@@ -460,7 +466,7 @@ class TestSerializerBase:
     def test_convert_to_dict_attribute_error_handling(self, serializer, clear):
         """Test _convert_to_dict handles AttributeError for missing attributes"""
 
-        class MockObjMissingAttrs(SerializerComponent):
+        class MockObjMissingAttrs(MockSerializable):
             def __init__(self, name: str, missing_param: str = 'default'):
                 self.name = name
                 self.unique_name = f'missing_{name}'
@@ -475,7 +481,7 @@ class TestSerializerBase:
     def test_convert_to_dict_varargs_handling(self, serializer, clear):
         """Test _convert_to_dict with varargs (*args) handling"""
 
-        class MockObjWithVarargs(SerializerComponent):
+        class MockObjWithVarargs(MockSerializable):
             def __init__(self, name: str, *args):
                 self.name = name
                 self.args = args
@@ -519,7 +525,7 @@ class TestSerializerBase:
     def test_concrete_serializer_implementation(self, clear):
         """Test that ConcreteSerializer works correctly"""
         serializer = ConcreteSerializer()
-        mock_obj = MockSerializerComponent('concrete_test', 100)
+        mock_obj = MockSerializableObj('concrete_test', 100)
 
         # Test encode
         encoded = serializer.encode(mock_obj)
@@ -530,7 +536,7 @@ class TestSerializerBase:
         # Test decode
         global_object.map._clear()  # Clear before decode
         decoded = ConcreteSerializer.decode(encoded)
-        assert isinstance(decoded, MockSerializerComponent)
+        assert isinstance(decoded, MockSerializableObj)
         assert decoded.name == 'concrete_test'
         assert decoded.value == 100
 
@@ -559,7 +565,7 @@ class TestSerializerBase:
 
     def test_recursive_encoder_with_nested_structures(self, serializer, clear):
         """Test _recursive_encoder with deeply nested structures"""
-        mock_obj = MockSerializerComponent('nested', 1)
+        mock_obj = MockSerializableObj('nested', 1)
 
         data = {'level1': {'level2': [mock_obj, {'level3': mock_obj}]}}
 

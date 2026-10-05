@@ -117,7 +117,7 @@ class ModelBase(NewBase):
         ----------
         obj_dict : Dict[str, Any]
             Dictionary containing the serialized contents (from
-            ``SerializerDict``) of an EasyScience object.
+            ``to_dict``) of an EasyScience object.
 
         Returns
         -------
