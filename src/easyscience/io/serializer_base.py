@@ -87,6 +87,10 @@ class SerializerBase:
         Get the full argument specification of a function (typically
         ``__init__``)
 
+        Both positional-or-keyword and keyword-only arguments are
+        returned, so constructors that use ``*`` to force keyword-only
+        arguments are serialized correctly.
+
         Parameters
         ----------
         func : Callable
@@ -99,7 +103,7 @@ class SerializerBase:
         """
 
         spec = getfullargspec(func)
-        args = spec.args[1:]
+        args = spec.args[1:] + spec.kwonlyargs
         return spec, args
 
     @staticmethod

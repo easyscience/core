@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from inspect import signature
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,7 +11,6 @@ if TYPE_CHECKING:
     from typing import Iterable
     from typing import List
     from typing import Optional
-    from typing import Set
 
 from easyscience import global_object
 
@@ -42,21 +40,6 @@ class NewBase:
         if display_name is not None and not isinstance(display_name, str):
             raise TypeError('Display name must be a string or None')
         self._display_name = display_name
-
-    @property
-    def _arg_spec(self) -> Set[str]:
-        """
-        This method is used by the serializer to determine which
-        arguments are needed by the constructor to deserialize the
-        object.
-        """
-        sign = signature(self.__class__.__init__)
-        return {
-            param.name
-            for param in sign.parameters.values()
-            if param.kind in (param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY)
-            and param.name != 'self'
-        }
 
     @property
     def unique_name(self) -> str:
