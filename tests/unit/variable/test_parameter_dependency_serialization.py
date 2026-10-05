@@ -382,28 +382,6 @@ class TestParameterDependencySerialization:
         with pytest.raises(ValueError, match='Cannot find parameter with serializer_id'):
             new_b.resolve_pending_dependencies()
 
-    def test_backward_compatibility_base_deserializer(self, clear_global_map):
-        """Test that the base deserializer path still works for dependent parameters."""
-        from easyscience.io.serializer_dict import SerializerDict
-
-        # Create dependent parameter
-        a = Parameter(display_name='a', value=2.0, unit='m')
-        b = Parameter.from_dependency(
-            display_name='b', dependency_expression='3 * a', dependency_map={'a': a}, unit='m'
-        )
-
-        # Use base serializer path (SerializerDict.decode)
-        serialized = SerializerDict().encode(b)
-        global_object.map._clear()
-
-        # This should not raise the "_independent" error anymore
-        deserialized = SerializerDict.decode(serialized)
-
-        # Should be a valid Parameter (but without dependency resolution)
-        assert isinstance(deserialized, Parameter)
-        assert deserialized.display_name == 'b'
-        assert deserialized.independent is True  # Base path doesn't handle dependencies
-
     @pytest.mark.parametrize(
         'order',
         [['x', 'y', 'z'], ['z', 'x', 'y'], ['y', 'z', 'x'], ['z', 'y', 'x']],
@@ -523,3 +501,29 @@ class TestParameterDependencySerialization:
         # Verify no pending dependencies remain
         pending = get_parameters_with_pending_dependencies(new_params)
         assert len(pending) == 0
+
+    def test_nested_dependent_parameter_round_trip(self, clear_global_map):
+        """A dependent parameter held by a model keeps its dependency through to_dict/from_dict."""
+        from easy_test_models import PairModel
+
+        a = Parameter(display_name='a', value=2.0, unit='m')
+        b = Parameter.from_dependency(
+            display_name='b', dependency_expression='3 * a', dependency_map={'a': a}, unit='m'
+        )
+        model = PairModel(a=a, b=b)
+
+        model_dict = model.to_dict()
+
+        # The nested parameter was serialized by its own to_dict
+        assert model_dict['b']['_independent'] is False
+        assert model_dict['b']['_dependency_string'] == '3 * a'
+        assert '_dependency_map_serializer_ids' in model_dict['b']
+
+        global_object.map._clear()
+        new_model = PairModel.from_dict(model_dict)
+        new_model.b.resolve_pending_dependencies()
+
+        assert new_model.b.independent is False
+        assert new_model.b.value == 6.0
+        new_model.a.value = 5.0
+        assert new_model.b.value == 15.0

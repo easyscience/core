@@ -364,39 +364,32 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
 
     # Serialization support
 
-    def _convert_to_dict(
-        self, dict_repr: dict, encoder: Any, skip: Any = None, **kwargs: Any
-    ) -> dict:
+    def to_dict(self, skip: list[str] | None = None) -> dict:
         """
-        Add the list items and protected types to a serialized dict.
+        Convert the EasyList to a dictionary for serialization.
 
-        The serializer calls this hook, so the contents are written both
-        by ``to_dict`` and when the list is nested in another object.
+        The serializer calls ``to_dict`` on nested EasyScience objects.
 
         Parameters
         ----------
-        dict_repr : dict
-            Dictionary produced so far by the serializer.
-        encoder : Any
-            The serializer performing the conversion.
-        skip : Any, default=None
-            Field names to skip, forwarded to each list item.
-        **kwargs : Any
-            Additional keyword arguments from the serializer. Unused.
+        skip : list[str] | None, default=None
+            List of field names as strings to skip when forming the
+            dictionary. By default, None.
 
         Returns
         -------
         dict
-            The dictionary with ``protected_types`` and ``data`` added.
+            Dictionary representation of the EasyList.
         """
-        if skip is None:
-            skip = []
+        skip = list(skip or [])
+        # protected_types holds classes, which the generic encoder
+        # cannot handle; they are encoded explicitly below.
+        dict_repr = super().to_dict(skip=[*skip, 'protected_types'])
         if self._protected_types != [NewBase]:
             dict_repr['protected_types'] = [
                 {'@module': cls_.__module__, '@class': cls_.__name__}
                 for cls_ in self._protected_types
             ]  # noqa: E501
-        # Each item gets its own copy, as ``to_dict`` appends to ``skip``
         dict_repr['data'] = [item.to_dict(skip=list(skip)) for item in self._data]
         return dict_repr
 
@@ -408,8 +401,8 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         Parameters
         ----------
         obj_dict : Dict[str, Any]
-            Dictionary containing the serialized contents (from
-            ``SerializerDict``) of an EasyScience object.
+            Dictionary containing the serialized contents
+            of an EasyScience object.
 
         Returns
         -------

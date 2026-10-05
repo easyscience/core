@@ -6,7 +6,6 @@ import pytest
 from easyscience import global_object
 from easyscience.base_classes import EasyList
 from easyscience.base_classes import NewBase
-from easyscience.io import SerializerComponent
 from easyscience.variable import DescriptorNumber
 from easyscience.variable.descriptor_base import DescriptorBase
 

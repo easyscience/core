@@ -10,7 +10,6 @@ from easy_test_models import CoefficientModel
 
 from easyscience import global_object
 from easyscience.base_classes import EasyList
-from easyscience.io.serializer_dict import SerializerDict
 from easyscience.variable import Parameter
 
 
@@ -80,16 +79,20 @@ def test_dict_round_trip():
     assert [c.display_name for c in new_model.coefficients] == ['c0', 'c1', 'c2']
 
 
-def test_serializer_dict_round_trip():
-    """The public dictionary decoder handles the typed EasyList."""
-    model = CoefficientModel(display_name='round_trip', coefficients=[1.0, 2.0])
+def test_dict_round_trip_unnamed_model_keeps_coefficient_names():
+    """The model's own missing names must not be skipped on nested items."""
+    model = CoefficientModel(
+        coefficients=[Parameter(1.0, display_name='c0', unique_name='my_c0'), 2.0]
+    )
 
-    new_model = SerializerDict.decode(model.to_dict())
+    d = model.to_dict()
+    global_object.map._clear()  # the explicit name is kept, so free it first
+    new_model = CoefficientModel.from_dict(d)
 
-    assert isinstance(new_model, CoefficientModel)
-    assert new_model.display_name == 'round_trip'
-    assert [c.value for c in new_model.coefficients] == [1.0, 2.0]
-    assert new_model.coefficients._protected_types == [Parameter]
+    assert 'unique_name' not in d
+    assert 'display_name' not in d
+    assert [c.display_name for c in new_model.coefficients] == ['c0', 'c1']
+    assert new_model.coefficients[0].unique_name == 'my_c0'
 
 
 @pytest.mark.parametrize('copier', [copy.copy, copy.deepcopy], ids=['copy', 'deepcopy'])
