@@ -570,6 +570,15 @@ class TestEasyList:
         assert el2[1].unique_name == 'a2'
         assert d == el2.to_dict()  # The dicts should be the same after round trip
 
+    def test_from_dict_round_trip_empty(self):
+        el = EasyList(unique_name='my_list', protected_types=Alpha)
+        d = el.to_dict()
+        # Clear the global map so deserialized objects can reuse the same unique names
+        global_object.map._clear()
+        el2 = EasyList.from_dict(d)
+        assert len(el2) == 0
+        assert d == el2.to_dict()  # The dicts should be the same after round trip
+
     def test_from_dict_modelbase_round_trip(self, monkeypatch):
         # When
         model1 = MockModel(unique_name='m1', temperature=10, volume=5.0)
