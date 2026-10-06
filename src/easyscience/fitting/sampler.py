@@ -312,7 +312,7 @@ class Sampler:
 
     Parameters
     ----------
-    fitter : 'Fitter'
+    fitter : Fitter
         A configured ``Fitter`` (or ``MultiFitter``) whose minimizer has
         been switched to ``AvailableMinimizers.Bumps``.
     x : np.ndarray | list[np.ndarray]

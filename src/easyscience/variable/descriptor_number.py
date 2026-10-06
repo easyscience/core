@@ -21,9 +21,9 @@ from easyscience.global_object.undo_redo import PropertyStack
 from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_base import DescriptorBase
-from .units import has_numeric_factor
+from .units import UnitSpellingMixin
 from .units import normalisation_target
-from .units import si_base_unit
+from .units import set_unit_state
 
 
 # Why is this a decorator? Because otherwise we would need a flag on the convert_unit method to avoid
@@ -51,25 +51,7 @@ def notify_observers(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def _set_unit_state(obj: Any, state: tuple) -> None:
-    """
-    Restore a unit state on the undo stack.
-
-    A module level function rather than a closure, so that the call
-    dispatches to the ``_restore_unit_state`` of whichever subclass owns
-    the object.
-
-    Parameters
-    ----------
-    obj : Any
-        Object to restore the state on.
-    state : tuple
-        State captured by ``_unit_state``.
-    """
-    obj._restore_unit_state(state)
-
-
-class DescriptorNumber(DescriptorBase):
+class DescriptorNumber(UnitSpellingMixin, DescriptorBase):
     """
     A ``Descriptor`` for Number values with units.
 
@@ -131,10 +113,11 @@ class DescriptorNumber(DescriptorBase):
             display_name=display_name,
             parent=parent,
         )
-        # Make sure no magnitude is left hiding inside the unit. This has to happen after
-        # super().__init__, so that subclasses which convert more than the scalar (such
-        # as Parameter, with its bounds) are fully constructed. It should not be recorded
-        # on the undo stack as it is part of building the object.
+        # Make sure no magnitude is left hiding inside the unit. Subclasses which hold
+        # more than the scalar in this unit (such as Parameter, with its bounds) must
+        # set those up before calling this constructor, so that they are converted too.
+        # It should not be recorded on the undo stack as it is part of building the
+        # object.
         target_unit = normalisation_target(
             self._scalar.unit, has_spelling=self._input_unit is not None
         )
@@ -304,10 +287,15 @@ class DescriptorNumber(DescriptorBase):
         -------
         str
             Unit as a string.
+
+        Notes
+        -----
+        As this is a display string, the same unit can be reported with
+        different spellings, e.g. 'angstrom' and 'Å' or '1/m' and
+        'm**-1'. To test whether two units are the same, compare
+        ``full_value.unit`` (a ``sc.Unit``) rather than this string.
         """
-        if self._input_unit_parsed is not None and self._input_unit_parsed == self._scalar.unit:
-            return self._input_unit
-        return str(self._scalar.unit)
+        return self._spelled_unit(self._scalar.unit)
 
     @unit.setter
     def unit(self, unit_str: str) -> None:
@@ -421,7 +409,7 @@ class DescriptorNumber(DescriptorBase):
             If ``unit_str`` is not a string.
         UnitError
             If the unit conversion fails.
-        """  # noqa: DOC503. UnitError re-raised after restoring the unit state
+        """  # noqa: DOC503  # UnitError is re-raised after restoring the unit state
         if not isinstance(unit_str, str):
             raise TypeError(f'{unit_str=} must be a string representing a valid scipp unit')
         new_unit = sc.Unit(unit_str)
@@ -441,7 +429,7 @@ class DescriptorNumber(DescriptorBase):
             self._global_object.stack.push(
                 PropertyStack(
                     self,
-                    _set_unit_state,
+                    set_unit_state,
                     old_state,
                     self._unit_state(),
                     text=f'Convert unit to {unit_str}',
@@ -472,38 +460,6 @@ class DescriptorNumber(DescriptorBase):
         except Exception as e:
             raise UnitError(f'Failed to convert unit: {e}') from e
 
-    @staticmethod
-    def _spelling_from_sources(unit: sc.Unit, sources: tuple) -> Union[str, sc.Unit]:
-        """
-        Return an operand's spelling for ``unit``, if one of them has
-        the same unit.
-
-        An operation such as an addition, or a multiplication by a plain
-        number, leaves the unit untouched, and the result should be
-        displayed the way its operands were rather than falling back to
-        scipp's name for it. Only an exactly equal unit is used, so a
-        result can never be relabelled as something it is not.
-
-        Parameters
-        ----------
-        unit : sc.Unit
-            Unit of the result.
-        sources : tuple
-            Operands of the operation. Anything which is not a
-            descriptor, such as a plain number, is ignored.
-
-        Returns
-        -------
-        Union[str, sc.Unit]
-            The operand's spelling, or ``unit`` unchanged if no operand
-            offers one.
-        """
-        for source in sources:
-            parsed_unit = getattr(source, '_input_unit_parsed', None)
-            if parsed_unit is not None and parsed_unit == unit:
-                return source._input_unit
-        return unit
-
     def _unit_state(self) -> tuple:
         """
         Capture everything a unit conversion changes, so that it can be
@@ -514,7 +470,7 @@ class DescriptorNumber(DescriptorBase):
         tuple
             Opaque state, to be passed back to ``_restore_unit_state``.
         """
-        return (self._scalar, self._input_unit, self._input_unit_parsed)
+        return (self._scalar, self._spelling_state())
 
     def _restore_unit_state(self, state: tuple) -> None:
         """
@@ -525,38 +481,8 @@ class DescriptorNumber(DescriptorBase):
         state : tuple
             State to restore.
         """
-        self._scalar, self._input_unit, self._input_unit_parsed = state
-
-    def _remember_unit(self, unit: str | sc.Unit | None) -> None:
-        """
-        Remember the spelling a unit was given with, for display
-        purposes.
-
-        Nothing is remembered for a unit which did not arrive as a
-        string, or for a dimensionless one: reporting 'one' or ''
-        instead of 'dimensionless' would break the comparisons against
-        'dimensionless' made throughout this class.
-
-        Parameters
-        ----------
-        unit : str | sc.Unit | None
-            Unit as it was supplied.
-        """
-        self._input_unit = None
-        self._input_unit_parsed = None
-        if not isinstance(unit, str) or not unit.strip():
-            return
-        if has_numeric_factor(unit.strip()):
-            # A spelling such as '10dm^2' is no better than what scipp would print.
-            return
-        try:
-            parsed_unit = sc.Unit(unit.strip())
-        except Exception:
-            return
-        if parsed_unit == sc.units.dimensionless:
-            return
-        self._input_unit = unit.strip()
-        self._input_unit_parsed = parsed_unit
+        self._scalar, spelling_state = state
+        self._restore_spelling_state(spelling_state)
 
     # When the user calls convert_unit, we want to notify observers of the change to propagate the change.
     @notify_observers

@@ -219,6 +219,30 @@ class TestUnitSpelling:
         assert restored.unit == 'nm*m/s'
         assert restored._scalar.unit == descriptor._scalar.unit
 
+    @pytest.mark.parametrize('unit_string', ['m', 'meV', 'angstrom', 'nm*m/s', '1/m'])
+    def test_sc_unit_is_treated_like_scipps_spelling_of_it(self, unit_string):
+        # A sc.Unit does not carry the string it was made from, so it behaves exactly
+        # like the string scipp prints for it.
+        from_unit = DescriptorNumber(name='name', value=1.0, unit=sc.Unit(unit_string))
+        from_string = DescriptorNumber(name='name', value=1.0, unit=str(sc.Unit(unit_string)))
+
+        assert from_unit.unit == from_string.unit == str(sc.Unit(unit_string))
+        assert from_unit.value == from_string.value == pytest.approx(1.0)
+
+    @pytest.mark.parametrize(
+        'unit_string, expected_unit, expected_value',
+        [('dm*m', 'm^2', 0.1), ('m/mm', 'dimensionless', 1000.0)],
+    )
+    def test_sc_unit_printed_with_a_factor_is_folded(
+        self, unit_string, expected_unit, expected_value
+    ):
+        # scipp has already reduced e.g. 'dm*m' to '0.1m^2' before we see it, so it is
+        # handled like the string '0.1m^2' would be.
+        descriptor = DescriptorNumber(name='name', value=1.0, unit=sc.Unit(unit_string))
+
+        assert descriptor.unit == expected_unit
+        assert descriptor.value == pytest.approx(expected_value)
+
 
 class TestUnitUndoRedo:
     def test_undo_restores_value_bounds_and_spelling_together(self):

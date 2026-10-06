@@ -23,12 +23,12 @@ from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_base import DescriptorBase
 from .descriptor_number import DescriptorNumber
-from .units import has_numeric_factor
+from .units import UnitSpellingMixin
 from .units import normalisation_target
-from .units import si_base_unit
+from .units import set_unit_state
 
 
-class DescriptorArray(DescriptorBase):
+class DescriptorArray(UnitSpellingMixin, DescriptorBase):
     """
     A ``Descriptor`` for Array values with units.
 
@@ -295,10 +295,15 @@ class DescriptorArray(DescriptorBase):
         -------
         str
             Unit as a string.
+
+        Notes
+        -----
+        As this is a display string, the same unit can be reported with
+        different spellings, e.g. 'angstrom' and 'Å' or '1/m' and
+        'm**-1'. To test whether two units are the same, compare
+        ``full_value.unit`` (a ``sc.Unit``) rather than this string.
         """
-        if self._input_unit_parsed is not None and self._input_unit_parsed == self._array.unit:
-            return self._input_unit
-        return str(self._array.unit)
+        return self._spelled_unit(self._array.unit)
 
     @unit.setter
     def unit(self, unit_str: str) -> None:
@@ -439,7 +444,7 @@ class DescriptorArray(DescriptorBase):
         new_unit = sc.Unit(unit_str)
 
         # Save the current state for undo/redo
-        old_state = (self._array, self._input_unit, self._input_unit_parsed)
+        old_state = self._unit_state()
 
         # Perform the unit conversion
         try:
@@ -450,83 +455,40 @@ class DescriptorArray(DescriptorBase):
         self._array = new_array
         self._remember_unit(unit_str)
 
-        # Define the setter function for the undo stack
-        def set_unit_state(obj, state):
-            obj._array, obj._input_unit, obj._input_unit_parsed = state
-
         if record_undo:
             self._global_object.stack.push(
                 PropertyStack(
                     self,
                     set_unit_state,
                     old_state,
-                    (self._array, self._input_unit, self._input_unit_parsed),
+                    self._unit_state(),
                     text=f'Convert unit to {unit_str}',
                 )
             )
 
-    @staticmethod
-    def _spelling_from_sources(unit: sc.Unit, sources: tuple) -> Union[str, sc.Unit]:
+    def _unit_state(self) -> tuple:
         """
-        Return an operand's spelling for ``unit``, if one of them has
-        the same unit.
-
-        An operation such as an addition, or a multiplication by a plain
-        number, leaves the unit untouched, and the result should be
-        displayed the way its operands were rather than falling back to
-        scipp's name for it. Only an exactly equal unit is used, so a
-        result can never be relabelled as something it is not.
-
-        Parameters
-        ----------
-        unit : sc.Unit
-            Unit of the result.
-        sources : tuple
-            Operands of the operation. Anything which is not a
-            descriptor, such as a plain number, is ignored.
+        Capture everything a unit conversion changes, so that it can be
+        undone as one.
 
         Returns
         -------
-        Union[str, sc.Unit]
-            The operand's spelling, or ``unit`` unchanged if no operand
-            offers one.
+        tuple
+            Opaque state, to be passed back to ``_restore_unit_state``.
         """
-        for source in sources:
-            parsed_unit = getattr(source, '_input_unit_parsed', None)
-            if parsed_unit is not None and parsed_unit == unit:
-                return source._input_unit
-        return unit
+        return (self._array, self._spelling_state())
 
-    def _remember_unit(self, unit: Union[str, sc.Unit, None]) -> None:
+    def _restore_unit_state(self, state: tuple) -> None:
         """
-        Remember the spelling a unit was given with, for display
-        purposes.
-
-        Nothing is remembered for a unit which did not arrive as a
-        string, or for a dimensionless one: reporting 'one' or ''
-        instead of 'dimensionless' would break the comparisons against
-        'dimensionless' made throughout this class.
+        Restore state captured by ``_unit_state``.
 
         Parameters
         ----------
-        unit : Union[str, sc.Unit, None]
-            Unit as it was supplied.
+        state : tuple
+            State to restore.
         """
-        self._input_unit = None
-        self._input_unit_parsed = None
-        if not isinstance(unit, str) or not unit.strip():
-            return
-        if has_numeric_factor(unit.strip()):
-            # A spelling such as '10dm^2' is no better than what scipp would print.
-            return
-        try:
-            parsed_unit = sc.Unit(unit.strip())
-        except Exception:
-            return
-        if parsed_unit == sc.units.dimensionless:
-            return
-        self._input_unit = unit.strip()
-        self._input_unit_parsed = parsed_unit
+        self._array, spelling_state = state
+        self._restore_spelling_state(spelling_state)
 
     def __copy__(self) -> DescriptorArray:
         """Return a copy of the current DescriptorArray."""

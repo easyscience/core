@@ -13,8 +13,8 @@ different remedies:
    the value.
 2. It prints **a different name than the one that was written**, so ``angstrom``
    becomes ``Å`` and ``nm*m/s`` becomes ``nGy*s``. That is a display concern only, and
-   is handled by the descriptors, which remember the spelling a unit arrived as. See
-   ``DescriptorNumber.unit``.
+   is handled by ``UnitSpellingMixin``, which lets the descriptors remember the
+   spelling a unit arrived as.
 
 The descriptors' ``unit`` property is therefore a *display* string;
 ``_scalar.unit`` / ``_array.unit`` remains the source of truth for
@@ -25,6 +25,7 @@ it is spelled.
 from __future__ import annotations
 
 import re
+from typing import Any
 from typing import Optional
 from typing import Union
 
@@ -136,12 +137,157 @@ def normalisation_target(unit: sc.Unit, has_spelling: bool = False) -> Optional[
         return None if unit == sc.units.dimensionless else 'dimensionless'
     if has_spelling or not has_numeric_factor(unit):
         return None
+    base_unit = si_base_unit(unit)
+    target = str(base_unit)
     try:
-        base_unit = si_base_unit(unit)
-        target = str(base_unit)
-        if sc.Unit(target) != base_unit:
-            # The target does not survive a round trip, so it is not safe to use.
-            return None
-    except Exception:
+        round_trip = sc.Unit(target)
+    except sc.UnitError:
+        return None
+    if round_trip != base_unit:
+        # The target does not survive a round trip, so it is not safe to use.
         return None
     return target
+
+
+def set_unit_state(obj: Any, state: tuple) -> None:
+    """
+    Restore a unit state on the undo stack.
+
+    A module level function rather than a closure, so that the call
+    dispatches to the ``_restore_unit_state`` of whichever class owns
+    the object.
+
+    Parameters
+    ----------
+    obj : Any
+        Object to restore the state on.
+    state : tuple
+        State captured by ``_unit_state``.
+    """
+    obj._restore_unit_state(state)
+
+
+class UnitSpellingMixin:
+    """
+    Remember the spelling a descriptor's unit was given with, so that it
+    can be displayed that way instead of with scipp's name for it.
+
+    The spelling is for display only. The scipp unit held by the
+    descriptor remains the source of truth, and the spelling is only
+    reported while it still parses to exactly that unit.
+    """
+
+    _input_unit: Optional[str] = None
+    _input_unit_parsed: Optional[sc.Unit] = None
+
+    def _remember_unit(self, unit: Union[str, sc.Unit, None]) -> None:
+        """
+        Remember the spelling a unit was given with, for display
+        purposes.
+
+        A ``sc.Unit`` is spelled the way scipp prints it, since scipp
+        does not keep the string it was created from. The same rules
+        then apply however the unit was supplied: a unit which is
+        written with a numeric factor, such as '10dm^2', or which scipp
+        prints with one, such as ``sc.Unit('dm*m')`` ('0.1m^2'), has no
+        spelling worth keeping.
+
+        Nothing is remembered for a dimensionless unit either: reporting
+        'one' or '' instead of 'dimensionless' would break the
+        comparisons against 'dimensionless' made throughout the
+        descriptors.
+
+        Parameters
+        ----------
+        unit : Union[str, sc.Unit, None]
+            Unit as it was supplied.
+        """
+        self._input_unit = None
+        self._input_unit_parsed = None
+        if unit is None:
+            return
+        spelling = str(unit).strip()
+        if not spelling or has_numeric_factor(spelling):
+            return
+        try:
+            parsed_unit = sc.Unit(spelling)
+        except sc.UnitError:
+            return
+        if parsed_unit == sc.units.dimensionless:
+            return
+        self._input_unit = spelling
+        self._input_unit_parsed = parsed_unit
+
+    def _spelled_unit(self, unit: sc.Unit) -> str:
+        """
+        Return ``unit`` as a string, using the remembered spelling while
+        it still describes that unit.
+
+        Parameters
+        ----------
+        unit : sc.Unit
+            The unit currently held by the descriptor.
+
+        Returns
+        -------
+        str
+            The remembered spelling, or scipp's name for ``unit``.
+        """
+        if self._input_unit_parsed is not None and self._input_unit_parsed == unit:
+            return self._input_unit
+        return str(unit)
+
+    def _spelling_state(self) -> tuple:
+        """
+        Capture the remembered spelling, for the undo stack.
+
+        Returns
+        -------
+        tuple
+            Opaque state, to be passed back to
+            ``_restore_spelling_state``.
+        """
+        return (self._input_unit, self._input_unit_parsed)
+
+    def _restore_spelling_state(self, state: tuple) -> None:
+        """
+        Restore state captured by ``_spelling_state``.
+
+        Parameters
+        ----------
+        state : tuple
+            State to restore.
+        """
+        self._input_unit, self._input_unit_parsed = state
+
+    @staticmethod
+    def _spelling_from_sources(unit: sc.Unit, sources: tuple) -> Union[str, sc.Unit]:
+        """
+        Return an operand's spelling for ``unit``, if one of them has
+        the same unit.
+
+        An operation such as an addition, or a multiplication by a plain
+        number, leaves the unit untouched, and the result should be
+        displayed the way its operands were rather than falling back to
+        scipp's name for it. Only an exactly equal unit is used, so a
+        result can never be relabelled as something it is not.
+
+        Parameters
+        ----------
+        unit : sc.Unit
+            Unit of the result.
+        sources : tuple
+            Operands of the operation. Anything which is not a
+            descriptor, such as a plain number, is ignored.
+
+        Returns
+        -------
+        Union[str, sc.Unit]
+            The operand's spelling, or ``unit`` unchanged if no operand
+            offers one.
+        """
+        for source in sources:
+            parsed_unit = getattr(source, '_input_unit_parsed', None)
+            if parsed_unit is not None and parsed_unit == unit:
+                return source._input_unit
+        return unit

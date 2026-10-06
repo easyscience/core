@@ -422,7 +422,11 @@ class TestGlobalObjectIntegration:
         # Given
         global_obj = GlobalObject()
         results = []
-        created = []  # The map holds only weak references, so keep the objects alive
+        # The map holds only weak references, so the objects must be kept alive for the
+        # checks below. The test used to pass without this only because an undo stack
+        # entry created in the constructor formed a reference cycle with each Parameter,
+        # delaying its collection until the cyclic garbage collector ran.
+        created = []
         errors = []
 
         def create_objects(thread_id, count=10):
