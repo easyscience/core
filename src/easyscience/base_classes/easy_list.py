@@ -423,8 +423,9 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
                         )  # noqa: E501
             else:
                 protected_types = None
+            data_dicts = temp_dict.pop('data', None)
+            data = [SerializerBase._deserialize_value(value_dict) for value_dict in data_dicts]
             kwargs = SerializerBase.deserialize_dict(temp_dict)
-            data = kwargs.pop('data', [])
             return cls(data, protected_types=protected_types, **kwargs)
         else:
             raise ValueError(
