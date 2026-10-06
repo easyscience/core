@@ -577,6 +577,17 @@ class TestSerializerBase:
         assert spec.varkw == 'kwargs'
         assert spec.defaults == ('default',)
 
+    def test_get_arg_spec_keyword_only(self):
+        """Keyword-only arguments are included after positional ones"""
+
+        def kw_func(self, value, *, unit='', unique_name=None, **kwargs):
+            pass
+
+        spec, args = SerializerBase.get_arg_spec(kw_func)
+
+        assert args == ['value', 'unit', 'unique_name']
+        assert spec.kwonlyargs == ['unit', 'unique_name']
+
     @patch('easyscience.io.serializer_base.np', None)
     def test_encode_objs_without_numpy(self):
         """Test _encode_objs when numpy is not available"""

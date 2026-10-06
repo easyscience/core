@@ -41,14 +41,27 @@ class TestNewBase:
         with pytest.raises(TypeError, match='Display name must be a string or None'):
             NewBase(display_name=456)
 
-    def test_arg_spec(self):
+    def test_no_arg_spec_override(self):
         # When
         obj = NewBase()
-        # Then
-        arg_spec = obj._arg_spec
         # Expect
-        assert 'unique_name' in arg_spec
-        assert 'display_name' in arg_spec
+        assert not hasattr(obj, '_arg_spec')
+
+    def test_to_dict_includes_keyword_only_args(self, clear):
+        # When
+        class KeywordOnly(NewBase):
+            def __init__(self, value, *args, unit='', unique_name=None, **kwargs):
+                super().__init__(unique_name=unique_name)
+                self.value = value
+                self.unit = unit
+
+        obj = KeywordOnly(1.0, unit='m', unique_name='kw')
+        # Then
+        d = obj.to_dict()
+        # Expect
+        assert d['value'] == 1.0
+        assert d['unit'] == 'm'
+        assert d['unique_name'] == 'kw'
 
     def test_unique_name_setter(self, clear):
         # When

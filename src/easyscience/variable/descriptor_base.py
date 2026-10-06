@@ -4,12 +4,10 @@
 from __future__ import annotations
 
 import abc
-from inspect import signature
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Set
 
 from easyscience import global_object
 from easyscience.base_classes.new_base import NewBase
@@ -52,8 +50,6 @@ class DescriptorBase(NewBase, metaclass=abc.ABCMeta):
         a model and is non-fittable and generally changes the state of
         an object.
 
-        All arguments are keyword-only.
-
         Parameters
         ----------
         unique_name : Optional[str], default=None
@@ -85,19 +81,6 @@ class DescriptorBase(NewBase, metaclass=abc.ABCMeta):
         if url is None:
             url = ''
         self._url: str = url
-
-    @property
-    def _arg_spec(self) -> Set[str]:
-        """
-        Names of the constructor arguments the serializer has to collect.
-        """
-        sign = signature(self.__class__.__init__)
-        return {
-            param.name
-            for param in sign.parameters.values()
-            if param.kind in (param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY)
-            and param.name != 'self'
-        }
 
     @property
     def description(self) -> str:

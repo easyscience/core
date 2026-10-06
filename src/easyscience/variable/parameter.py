@@ -11,7 +11,6 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Set
 from typing import Union
 
 import numpy as np
@@ -22,6 +21,7 @@ from scipp import Variable
 
 from easyscience import global_object
 from easyscience.global_object.undo_redo import property_stack
+from easyscience.io.serializer_base import SerializerBase
 
 from .descriptor_number import DescriptorNumber
 from .descriptor_number import notify_observers
@@ -886,14 +886,15 @@ class Parameter(DescriptorNumber):
         self.fixed = not value
 
     @property
-    def _arg_spec(self) -> Set[str]:
+    def _arg_spec(self) -> List[str]:
         """
         Names of the constructor arguments the serializer has to collect.
 
         ``callback`` links to a calculator object.
           Holds a ``property`` that cannot be serialized.
         """
-        return super()._arg_spec - {'callback'}
+        _, args = SerializerBase.get_arg_spec(self.__class__.__init__)
+        return [name for name in args if name != 'callback']
 
     def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         """

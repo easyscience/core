@@ -626,6 +626,25 @@ class TestEasyList:
         assert outer2[0]._protected_types == [Alpha]
         assert outer2[0][0].unique_name == 'a1'
 
+    def test_from_dict_round_trip_keyword_only_arguments(self):
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, unique_name='my_list', display_name='My list', protected_types=Alpha)
+        d = el.to_dict()
+        assert d['unique_name'] == 'my_list'
+        assert d['display_name'] == 'My list'
+        global_object.map._clear()
+        el2 = EasyList.from_dict(d)
+        assert el2.unique_name == 'my_list'
+        assert el2.display_name == 'My list'
+        assert el2._protected_types == [Alpha]
+
+    def test_to_dict_skip(self):
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, unique_name='my_list', display_name='My list', protected_types=Alpha)
+        d = el.to_dict(skip=['display_name'])
+        assert 'display_name' not in d
+        assert 'protected_types' in d
+
     # --- get_all_variables ---
 
     def test_get_all_variables_empty_list(self):
