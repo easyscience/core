@@ -613,6 +613,15 @@ class TestEasyList:
         assert el2[1].unique_name == 'm2'
         assert list_dict == el2.to_dict()  # The dicts should be the same after round trip
 
+    def test_from_dict_missing_data_key(self):
+        el_dict = {
+            '@module': 'easyscience',
+            '@class': 'EasyList',
+            'protected_types': [{'@module': 'easyscience.base_classes', '@class': 'ModelBase'}]
+        }
+        with pytest.raises(ValueError, match='The provided dictionary does not represent an EasyList. Missing the "data" key.'):
+            EasyList.from_dict(el_dict)
+
     # --- get_all_variables ---
 
     def test_get_all_variables_empty_list(self):
