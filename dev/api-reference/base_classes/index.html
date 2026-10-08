@@ -2838,7 +2838,7 @@ iterable of supported types.</p>
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;to_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.base_classes.easy_list.EasyList.to_dict&lt;/code&gt;)" href="#easyscience.base_classes.easy_list.EasyList.to_dict">to_dict</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;to_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;skip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.base_classes.easy_list.EasyList.to_dict&lt;/code&gt;)" href="#easyscience.base_classes.easy_list.EasyList.to_dict">to_dict</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Convert the EasyList to a dictionary for serialization.</p>
@@ -3777,7 +3777,7 @@ collected into a single flat list.</p>
 
 
 <h7 id="easyscience.base_classes.easy_list.EasyList.to_dict" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">to_dict</span><span class="p">()</span></code>
+            <code class="highlight language-python"><span class="n">to_dict</span><span class="p">(</span><span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h7>
 
@@ -3788,6 +3788,41 @@ collected into a single flat list.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>skip</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="str">str</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of field names as strings to skip when forming the
+dictionary.</p>
+<!-- prettier-ignore-start -->
+
+<!-- prettier-ignore-end -->
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
