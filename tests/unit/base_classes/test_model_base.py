@@ -9,7 +9,7 @@ from easyscience import DescriptorNumber
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import ModelBase
-from easyscience.io import SerializerBase
+from easyscience.base_classes import SerializerBase
 from easyscience.variable import DescriptorStr
 
 

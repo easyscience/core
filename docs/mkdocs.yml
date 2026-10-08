@@ -206,7 +206,6 @@ nav:
       - base_classes: api-reference/base_classes.md
       - fitting: api-reference/fitting.md
       - global_object: api-reference/global_object.md
-      - io: api-reference/io.md
       - job: api-reference/job.md
       - utils: api-reference/utils.md
       - variable: api-reference/variable.md

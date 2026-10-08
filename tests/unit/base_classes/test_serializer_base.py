@@ -19,7 +19,7 @@ from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import ModelBase
 from easyscience.base_classes import NewBase
-from easyscience.io import SerializerBase
+from easyscience.base_classes import SerializerBase
 
 
 class MockSerializable:
@@ -465,7 +465,7 @@ class TestSerializerBase:
         assert result['@class'] == 'EasyList'
         assert len(result['data']) == 2
 
-    @patch('easyscience.io.serializer_base.import_module')
+    @patch('easyscience.base_classes.serializer_base.import_module')
     def test_convert_to_dict_no_version(self, mock_import, serializer, clear):
         """Test _convert_to_dict when module has no __version__"""
         mock_module = Mock()
@@ -477,7 +477,7 @@ class TestSerializerBase:
 
         assert result['@version'] is None
 
-    @patch('easyscience.io.serializer_base.import_module')
+    @patch('easyscience.base_classes.serializer_base.import_module')
     def test_convert_to_dict_import_error(self, mock_import, serializer, clear):
         """Test _convert_to_dict when import_module raises ImportError"""
         mock_import.side_effect = ImportError('Module not found')
@@ -588,7 +588,7 @@ class TestSerializerBase:
         assert args == ['value', 'unit', 'unique_name']
         assert spec.kwonlyargs == ['unit', 'unique_name']
 
-    @patch('easyscience.io.serializer_base.np', None)
+    @patch('easyscience.base_classes.serializer_base.np', None)
     def test_encode_objs_without_numpy(self):
         """Test _encode_objs when numpy is not available"""
         # This test patches np to None to simulate numpy not being installed

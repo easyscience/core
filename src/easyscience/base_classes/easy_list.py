@@ -16,7 +16,7 @@ from typing import TypeVar
 from typing import overload
 
 from easyscience import global_object
-from easyscience.io.serializer_base import SerializerBase
+from easyscience.base_classes.serializer_base import SerializerBase
 from easyscience.variable.descriptor_base import DescriptorBase
 
 from .model_base import ModelBase

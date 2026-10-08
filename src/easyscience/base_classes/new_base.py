@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 from easyscience import global_object
 
 from ..global_object.undo_redo import property_stack
-from ..io.serializer_base import SerializerBase
+from .serializer_base import SerializerBase
 
 
 class NewBase:

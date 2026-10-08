@@ -20,8 +20,8 @@ from scipp import UnitError
 from scipp import Variable
 
 from easyscience import global_object
+from easyscience.base_classes.serializer_base import SerializerBase
 from easyscience.global_object.undo_redo import property_stack
-from easyscience.io.serializer_base import SerializerBase
 
 from .descriptor_number import DescriptorNumber
 from .descriptor_number import notify_observers

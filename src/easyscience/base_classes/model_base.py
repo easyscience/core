@@ -13,10 +13,10 @@ if TYPE_CHECKING:
     from typing import List
     from typing import Optional
 
-from ..io import SerializerBase
 from ..variable import Parameter
 from ..variable.descriptor_base import DescriptorBase
 from .new_base import NewBase
+from .serializer_base import SerializerBase
 
 
 class ModelBase(NewBase):
