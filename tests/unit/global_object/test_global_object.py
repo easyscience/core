@@ -164,14 +164,3 @@ class TestGlobalObject:
         # Test retrieval
         retrieved1 = global_obj.map.get_item_by_key(param1.unique_name)
         assert retrieved1 is param1
-
-    def test_script_manager_access(self):
-        """Test that script manager is accessible"""
-        # Given
-        global_obj = GlobalObject()
-
-        # Then
-        assert hasattr(global_obj, 'script')
-        from easyscience.global_object.hugger.hugger import ScriptManager
-
-        assert isinstance(global_obj.script, ScriptManager)

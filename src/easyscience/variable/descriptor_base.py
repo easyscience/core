@@ -30,8 +30,6 @@ class DescriptorBase(NewBase, metaclass=abc.ABCMeta):
     """
 
     _global_object = global_object
-    # Used by serializer
-    _REDIRECT = {}
 
     def __init__(
         self,

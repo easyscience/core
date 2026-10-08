@@ -132,6 +132,34 @@ class TestNewBase:
         assert 'unique_name' not in obj_dict
         assert 'display_name' not in obj_dict
 
+    def test_to_dict_does_not_mutate_skip(self):
+        obj = NewBase()
+        skip = ['foo']
+        obj.to_dict(skip=skip)
+        assert skip == ['foo']
+
+    def test_to_dict_nested_object_keeps_own_names(self):
+        """A parent without names must not strip names from a nested object."""
+
+        class Holder(NewBase):
+            def __init__(self, item=None, unique_name=None, display_name=None):
+                super().__init__(unique_name=unique_name, display_name=display_name)
+                self._item = item
+
+            @property
+            def item(self):
+                return self._item
+
+        inner = NewBase(unique_name='inner', display_name='Inner')
+        outer = Holder(item=inner)  # auto unique_name, no display_name
+
+        d = outer.to_dict()
+
+        assert 'unique_name' not in d
+        assert 'display_name' not in d
+        assert d['item']['unique_name'] == 'inner'
+        assert d['item']['display_name'] == 'Inner'
+
     def test_to_dict_with_skip(self):
         # When
         obj = NewBase(unique_name='skip_test', display_name='Skip Test Object')

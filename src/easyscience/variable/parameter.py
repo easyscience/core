@@ -21,6 +21,7 @@ from scipp import Variable
 
 from easyscience import global_object
 from easyscience.global_object.undo_redo import property_stack
+from easyscience.io.serializer_base import SerializerBase
 
 from .descriptor_number import DescriptorNumber
 from .descriptor_number import notify_observers
@@ -32,11 +33,6 @@ class Parameter(DescriptorNumber):
 
     It has additional fields to facilitate this.
     """
-
-    # Used by serializer
-    # We copy the parent's _REDIRECT and modify it to avoid altering the parent's class dict
-    _REDIRECT = DescriptorNumber._REDIRECT.copy()
-    _REDIRECT['callback'] = None
 
     def __init__(
         self,
@@ -888,6 +884,17 @@ class Parameter(DescriptorNumber):
     @free.setter
     def free(self, value: bool) -> None:
         self.fixed = not value
+
+    @property
+    def _arg_spec(self) -> List[str]:
+        """
+        Names of the constructor arguments the serializer has to collect.
+
+        ``callback`` links to a calculator object.
+          Holds a ``property`` that cannot be serialized.
+        """
+        _, args = SerializerBase.get_arg_spec(self.__class__.__init__)
+        return [name for name in args if name != 'callback']
 
     def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         """

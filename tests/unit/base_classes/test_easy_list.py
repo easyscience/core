@@ -568,6 +568,64 @@ class TestEasyList:
         assert el2[1].unique_name == 'a2'
         assert d == el2.to_dict()  # The dicts should be the same after round trip
 
+    def test_to_dict_forwards_skip_to_items(self):
+        a1 = Alpha(unique_name='a1', display_name='first')
+        el = EasyList(a1, unique_name='my_list', protected_types=Alpha)
+
+        d = el.to_dict(skip=['display_name'])
+
+        assert 'display_name' not in d['data'][0]
+        assert d['data'][0]['unique_name'] == 'a1'
+
+    def test_to_dict_unnamed_list_keeps_item_names(self):
+        """A list without its own names must not strip names from its items."""
+        a1 = Alpha(unique_name='a1', display_name='first')
+        el = EasyList(a1, protected_types=Alpha)  # auto unique_name, no display_name
+
+        d = el.to_dict()
+
+        assert 'unique_name' not in d
+        assert 'display_name' not in d
+        assert d['data'][0]['unique_name'] == 'a1'
+        assert d['data'][0]['display_name'] == 'first'
+
+    def test_to_dict_does_not_mutate_skip(self):
+        el = EasyList(Alpha(unique_name='a1'), protected_types=Alpha)
+        skip = ['display_name']
+
+        el.to_dict(skip=skip)
+
+        assert skip == ['display_name']
+
+    def test_to_dict_without_skip(self):
+        """``to_dict`` works when called without ``skip``."""
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, protected_types=Alpha)
+
+        d = el.to_dict()
+
+        assert d['data'][0]['unique_name'] == 'a1'
+        assert d['protected_types'][0]['@class'] == 'Alpha'
+        assert not hasattr(el, '_convert_to_dict')
+
+    def test_to_dict_nested_list_uses_override(self):
+        """A list held by another object is serialized by its own ``to_dict``."""
+        inner = EasyList(Alpha(unique_name='a1'), protected_types=Alpha)
+        outer = EasyList(inner, unique_name='outer')
+
+        d = outer.to_dict()
+
+        nested = d['data'][0]
+        assert nested['@class'] == 'EasyList'
+        assert nested['protected_types'][0]['@class'] == 'Alpha'
+        assert nested['data'][0]['unique_name'] == 'a1'
+
+        global_object.map._clear()
+        outer2 = EasyList.from_dict(d)
+        assert isinstance(outer2[0], EasyList)
+        assert outer2[0]._protected_types == [Alpha]
+        assert outer2[0][0].unique_name == 'a1'
+
     def test_from_dict_round_trip_keyword_only_arguments(self):
         a1 = Alpha(unique_name='a1')
         el = EasyList(a1, unique_name='my_list', display_name='My list', protected_types=Alpha)

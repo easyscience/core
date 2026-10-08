@@ -130,12 +130,7 @@ class NewBase:
         ``None``. Pass ``skip`` to drop further fields.
         """
         serializer = SerializerBase()
-        if skip is None:
-            skip = []
-        if self._default_unique_name and 'unique_name' not in skip:
-            skip.append('unique_name')
-        if self._display_name is None:
-            skip.append('display_name')
+        skip = list(skip) if skip else []
         return serializer._convert_to_dict(self, skip=skip, full_encode=False)
 
     @classmethod
@@ -147,7 +142,7 @@ class NewBase:
         ----------
         obj_dict : Dict[str, Any]
             Dictionary containing the serialized contents (from
-            ``SerializerDict``) of an EasyScience object.
+            ``to_dict``) of an EasyScience object.
 
         Returns
         -------

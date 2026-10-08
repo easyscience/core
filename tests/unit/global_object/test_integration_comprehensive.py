@@ -5,12 +5,29 @@ import gc
 from unittest.mock import patch
 
 import pytest
+from easy_test_models import CoefficientModel
 
-from easyscience import ObjBase
+from easyscience import ModelBase
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.global_object.global_object import GlobalObject
 from easyscience.variable import DescriptorBool
+
+
+class Container(ModelBase):
+    """ModelBase holding arbitrary named children, linked in the global map."""
+
+    def __init__(self, display_name=None, **children):
+        super().__init__(display_name=display_name)
+        self._children = children
+        for child in children.values():
+            global_object.map.add_edge(self, child)
+
+    def __getattr__(self, key):
+        children = self.__dict__.get('_children', {})
+        if key in children:
+            return children[key]
+        raise AttributeError(key)
 
 
 class TestGlobalObjectIntegration:
@@ -73,16 +90,16 @@ class TestGlobalObjectIntegration:
             global_obj.map.prune(param_name)
         assert param_name not in global_obj.map.vertices()
 
-    def test_objbase_parameter_relationship(self, clear_all):
-        """Test ObjBase containing parameters integration"""
+    def test_model_parameter_relationship(self, clear_all):
+        """Test a model containing parameters integration"""
         # Given
         global_obj = GlobalObject()
 
         param1 = Parameter(display_name='length', value=10.0, unit='m')
         param2 = Parameter(display_name='width', value=5.0, unit='m')
 
-        # When - Create ObjBase with parameters
-        obj = ObjBase(name='rectangle', length=param1, width=param2)
+        # When - Create a container with parameters
+        obj = Container(display_name='rectangle', length=param1, width=param2)
 
         # Then - All should be in global map
         assert global_obj.map.is_known(obj)
@@ -94,7 +111,7 @@ class TestGlobalObjectIntegration:
         assert param1.unique_name in obj_edges
         assert param2.unique_name in obj_edges
 
-        # When - Modify through ObjBase
+        # When - Modify through the container
         if not global_obj.stack:
             global_obj.instantiate_stack()
         global_obj.stack.enabled = True
@@ -126,11 +143,11 @@ class TestGlobalObjectIntegration:
             assert name == f'Parameter_{i}'
 
         # When - Create mixed object types
-        obj = ObjBase(name='test_obj')
+        obj = Container(display_name='test_obj')
         desc = DescriptorBool(display_name='test_desc', value=True)
 
         # Then - Should not interfere with each other's naming
-        assert obj.unique_name == 'ObjBase_0'
+        assert obj.unique_name == 'Container_0'
         assert desc.unique_name == 'DescriptorBool_0'
 
     def test_map_vertex_type_management(self, clear_all):
@@ -170,7 +187,7 @@ class TestGlobalObjectIntegration:
         # When - Create objects
         param1 = Parameter(display_name='temp1', value=1.0)
         param2 = Parameter(display_name='temp2', value=2.0)
-        obj = ObjBase(name='temp_obj', param1=param1, param2=param2)
+        obj = Container(display_name='temp_obj', param1=param1, param2=param2)
 
         param1_name = param1.unique_name
         param2_name = param2.unique_name
@@ -210,7 +227,7 @@ class TestGlobalObjectIntegration:
         width = Parameter(display_name='width', value=5.0, unit='m')
         height = Parameter(display_name='height', value=3.0, unit='m')
 
-        box = ObjBase(name='box', length=length, width=width, height=height)
+        box = Container(display_name='box', length=length, width=width, height=height)
 
         # When - Perform multiple operations in a macro
         global_obj.stack.beginMacro('Resize box')
@@ -253,8 +270,8 @@ class TestGlobalObjectIntegration:
 
         # Create a hierarchy: container -> sub_container -> parameter
         param = Parameter(display_name='value', value=42.0)
-        sub_container = ObjBase(name='sub', value=param)
-        main_container = ObjBase(name='main', sub=sub_container)
+        sub_container = Container(display_name='sub', value=param)
+        main_container = Container(display_name='main', sub=sub_container)
 
         # When - Find path from main to parameter
         path = global_obj.map.find_path(main_container.unique_name, param.unique_name)
@@ -279,7 +296,7 @@ class TestGlobalObjectIntegration:
         # When - Create connected objects
         param1 = Parameter(display_name='connected1', value=1.0)
         param2 = Parameter(display_name='connected2', value=2.0)
-        container = ObjBase(name='container', p1=param1, p2=param2)
+        container = Container(display_name='container', p1=param1, p2=param2)
 
         # Then - Map should be connected
         # TODO: Depending on implementation, connectivity might vary
@@ -322,7 +339,7 @@ class TestGlobalObjectIntegration:
         objects = []
         for i in range(100):
             param = Parameter(display_name=f'param_{i}', value=float(i))
-            obj = ObjBase(name=f'obj_{i}', param=param)
+            obj = Container(display_name=f'obj_{i}', param=param)
             objects.append((param, obj))
 
         initial_vertex_count = len(global_obj.map.vertices())
@@ -356,7 +373,7 @@ class TestGlobalObjectIntegration:
 
         # Create objects
         param = Parameter(display_name='test_param', value=123.45, unit='kg')
-        obj = ObjBase(name='test_obj', param=param)
+        obj = CoefficientModel(display_name='test_obj', coefficients=[param])
 
         original_vertex_count = len(global_obj.map.vertices())
 
@@ -370,7 +387,7 @@ class TestGlobalObjectIntegration:
 
         # When - Deserialize objects
         new_param = Parameter.from_dict(param_dict)
-        new_obj = ObjBase.from_dict(obj_dict)
+        new_obj = CoefficientModel.from_dict(obj_dict)
 
         # Then - Should be registered in global map again
         assert len(global_obj.map.vertices()) >= 2
@@ -381,6 +398,8 @@ class TestGlobalObjectIntegration:
         assert new_param.display_name == param.display_name
         assert new_param.value == param.value
         assert new_param.unit == param.unit
+        assert new_obj.display_name == 'test_obj'
+        assert new_obj.coefficients[0].value == param.value
 
     def test_debug_mode_integration(self, clear_all):
         """Test debug mode behavior across the system"""
