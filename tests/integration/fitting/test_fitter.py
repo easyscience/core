@@ -6,35 +6,41 @@ import pytest
 
 from easyscience import AvailableMinimizers
 from easyscience import Fitter
-from easyscience import ObjBase
 from easyscience import Parameter
 from easyscience.base_classes import ModelBase
 from easyscience.fitting.minimizers import FitError
 
 
 # Model and container of parameters for tests
-class AbsSin(ObjBase):
-    phase: Parameter
-    offset: Parameter
-
+class _PhaseOffset(ModelBase):
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
-        super().__init__('sin', offset=offset, phase=phase)
+        super().__init__()
+        self._offset = Parameter(offset_val, display_name='offset')
+        self._phase = Parameter(phase_val, display_name='phase')
 
+    @property
+    def offset(self) -> Parameter:
+        return self._offset
+
+    @offset.setter
+    def offset(self, value: float) -> None:
+        self._offset.value = value
+
+    @property
+    def phase(self) -> Parameter:
+        return self._phase
+
+    @phase.setter
+    def phase(self, value: float) -> None:
+        self._phase.value = value
+
+
+class AbsSin(_PhaseOffset):
     def __call__(self, x):
         return np.abs(np.sin(self.phase.value * x + self.offset.value))
 
 
-class AbsSin2D(ObjBase):
-    phase: Parameter
-    offset: Parameter
-
-    def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
-        super().__init__('sin2D', offset=offset, phase=phase)
-
+class AbsSin2D(_PhaseOffset):
     def __call__(self, x):
         X = x[:, :, 0]  # x is a 2D array
         Y = x[:, :, 1]
@@ -55,8 +61,8 @@ class AbsSin2DL(AbsSin2D):
 class StraightLine(ModelBase):
     def __init__(self, slope: float, intercept: float):
         super().__init__()
-        self._slope = Parameter('slope', slope)
-        self._intercept = Parameter('intercept', intercept)
+        self._slope = Parameter(slope, display_name='slope')
+        self._intercept = Parameter(intercept, display_name='intercept')
 
     @property
     def slope(self) -> Parameter:
@@ -90,7 +96,7 @@ def check_fit_results(result, sp_sin, ref_sin, x, expect_error=True, **kwargs):
             assert key in result.p0.keys()
             assert result.p0[key] == pytest.approx(value)  # Bumps does something strange here
     assert np.all(result.x == x)
-    for item1, item2 in zip(sp_sin._kwargs.values(), ref_sin._kwargs.values()):
+    for item1, item2 in zip(sp_sin.get_all_parameters(), ref_sin.get_all_parameters()):
         # Gradient-free methods (e.g. lmfit's powell/cobyla) have no covariance
         # matrix, so they report error as None rather than a fake 0.0. Every
         # other method must still produce a real uncertainty.
@@ -165,11 +171,11 @@ def test_fit_result(fit_engine):
 
     sp_ref1 = {
         f'p{item1.unique_name}': item1.value
-        for item1, item2 in zip(sp_sin._kwargs.values(), ref_sin._kwargs.values())
+        for item1, item2 in zip(sp_sin.get_all_parameters(), ref_sin.get_all_parameters())
     }
     sp_ref2 = {
         f'p{item1.unique_name}': item2.value
-        for item1, item2 in zip(sp_sin._kwargs.values(), ref_sin._kwargs.values())
+        for item1, item2 in zip(sp_sin.get_all_parameters(), ref_sin.get_all_parameters())
     }
 
     f = Fitter(sp_sin, sp_sin)

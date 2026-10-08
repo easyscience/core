@@ -27,8 +27,8 @@ from easyscience.fitting.sampler import load_chain
 class AbsSin(ModelBase):
     def __init__(self, offset_val: float, phase_val: float):
         super().__init__()
-        self._offset = Parameter('offset', offset_val)
-        self._phase = Parameter('phase', phase_val)
+        self._offset = Parameter(offset_val, display_name='offset')
+        self._phase = Parameter(phase_val, display_name='phase')
 
     @property
     def offset(self) -> Parameter:

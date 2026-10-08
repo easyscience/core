@@ -192,6 +192,8 @@ nav:
   - User Guide:
       - User Guide: user-guide/index.md
       - Controlling Log Output: user-guide/controlling-log-output.md
+      - Serializing Dependent Parameters:
+          user-guide/parameter-dependency-serialization.md
   - Tutorials:
       - Tutorials: tutorials/index.md
       - Bayesian analysis: tutorials/fitting-bayesian.ipynb
@@ -204,8 +206,6 @@ nav:
       - base_classes: api-reference/base_classes.md
       - fitting: api-reference/fitting.md
       - global_object: api-reference/global_object.md
-      - io: api-reference/io.md
       - job: api-reference/job.md
-      - models: api-reference/models.md
       - utils: api-reference/utils.md
       - variable: api-reference/variable.md

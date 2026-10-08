@@ -12,7 +12,6 @@ class TestDescriptorAnyType:
     @pytest.fixture
     def descriptor(self):
         descriptor = DescriptorAnyType(
-            name='name',
             value='string',
             description='description',
             url='url',
@@ -29,7 +28,6 @@ class TestDescriptorAnyType:
         assert descriptor._value == 'string'
 
         # From super
-        assert descriptor._name == 'name'
         assert descriptor._description == 'description'
         assert descriptor._url == 'url'
         assert descriptor._display_name == 'display_name'
@@ -71,7 +69,7 @@ class TestDescriptorAnyType:
         print(repr_str)
 
         # Expect
-        assert repr_str == f"<DescriptorAnyType 'name': {expected}>"
+        assert repr_str == f"<DescriptorAnyType 'display_name': {expected}>"
 
     def test_copy(self, descriptor: DescriptorAnyType):
         # When Then

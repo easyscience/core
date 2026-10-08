@@ -16,7 +16,7 @@ from typing import TypeVar
 from typing import overload
 
 from easyscience import global_object
-from easyscience.io.serializer_base import SerializerBase
+from easyscience.base_classes.serializer_base import SerializerBase
 from easyscience.variable.descriptor_base import DescriptorBase
 
 from .model_base import ModelBase
@@ -364,22 +364,33 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
 
     # Serialization support
 
-    def to_dict(self) -> dict:
+    def to_dict(self, skip: list[str] | None = None) -> dict:
         """
         Convert the EasyList to a dictionary for serialization.
+
+        The serializer calls ``to_dict`` on nested EasyScience objects.
+
+        Parameters
+        ----------
+        skip : list[str] | None, default=None
+            List of field names as strings to skip when forming the
+            dictionary. By default, None.
 
         Returns
         -------
         dict
             Dictionary representation of the EasyList.
         """
-        dict_repr = super().to_dict()
+        skip = list(skip or [])
+        # protected_types holds classes, which the generic encoder
+        # cannot handle; they are encoded explicitly below.
+        dict_repr = super().to_dict(skip=[*skip, 'protected_types'])
         if self._protected_types != [NewBase]:
             dict_repr['protected_types'] = [
                 {'@module': cls_.__module__, '@class': cls_.__name__}
                 for cls_ in self._protected_types
             ]  # noqa: E501
-        dict_repr['data'] = [item.to_dict() for item in self._data]
+        dict_repr['data'] = [item.to_dict(skip=list(skip)) for item in self._data]
         return dict_repr
 
     @classmethod
@@ -390,8 +401,8 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         Parameters
         ----------
         obj_dict : Dict[str, Any]
-            Dictionary containing the serialized contents (from
-            ``SerializerDict``) of an EasyScience object.
+            Dictionary containing the serialized contents
+            of an EasyScience object.
 
         Returns
         -------

@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from inspect import signature
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,12 +11,11 @@ if TYPE_CHECKING:
     from typing import Iterable
     from typing import List
     from typing import Optional
-    from typing import Set
 
 from easyscience import global_object
 
 from ..global_object.undo_redo import property_stack
-from ..io.serializer_base import SerializerBase
+from .serializer_base import SerializerBase
 
 
 class NewBase:
@@ -42,21 +40,6 @@ class NewBase:
         if display_name is not None and not isinstance(display_name, str):
             raise TypeError('Display name must be a string or None')
         self._display_name = display_name
-
-    @property
-    def _arg_spec(self) -> Set[str]:
-        """
-        This method is used by the serializer to determine which
-        arguments are needed by the constructor to deserialize the
-        object.
-        """
-        sign = signature(self.__class__.__init__)
-        names = [
-            param.name
-            for param in sign.parameters.values()
-            if param.kind == param.POSITIONAL_OR_KEYWORD
-        ]
-        return set(names[1:])
 
     @property
     def unique_name(self) -> str:
@@ -147,12 +130,7 @@ class NewBase:
         ``None``. Pass ``skip`` to drop further fields.
         """
         serializer = SerializerBase()
-        if skip is None:
-            skip = []
-        if self._default_unique_name and 'unique_name' not in skip:
-            skip.append('unique_name')
-        if self._display_name is None:
-            skip.append('display_name')
+        skip = list(skip) if skip else []
         return serializer._convert_to_dict(self, skip=skip, full_encode=False)
 
     @classmethod
@@ -164,7 +142,7 @@ class NewBase:
         ----------
         obj_dict : Dict[str, Any]
             Dictionary containing the serialized contents (from
-            ``SerializerDict``) of an EasyScience object.
+            ``to_dict``) of an EasyScience object.
 
         Returns
         -------

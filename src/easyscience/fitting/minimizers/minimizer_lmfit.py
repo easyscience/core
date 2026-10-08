@@ -11,8 +11,6 @@ from lmfit import Parameter as LMParameter
 from lmfit import Parameters as LMParameters
 from lmfit.model import ModelResult
 
-# causes circular import when Parameter is imported
-# from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
 from ..available_minimizers import AvailableMinimizers
@@ -27,17 +25,17 @@ class LMFit(MinimizerBase):  # noqa: S101
     This is a wrapper to the extended Levenberg-Marquardt Fit:
     https://lmfit.github.io/lmfit-py/ It allows for the lmfit fitting
     engine to use parameters declared in an
-    ``EasyScience.base_classes.ObjBase``.
+    ``easyscience.base_classes.ModelBase``.
     """
 
     package = 'lmfit'
 
     def __init__(
         self,
-        obj: object,  #: ObjBase,
+        obj: object,  #: ModelBase,
         fit_function: Callable,
         minimizer_enum: AvailableMinimizers | None = None,
-    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
+    ):  # todo after constraint changes, add type hint: obj: ModelBase  # noqa: E501
         """
         Initialize the minimizer.
 
