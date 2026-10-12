@@ -28,5 +28,4 @@ __all__ = [
     'Fitter',
     'DescriptorNumber',
     'Parameter',
-    'math',
 ]
