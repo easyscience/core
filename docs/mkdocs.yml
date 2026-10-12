@@ -208,5 +208,6 @@ nav:
       - fitting: api-reference/fitting.md
       - global_object: api-reference/global_object.md
       - job: api-reference/job.md
+      - math: api-reference/math.md
       - utils: api-reference/utils.md
       - variable: api-reference/variable.md

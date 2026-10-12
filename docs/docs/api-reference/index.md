@@ -16,6 +16,9 @@ available in EasyScience.
   services (logger and object registry).
 - [job](job.md) – Job and experiment abstractions for running and
   organizing analyses.
+- [math](math.md) – Maths functions on `Parameter` objects (for example
+  `es.math.sin`, `es.math.log`, `es.math.arctan2`) that propagate units,
+  uncertainties and fitting bounds.
 - [utils](utils.md) – Miscellaneous utility functions and helpers (class
   tools, decorators, type helpers).
 - [variable](variable.md) – Descriptor types and variable abstractions
