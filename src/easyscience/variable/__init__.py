@@ -6,8 +6,6 @@ from .descriptor_base import DescriptorBase
 from .descriptor_bool import DescriptorBool
 from .descriptor_number import DescriptorNumber
 from .descriptor_str import DescriptorStr
-from .math import *  # noqa: F403
-from .math import __all__ as _math_all
 from .parameter import Parameter
 
 __all__ = [
@@ -17,5 +15,4 @@ __all__ = [
     'DescriptorNumber',
     'DescriptorStr',
     'Parameter',
-    *_math_all,
 ]
