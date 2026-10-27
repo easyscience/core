@@ -231,13 +231,13 @@ class TestPrecomputeReshaping:
         assert fit_objects[0] in container
         assert container[fit_objects[0].unique_name] is fit_objects[0]
 
-    def test_get_fit_parameters_concatenates_in_order(self):
+    def test_get_free_parameters_concatenates_in_order(self):
         fit_objects = [Line(1.0, 0.5), Line(2.0, 1.5)]
         container = MultiFitter(fit_objects, fit_objects).fit_object
 
-        assert container.get_fit_parameters() == [
-            *fit_objects[0].get_fit_parameters(),
-            *fit_objects[1].get_fit_parameters(),
+        assert container.get_free_parameters() == [
+            *fit_objects[0].get_free_parameters(),
+            *fit_objects[1].get_free_parameters(),
         ]
 
     def test_rejects_foreign_object(self):

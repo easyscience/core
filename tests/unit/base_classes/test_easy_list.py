@@ -722,7 +722,7 @@ class TestEasyList:
         el = EasyList(p1, p2)
         vars = el.get_all_variables()
         assert vars == [p1, p2]
-        assert el.get_fit_parameters() == [p1, p2]
+        assert el.get_free_parameters() == [p1, p2]
 
     def test_get_all_variables_bare_descriptors(self):
         """Bare DescriptorNumbers are collected as variables but are not fit parameters."""
@@ -731,7 +731,7 @@ class TestEasyList:
         el = EasyList(p1, d1)
         assert el.get_all_variables() == [p1, d1]
         assert el.get_all_parameters() == [p1]
-        assert el.get_fit_parameters() == [p1]
+        assert el.get_free_parameters() == [p1]
 
     def test_get_all_variables_fixed_parameter_not_fitted(self):
         """A fixed bare Parameter is returned as a variable but not as a fit parameter."""
@@ -739,7 +739,7 @@ class TestEasyList:
         fixed = Parameter(value=2.0, fixed=True, display_name='b')
         el = EasyList(free, fixed)
         assert el.get_all_variables() == [free, fixed]
-        assert el.get_fit_parameters() == [free]
+        assert el.get_free_parameters() == [free]
 
     def test_get_all_variables_parameters_from_list(self):
         """A plain list of Parameters should be flattened and collected."""

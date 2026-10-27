@@ -288,7 +288,7 @@ class Sampler:
     Raises
     ------
     TypeError
-        If ``fit_object`` has no ``get_fit_parameters``, ``fit_function``
+        If ``fit_object`` has no ``get_free_parameters``, ``fit_function``
         is not callable, any dataset in ``x``/``y``/``weights`` is not a
         numeric array (e.g. a string), or ``vectorized``/``sampler_kwargs``
         have the wrong type.
@@ -384,7 +384,7 @@ class Sampler:
         fit_functions = list(fit_function) if is_multi else [fit_function]
         if not all(callable(f) for f in fit_functions):
             raise TypeError('fit_function must be callable (or a list of callables).')
-        if not hasattr(fit_object, 'get_fit_parameters'):
+        if not hasattr(fit_object, 'get_free_parameters'):
             raise TypeError(
                 f'fit_object must be an EasyScience model object exposing the parameters '
                 f'to sample, got {type(fit_object).__name__}.'

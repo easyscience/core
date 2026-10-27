@@ -172,7 +172,7 @@ class EngineBase(metaclass=ABCMeta):
         # Get a list of `Parameters`
         self._cached_pars = {}
         self._cached_pars_vals = {}
-        for parameter in self._object.get_fit_parameters():
+        for parameter in self._object.get_free_parameters():
             key = parameter.unique_name
             self._cached_pars[key] = parameter
             self._cached_pars_vals[key] = (parameter.value, parameter.error)

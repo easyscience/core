@@ -158,15 +158,6 @@ class TestModelBase:
         )
         assert nested_model.component.get_all_variables.call_count == 1
 
-    def test_get_fit_parameters_alias(self, monkeypatch):
-        # When
-        model = MockModelFull(pressure=1)
-        monkeypatch.setattr(model, 'get_free_parameters', MagicMock())
-        # Then
-        fit_params = model.get_fit_parameters()
-        # Expect
-        assert model.get_free_parameters.call_count == 1
-
     def test_get_free_parameters_nested(self, nested_model):
         # When Then
         free_params = nested_model.get_free_parameters()
