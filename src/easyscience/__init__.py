@@ -9,13 +9,15 @@ from .global_object import GlobalObject
 global_object = GlobalObject()
 
 
-from . import math  # noqa: E402
 from .base_classes import EasyList  # noqa: E402
 from .base_classes import ModelBase  # noqa: E402
 from .fitting import AvailableMinimizers  # noqa: E402
 from .fitting import Fitter  # noqa: E402
 from .variable import DescriptorNumber  # noqa: E402
 from .variable import Parameter  # noqa: E402
+
+# math must be imported after variable (circular import otherwise)
+from . import math  # noqa: E402  # isort: skip
 
 __version__ = version('easyscience')
 
