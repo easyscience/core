@@ -67,7 +67,9 @@ ALL_FUNCTIONS = [*UNARY_FUNCTIONS, 'arctan2']
 
 def make(value, unit='', *, min=-INF, max=INF, variance=0.0, name='x') -> Parameter:
     """Shorthand for building a ``Parameter`` with the bounds under test."""
-    return Parameter(display_name=name, value=value, unit=unit, variance=variance, min=min, max=max)
+    return Parameter(
+        display_name=name, value=value, unit=unit, variance=variance, min=min, max=max
+    )
 
 
 def fn(name: str):

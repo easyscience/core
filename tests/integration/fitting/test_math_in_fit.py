@@ -149,7 +149,9 @@ class GaussianPeak(ModelBase):
         self._amplitude = Parameter(amplitude, display_name='amplitude')
         self._center = Parameter(center, display_name='center')
         self._fwhm = Parameter(fwhm, display_name='fwhm', min=0.1, max=10.0)
-        self._two = Parameter(2.0, display_name='two')  # a constant, so that log() receives a Parameter
+        self._two = Parameter(
+            2.0, display_name='two'
+        )  # a constant, so that log() receives a Parameter
 
     @property
     def amplitude(self) -> Parameter:
