@@ -133,10 +133,7 @@ def test_basic_fit(fit_engine: AvailableMinimizers):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x=x, y=y, weights=weights)
 
@@ -181,10 +178,7 @@ def test_fit_result(fit_engine):
     f = Fitter(sp_sin, sp_sin)
 
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x, y, weights=weights)
     check_fit_results(result, sp_sin, ref_sin, x, sp_ref1=sp_ref1, sp_ref2=sp_ref2)
@@ -213,10 +207,7 @@ def test_basic_max_evaluations(fit_engine):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     f.max_evaluations = 3
     result = f.fit(x=x, y=y, weights=weights)
     # Result should not be the same as the reference
@@ -248,10 +239,7 @@ def test_max_evaluations_populates_fit_result_fields(fit_engine):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     f.max_evaluations = 3
     result = f.fit(x=x, y=y, weights=weights)
 
@@ -276,10 +264,7 @@ def test_bumps_max_evaluations_counts_objective_calls() -> None:
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    try:
-        f.switch_minimizer(AvailableMinimizers.Bumps)
-    except AttributeError:
-        pytest.skip(reason=f'{AvailableMinimizers.Bumps} is not installed')
+    f.switch_minimizer(AvailableMinimizers.Bumps)
 
     f.max_evaluations = 3
     result = f.fit(x=x, y=y, weights=weights)
@@ -314,10 +299,7 @@ def test_basic_tolerance(fit_engine, tolerance):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     f.tolerance = tolerance
     result = f.fit(x=x, y=y, weights=weights)
     # Result should not be the same as the reference
@@ -361,7 +343,7 @@ def test_bumps_methods(fit_method):
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    f.switch_minimizer('Bumps')
+    f.switch_minimizer(AvailableMinimizers.Bumps)
     assert fit_method in f._minimizer.supported_methods()
     result = f.fit(x, y, weights=weights, method=fit_method)
     check_fit_results(result, sp_sin, ref_sin, x)
@@ -386,7 +368,7 @@ def test_bumps_fit_emits_no_fitness_deprecation_warning():
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    f.switch_minimizer('Bumps')
+    f.switch_minimizer(AvailableMinimizers.Bumps)
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter('always')
@@ -416,10 +398,7 @@ def test_dependent_parameter(fit_engine):
     )
 
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x, y, weights=weights)
     # With `offset` dependent on `phase` only one parameter varies against
@@ -449,10 +428,7 @@ def test_2D_vectorized(fit_engine):
     weights = np.ones_like(mm(XY))
     ff = Fitter(m2, m2)
     if fit_engine is not None:
-        try:
-            ff.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        ff.switch_minimizer(fit_engine)
     try:
         result = ff.fit(x=XY, y=mm(XY), weights=weights, vectorized=True)
     except FitError as e:
@@ -488,10 +464,7 @@ def test_2D_non_vectorized(fit_engine):
     weights = np.ones_like(mm(XY.reshape(-1, 2)))
     ff = Fitter(m2, m2)
     if fit_engine is not None:
-        try:
-            ff.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        ff.switch_minimizer(fit_engine)
     try:
         result = ff.fit(x=XY, y=mm(XY.reshape(-1, 2)), weights=weights, vectorized=False)
     except FitError as e:
@@ -536,10 +509,7 @@ def test_fixed_parameter_does_not_change(fit_engine):
     # THEN
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x=x, y=y, weights=weights)
 
@@ -611,10 +581,7 @@ def test_fitter_variable_weights(fit_engine):
 
         f = Fitter(model, model)
         if fit_engine is not None:
-            try:
-                f.switch_minimizer(fit_engine)
-            except AttributeError:
-                pytest.skip(reason=f'{fit_engine} is not installed')
+            f.switch_minimizer(fit_engine)
 
         f.fit(x=x, y=y, weights=weights)
         return model.offset.value, model.phase.value
@@ -685,10 +652,7 @@ def test_weight_convention_matches_analytic_wls(fit_engine):
 
     f = Fitter(model, model)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x=x, y=y, weights=1.0 / sigma)
 

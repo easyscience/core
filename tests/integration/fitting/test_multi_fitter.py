@@ -4,6 +4,7 @@
 import numpy as np
 import pytest
 
+from easyscience import AvailableMinimizers
 from easyscience import Parameter
 from easyscience.base_classes import ModelBase
 from easyscience.fitting.minimizers import FitError
@@ -71,7 +72,10 @@ class AbsSin2D(AbsSin):
         )
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+)
 def test_multi_fit(fit_engine):
     ref_sin_1 = AbsSin(0.2, np.pi)
     sp_sin_1 = AbsSin(0.354, 3.05)
@@ -98,10 +102,7 @@ def test_multi_fit(fit_engine):
 
     f = MultiFitter([sp_sin_1, sp_sin_2], [sp_sin_1, sp_sin_2])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     results = f.fit(x=[x1, x2], y=[y1, y2], weights=[weights, weights])
     X = [x1, x2]
@@ -121,7 +122,10 @@ def test_multi_fit(fit_engine):
         assert result.residual == pytest.approx(F_real[idx](X[idx]) - F_ref[idx](X[idx]), abs=1e-2)
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+)
 def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
     """Verify that fit metadata and message are copied into each per-dataset result."""
     ref_sin_1 = AbsSin(0.2, np.pi)
@@ -148,10 +152,7 @@ def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
 
     f = MultiFitter([sp_sin_1, sp_sin_2], [sp_sin_1, sp_sin_2])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     results = f.fit(x=[x1, x2], y=[y1, y2], weights=[weights, weights])
     for result in results:
@@ -164,7 +165,10 @@ def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
         assert isinstance(result.message, str)
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+)
 def test_multi_fit2(fit_engine):
     ref_sin_1 = AbsSin(0.2, np.pi)
     sp_sin_1 = AbsSin(0.354, 3.05)
@@ -203,10 +207,7 @@ def test_multi_fit2(fit_engine):
 
     f = MultiFitter([sp_sin_1, sp_line, sp_sin_2], [sp_sin_1, sp_line, sp_sin_2])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     results = f.fit(x=[x1, x2, x3], y=[y1, y2, y3], weights=[weights, weights, weights])
     X = [x1, x2, x3]
@@ -229,7 +230,10 @@ def test_multi_fit2(fit_engine):
         assert result.residual == pytest.approx(F_ref[idx](X[idx]) - F_real[idx](X[idx]), abs=1e-2)
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+)
 def test_multi_fit_1D_2D(fit_engine):
     # Generate fit and reference objects
     ref_sin1D = AbsSin(0.2, np.pi)
@@ -259,10 +263,7 @@ def test_multi_fit_1D_2D(fit_engine):
 
     ff = MultiFitter([sp_sin1D, sp_sin2D], [sp_sin1D, sp_sin2D])
     if fit_engine is not None:
-        try:
-            ff.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        ff.switch_minimizer(fit_engine)
 
     sp_sin1D.offset.fixed = False
     sp_sin1D.phase.fixed = False
@@ -270,10 +271,7 @@ def test_multi_fit_1D_2D(fit_engine):
 
     f = MultiFitter([sp_sin1D, sp_sin2D], [sp_sin1D, sp_sin2D])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     try:
         results = f.fit(
             x=[x1D, x2D], y=[y1D, y2D], weights=[weights1D, weights2D], vectorized=True
@@ -293,7 +291,7 @@ def test_multi_fit_1D_2D(fit_engine):
             sp_sin2D.get_fit_parameters()
         )
         if (
-            fit_engine != 'DFO'
+            fit_engine != AvailableMinimizers.DFO
         ):  # DFO apparently does not fit well with even weights. Can't be bothered to fix
             assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
             assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)

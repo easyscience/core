@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from easyscience import AvailableMinimizers
-from easyscience.fitting.available_minimizers import from_string_to_enum
 from easyscience.fitting.minimizers import MinimizerBase
 from easyscience.fitting.minimizers.factory import factory
 
@@ -56,42 +55,6 @@ class TestFactory:
         minimizer = self.pull_minminizer(minimizer_enum)
         assert minimizer._method == minimizer_method
         assert minimizer.package == 'dfo'
-
-
-@pytest.mark.parametrize(
-    'minimizer_name,expected',
-    [
-        ('LMFit', AvailableMinimizers.LMFit),
-        ('LMFit_leastsq', AvailableMinimizers.LMFit_leastsq),
-        ('LMFit_powell', AvailableMinimizers.LMFit_powell),
-        ('LMFit_cobyla', AvailableMinimizers.LMFit_cobyla),
-        ('LMFit_differential_evolution', AvailableMinimizers.LMFit_differential_evolution),
-        ('LMFit_scipy_least_squares', AvailableMinimizers.LMFit_scipy_least_squares),
-    ],
-)
-def test_from_string_to_enum_lmfit(minimizer_name, expected):
-    assert from_string_to_enum(minimizer_name) == expected
-
-
-@pytest.mark.parametrize(
-    'minimizer_name,expected',
-    [
-        ('Bumps', AvailableMinimizers.Bumps),
-        ('Bumps_simplex', AvailableMinimizers.Bumps_simplex),
-        ('Bumps_newton', AvailableMinimizers.Bumps_newton),
-        ('Bumps_lm', AvailableMinimizers.Bumps_lm),
-    ],
-)
-def test_from_string_to_enum_bumps(minimizer_name, expected):
-    assert from_string_to_enum(minimizer_name) == expected
-
-
-@pytest.mark.parametrize(
-    'minimizer_name,expected',
-    [('DFO', AvailableMinimizers.DFO), ('DFO_leastsq', AvailableMinimizers.DFO_leastsq)],
-)
-def test_from_string_to_enum_dfo(minimizer_name, expected):
-    assert from_string_to_enum(minimizer_name) == expected
 
 
 def test_available_minimizers():
