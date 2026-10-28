@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 r"""
-Maths operations for ``Parameter``, ``DescriptorNumber`` and ``DescriptorArray`` objects.
+Maths operations for ``Parameter``, ``DescriptorNumber`` and
+``DescriptorArray`` objects.
 
-Each function evaluates Scipp functions of the same name, checks
-the unit and propagates the variance, and returns a new object of the
-same class as its argument:
+Each function evaluates Scipp functions of the same name, checks the
+unit and propagates the variance, and returns a new object of the same
+class as its argument:
 
 - a ``Parameter`` gives a ``Parameter`` whose bounds are the range the
   function takes while the argument stays within its own bounds,
@@ -39,8 +40,8 @@ print(es.math.sin(phase))
 # <Parameter 'sin(phase)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
 ```
 
-For a ``DescriptorArray``, one element that makes the result infinite
-or ``nan`` is enough to raise ``ValueError`` for the whole call.
+For a ``DescriptorArray``, one element that makes the result infinite or
+``nan`` is enough to raise ``ValueError`` for the whole call.
 
 The Notes of each function give its variance as Scipp propagates it, to
 first order: $\sigma_x^2$ is the variance of the input and $\sigma_f^2$
@@ -169,9 +170,7 @@ def exp(
 
     Notes
     -----
-    $$
-    f(x) = e^{x}, \qquad \sigma_f^2 = e^{2x}\,\sigma_x^2
-    $$
+    $$ f(x) = e^{x}, \qquad \sigma_f^2 = e^{2x}\,\sigma_x^2 $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -238,9 +237,7 @@ def log(
 
     Notes
     -----
-    $$
-    f(x) = \ln x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2}
-    $$
+    $$ f(x) = \ln x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -309,9 +306,8 @@ def log10(
 
     Notes
     -----
-    $$
-    f(x) = \log_{10} x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{(x \ln 10)^2}
-    $$
+    $$ f(x) = \log_{10} x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{(x \ln
+    10)^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -380,9 +376,7 @@ def sqrt(
 
     Notes
     -----
-    $$
-    f(x) = \sqrt{x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{4x}
-    $$
+    $$ f(x) = \sqrt{x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{4x} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -461,9 +455,8 @@ def erf(
 
     Notes
     -----
-    $$
-    \operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2}\,dt
-    $$
+    $$ \operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x
+    e^{-t^2}\,dt $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -531,9 +524,7 @@ def erfc(
 
     Notes
     -----
-    $$
-    \operatorname{erfc}(x) = 1 - \operatorname{erf}(x)
-    $$
+    $$ \operatorname{erfc}(x) = 1 - \operatorname{erf}(x) $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -603,9 +594,7 @@ def sin(
 
     Notes
     -----
-    $$
-    \sigma_f^2 = \cos^2 x \, \sigma_x^2 \quad (x \text{ in rad})
-    $$
+    $$ \sigma_f^2 = \cos^2 x \, \sigma_x^2 \quad (x \text{ in rad}) $$
 
     The result bounds also include any peak or trough between the input
     bounds.
@@ -679,9 +668,7 @@ def cos(
 
     Notes
     -----
-    $$
-    \sigma_f^2 = \sin^2 x \, \sigma_x^2 \quad (x \text{ in rad})
-    $$
+    $$ \sigma_f^2 = \sin^2 x \, \sigma_x^2 \quad (x \text{ in rad}) $$
 
     The result bounds also include any peak or trough between the input
     bounds.
@@ -756,8 +743,7 @@ def tan(
 
     Notes
     -----
-    $$
-    \sigma_f^2 = \frac{\sigma_x^2}{\cos^4 x} \quad (x \text{ in rad})
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{\cos^4 x} \quad (x \text{ in rad})
     $$
 
     Between two asymptotes the tangent increases, so the result bounds
@@ -830,14 +816,12 @@ def arcsin(
     --------
     - [`sin`][easyscience.math.sin]: Sine.
     - [`arccos`][easyscience.math.arccos]: Inverse cosine.
-    - `asin`: The same function, under its Scipp name.
+    - [`asin`][easyscience.math.asin]: The same function, under its Scipp name.
     - [`scipp.asin`](https://scipp.github.io/generated/functions/scipp.asin): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$
-    \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2}
-    $$
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -906,14 +890,12 @@ def arccos(
     --------
     - [`cos`][easyscience.math.cos]: Cosine.
     - [`arcsin`][easyscience.math.arcsin]: Inverse sine.
-    - `acos`: The same function, under its Scipp name.
+    - [`acos`][easyscience.math.acos]: The same function, under its Scipp name.
     - [`scipp.acos`](https://scipp.github.io/generated/functions/scipp.acos): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$
-    \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2}
-    $$
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -981,14 +963,12 @@ def arctan(
     --------
     - [`tan`][easyscience.math.tan]: Tangent.
     - [`arctan2`][easyscience.math.arctan2]: Angle of a point from its two Cartesian coordinates.
-    - `atan`: The same function, under its Scipp name.
+    - [`atan`][easyscience.math.atan]: The same function, under its Scipp name.
     - [`scipp.atan`](https://scipp.github.io/generated/functions/scipp.atan): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$
-    \sigma_f^2 = \frac{\sigma_x^2}{(1 + x^2)^2}
-    $$
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{(1 + x^2)^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -1071,7 +1051,7 @@ def arctan2(
     See Also
     --------
     - [`arctan`][easyscience.math.arctan]: Inverse tangent.
-    - `atan2`: The same function, under its Scipp name.
+    - [`atan2`][easyscience.math.atan2]: The same function, under its Scipp name.
     - [`scipp.atan2`](https://scipp.github.io/generated/functions/scipp.atan2): Scipp function that evaluates the value; it cannot propagate a variance.
 
     Notes
@@ -1112,7 +1092,8 @@ def sinc(
     descriptor: DescriptorNumber | DescriptorArray,
 ) -> DescriptorNumber | DescriptorArray:
     r"""
-    Unnormalised cardinal sine of a dimensionless input or an angle in radians.
+    Unnormalised cardinal sine of a dimensionless input or an angle in
+    radians.
 
     This is the physics convention, also used by Scipp. NumPy's
     ``np.sinc`` computes $\sin(\pi x) / (\pi x)$ instead.
@@ -1145,9 +1126,9 @@ def sinc(
 
     Notes
     -----
-    $$
-    \operatorname{sinc}(x) = \frac{\sin x}{x}, \quad \operatorname{sinc}(0) = 1, \qquad \sigma_f^2 = \left(\frac{x \cos x - \sin x}{x^2}\right)^2 \sigma_x^2
-    $$
+    $$ \operatorname{sinc}(x) = \frac{\sin x}{x}, \quad
+    \operatorname{sinc}(0) = 1, \qquad \sigma_f^2 = \left(\frac{x \cos x
+    - \sin x}{x^2}\right)^2 \sigma_x^2 $$
 
     The result bounds also include the peak at 0 and any other peak or
     trough between the input bounds. Those are found numerically.
@@ -1216,9 +1197,8 @@ def sinh(
 
     Notes
     -----
-    $$
-    \sinh x = \frac{e^{x} - e^{-x}}{2}, \qquad \sigma_f^2 = \cosh^2 x \, \sigma_x^2
-    $$
+    $$ \sinh x = \frac{e^{x} - e^{-x}}{2}, \qquad \sigma_f^2 = \cosh^2 x
+    \, \sigma_x^2 $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -1284,9 +1264,8 @@ def cosh(
 
     Notes
     -----
-    $$
-    \cosh x = \frac{e^{x} + e^{-x}}{2}, \qquad \sigma_f^2 = \sinh^2 x \, \sigma_x^2
-    $$
+    $$ \cosh x = \frac{e^{x} + e^{-x}}{2}, \qquad \sigma_f^2 = \sinh^2 x
+    \, \sigma_x^2 $$
 
     The result bounds also include the minimum of 1 at 0, if 0 lies
     between the input bounds.
@@ -1353,9 +1332,8 @@ def tanh(
 
     Notes
     -----
-    $$
-    \tanh x = \frac{\sinh x}{\cosh x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{\cosh^4 x}
-    $$
+    $$ \tanh x = \frac{\sinh x}{\cosh x}, \qquad \sigma_f^2 =
+    \frac{\sigma_x^2}{\cosh^4 x} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -1414,14 +1392,13 @@ def arcsinh(
     See Also
     --------
     - [`sinh`][easyscience.math.sinh]: Hyperbolic sine.
-    - `asinh`: The same function, under its Scipp name.
+    - [`asinh`][easyscience.math.asinh]: The same function, under its Scipp name.
     - [`scipp.asinh`](https://scipp.github.io/generated/functions/scipp.asinh): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$
-    \operatorname{arcsinh} x = \ln\left(x + \sqrt{x^2 + 1}\right), \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 + 1}
-    $$
+    $$ \operatorname{arcsinh} x = \ln\left(x + \sqrt{x^2 + 1}\right),
+    \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 + 1} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -1481,14 +1458,13 @@ def arccosh(
     See Also
     --------
     - [`cosh`][easyscience.math.cosh]: Hyperbolic cosine.
-    - `acosh`: The same function, under its Scipp name.
+    - [`acosh`][easyscience.math.acosh]: The same function, under its Scipp name.
     - [`scipp.acosh`](https://scipp.github.io/generated/functions/scipp.acosh): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$
-    \operatorname{arccosh} x = \ln\left(x + \sqrt{x^2 - 1}\right), \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 - 1}
-    $$
+    $$ \operatorname{arccosh} x = \ln\left(x + \sqrt{x^2 - 1}\right),
+    \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 - 1} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -1549,14 +1525,13 @@ def arctanh(
     See Also
     --------
     - [`tanh`][easyscience.math.tanh]: Hyperbolic tangent.
-    - `atanh`: The same function, under its Scipp name.
+    - [`atanh`][easyscience.math.atanh]: The same function, under its Scipp name.
     - [`scipp.atanh`](https://scipp.github.io/generated/functions/scipp.atanh): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$
-    \operatorname{arctanh} x = \frac{1}{2} \ln\frac{1 + x}{1 - x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{(1 - x^2)^2}
-    $$
+    $$ \operatorname{arctanh} x = \frac{1}{2} \ln\frac{1 + x}{1 - x},
+    \qquad \sigma_f^2 = \frac{\sigma_x^2}{(1 - x^2)^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -1582,12 +1557,25 @@ def arctanh(
 # after the canonical function: ``asin(x)`` returns ``arcsin(x)``.
 
 asin = arcsin
+"""Alias of [`arcsin`][easyscience.math.arcsin], under its Scipp name."""
+
 acos = arccos
+"""Alias of [`arccos`][easyscience.math.arccos], under its Scipp name."""
+
 atan = arctan
+"""Alias of [`arctan`][easyscience.math.arctan], under its Scipp name."""
+
 atan2 = arctan2
+"""Alias of [`arctan2`][easyscience.math.arctan2], under its Scipp name."""
+
 asinh = arcsinh
+"""Alias of [`arcsinh`][easyscience.math.arcsinh], under its Scipp name."""
+
 acosh = arccosh
+"""Alias of [`arccosh`][easyscience.math.arccosh], under its Scipp name."""
+
 atanh = arctanh
+"""Alias of [`arctanh`][easyscience.math.arctanh], under its Scipp name."""
 
 
 # --- How a maths function is described ---
@@ -1608,7 +1596,8 @@ class _InputRange:
 @dataclass(frozen=True)
 class _MathFunction:
     """
-    What a public maths function evaluates and how its result bounds are found.
+    What a public maths function evaluates and how its result bounds are
+    found.
 
     Attributes
     ----------
@@ -1640,12 +1629,6 @@ class _MathFunction:
 # --- Evaluating a maths function ---
 
 
-# NOTE(): Each result is a new, free ``Parameter``, like the result of ``Parameter.__mul__``. It is
-# a snapshot that does not follow later changes of its inputs, and a ``Fitter`` would vary it on
-# its own. Whether results should be ``fixed=True`` or linked to their inputs
-# (``Parameter.from_dependency``) is for the lead developer to decide.
-# TODO(): Cost. One call takes about 130 to 160 us against about 3 us for the Scipp function
-# alone (tests/manual/es_math_vs_scipp.ipynb). Profile before using es.math in hot loops.
 def _evaluate(
     function: _MathFunction, *args: DescriptorNumber | DescriptorArray
 ) -> DescriptorNumber | DescriptorArray:
@@ -1653,8 +1636,8 @@ def _evaluate(
     Evaluate a maths function with Scipp and wrap the result.
 
     Scipp checks the units and propagates the variances. A
-    ``DescriptorArray`` result has no bounds; a ``Parameter`` result gets
-    the range of ``function`` over the bounds of its arguments.
+    ``DescriptorArray`` result has no bounds; a ``Parameter`` result
+    gets the range of ``function`` over the bounds of its arguments.
 
     Parameters
     ----------
@@ -1754,7 +1737,9 @@ def _scipp_value(descriptor: DescriptorNumber | DescriptorArray) -> sc.Variable:
 
 
 def _all_finite(result: sc.Variable) -> bool:
-    """Whether every value and every variance of ``result`` is finite."""
+    """
+    Whether every value and every variance of ``result`` is finite.
+    """
     if not np.all(np.isfinite(result.values)):
         return False
     return result.variances is None or bool(np.all(np.isfinite(result.variances)))
@@ -1762,7 +1747,10 @@ def _all_finite(result: sc.Variable) -> bool:
 
 @cache
 def _unit_factor(unit: str, target_unit: str | None) -> float:
-    """Factor that converts ``unit`` to ``target_unit``; 1.0 if none is needed."""
+    """
+    Factor that converts ``unit`` to ``target_unit``; 1.0 if none is
+    needed.
+    """
     if target_unit is None or unit == target_unit:
         return 1.0
     return float(sc.scalar(1.0, unit=unit).to(unit=target_unit).value)
@@ -1866,12 +1854,13 @@ def _sinc_positive_extrema(
     lower: float, upper: float, count: int = _SINC_ROOT_COUNT
 ) -> np.ndarray:
     """
-    Maxima and minima of sinc on the positive axis, nearest the lower bound.
+    Maxima and minima of sinc on the positive axis, nearest the lower
+    bound.
 
     They are the positive roots of ``tan(x) = x``, one in each ``(k*pi,
     k*pi + pi/2)``. The heights of the lobes fall off like 1/x, so the
-    largest maximum and the deepest minimum in the range are among
-    the first few roots at or after ``lower``.
+    largest maximum and the deepest minimum in the range are among the
+    first few roots at or after ``lower``.
 
     Beyond ``_SINC_NEGLIGIBLE_LOBES_FROM`` the lobes are negligible and
     none are returned.
@@ -1892,7 +1881,10 @@ def _sinc_positive_extrema(
 
 
 def _sinc_extrema(lower: float, upper: float) -> np.ndarray:
-    """Maxima and minima of sinc: 0, its largest value, and the roots of tan(x) = x."""
+    """
+    Maxima and minima of sinc: 0, its largest value, and the roots of
+    tan(x) = x.
+    """
     points = [_sinc_positive_extrema(lower, upper), -_sinc_positive_extrema(-upper, -lower)]
     if lower <= 0.0 <= upper:
         points.append(np.array([0.0]))
@@ -1926,9 +1918,9 @@ def _tan_bounds(argument_bounds: _Bounds) -> tuple[float, float]:
     Result bounds of tan(x), for argument bounds in radians.
 
     tan increases between asymptotes (``pi/2 + n*pi``). Bounds that
-    contain an asymptote give all real numbers.
-    A bound exactly on an asymptote makes the result unbounded on that
-    side only: ``[0, pi/2]`` gives ``[0, inf)``.
+    contain an asymptote give all real numbers. A bound exactly on an
+    asymptote makes the result unbounded on that side only: ``[0,
+    pi/2]`` gives ``[0, inf)``.
     """
     lower, upper = argument_bounds
     if not (np.isfinite(lower) and np.isfinite(upper)):

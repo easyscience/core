@@ -13,10 +13,12 @@ The models are test-only, like ``AbsSin`` in ``test_fitter.py``:
 
 * ``StraightLine``: dimensionless parameters, so every dimensionless function can be applied.
 * ``AngleLine``: a free parameter in degrees, for the trigonometric functions and ``sinc``.
-* ``Quadrature``: ``a cos + b sin`` with uncorrelated ``a`` and ``b``, for amplitude and phase.
+* ``Quadrature``: ``a cos + b sin`` with uncorrelated ``a`` and ``b``, for the amplitude.
 * ``GaussianPeak``: parametrised by its FWHM; the width is derived with ``log`` and ``sqrt``
-  *inside* ``__call__`` on every evaluation (so a ``Parameter`` is created per call), and an
-  in-window fraction is derived after the fit with ``erf``.
+  *inside* ``__call__`` on every evaluation (so a ``Parameter`` is created per call).
+
+Scipp cannot propagate a variance through ``erf``, ``erfc`` and ``atan2``, and a fitted parameter
+always has one, so those three raise on fit results (``TestNoScippVarianceSupport``).
 """
 
 import gc
@@ -25,6 +27,7 @@ import time
 
 import numpy as np
 import pytest
+import scipp as sc
 
 import easyscience as es
 from easyscience import AvailableMinimizers
@@ -37,9 +40,6 @@ pytestmark = pytest.mark.fast
 
 SIGMA = 0.05  # standard deviation of the noise added to the synthetic data
 OMEGA = 2.0 * np.pi  # angular frequency of the Quadrature model (period 1)
-
-_erf = np.vectorize(math.erf)
-_erfc = np.vectorize(math.erfc)
 
 
 @pytest.fixture(autouse=True)
@@ -181,10 +181,6 @@ class GaussianPeak(ModelBase):
         """sigma = FWHM / (2 sqrt(2 ln 2)), with value and variance propagated."""
         return self._fwhm / (2 * es.math.sqrt(2 * es.math.log(self._two)))
 
-    def fraction_within(self, window: float) -> Parameter:
-        """Fraction of the area within +-window of the center: erf(window / (sqrt(2) sigma))."""
-        return es.math.erf(window / (self.sigma() * math.sqrt(2.0)))
-
     def __call__(self, x: np.ndarray) -> np.ndarray:
         sigma = self.sigma().value
         return self.amplitude.value * np.exp(-((x - self.center.value) ** 2) / (2 * sigma**2))
@@ -212,8 +208,6 @@ def noisy(values: np.ndarray, seed: int) -> np.ndarray:
 # is evaluated well inside its domain.
 UNARY_CASES = [
     ('exp', 'slope', np.exp, np.exp),
-    ('erf', 'slope', _erf, lambda x: 2 / np.sqrt(np.pi) * np.exp(-(x**2))),
-    ('erfc', 'slope', _erfc, lambda x: -2 / np.sqrt(np.pi) * np.exp(-(x**2))),
     ('sinh', 'slope', np.sinh, np.cosh),
     ('cosh', 'slope', np.cosh, np.sinh),
     ('tanh', 'slope', np.tanh, lambda x: 1 / np.cosh(x) ** 2),
@@ -419,54 +413,6 @@ class TestFittedQuadrature:
         assert amplitude.variance == pytest.approx(expected_variance, rel=1e-9)
         assert abs(amplitude.value - 1.7) < 5 * np.sqrt(amplitude.variance)
 
-    def test_phase_from_arctan2(self, fitted_quadrature):
-        # WHEN
-        model, _ = fitted_quadrature
-        a, b = model.a, model.b
-
-        # THEN
-        phase = es.math.arctan2(b, a)
-
-        # EXPECT
-        r2 = a.value**2 + b.value**2
-        expected_variance = (a.value**2 * b.variance + b.value**2 * a.variance) / r2**2
-        assert phase.unit == 'rad'
-        assert phase.value == pytest.approx(np.arctan2(b.value, a.value), rel=1e-12)
-        assert phase.variance == pytest.approx(expected_variance, rel=1e-9)
-        assert abs(phase.value - np.arctan2(0.8, 1.5)) < 5 * np.sqrt(phase.variance)
-
-    def test_phase_variance_agrees_with_sampling_uncorrelated_parameters(self, fitted_quadrature):
-        # WHEN
-        model, _ = fitted_quadrature
-        a, b = model.a, model.b
-        rng = np.random.default_rng(11)
-        sampled_a = rng.normal(a.value, np.sqrt(a.variance), 200_000)
-        sampled_b = rng.normal(b.value, np.sqrt(b.variance), 200_000)
-
-        # THEN
-        phase = es.math.arctan2(b, a)
-
-        # EXPECT
-        assert np.std(np.arctan2(sampled_b, sampled_a)) == pytest.approx(
-            np.sqrt(phase.variance), rel=0.03
-        )
-
-    def test_phase_in_degrees_scales_value_and_variance(self, fitted_quadrature):
-        # WHEN
-        model, _ = fitted_quadrature
-        a, b = model.a, model.b
-
-        # THEN
-        in_radians = es.math.arctan2(b, a)
-        in_degrees = es.math.arctan2(b, a, unit='deg')
-
-        # EXPECT
-        assert in_degrees.unit == 'deg'
-        assert in_degrees.value == pytest.approx(np.degrees(in_radians.value), rel=1e-12)
-        assert in_degrees.variance == pytest.approx(
-            in_radians.variance * np.degrees(1.0) ** 2, rel=1e-9
-        )
-
 
 # ----------------------------------------------------------------------
 # Deriving values inside __call__ (a Parameter is created per evaluation)
@@ -544,40 +490,6 @@ class TestGaussianPeakWithDerivedWidth:
         assert peak.center.value == pytest.approx(0.4, abs=0.05)
         assert peak.fwhm.value == pytest.approx(1.8, abs=0.05)
 
-    def test_in_window_fraction_after_the_fit(self, gaussian_data):
-        # WHEN
-        x, y = gaussian_data
-        peak = GaussianPeak(amplitude=2.0, center=0.0, fwhm=1.0)
-        fit(peak, x, y)
-        window = 1.0
-
-        # THEN
-        fraction = peak.fraction_within(window)
-
-        # EXPECT
-        # u = window * c / (sqrt(2) fwhm) depends on the fwhm alone, so the delta method is exact
-        # to first order: var(f) = (erf'(u) * du/dfwhm)**2 * var(fwhm), with du/dfwhm = -u/fwhm.
-        fwhm = peak.fwhm
-        u = window * FWHM_PER_SIGMA / (math.sqrt(2.0) * fwhm.value)
-        slope = 2 / math.sqrt(math.pi) * math.exp(-(u**2)) * (-u / fwhm.value)
-        assert fraction.value == pytest.approx(math.erf(u), rel=1e-12)
-        assert fraction.variance == pytest.approx(slope**2 * fwhm.variance, rel=1e-9)
-
-    def test_in_window_fraction_variance_agrees_with_sampling_the_fwhm(self, gaussian_data):
-        # WHEN
-        x, y = gaussian_data
-        peak = GaussianPeak(amplitude=2.0, center=0.0, fwhm=1.0)
-        fit(peak, x, y)
-        rng = np.random.default_rng(13)
-        fwhm_samples = rng.normal(peak.fwhm.value, np.sqrt(peak.fwhm.variance), 200_000)
-
-        # THEN
-        fraction = peak.fraction_within(1.0)
-
-        # EXPECT
-        sampled = _erf(1.0 * FWHM_PER_SIGMA / (math.sqrt(2.0) * fwhm_samples))
-        assert np.std(sampled) == pytest.approx(np.sqrt(fraction.variance), rel=0.03)
-
 
 class TestCostOfDerivingInsideCall:
     """
@@ -642,7 +554,8 @@ class TestCorrelatedParametersKnownLimitation:
     """
     A ``Parameter`` stores a variance but no covariance with other parameters. The slope and
     intercept of a line are strongly anticorrelated (about -0.87 here), so a function of both
-    (``arctan2``) is propagated as if they were independent and its variance is wrong.
+    (``arctan(intercept / slope)``) is propagated as if they were independent and its variance
+    is wrong.
 
     ``strict=True``: if covariance support is ever added, this XPASSes and fails, which is the
     signal to remove the marker.
@@ -665,18 +578,39 @@ class TestCorrelatedParametersKnownLimitation:
         raises=AssertionError,
         reason='Known limitation: Parameter variances carry no covariance (deferred).',
     )
-    def test_arctan2_of_correlated_parameters_matches_the_full_covariance(self, fitted_line):
+    def test_arctan_of_correlated_parameters_matches_the_full_covariance(self, fitted_line):
         # WHEN
         model, x = fitted_line
         design = np.column_stack([x, np.ones_like(x)])
         covariance = np.linalg.inv(design.T @ design) * SIGMA**2  # true parameter covariance
         slope, intercept = model.slope.value, model.intercept.value
         r2 = slope**2 + intercept**2
-        jacobian = np.array([-intercept / r2, slope / r2])  # d atan2(intercept, slope) / d(p)
+        jacobian = np.array([-intercept / r2, slope / r2])  # d arctan(intercept / slope) / d(p)
         variance_with_covariance = float(jacobian @ covariance @ jacobian)
 
         # THEN
-        derived = es.math.arctan2(model.intercept, model.slope)
+        derived = es.math.arctan(model.intercept / model.slope)
 
         # EXPECT
         assert derived.variance == pytest.approx(variance_with_covariance, rel=0.2)
+
+
+# ----------------------------------------------------------------------
+# erf, erfc and arctan2: Scipp cannot propagate a variance through them
+# ----------------------------------------------------------------------
+
+
+class TestNoScippVarianceSupport:
+    @pytest.mark.parametrize(
+        ('name', 'attributes'),
+        [('erf', ['slope']), ('erfc', ['slope']), ('arctan2', ['intercept', 'slope'])],
+    )
+    def test_fitted_parameters_raise_scipps_variances_error(self, fitted_line, name, attributes):
+        # WHEN THEN
+        model, _ = fitted_line
+        fitted = [getattr(model, attribute) for attribute in attributes]
+
+        # EXPECT
+        assert all(parameter.variance > 0 for parameter in fitted)
+        with pytest.raises(sc.VariancesError):
+            getattr(es.math, name)(*fitted)
