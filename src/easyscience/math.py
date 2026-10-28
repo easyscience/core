@@ -61,6 +61,7 @@ import math
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cache
+from typing import TYPE_CHECKING
 from typing import overload
 
 import numpy as np
@@ -170,7 +171,9 @@ def exp(
 
     Notes
     -----
-    $$ f(x) = e^{x}, \qquad \sigma_f^2 = e^{2x}\,\sigma_x^2 $$
+    $$ f(x) = e^{x} $$
+
+    $$ \sigma_f^2 = e^{2x}\,\sigma_x^2 $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -237,7 +240,9 @@ def log(
 
     Notes
     -----
-    $$ f(x) = \ln x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2} $$
+    $$ f(x) = \ln x $$
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{x^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -306,8 +311,9 @@ def log10(
 
     Notes
     -----
-    $$ f(x) = \log_{10} x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{(x \ln
-    10)^2} $$
+    $$ f(x) = \log_{10} x $$
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{(x \ln 10)^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -376,7 +382,9 @@ def sqrt(
 
     Notes
     -----
-    $$ f(x) = \sqrt{x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{4x} $$
+    $$ f(x) = \sqrt{x} $$
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{4x} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -455,8 +463,7 @@ def erf(
 
     Notes
     -----
-    $$ \operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x
-    e^{-t^2}\,dt $$
+    $$ \mathrm{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2}\,dt $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -524,7 +531,7 @@ def erfc(
 
     Notes
     -----
-    $$ \operatorname{erfc}(x) = 1 - \operatorname{erf}(x) $$
+    $$ \mathrm{erfc}(x) = 1 - \mathrm{erf}(x) $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -594,7 +601,7 @@ def sin(
 
     Notes
     -----
-    $$ \sigma_f^2 = \cos^2 x \, \sigma_x^2 \quad (x \text{ in rad}) $$
+    $$ \sigma_f^2 = \cos^2 x \, \sigma_x^2 \; (x \text{ in rad}) $$
 
     The result bounds also include any peak or trough between the input
     bounds.
@@ -668,7 +675,7 @@ def cos(
 
     Notes
     -----
-    $$ \sigma_f^2 = \sin^2 x \, \sigma_x^2 \quad (x \text{ in rad}) $$
+    $$ \sigma_f^2 = \sin^2 x \, \sigma_x^2 \; (x \text{ in rad}) $$
 
     The result bounds also include any peak or trough between the input
     bounds.
@@ -743,8 +750,7 @@ def tan(
 
     Notes
     -----
-    $$ \sigma_f^2 = \frac{\sigma_x^2}{\cos^4 x} \quad (x \text{ in rad})
-    $$
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{\cos^4 x} \; (x \text{ in rad}) $$
 
     Between two asymptotes the tangent increases, so the result bounds
     are its values at the input bounds. A bound exactly on an asymptote
@@ -816,7 +822,7 @@ def arcsin(
     --------
     - [`sin`][easyscience.math.sin]: Sine.
     - [`arccos`][easyscience.math.arccos]: Inverse cosine.
-    - [`asin`][easyscience.math.asin]: The same function, under its Scipp name.
+    - [`asin`][easyscience.math.asin]: Alias.
     - [`scipp.asin`](https://scipp.github.io/generated/functions/scipp.asin): Scipp function that evaluates the value and the variance.
 
     Notes
@@ -890,7 +896,7 @@ def arccos(
     --------
     - [`cos`][easyscience.math.cos]: Cosine.
     - [`arcsin`][easyscience.math.arcsin]: Inverse sine.
-    - [`acos`][easyscience.math.acos]: The same function, under its Scipp name.
+    - [`acos`][easyscience.math.acos]: Alias.
     - [`scipp.acos`](https://scipp.github.io/generated/functions/scipp.acos): Scipp function that evaluates the value and the variance.
 
     Notes
@@ -963,7 +969,7 @@ def arctan(
     --------
     - [`tan`][easyscience.math.tan]: Tangent.
     - [`arctan2`][easyscience.math.arctan2]: Angle of a point from its two Cartesian coordinates.
-    - [`atan`][easyscience.math.atan]: The same function, under its Scipp name.
+    - [`atan`][easyscience.math.atan]: Alias.
     - [`scipp.atan`](https://scipp.github.io/generated/functions/scipp.atan): Scipp function that evaluates the value and the variance.
 
     Notes
@@ -1051,7 +1057,7 @@ def arctan2(
     See Also
     --------
     - [`arctan`][easyscience.math.arctan]: Inverse tangent.
-    - [`atan2`][easyscience.math.atan2]: The same function, under its Scipp name.
+    - [`atan2`][easyscience.math.atan2]: Alias.
     - [`scipp.atan2`](https://scipp.github.io/generated/functions/scipp.atan2): Scipp function that evaluates the value; it cannot propagate a variance.
 
     Notes
@@ -1126,9 +1132,13 @@ def sinc(
 
     Notes
     -----
-    $$ \operatorname{sinc}(x) = \frac{\sin x}{x}, \quad
-    \operatorname{sinc}(0) = 1, \qquad \sigma_f^2 = \left(\frac{x \cos x
-    - \sin x}{x^2}\right)^2 \sigma_x^2 $$
+    $$ \operatorname{sinc}(x) = \frac{\sin x}{x} $$
+
+    $$ \operatorname{sinc}(0) = 1 $$
+
+    $$ f'(x) = \frac{x \cos x - \sin x}{x^2} $$
+
+    $$ \sigma_f^2 = f'(x)^2 \, \sigma_x^2 $$
 
     The result bounds also include the peak at 0 and any other peak or
     trough between the input bounds. Those are found numerically.
@@ -1197,8 +1207,9 @@ def sinh(
 
     Notes
     -----
-    $$ \sinh x = \frac{e^{x} - e^{-x}}{2}, \qquad \sigma_f^2 = \cosh^2 x
-    \, \sigma_x^2 $$
+    $$ \sinh x = \frac{e^{x} - e^{-x}}{2} $$
+
+    $$ \sigma_f^2 = \cosh^2 x \, \sigma_x^2 $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -1264,8 +1275,9 @@ def cosh(
 
     Notes
     -----
-    $$ \cosh x = \frac{e^{x} + e^{-x}}{2}, \qquad \sigma_f^2 = \sinh^2 x
-    \, \sigma_x^2 $$
+    $$ \cosh x = \frac{e^{x} + e^{-x}}{2} $$
+
+    $$ \sigma_f^2 = \sinh^2 x \, \sigma_x^2 $$
 
     The result bounds also include the minimum of 1 at 0, if 0 lies
     between the input bounds.
@@ -1332,8 +1344,9 @@ def tanh(
 
     Notes
     -----
-    $$ \tanh x = \frac{\sinh x}{\cosh x}, \qquad \sigma_f^2 =
-    \frac{\sigma_x^2}{\cosh^4 x} $$
+    $$ \tanh x = \frac{\sinh x}{\cosh x} $$
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{\cosh^4 x} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -1392,13 +1405,14 @@ def arcsinh(
     See Also
     --------
     - [`sinh`][easyscience.math.sinh]: Hyperbolic sine.
-    - [`asinh`][easyscience.math.asinh]: The same function, under its Scipp name.
+    - [`asinh`][easyscience.math.asinh]: Alias.
     - [`scipp.asinh`](https://scipp.github.io/generated/functions/scipp.asinh): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$ \operatorname{arcsinh} x = \ln\left(x + \sqrt{x^2 + 1}\right),
-    \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 + 1} $$
+    $$ \sinh^{-1} x = \ln\left(x + \sqrt{x^2 + 1}\right) $$
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{x^2 + 1} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds.
@@ -1458,13 +1472,14 @@ def arccosh(
     See Also
     --------
     - [`cosh`][easyscience.math.cosh]: Hyperbolic cosine.
-    - [`acosh`][easyscience.math.acosh]: The same function, under its Scipp name.
+    - [`acosh`][easyscience.math.acosh]: Alias.
     - [`scipp.acosh`](https://scipp.github.io/generated/functions/scipp.acosh): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$ \operatorname{arccosh} x = \ln\left(x + \sqrt{x^2 - 1}\right),
-    \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 - 1} $$
+    $$ \cosh^{-1} x = \ln\left(x + \sqrt{x^2 - 1}\right) $$
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{x^2 - 1} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -1525,13 +1540,14 @@ def arctanh(
     See Also
     --------
     - [`tanh`][easyscience.math.tanh]: Hyperbolic tangent.
-    - [`atanh`][easyscience.math.atanh]: The same function, under its Scipp name.
+    - [`atanh`][easyscience.math.atanh]: Alias.
     - [`scipp.atanh`](https://scipp.github.io/generated/functions/scipp.atanh): Scipp function that evaluates the value and the variance.
 
     Notes
     -----
-    $$ \operatorname{arctanh} x = \frac{1}{2} \ln\frac{1 + x}{1 - x},
-    \qquad \sigma_f^2 = \frac{\sigma_x^2}{(1 - x^2)^2} $$
+    $$ \tanh^{-1} x = \frac{1}{2} \ln\frac{1 + x}{1 - x} $$
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{(1 - x^2)^2} $$
 
     The function is monotonic, so the result bounds are its values at
     the input bounds. Input bounds outside the domain are clipped to it
@@ -1540,42 +1556,43 @@ def arctanh(
     Examples
     --------
     ```python
-    import easyscience as es
-
-    x = es.Parameter(
-        0.5, display_name='x', variance=0.0001, min=0.0, max=0.9
-    )
-    print(es.math.arctanh(x))
-    # <Parameter 'arctanh(x)': 0.5493 ± 0.0133, bounds=[0.0:1.4722194895832204]>
+    >>> import easyscience as es
+    ...
+    >>> x = es.Parameter(
+    ...    0.5, display_name='x', variance=0.0001, min=0.0, max=0.9
+    ...)
+    >>> print(es.math.arctanh(x))
+    <Parameter 'arctanh(x)': 0.5493 ± 0.0133, bounds=[0.0:1.4722194895832204]>
     ```
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCTANH, descriptor)
 
 
-# --- Scipp spellings of the inverse functions ---
-# They are the same function objects, so they share the docstring, and their results are named
-# after the canonical function: ``asin(x)`` returns ``arcsin(x)``.
+# --- Aliases: the short names of the inverse functions ---
+# They are the same function objects, so their results are named after the long name:
+# ``asin(x)`` returns ``arcsin(x)``.
+
 
 asin = arcsin
-"""Alias of [`arcsin`][easyscience.math.arcsin], under its Scipp name."""
+"""Alias of [`arcsin`][easyscience.math.arcsin]."""
 
 acos = arccos
-"""Alias of [`arccos`][easyscience.math.arccos], under its Scipp name."""
+"""Alias of [`arccos`][easyscience.math.arccos]."""
 
 atan = arctan
-"""Alias of [`arctan`][easyscience.math.arctan], under its Scipp name."""
+"""Alias of [`arctan`][easyscience.math.arctan]."""
 
 atan2 = arctan2
-"""Alias of [`arctan2`][easyscience.math.arctan2], under its Scipp name."""
+"""Alias of [`arctan2`][easyscience.math.arctan2]."""
 
 asinh = arcsinh
-"""Alias of [`arcsinh`][easyscience.math.arcsinh], under its Scipp name."""
+"""Alias of [`arcsinh`][easyscience.math.arcsinh]."""
 
 acosh = arccosh
-"""Alias of [`arccosh`][easyscience.math.arccosh], under its Scipp name."""
+"""Alias of [`arccosh`][easyscience.math.arccosh]."""
 
 atanh = arctanh
-"""Alias of [`arctanh`][easyscience.math.arctanh], under its Scipp name."""
+"""Alias of [`arctanh`][easyscience.math.arctanh]."""
 
 
 # --- How a maths function is described ---
@@ -1692,32 +1709,35 @@ def _evaluate(
 # TODO(): ``Parameter`` rejects ``min`` and ``max`` within a relative 1e-9 of each other, a literal
 # in its ``__init__`` and its min/max setters. Make it a named constant in parameter.py and use it
 # here, so that the two cannot drift apart.
-def _widen_collapsed_bounds(lower: float, upper: float, value: float) -> tuple[float, float]:
+def _widen_collapsed_bounds(
+    lower: float | np.ndarray, upper: float | np.ndarray, value: float | np.ndarray
+) -> tuple[float | np.ndarray, float | np.ndarray]:
     """
     Widen bounds that ``Parameter`` would reject as equal.
 
-    The bounds are widened symmetrically around ``value``.
+    The bounds are widened symmetrically around ``value``. The check is
+    the one ``Parameter`` uses, and it works element by element on
+    arrays as well as on single numbers.
 
     Parameters
     ----------
-    lower : float
+    lower : float | np.ndarray
         Lower bound.
-    upper : float
+    upper : float | np.ndarray
         Upper bound.
-    value : float
+    value : float | np.ndarray
         The result value, which lies inside ``[lower, upper]``.
 
     Returns
     -------
-    tuple[float, float]
-        ``(lower, upper)`` unchanged, or, if they are within the
-        tolerance of ``Parameter``, padded on each side by
-        ``_COLLAPSE_PAD * |value|`` (``_COLLAPSE_PAD_ZERO`` for a value
-        of 0).
+    tuple[float | np.ndarray, float | np.ndarray]
+        ``(lower, upper)``, padded on each side where they are within
+        the tolerance of ``Parameter``: by ``_COLLAPSE_PAD * |value|``,
+        or by ``_COLLAPSE_PAD_ZERO`` where the value is 0.
     """
-    if not math.isclose(lower, upper, rel_tol=1e-9, abs_tol=0.0):
-        return lower, upper
-    pad = abs(value) * _COLLAPSE_PAD or _COLLAPSE_PAD_ZERO
+    collapsed = np.isclose(lower, upper, rtol=1e-9, atol=0.0)
+    pad = np.where(value == 0, _COLLAPSE_PAD_ZERO, np.abs(value) * _COLLAPSE_PAD)
+    pad = np.where(collapsed, pad, 0.0)
     return lower - pad, upper + pad
 
 
