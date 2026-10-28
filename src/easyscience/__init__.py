@@ -16,7 +16,7 @@ from .fitting import Fitter  # noqa: E402
 from .variable import DescriptorNumber  # noqa: E402
 from .variable import Parameter  # noqa: E402
 
-# math must be imported after variable (circular import otherwise)
+# math must come after base_classes, which has an import cycle with variable
 from . import math  # noqa: E402  # isort: skip
 
 __version__ = version('easyscience')

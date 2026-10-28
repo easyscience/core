@@ -155,14 +155,14 @@ class DescriptorNumber(DescriptorBase):
 
         Returns
         -------
-        Self
+        DescriptorNumber
             A new instance of the class this is called on.
 
         Raises
         ------
         TypeError
             If ``full_value`` is not a scalar scipp ``Variable``.
-        """
+        """  # noqa: DOC203 -- Self in the signature, the class name in the docs
         if not isinstance(full_value, Variable):
             raise TypeError(f'{full_value=} must be a scipp scalar')
         if len(full_value.dims) != 0:
