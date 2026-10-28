@@ -19,12 +19,12 @@ from .variable import Parameter  # noqa: E402
 __version__ = version('easyscience')
 
 __all__ = [
-    __version__,
-    global_object,
-    ModelBase,
-    EasyList,
-    AvailableMinimizers,
-    Fitter,
-    DescriptorNumber,
-    Parameter,
+    '__version__',
+    'global_object',
+    'ModelBase',
+    'EasyList',
+    'AvailableMinimizers',
+    'Fitter',
+    'DescriptorNumber',
+    'Parameter',
 ]

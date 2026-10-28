@@ -9,10 +9,10 @@ from .descriptor_str import DescriptorStr
 from .parameter import Parameter
 
 __all__ = [
-    DescriptorArray,
-    DescriptorBase,
-    DescriptorBool,
-    DescriptorNumber,
-    DescriptorStr,
-    Parameter,
+    'DescriptorArray',
+    'DescriptorBase',
+    'DescriptorBool',
+    'DescriptorNumber',
+    'DescriptorStr',
+    'Parameter',
 ]
