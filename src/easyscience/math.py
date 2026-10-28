@@ -1,15 +1,22 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""
-Maths functions for ``Parameter`` and ``DescriptorNumber`` objects.
+r"""
+Maths operations for ``Parameter``, ``DescriptorNumber`` and ``DescriptorArray`` objects.
 
-Each function evaluates the value with Scipp, which also checks the
-unit, and returns a new object with the propagated variance. If any
-argument is a ``Parameter``, the result is a ``Parameter`` whose bounds
-are the range the function takes while the argument stays within its
-own bounds. Otherwise the result is a ``DescriptorNumber`` without
-bounds. The result is always the base class, also for a subclass input.
+Each function evaluates Scipp functions of the same name, checks
+the unit and propagates the variance, and returns a new object of the
+same class as its argument:
+
+- a ``Parameter`` gives a ``Parameter`` whose bounds are the range the
+  function takes while the argument stays within its own bounds,
+- a ``DescriptorNumber`` gives a ``DescriptorNumber``,
+- a ``DescriptorArray`` gives a ``DescriptorArray``, evaluated element
+  by element.
+
+The result is always one of these base classes, also for a subclass.
+Angles come back in ``rad``; call ``convert_unit('deg')`` on the result
+for degrees.
 
 ```python
 import easyscience as es
@@ -26,15 +33,18 @@ phase = es.Parameter(
     max=90.0,
 )
 
-print(es.math.sin(phase))
-# <Parameter 'sin(phase)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
 print(es.math.sqrt(amplitude))
 # <Parameter 'sqrt(amplitude)': 1.4142 ± 0.0354, bounds=[0.0:2.23606797749979]>
+print(es.math.sin(phase))
+# <Parameter 'sin(phase)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
 ```
 
-A value outside the domain of a function, or a result that is not
-finite, raises ``ValueError``. An argument that is not a ``Parameter``
-or a ``DescriptorNumber`` raises ``TypeError``.
+For a ``DescriptorArray``, one element that makes the result infinite
+or ``nan`` is enough to raise ``ValueError`` for the whole call.
+
+The Notes of each function give its variance as Scipp propagates it, to
+first order: $\sigma_x^2$ is the variance of the input and $\sigma_f^2$
+that of the result.
 
 Two limitations give wrong numbers without raising an error:
 
@@ -55,20 +65,20 @@ from typing import overload
 import numpy as np
 import scipp as sc
 
+from easyscience.variable.descriptor_array import DescriptorArray
 from easyscience.variable.descriptor_number import DescriptorNumber
 from easyscience.variable.parameter import Parameter
 
-# A closed interval ``(lo, hi)`` of an argument, in the unit the bounds strategy works in.
-_Interval = tuple[float, float]
-_BoundsStrategy = Callable[..., tuple[float, float]]
+# Lower and upper bound of an argument or a result.
+_Bounds = tuple[float, float]
+# Takes the bounds of each argument and returns the bounds of the result.
+_ResultBoundsFunction = Callable[..., _Bounds]
 
-# tan: closest distance (rad) to an asymptote that is accepted when the value has no variance.
-_TAN_ASYMPTOTE_TOLERANCE = 1e-7
 # tan: a bound this close (in units of pi) to an asymptote is on it; catches 90 deg after rounding.
 _TAN_EDGE_TOLERANCE = 1e-12
 
-# sinc: two consecutive extrema hold the largest maximum and deepest minimum of an interval, and
-# the root just below ``lo`` may be filtered out, so four roots are refined.
+# sinc: two consecutive extrema hold the largest maximum and deepest minimum of a range, and
+# the root just below the lower bound may be filtered out, so four roots are refined.
 _SINC_ROOT_COUNT = 4
 # Newton's method needs about 4 steps from the asymptotic first guess to reach machine precision.
 _SINC_NEWTON_STEPS = 8
@@ -121,33 +131,50 @@ def exp(descriptor: Parameter) -> Parameter: ...
 def exp(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def exp(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def exp(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def exp(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Exponential of a dimensionless input.
 
-    $$
-    f(x) = e^{x}
-    $$
-
-    The value overflows for $x$ above about 709.8. The variance grows
-    like $e^{2x}$, so with a unit variance it overflows from about 355.
-
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
 
     Returns
     -------
-    DescriptorNumber
-        ``exp(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``exp(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     ValueError
-        If the value or the variance of the result overflows.
+        If ``descriptor`` is so large that the result or its variance
+        overflows, or is ``nan``.
+
+    See Also
+    --------
+    - [`log`][easyscience.math.log]: Natural logarithm.
+    - [`scipp.exp`](https://scipp.github.io/generated/functions/scipp.exp): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    f(x) = e^{x}, \qquad \sigma_f^2 = e^{2x}\,\sigma_x^2
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds.
 
     Examples
     --------
@@ -158,8 +185,8 @@ def exp(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.exp(x))
     # <Parameter 'exp(x)': 2.7183 ± 0.2718, bounds=[1.0:7.38905609893065]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_EXP, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_EXP, descriptor)
 
 
 @overload
@@ -170,33 +197,54 @@ def log(descriptor: Parameter) -> Parameter: ...
 def log(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def log(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def log(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def log(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Natural logarithm of a positive, dimensionless input.
 
-    $$
-    f(x) = \ln x, \quad x > 0
-    $$
-
-    Bounds below zero are clipped to the domain, so bounds ``[-1, 5]``
-    give result bounds ``[-inf, ln 5]``.
+    If the lower bound of the input is zero or negative, the result has
+    no lower bound.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
-        Dimensionless input with a positive value.
+    descriptor : DescriptorNumber | DescriptorArray
+        Dimensionless input with positive values.
 
     Returns
     -------
-    DescriptorNumber
-        ``log(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``log(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     ValueError
-        If the value of ``descriptor`` is not positive.
+        If ``descriptor`` is zero, negative, infinite or ``nan``.
+
+    See Also
+    --------
+    - [`exp`][easyscience.math.exp]: Exponential.
+    - [`log10`][easyscience.math.log10]: Base-10 logarithm.
+    - [`scipp.log`](https://scipp.github.io/generated/functions/scipp.log): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    f(x) = \ln x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds. Input bounds outside the domain are clipped to it
+    first.
 
     Examples
     --------
@@ -209,8 +257,8 @@ def log(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.log(x))
     # <Parameter 'log(x)': 2.3026 ± 0.0100, bounds=[0.0:4.605170185988092]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_LOG, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_LOG, descriptor)
 
 
 @overload
@@ -221,32 +269,53 @@ def log10(descriptor: Parameter) -> Parameter: ...
 def log10(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def log10(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def log10(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def log10(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Base-10 logarithm of a positive, dimensionless input.
 
-    $$
-    f(x) = \log_{10} x, \quad x > 0
-    $$
-
-    Bounds below zero are clipped to the domain.
+    If the lower bound of the input is zero or negative, the result has
+    no lower bound.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
-        Dimensionless input with a positive value.
+    descriptor : DescriptorNumber | DescriptorArray
+        Dimensionless input with positive values.
 
     Returns
     -------
-    DescriptorNumber
-        ``log10(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``log10(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     ValueError
-        If the value of ``descriptor`` is not positive.
+        If ``descriptor`` is zero, negative, infinite or ``nan``.
+
+    See Also
+    --------
+    - [`log`][easyscience.math.log]: Natural logarithm.
+    - [`scipp.log10`](https://scipp.github.io/generated/functions/scipp.log10): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    f(x) = \log_{10} x, \qquad \sigma_f^2 = \frac{\sigma_x^2}{(x \ln 10)^2}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds. Input bounds outside the domain are clipped to it
+    first.
 
     Examples
     --------
@@ -259,8 +328,8 @@ def log10(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.log10(x))
     # <Parameter 'log10(x)': 2.0000 ± 0.0043, bounds=[1.0:3.0]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_LOG10, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_LOG10, descriptor)
 
 
 @overload
@@ -271,36 +340,53 @@ def sqrt(descriptor: Parameter) -> Parameter: ...
 def sqrt(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def sqrt(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def sqrt(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def sqrt(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Square root of a non-negative input.
 
-    $$
-    f(x) = \sqrt{x}, \quad x \ge 0
-    $$
-
-    The unit is the square root of the input unit, so ``m**2`` gives
-    ``m``. At $x = 0$ the derivative is infinite, so a non-zero
-    variance there raises ``ValueError``. Bounds below zero are clipped
-    to the domain.
+    The unit is square-rooted too, so ``m**2`` becomes ``m``.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
-        Input that is dimensionless or has a squared unit, with a
-        non-negative value.
+    descriptor : DescriptorNumber | DescriptorArray
+        Input that is dimensionless or has a squared unit, with
+        non-negative values.
 
     Returns
     -------
-    DescriptorNumber
-        ``sqrt(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``sqrt(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If the unit of ``descriptor`` has no square root, such as ``m``.
     ValueError
-        If the value of ``descriptor`` is negative, or the result is not finite.
+        If ``descriptor`` is negative, infinite or ``nan``, or is 0 with
+        a non-zero variance.
+
+    See Also
+    --------
+    - [`scipp.sqrt`](https://scipp.github.io/generated/functions/scipp.sqrt): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    f(x) = \sqrt{x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{4x}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds. Input bounds outside the domain are clipped to it
+    first.
 
     Examples
     --------
@@ -318,8 +404,8 @@ def sqrt(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.sqrt(area))
     # <Parameter 'sqrt(area)': 3.0000 ± 0.0167 m, bounds=[2.0:4.0]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_SQRT, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_SQRT, descriptor)
 
 
 # --- Special functions ---
@@ -333,33 +419,54 @@ def erf(descriptor: Parameter) -> Parameter: ...
 def erf(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def erf(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def erf(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def erf(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Error function of a dimensionless input.
 
-    $$
-    \operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2}\,dt
-    $$
-
-    Scipp cannot propagate a variance through ``erf``, so an input with
-    a non-zero variance raises Scipp's ``VariancesError``.
+    Scipp cannot propagate an uncertainty through this function yet, so
+    the input must not have a variance.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
 
     Returns
     -------
-    DescriptorNumber
-        ``erf(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``erf(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     VariancesError
         If ``descriptor`` has a non-zero variance.
+    ValueError
+        If ``descriptor`` is ``nan``.
+
+    See Also
+    --------
+    - [`erfc`][easyscience.math.erfc]: Complementary error function.
+    - [`scipp.erf`](https://scipp.github.io/generated/functions/scipp.erf): Scipp function that evaluates the value; it cannot propagate a variance.
+
+    Notes
+    -----
+    $$
+    \operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2}\,dt
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds.
 
     Examples
     --------
@@ -370,8 +477,8 @@ def erf(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.erf(x))
     # <Parameter 'erf(x)': 0.5205, bounds=[0.0:0.9953222650189527]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_ERF, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ERF, descriptor)
 
 
 @overload
@@ -382,33 +489,54 @@ def erfc(descriptor: Parameter) -> Parameter: ...
 def erfc(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def erfc(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def erfc(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def erfc(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Complementary error function of a dimensionless input.
 
-    $$
-    \operatorname{erfc}(x) = 1 - \operatorname{erf}(x)
-    $$
-
-    Scipp cannot propagate a variance through ``erfc``, so an input with
-    a non-zero variance raises Scipp's ``VariancesError``.
+    Scipp cannot propagate an uncertainty through this function yet, so
+    the input must not have a variance.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
 
     Returns
     -------
-    DescriptorNumber
-        ``erfc(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``erfc(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     VariancesError
         If ``descriptor`` has a non-zero variance.
+    ValueError
+        If ``descriptor`` is ``nan``.
+
+    See Also
+    --------
+    - [`erf`][easyscience.math.erf]: Error function.
+    - [`scipp.erfc`](https://scipp.github.io/generated/functions/scipp.erfc): Scipp function that evaluates the value; it cannot propagate a variance.
+
+    Notes
+    -----
+    $$
+    \operatorname{erfc}(x) = 1 - \operatorname{erf}(x)
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds.
 
     Examples
     --------
@@ -419,8 +547,8 @@ def erfc(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.erfc(x))
     # <Parameter 'erfc(x)': 0.4795, bounds=[0.004677734981047266:1.0]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_ERFC, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ERFC, descriptor)
 
 
 # --- Trigonometric functions ---
@@ -434,28 +562,53 @@ def sin(descriptor: Parameter) -> Parameter: ...
 def sin(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def sin(descriptor: DescriptorNumber) -> DescriptorNumber:
-    """
-    Sine of an angle in ``rad`` or ``deg``.
+@overload
+def sin(descriptor: DescriptorArray) -> DescriptorArray: ...
 
-    The result is dimensionless. Its bounds are the exact range of sine
-    over the bounds of ``descriptor``, including any maximum or minimum
-    inside them.
+
+def sin(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
+    r"""
+    Sine of an angle.
+
+    The angle can be in ``rad`` or ``deg``.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Angle, with unit ``rad`` or ``deg``.
 
     Returns
     -------
-    DescriptorNumber
-        ``sin(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``sin(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not an angle.
+    ValueError
+        If ``descriptor`` is infinite or ``nan``.
+
+    See Also
+    --------
+    - [`cos`][easyscience.math.cos]: Cosine.
+    - [`tan`][easyscience.math.tan]: Tangent.
+    - [`arcsin`][easyscience.math.arcsin]: Inverse sine.
+    - [`scipp.sin`](https://scipp.github.io/generated/functions/scipp.sin): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \sigma_f^2 = \cos^2 x \, \sigma_x^2 \quad (x \text{ in rad})
+    $$
+
+    The result bounds also include any peak or trough between the input
+    bounds.
 
     Examples
     --------
@@ -473,8 +626,8 @@ def sin(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.sin(angle))
     # <Parameter 'sin(angle)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_SIN, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_SIN, descriptor)
 
 
 @overload
@@ -485,28 +638,53 @@ def cos(descriptor: Parameter) -> Parameter: ...
 def cos(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def cos(descriptor: DescriptorNumber) -> DescriptorNumber:
-    """
-    Cosine of an angle in ``rad`` or ``deg``.
+@overload
+def cos(descriptor: DescriptorArray) -> DescriptorArray: ...
 
-    The result is dimensionless. Its bounds are the exact range of
-    cosine over the bounds of ``descriptor``, including any maximum or
-    minimum inside them.
+
+def cos(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
+    r"""
+    Cosine of an angle.
+
+    The angle can be in ``rad`` or ``deg``.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Angle, with unit ``rad`` or ``deg``.
 
     Returns
     -------
-    DescriptorNumber
-        ``cos(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``cos(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not an angle.
+    ValueError
+        If ``descriptor`` is infinite or ``nan``.
+
+    See Also
+    --------
+    - [`sin`][easyscience.math.sin]: Sine.
+    - [`tan`][easyscience.math.tan]: Tangent.
+    - [`arccos`][easyscience.math.arccos]: Inverse cosine.
+    - [`scipp.cos`](https://scipp.github.io/generated/functions/scipp.cos): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \sigma_f^2 = \sin^2 x \, \sigma_x^2 \quad (x \text{ in rad})
+    $$
+
+    The result bounds also include any peak or trough between the input
+    bounds.
 
     Examples
     --------
@@ -524,8 +702,8 @@ def cos(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.cos(angle))
     # <Parameter 'cos(angle)': 0.5000 ± 0.0151, bounds=[-1.0:1.0]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_COS, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_COS, descriptor)
 
 
 @overload
@@ -536,33 +714,55 @@ def tan(descriptor: Parameter) -> Parameter: ...
 def tan(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def tan(descriptor: DescriptorNumber) -> DescriptorNumber:
-    r"""
-    Tangent of an angle in ``rad`` or ``deg``.
+@overload
+def tan(descriptor: DescriptorArray) -> DescriptorArray: ...
 
-    The value must keep clear of the asymptotes at
-    $\frac{\pi}{2} + n\pi$: by one standard deviation of ``descriptor``,
-    and by at least 1e-7 rad. The bounds are not restricted. If they
-    contain an asymptote, the result bounds are ``(-inf, inf)``. A bound
-    exactly on an asymptote makes only that side infinite, so ``[0, 90]``
-    deg gives ``[0, inf)``.
+
+def tan(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
+    r"""
+    Tangent of an angle.
+
+    The angle can be in ``rad`` or ``deg``. If the input bounds include
+    an asymptote, such as 90 deg, the result has no bounds.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Angle, with unit ``rad`` or ``deg``.
 
     Returns
     -------
-    DescriptorNumber
-        ``tan(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``tan(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not an angle.
     ValueError
-        If the value of ``descriptor`` is too close to an asymptote.
+        If ``descriptor`` is infinite or ``nan``.
+
+    See Also
+    --------
+    - [`sin`][easyscience.math.sin]: Sine.
+    - [`cos`][easyscience.math.cos]: Cosine.
+    - [`arctan`][easyscience.math.arctan]: Inverse tangent.
+    - [`scipp.tan`](https://scipp.github.io/generated/functions/scipp.tan): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \sigma_f^2 = \frac{\sigma_x^2}{\cos^4 x} \quad (x \text{ in rad})
+    $$
+
+    Between two asymptotes the tangent increases, so the result bounds
+    are its values at the input bounds. A bound exactly on an asymptote
+    leaves only that side unbounded.
 
     Examples
     --------
@@ -580,46 +780,68 @@ def tan(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.tan(angle))
     # <Parameter 'tan(angle)': 1.0000 ± 0.0349, bounds=[0.0:1.7320508075688767]>
     ```
-    """  # noqa: DOC502 -- raised in _apply and _tan_guard
-    return _apply(_TAN, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_TAN, descriptor)
 
 
 @overload
-def arcsin(descriptor: Parameter, *, unit: str = ...) -> Parameter: ...
+def arcsin(descriptor: Parameter) -> Parameter: ...
 
 
 @overload
-def arcsin(descriptor: DescriptorNumber, *, unit: str = ...) -> DescriptorNumber: ...
+def arcsin(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def arcsin(descriptor: DescriptorNumber, *, unit: str = 'rad') -> DescriptorNumber:
+@overload
+def arcsin(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def arcsin(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Inverse sine of a dimensionless input in ``[-1, 1]``.
 
-    The angle lies in $[-\frac{\pi}{2}, \frac{\pi}{2}]$. At
-    $x = \pm 1$ the derivative is infinite, so a non-zero variance
-    there raises ``ValueError``. Bounds outside $[-1, 1]$ are clipped
-    to the domain.
+    The result is an angle in ``rad``. Call ``convert_unit('deg')`` on
+    it to get degrees.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
-        Dimensionless input with a value in ``[-1, 1]``.
-    unit : str, default='rad'
-        Unit of the angle, ``'rad'`` or ``'deg'``.
+    descriptor : DescriptorNumber | DescriptorArray
+        Dimensionless input with values in ``[-1, 1]``.
 
     Returns
     -------
-    DescriptorNumber
-        ``arcsin(descriptor)`` in ``unit``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``arcsin(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
-        If ``descriptor`` is not dimensionless, or ``unit`` is not an angle unit.
+        If ``descriptor`` is not dimensionless.
     ValueError
-        If the value of ``descriptor`` is outside ``[-1, 1]``, or the result is
-        not finite.
+        If ``descriptor`` is outside ``[-1, 1]`` or ``nan``, or is -1 or
+        1 with a non-zero variance.
+
+    See Also
+    --------
+    - [`sin`][easyscience.math.sin]: Sine.
+    - [`arccos`][easyscience.math.arccos]: Inverse cosine.
+    - `asin`: The same function, under its Scipp name.
+    - [`scipp.asin`](https://scipp.github.io/generated/functions/scipp.asin): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds. Input bounds outside the domain are clipped to it
+    first.
 
     Examples
     --------
@@ -629,48 +851,73 @@ def arcsin(descriptor: DescriptorNumber, *, unit: str = 'rad') -> DescriptorNumb
     x = es.Parameter(
         0.5, display_name='x', variance=0.0001, min=0.0, max=1.0
     )
-    print(es.math.arcsin(x, unit='deg'))
+    angle = es.math.arcsin(x)
+    angle.convert_unit('deg')
+    print(angle)
     # <Parameter 'arcsin(x)': 30.0000 ± 0.6616 deg, bounds=[0.0:90.0]>
     ```
-    """  # noqa: DOC502 -- raised in _apply and _angle_in
-    return _angle_in(_apply(_ARCSIN, descriptor), unit)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ARCSIN, descriptor)
 
 
 @overload
-def arccos(descriptor: Parameter, *, unit: str = ...) -> Parameter: ...
+def arccos(descriptor: Parameter) -> Parameter: ...
 
 
 @overload
-def arccos(descriptor: DescriptorNumber, *, unit: str = ...) -> DescriptorNumber: ...
+def arccos(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def arccos(descriptor: DescriptorNumber, *, unit: str = 'rad') -> DescriptorNumber:
+@overload
+def arccos(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def arccos(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Inverse cosine of a dimensionless input in ``[-1, 1]``.
 
-    The angle lies in $[0, \pi]$. At $x = \pm 1$ the derivative is
-    infinite, so a non-zero variance there raises ``ValueError``. Bounds
-    outside $[-1, 1]$ are clipped to the domain.
+    The result is an angle in ``rad``. Call ``convert_unit('deg')`` on
+    it to get degrees.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
-        Dimensionless input with a value in ``[-1, 1]``.
-    unit : str, default='rad'
-        Unit of the angle, ``'rad'`` or ``'deg'``.
+    descriptor : DescriptorNumber | DescriptorArray
+        Dimensionless input with values in ``[-1, 1]``.
 
     Returns
     -------
-    DescriptorNumber
-        ``arccos(descriptor)`` in ``unit``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``arccos(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
-        If ``descriptor`` is not dimensionless, or ``unit`` is not an angle unit.
+        If ``descriptor`` is not dimensionless.
     ValueError
-        If the value of ``descriptor`` is outside ``[-1, 1]``, or the result is
-        not finite.
+        If ``descriptor`` is outside ``[-1, 1]`` or ``nan``, or is -1 or
+        1 with a non-zero variance.
+
+    See Also
+    --------
+    - [`cos`][easyscience.math.cos]: Cosine.
+    - [`arcsin`][easyscience.math.arcsin]: Inverse sine.
+    - `acos`: The same function, under its Scipp name.
+    - [`scipp.acos`](https://scipp.github.io/generated/functions/scipp.acos): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds. Input bounds outside the domain are clipped to it
+    first.
 
     Examples
     --------
@@ -680,44 +927,71 @@ def arccos(descriptor: DescriptorNumber, *, unit: str = 'rad') -> DescriptorNumb
     x = es.Parameter(
         0.5, display_name='x', variance=0.0001, min=0.0, max=1.0
     )
-    print(es.math.arccos(x, unit='deg'))
+    angle = es.math.arccos(x)
+    angle.convert_unit('deg')
+    print(angle)
     # <Parameter 'arccos(x)': 60.0000 ± 0.6616 deg, bounds=[0.0:90.0]>
     ```
-    """  # noqa: DOC502 -- raised in _apply and _angle_in
-    return _angle_in(_apply(_ARCCOS, descriptor), unit)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ARCCOS, descriptor)
 
 
 @overload
-def arctan(descriptor: Parameter, *, unit: str = ...) -> Parameter: ...
+def arctan(descriptor: Parameter) -> Parameter: ...
 
 
 @overload
-def arctan(descriptor: DescriptorNumber, *, unit: str = ...) -> DescriptorNumber: ...
+def arctan(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def arctan(descriptor: DescriptorNumber, *, unit: str = 'rad') -> DescriptorNumber:
+@overload
+def arctan(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def arctan(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Inverse tangent of a dimensionless input.
 
-    The angle lies in $(-\frac{\pi}{2}, \frac{\pi}{2})$. To get the
-    full-circle angle of a point, use ``arctan2``.
+    The result is an angle in ``rad``. Call ``convert_unit('deg')`` on
+    it to get degrees.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
-    unit : str, default='rad'
-        Unit of the angle, ``'rad'`` or ``'deg'``.
 
     Returns
     -------
-    DescriptorNumber
-        ``arctan(descriptor)`` in ``unit``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``arctan(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
-        If ``descriptor`` is not dimensionless, or ``unit`` is not an angle unit.
+        If ``descriptor`` is not dimensionless.
+    ValueError
+        If ``descriptor`` is ``nan``.
+
+    See Also
+    --------
+    - [`tan`][easyscience.math.tan]: Tangent.
+    - [`arctan2`][easyscience.math.arctan2]: Angle of a point from its two Cartesian coordinates.
+    - `atan`: The same function, under its Scipp name.
+    - [`scipp.atan`](https://scipp.github.io/generated/functions/scipp.atan): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \sigma_f^2 = \frac{\sigma_x^2}{(1 + x^2)^2}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds.
 
     Examples
     --------
@@ -727,59 +1001,84 @@ def arctan(descriptor: DescriptorNumber, *, unit: str = 'rad') -> DescriptorNumb
     x = es.Parameter(
         1.0, display_name='x', variance=0.01, min=0.0, max=10.0
     )
-    print(es.math.arctan(x, unit='deg'))
+    angle = es.math.arctan(x)
+    angle.convert_unit('deg')
+    print(angle)
     # <Parameter 'arctan(x)': 45.0000 ± 2.8648 deg, bounds=[0.0:84.28940686250037]>
     ```
-    """  # noqa: DOC502 -- raised in _apply and _angle_in
-    return _angle_in(_apply(_ARCTAN, descriptor), unit)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ARCTAN, descriptor)
 
 
 @overload
-def arctan2(y: Parameter, x: DescriptorNumber, *, unit: str = ...) -> Parameter: ...
+def arctan2(y: Parameter, x: DescriptorNumber) -> Parameter: ...
 
 
 @overload
-def arctan2(y: DescriptorNumber, x: Parameter, *, unit: str = ...) -> Parameter: ...
+def arctan2(y: DescriptorNumber, x: Parameter) -> Parameter: ...
 
 
 @overload
-def arctan2(y: DescriptorNumber, x: DescriptorNumber, *, unit: str = ...) -> DescriptorNumber: ...
+def arctan2(y: DescriptorNumber, x: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def arctan2(y: DescriptorNumber, x: DescriptorNumber, *, unit: str = 'rad') -> DescriptorNumber:
+@overload
+def arctan2(y: DescriptorArray, x: DescriptorNumber | DescriptorArray) -> DescriptorArray: ...
+
+
+@overload
+def arctan2(y: DescriptorNumber, x: DescriptorArray) -> DescriptorArray: ...
+
+
+def arctan2(
+    y: DescriptorNumber | DescriptorArray, x: DescriptorNumber | DescriptorArray
+) -> DescriptorNumber | DescriptorArray:
     r"""
-    Angle of the point ``(x, y)``, using both signs to find the quadrant.
+    Angle of a point given by its Cartesian coordinates.
 
-    The angle lies in $[-\pi, \pi]$. Scipp cannot propagate a variance
-    through ``atan2``, so an argument with a non-zero variance raises
-    Scipp's ``VariancesError``.
-
-    The bounds are the range of the angle over the box spanned by the
-    bounds of ``y`` and ``x``. If the box touches the negative ``x``
-    axis, where the angle jumps from $\pi$ to $-\pi$, the bounds are
-    $[-\pi, \pi]$.
+    Unlike ``arctan(y / x)``, this uses the signs of both coordinates,
+    so the angle lands in the right quadrant. ``y`` and ``x`` must have
+    the same unit, and the result is in ``rad``. Scipp cannot propagate
+    an uncertainty through this function yet, so neither input may have
+    a variance.
 
     Parameters
     ----------
-    y : DescriptorNumber
+    y : DescriptorNumber | DescriptorArray
         Cartesian y-coordinate.
-    x : DescriptorNumber
+    x : DescriptorNumber | DescriptorArray
         Cartesian x-coordinate, with the same unit as ``y``.
-    unit : str, default='rad'
-        Unit of the angle, ``'rad'`` or ``'deg'``.
 
     Returns
     -------
-    DescriptorNumber
-        The angle in ``unit``, a ``Parameter`` if ``y`` or ``x`` is one.
+    DescriptorNumber | DescriptorArray
+        The angle: a ``DescriptorArray`` if ``y`` or ``x`` is one,
+        otherwise a ``Parameter`` if ``y`` or ``x`` is one, otherwise a
+        ``DescriptorNumber``.
 
     Raises
     ------
+    TypeError
+        If ``y`` or ``x`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
-        If ``y`` and ``x`` have different units, or ``unit`` is not an
-        angle unit.
+        If ``y`` and ``x`` have different units.
     VariancesError
         If ``y`` or ``x`` has a non-zero variance.
+    ValueError
+        If ``y`` or ``x`` is ``nan``.
+
+    See Also
+    --------
+    - [`arctan`][easyscience.math.arctan]: Inverse tangent.
+    - `atan2`: The same function, under its Scipp name.
+    - [`scipp.atan2`](https://scipp.github.io/generated/functions/scipp.atan2): Scipp function that evaluates the value; it cannot propagate a variance.
+
+    Notes
+    -----
+    The result bounds come from the corners of the box spanned by the
+    input bounds. If the box crosses the negative $x$ axis, where the
+    angle jumps from $\pi$ to $-\pi$, the bounds are $[-\pi, \pi]$.
 
     Examples
     --------
@@ -788,11 +1087,13 @@ def arctan2(y: DescriptorNumber, x: DescriptorNumber, *, unit: str = 'rad') -> D
 
     y = es.Parameter(1.0, display_name='y', unit='m', min=0.5, max=2.0)
     x = es.Parameter(1.0, display_name='x', unit='m', min=1.0, max=3.0)
-    print(es.math.arctan2(y, x, unit='deg'))
+    angle = es.math.arctan2(y, x)
+    angle.convert_unit('deg')
+    print(angle)
     # <Parameter 'arctan2(y, x)': 45.0000 deg, bounds=[9.462322208025617:63.43494882292201]>
     ```
-    """  # noqa: DOC502 -- raised in _apply and _angle_in
-    return _angle_in(_apply(_ARCTAN2, y, x), unit)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ARCTAN2, y, x)
 
 
 @overload
@@ -803,32 +1104,53 @@ def sinc(descriptor: Parameter) -> Parameter: ...
 def sinc(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def sinc(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def sinc(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def sinc(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
-    Unnormalised sinc of a dimensionless input or an angle in ``rad``.
+    Unnormalised cardinal sine of a dimensionless input or an angle in radians.
 
-    $$
-    \operatorname{sinc}(x) = \frac{\sin x}{x}, \quad
-    \operatorname{sinc}(0) = 1
-    $$
-
-    This is the convention of Scipp and of physics. NumPy's ``np.sinc``
-    is the normalised $\frac{\sin \pi x}{\pi x}$.
+    This is the physics convention, also used by Scipp. NumPy's
+    ``np.sinc`` computes $\sin(\pi x) / (\pi x)$ instead.
 
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Input that is dimensionless or in ``rad``.
 
     Returns
     -------
-    DescriptorNumber
-        ``sinc(descriptor)``, dimensionless, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``sinc(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
-        If the unit of ``descriptor`` is neither dimensionless nor ``rad``.
+        If the unit of ``descriptor`` is neither dimensionless nor
+        ``rad``.
+    ValueError
+        If ``descriptor`` is infinite or ``nan``.
+
+    See Also
+    --------
+    - [`sin`][easyscience.math.sin]: Sine.
+    - [`scipp.sinc`](https://scipp.github.io/generated/functions/scipp.sinc): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \operatorname{sinc}(x) = \frac{\sin x}{x}, \quad \operatorname{sinc}(0) = 1, \qquad \sigma_f^2 = \left(\frac{x \cos x - \sin x}{x^2}\right)^2 \sigma_x^2
+    $$
+
+    The result bounds also include the peak at 0 and any other peak or
+    trough between the input bounds. Those are found numerically.
 
     Examples
     --------
@@ -839,8 +1161,8 @@ def sinc(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.sinc(x))
     # <Parameter 'sinc(x)': 0.8415 ± 0.0301, bounds=[0.45464871341284085:0.958851077208406]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_SINC, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_SINC, descriptor)
 
 
 # --- Hyperbolic functions ---
@@ -854,30 +1176,52 @@ def sinh(descriptor: Parameter) -> Parameter: ...
 def sinh(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def sinh(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def sinh(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def sinh(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Hyperbolic sine of a dimensionless input.
 
-    $$
-    \sinh x = \frac{e^{x} - e^{-x}}{2}
-    $$
-
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
 
     Returns
     -------
-    DescriptorNumber
-        ``sinh(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``sinh(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     ValueError
-        If the value or the variance of the result overflows.
+        If ``descriptor`` is so large in magnitude that the result or
+        its variance overflows, or is ``nan``.
+
+    See Also
+    --------
+    - [`cosh`][easyscience.math.cosh]: Hyperbolic cosine.
+    - [`tanh`][easyscience.math.tanh]: Hyperbolic tangent.
+    - [`arcsinh`][easyscience.math.arcsinh]: Inverse hyperbolic sine.
+    - [`scipp.sinh`](https://scipp.github.io/generated/functions/scipp.sinh): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \sinh x = \frac{e^{x} - e^{-x}}{2}, \qquad \sigma_f^2 = \cosh^2 x \, \sigma_x^2
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds.
 
     Examples
     --------
@@ -888,8 +1232,8 @@ def sinh(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.sinh(x))
     # <Parameter 'sinh(x)': 1.1752 ± 0.1543, bounds=[0.0:3.6268604078470186]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_SINH, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_SINH, descriptor)
 
 
 @overload
@@ -900,33 +1244,52 @@ def cosh(descriptor: Parameter) -> Parameter: ...
 def cosh(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def cosh(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def cosh(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def cosh(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Hyperbolic cosine of a dimensionless input.
 
-    $$
-    \cosh x = \frac{e^{x} + e^{-x}}{2}
-    $$
-
-    The minimum is 1 at $x = 0$, so bounds that include 0 give a lower
-    result bound of 1.
-
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
 
     Returns
     -------
-    DescriptorNumber
-        ``cosh(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``cosh(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     ValueError
-        If the value or the variance of the result overflows.
+        If ``descriptor`` is so large in magnitude that the result or
+        its variance overflows, or is ``nan``.
+
+    See Also
+    --------
+    - [`sinh`][easyscience.math.sinh]: Hyperbolic sine.
+    - [`tanh`][easyscience.math.tanh]: Hyperbolic tangent.
+    - [`arccosh`][easyscience.math.arccosh]: Inverse hyperbolic cosine.
+    - [`scipp.cosh`](https://scipp.github.io/generated/functions/scipp.cosh): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \cosh x = \frac{e^{x} + e^{-x}}{2}, \qquad \sigma_f^2 = \sinh^2 x \, \sigma_x^2
+    $$
+
+    The result bounds also include the minimum of 1 at 0, if 0 lies
+    between the input bounds.
 
     Examples
     --------
@@ -939,8 +1302,8 @@ def cosh(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.cosh(x))
     # <Parameter 'cosh(x)': 1.5431 ± 0.1175, bounds=[1.0:3.7621956910836314]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_COSH, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_COSH, descriptor)
 
 
 @overload
@@ -951,28 +1314,51 @@ def tanh(descriptor: Parameter) -> Parameter: ...
 def tanh(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def tanh(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def tanh(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def tanh(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Hyperbolic tangent of a dimensionless input.
 
-    $$
-    \tanh x = \frac{\sinh x}{\cosh x}
-    $$
-
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
 
     Returns
     -------
-    DescriptorNumber
-        ``tanh(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``tanh(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
+    ValueError
+        If ``descriptor`` is ``nan``.
+
+    See Also
+    --------
+    - [`sinh`][easyscience.math.sinh]: Hyperbolic sine.
+    - [`cosh`][easyscience.math.cosh]: Hyperbolic cosine.
+    - [`arctanh`][easyscience.math.arctanh]: Inverse hyperbolic tangent.
+    - [`scipp.tanh`](https://scipp.github.io/generated/functions/scipp.tanh): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \tanh x = \frac{\sinh x}{\cosh x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{\cosh^4 x}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds.
 
     Examples
     --------
@@ -983,8 +1369,8 @@ def tanh(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.tanh(x))
     # <Parameter 'tanh(x)': 0.7616 ± 0.0420, bounds=[0.0:0.9640275800758169]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_TANH, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_TANH, descriptor)
 
 
 @overload
@@ -995,28 +1381,50 @@ def arcsinh(descriptor: Parameter) -> Parameter: ...
 def arcsinh(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def arcsinh(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def arcsinh(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def arcsinh(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Inverse hyperbolic sine of a dimensionless input.
 
-    $$
-    \operatorname{arcsinh} x = \ln\left(x + \sqrt{x^2 + 1}\right)
-    $$
-
     Parameters
     ----------
-    descriptor : DescriptorNumber
+    descriptor : DescriptorNumber | DescriptorArray
         Dimensionless input.
 
     Returns
     -------
-    DescriptorNumber
-        ``arcsinh(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``arcsinh(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
+    ValueError
+        If ``descriptor`` is infinite or ``nan``.
+
+    See Also
+    --------
+    - [`sinh`][easyscience.math.sinh]: Hyperbolic sine.
+    - `asinh`: The same function, under its Scipp name.
+    - [`scipp.asinh`](https://scipp.github.io/generated/functions/scipp.asinh): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \operatorname{arcsinh} x = \ln\left(x + \sqrt{x^2 + 1}\right), \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 + 1}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds.
 
     Examples
     --------
@@ -1027,8 +1435,8 @@ def arcsinh(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.arcsinh(x))
     # <Parameter 'arcsinh(x)': 0.8814 ± 0.0707, bounds=[0.0:1.4436354751788103]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_ARCSINH, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ARCSINH, descriptor)
 
 
 @overload
@@ -1039,35 +1447,52 @@ def arccosh(descriptor: Parameter) -> Parameter: ...
 def arccosh(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def arccosh(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def arccosh(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def arccosh(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Inverse hyperbolic cosine of a dimensionless input of at least 1.
 
-    $$
-    \operatorname{arccosh} x = \ln\left(x + \sqrt{x^2 - 1}\right),
-    \quad x \ge 1
-    $$
-
-    At $x = 1$ the derivative is infinite, so a non-zero variance
-    there raises ``ValueError``. Bounds below 1 are clipped to the
-    domain.
-
     Parameters
     ----------
-    descriptor : DescriptorNumber
-        Dimensionless input with a value of at least 1.
+    descriptor : DescriptorNumber | DescriptorArray
+        Dimensionless input with values of at least 1.
 
     Returns
     -------
-    DescriptorNumber
-        ``arccosh(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``arccosh(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     ValueError
-        If the value of ``descriptor`` is below 1, or the result is not finite.
+        If ``descriptor`` is below 1, infinite or ``nan``, or is 1 with
+        a non-zero variance.
+
+    See Also
+    --------
+    - [`cosh`][easyscience.math.cosh]: Hyperbolic cosine.
+    - `acosh`: The same function, under its Scipp name.
+    - [`scipp.acosh`](https://scipp.github.io/generated/functions/scipp.acosh): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \operatorname{arccosh} x = \ln\left(x + \sqrt{x^2 - 1}\right), \qquad \sigma_f^2 = \frac{\sigma_x^2}{x^2 - 1}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds. Input bounds outside the domain are clipped to it
+    first.
 
     Examples
     --------
@@ -1078,8 +1503,8 @@ def arccosh(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.arccosh(x))
     # <Parameter 'arccosh(x)': 1.3170 ± 0.0577, bounds=[0.0:1.762747174039086]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_ARCCOSH, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ARCCOSH, descriptor)
 
 
 @overload
@@ -1090,34 +1515,52 @@ def arctanh(descriptor: Parameter) -> Parameter: ...
 def arctanh(descriptor: DescriptorNumber) -> DescriptorNumber: ...
 
 
-def arctanh(descriptor: DescriptorNumber) -> DescriptorNumber:
+@overload
+def arctanh(descriptor: DescriptorArray) -> DescriptorArray: ...
+
+
+def arctanh(
+    descriptor: DescriptorNumber | DescriptorArray,
+) -> DescriptorNumber | DescriptorArray:
     r"""
     Inverse hyperbolic tangent of a dimensionless input in ``(-1, 1)``.
 
-    $$
-    \operatorname{arctanh} x = \frac{1}{2} \ln\frac{1 + x}{1 - x},
-    \quad -1 < x < 1
-    $$
-
-    Bounds outside $(-1, 1)$ are clipped to the domain and give infinite
-    result bounds.
-
     Parameters
     ----------
-    descriptor : DescriptorNumber
-        Dimensionless input with a value strictly between -1 and 1.
+    descriptor : DescriptorNumber | DescriptorArray
+        Dimensionless input with values strictly between -1 and 1.
 
     Returns
     -------
-    DescriptorNumber
-        ``arctanh(descriptor)``, a ``Parameter`` if ``descriptor`` is one.
+    DescriptorNumber | DescriptorArray
+        ``arctanh(descriptor)``, of the same class as ``descriptor``.
 
     Raises
     ------
+    TypeError
+        If ``descriptor`` is not a ``Parameter``, ``DescriptorNumber``
+        or ``DescriptorArray``.
     UnitError
         If ``descriptor`` is not dimensionless.
     ValueError
-        If the value of ``descriptor`` is not strictly between -1 and 1.
+        If ``descriptor`` is not strictly between -1 and 1, or is
+        ``nan``.
+
+    See Also
+    --------
+    - [`tanh`][easyscience.math.tanh]: Hyperbolic tangent.
+    - `atanh`: The same function, under its Scipp name.
+    - [`scipp.atanh`](https://scipp.github.io/generated/functions/scipp.atanh): Scipp function that evaluates the value and the variance.
+
+    Notes
+    -----
+    $$
+    \operatorname{arctanh} x = \frac{1}{2} \ln\frac{1 + x}{1 - x}, \qquad \sigma_f^2 = \frac{\sigma_x^2}{(1 - x^2)^2}
+    $$
+
+    The function is monotonic, so the result bounds are its values at
+    the input bounds. Input bounds outside the domain are clipped to it
+    first.
 
     Examples
     --------
@@ -1130,14 +1573,13 @@ def arctanh(descriptor: DescriptorNumber) -> DescriptorNumber:
     print(es.math.arctanh(x))
     # <Parameter 'arctanh(x)': 0.5493 ± 0.0133, bounds=[0.0:1.4722194895832204]>
     ```
-    """  # noqa: DOC502 -- raised in _apply
-    return _apply(_ARCTANH, descriptor)
+    """  # noqa: DOC502 -- raised in _evaluate
+    return _evaluate(_ARCTANH, descriptor)
 
 
-# --- Aliases ---
-# The C / Scipp spellings of the inverse functions. They are the same function objects, so
-# they share the docstring, and the parameters they return are named after the canonical
-# function (``asin(x)`` returns a parameter called ``arcsin(x)``).
+# --- Scipp spellings of the inverse functions ---
+# They are the same function objects, so they share the docstring, and their results are named
+# after the canonical function: ``asin(x)`` returns ``arcsin(x)``.
 
 asin = arcsin
 acos = arccos
@@ -1148,348 +1590,265 @@ acosh = arccosh
 atanh = arctanh
 
 
-# --- Specification of a maths operation ---
+# --- How a maths function is described ---
 
 
 @dataclass(frozen=True)
-class _Domain:
-    """
-    The set of argument values a function accepts: an interval, open or
-    closed at each end.
-    """
+class _InputRange:
+    """The argument values a function is defined for."""
 
-    lo: float = -np.inf
-    hi: float = np.inf
-    open_lo: bool = False
-    open_hi: bool = False
+    lower_limit: float = -np.inf
+    upper_limit: float = np.inf
 
-    def contains(self, value: float) -> bool:
-        above = value > self.lo if self.open_lo else value >= self.lo
-        below = value < self.hi if self.open_hi else value <= self.hi
-        return above and below
-
-    def clip(self, lo: float, hi: float) -> _Interval:
-        """
-        Restrict ``[lo, hi]`` to the domain (open ends clip to the edge:
-        the limit).
-        """
-        return max(lo, self.lo), min(hi, self.hi)
-
-    def __str__(self) -> str:
-        left = '(' if self.open_lo else '['
-        right = ')' if self.open_hi else ']'
-        return f'{left}{self.lo}, {self.hi}{right}'
+    def clip(self, lower: float, upper: float) -> _Bounds:
+        """Restrict the bounds ``[lower, upper]`` to this range."""
+        return max(lower, self.lower_limit), min(upper, self.upper_limit)
 
 
 @dataclass(frozen=True)
-class _MathOp:
+class _MathFunction:
     """
-    Everything that makes one maths function different from another.
+    What a public maths function evaluates and how its result bounds are found.
 
     Attributes
     ----------
     name : str
-        Name used in error messages and in the name of the resulting
-        ``Parameter``.
-    sc_func : Callable
-        The Scipp function (it validates units and propagates variance,
-        if it can).
-    bounds : _BoundsStrategy
-        Maps one ``(lo, hi)`` interval per argument to the ``(min,
-        max)`` of the result.
-    domain : _Domain, default=_Domain()
-        Accepted argument values. Applies to every argument.
-    native_unit : str | None, default=None
-        If set, bounds are converted to this unit before ``bounds`` runs
-        (``'rad'`` for the trigonometric functions, whose numpy versions
-        assume radians).
-    guard : Callable[..., None] | None, default=None
-        Extra check of the arguments' values, ``guard(*params)``,
-        raising ``ValueError`` where the variance would explode (tan
-        asymptotes).
+        Public name, used in error messages and in the name of the
+        result.
+    scipp_function : Callable
+        Scipp function that evaluates the value and the variance and
+        checks the units.
+    result_bounds : _ResultBoundsFunction
+        Takes the bounds of each argument and returns the bounds of the
+        result.
+    input_range : _InputRange, default=_InputRange()
+        Argument values the function is defined for. Argument bounds are
+        clipped to it before ``result_bounds`` runs.
+    bounds_unit : str | None, default=None
+        Unit that ``result_bounds`` expects the argument bounds in:
+        ``'rad'`` for the trigonometric functions, whose NumPy versions
+        take radians.
     """
 
     name: str
-    sc_func: Callable
-    bounds: _BoundsStrategy
-    domain: _Domain = _Domain()
-    native_unit: str | None = None
-    guard: Callable[..., None] | None = None
+    scipp_function: Callable
+    result_bounds: _ResultBoundsFunction
+    input_range: _InputRange = _InputRange()
+    bounds_unit: str | None = None
 
 
-# --- The dispatcher ---
+# --- Evaluating a maths function ---
 
 
-# NOTE(): Every result is an independent, non-fixed ``Parameter`` that is a snapshot of its inputs
-# (as are the results of ``Parameter.__mul__`` and friends): it does not follow later changes and,
-# if handed to a ``Fitter``, would be varied as a free parameter of its own. Whether results should
-# be ``fixed=True``, or linked to their inputs (compare ``Parameter.from_dependency``), is for the
-# lead developer to decide.
-# TODO(): Cost. A chain of five es.math / Parameter operations (a Gaussian width derived from a
-# FWHM inside a model's __call__) took about 1.3 ms per evaluation, constant over thousands of
-# evaluations and without leaking. That is fine for ordinary fits, but it has not been profiled
-# where the time goes: profile before using es.math in hot loops (tens of thousands of
-# evaluations), and consider a cheaper path if it matters.
-def _apply(op: _MathOp, *params: DescriptorNumber) -> DescriptorNumber:
+# NOTE(): Each result is a new, free ``Parameter``, like the result of ``Parameter.__mul__``. It is
+# a snapshot that does not follow later changes of its inputs, and a ``Fitter`` would vary it on
+# its own. Whether results should be ``fixed=True`` or linked to their inputs
+# (``Parameter.from_dependency``) is for the lead developer to decide.
+# TODO(): Cost. One call takes about 130 to 160 us against about 3 us for the Scipp function
+# alone (tests/manual/es_math_vs_scipp.ipynb). Profile before using es.math in hot loops.
+def _evaluate(
+    function: _MathFunction, *args: DescriptorNumber | DescriptorArray
+) -> DescriptorNumber | DescriptorArray:
     """
-    Evaluate ``op`` on ``params``: validate, call Scipp, derive bounds,
-    repack.
+    Evaluate a maths function with Scipp and wrap the result.
 
-    Scipp validates the units, so a wrong unit raises its ``UnitError``
-    before any of the checks below.
+    Scipp checks the units and propagates the variances. A
+    ``DescriptorArray`` result has no bounds; a ``Parameter`` result gets
+    the range of ``function`` over the bounds of its arguments.
 
     Parameters
     ----------
-    op : _MathOp
+    function : _MathFunction
         Specification of the function.
-    *params : DescriptorNumber
+    *args : DescriptorNumber | DescriptorArray
         The arguments (a ``Parameter`` is a ``DescriptorNumber``).
 
     Returns
     -------
-    DescriptorNumber
-        A new ``Parameter`` named ``'<op>(<arg names>)'`` if any
-        argument is a ``Parameter``, otherwise a new
-        ``DescriptorNumber`` with that name.
+    DescriptorNumber | DescriptorArray
+        A ``DescriptorArray`` if any argument is one, otherwise a
+        ``Parameter`` if any argument is one, otherwise a
+        ``DescriptorNumber``, named ``'<function>(<argument names>)'``.
 
     Raises
     ------
     TypeError
-        If an argument is not a ``Parameter`` or ``DescriptorNumber``.
+        If an argument is of another type.
     ValueError
-        If an argument's value is outside the domain, or the result is
-        not finite.
+        If a value or variance of the result is not finite.
     """
-    for param in params:
-        if not isinstance(param, DescriptorNumber):
+    for arg in args:
+        if not isinstance(arg, (DescriptorNumber, DescriptorArray)):
             raise TypeError(
-                'EasyScience math functions currently only support `Parameter` and '
-                '`DescriptorNumber` objects. Raw numbers and arrays are not yet supported. '
-                f'Found: {type(param)}'
+                'EasyScience math functions support `Parameter`, `DescriptorNumber` and '
+                f'`DescriptorArray` objects, not {type(arg)}.'
             )
 
-    # 1. Scipp first: it owns the unit rules, so a unit error is reported before anything else.
-    sc_args = [_to_scipp_scalar(param) for param in params]
-    sc_result = op.sc_func(*sc_args)
-
-    # 2. Values are validated strictly: a bad value would break a fit loop.
-    for param in params:
-        if not op.domain.contains(param.value):
-            raise ValueError(
-                f"The value of '{param.display_name}' ({param.value}) is outside the domain "
-                f'{op.domain} of {op.name}().'
-            )
-    if op.guard is not None:
-        op.guard(*params)
-
-    label = ', '.join(param.display_name for param in params)
-    if not _is_finite(sc_result.value) or not _is_finite(sc_result.variance):
+    result = function.scipp_function(*(_scipp_value(arg) for arg in args))
+    name = f'{function.name}({", ".join(arg.display_name for arg in args)})'
+    if not _all_finite(result):
         raise ValueError(
-            f'{op.name}({label}) is not finite: value={sc_result.value}, '
-            f'variance={sc_result.variance}. Check the value and variance of the argument(s).'
+            f'{name} is not finite. Check that the values lie in the domain of {function.name}() '
+            'and that the variances are finite.'
         )
 
-    # A plain DescriptorNumber has no bounds, so neither has a result made only from those.
-    if not any(isinstance(param, Parameter) for param in params):
-        return DescriptorNumber.from_scipp(
-            display_name=f'{op.name}({label})', full_value=sc_result
-        )
+    if any(isinstance(arg, DescriptorArray) for arg in args):
+        return DescriptorArray.from_scipp(result, display_name=name)
+    if not any(isinstance(arg, Parameter) for arg in args):
+        return DescriptorNumber.from_scipp(result, display_name=name)
 
-    # 3. Bounds are permissive: clip to the domain, convert, and let the strategy decide.
-    intervals = [_native_interval(op, param) for param in params]
+    argument_bounds = [_argument_bounds(function, arg) for arg in args]
     with np.errstate(all='ignore'):
-        new_min, new_max = op.bounds(*intervals)
-    # Guard against round-off at an extremum: the value is always inside its own bounds.
-    new_min, new_max = min(new_min, sc_result.value), max(new_max, sc_result.value)
-    # Parameter rejects (nearly) identical bounds, so bounds that collapsed are padded.
-    new_min, new_max = _pad_if_collapsed(new_min, new_max, sc_result.value)
-
-    return Parameter.from_scipp(
-        display_name=f'{op.name}({label})',
-        full_value=sc_result,
-        min=new_min,
-        max=new_max,
-    )
+        new_min, new_max = function.result_bounds(*argument_bounds)
+    # Round-off at an extremum can leave the value just outside its own bounds.
+    new_min, new_max = min(new_min, result.value), max(new_max, result.value)
+    new_min, new_max = _widen_collapsed_bounds(new_min, new_max, result.value)
+    return Parameter.from_scipp(result, display_name=name, min=new_min, max=new_max)
 
 
-# TODO(): ``rtol=1e-9`` below mirrors the literal tolerance in the min/max setters of ``Parameter``,
-# which is not a named constant. Expose it in parameter.py and import it here, so that the two
-# cannot drift apart (if ``Parameter`` tightens its tolerance this padding would silently stop
-# preventing the 'identical bounds' ValueError).
-def _pad_if_collapsed(lo: float, hi: float, value: float) -> tuple[float, float]:
+# TODO(): ``Parameter`` rejects ``min`` and ``max`` within a relative 1e-9 of each other, a literal
+# in its ``__init__`` and its min/max setters. Make it a named constant in parameter.py and use it
+# here, so that the two cannot drift apart.
+def _widen_collapsed_bounds(lower: float, upper: float, value: float) -> tuple[float, float]:
     """
-    Widen bounds that ``Parameter`` would reject as identical,
-    symmetrically around ``value``.
+    Widen bounds that ``Parameter`` would reject as equal.
+
+    The bounds are widened symmetrically around ``value``.
 
     Parameters
     ----------
-    lo : float
+    lower : float
         Lower bound.
-    hi : float
+    upper : float
         Upper bound.
     value : float
-        The result value, which lies inside ``[lo, hi]``.
+        The result value, which lies inside ``[lower, upper]``.
 
     Returns
     -------
     tuple[float, float]
-        ``(lo, hi)`` unchanged, or padded by ``_COLLAPSE_PAD * |value|``
-        (``_COLLAPSE_PAD_ZERO`` if the value is 0) on each side if they
-        are equal or within ``Parameter``'s tolerance.
+        ``(lower, upper)`` unchanged, or, if they are within the
+        tolerance of ``Parameter``, padded on each side by
+        ``_COLLAPSE_PAD * |value|`` (``_COLLAPSE_PAD_ZERO`` for a value
+        of 0).
     """
-    if not math.isclose(lo, hi, rel_tol=1e-9, abs_tol=0.0):
-        return lo, hi
+    if not math.isclose(lower, upper, rel_tol=1e-9, abs_tol=0.0):
+        return lower, upper
     pad = abs(value) * _COLLAPSE_PAD or _COLLAPSE_PAD_ZERO
-    return lo - pad, hi + pad
+    return lower - pad, upper + pad
 
 
-def _angle_in(result: DescriptorNumber, unit: str) -> DescriptorNumber:
+def _scipp_value(descriptor: DescriptorNumber | DescriptorArray) -> sc.Variable:
     """
-    Express an angle ``result`` (in radians, as Scipp returns it) in
-    ``unit``.
+    Scipp value of a descriptor, without variances if they are all zero.
 
-    The value, the variance and the bounds are converted together by
-    ``Parameter.convert_unit``.
-
-    Parameters
-    ----------
-    result : DescriptorNumber
-        An angle in radians. It is converted in place.
-    unit : str
-        Target unit, ``'rad'`` or ``'deg'``.
-
-    Returns
-    -------
-    DescriptorNumber
-        ``result``, in ``unit``.
-
-    Raises
-    ------
-    UnitError
-        If ``unit`` is not an angle unit.
-    """  # noqa: DOC502 -- raised by Parameter.convert_unit
-    if unit != result.unit:
-        result.convert_unit(unit)
-    return result
-
-
-def _variance(param: DescriptorNumber) -> float:
+    A ``Parameter`` stores a variance of 0.0 by default. Scipp would
+    propagate it to ``nan`` where the derivative is infinite, and its
+    ``erf``, ``erfc`` and ``atan2`` refuse any variance, so a zero
+    variance is dropped.
     """
-    Variance of a parameter; a missing (``None``) or zero variance
-    counts as 0.0.
-    """
-    return float(param.variance) if param.variance else 0.0
+    value = descriptor.full_value
+    if value.variances is not None and not np.any(value.variances):
+        return sc.values(value)
+    return value
 
 
-def _to_scipp_scalar(param: DescriptorNumber) -> sc.Variable:
-    """
-    Convert a Parameter to a Scipp scalar; a zero or missing variance is
-    dropped.
-    """
-    kwargs = {'value': float(param.value), 'unit': param.unit}
-    variance = _variance(param)
-    if variance > 0:
-        kwargs['variance'] = variance
-    return sc.scalar(**kwargs)
-
-
-def _is_finite(value: float | None) -> bool:
-    """
-    Whether ``value`` is finite; a missing value (no variance) counts as
-    fine.
-    """
-    return value is None or bool(np.isfinite(value))
+def _all_finite(result: sc.Variable) -> bool:
+    """Whether every value and every variance of ``result`` is finite."""
+    if not np.all(np.isfinite(result.values)):
+        return False
+    return result.variances is None or bool(np.all(np.isfinite(result.variances)))
 
 
 @cache
-def _native_factor(unit: str, native_unit: str | None) -> float:
-    """
-    Factor converting ``unit`` to ``native_unit`` (1.0 if none is
-    needed), asked of Scipp once.
-    """
-    if native_unit is None or unit == native_unit:
+def _unit_factor(unit: str, target_unit: str | None) -> float:
+    """Factor that converts ``unit`` to ``target_unit``; 1.0 if none is needed."""
+    if target_unit is None or unit == target_unit:
         return 1.0
-    return float(sc.scalar(1.0, unit=unit).to(unit=native_unit).value)
+    return float(sc.scalar(1.0, unit=unit).to(unit=target_unit).value)
 
 
-def _native_interval(op: _MathOp, param: DescriptorNumber) -> _Interval:
+def _argument_bounds(function: _MathFunction, param: DescriptorNumber) -> _Bounds:
     """
-    The parameter's bounds, clipped to the domain and in the unit the
-    strategy expects.
+    Bounds of one argument, clipped to the input range of the function.
+
+    They are converted to the unit that ``function.result_bounds``
+    expects. A plain ``DescriptorNumber`` has no bounds, so its bounds
+    are its value.
     """
     if isinstance(param, Parameter):
-        lo, hi = float(param.min), float(param.max)
-    else:  # a plain DescriptorNumber has no bounds: it is the single point at its value
-        lo = hi = float(param.value)
-    lo, hi = op.domain.clip(lo, hi)
-    if op.native_unit is None:
-        return lo, hi
-    factor = _native_factor(str(param.unit), op.native_unit)
-    return lo * factor, hi * factor
+        lower, upper = float(param.min), float(param.max)
+    else:
+        lower = upper = float(param.value)
+    lower, upper = function.input_range.clip(lower, upper)
+    if function.bounds_unit is None:
+        return lower, upper
+    factor = _unit_factor(str(param.unit), function.bounds_unit)
+    return lower * factor, upper * factor
 
 
-# --- Bounds strategies ---
-# Each takes one (lo, hi) interval per argument and returns the exact (min, max) of the
-# function over that interval. They run inside ``np.errstate(all='ignore')``, so an edge
-# such as log(0) = -inf is returned instead of warning.
+# --- Result bounds ---
+# Each function below takes the bounds of every argument and returns the exact lower and upper
+# bound of the result. They run under ``np.errstate(all='ignore')``, so an edge value such as
+# log(0) = -inf is returned without a warning.
 
 
-def _monotonic(func: Callable) -> _BoundsStrategy:
+def _monotonic_bounds(function_values: Callable) -> _ResultBoundsFunction:
     """
-    Monotonic function (increasing or decreasing): the extremes sit at
-    the endpoints.
+    Result bounds of a monotonic function: its values at the argument
+    bounds.
     """
 
-    def bounds(interval: _Interval) -> tuple[float, float]:
-        lo, hi = interval
-        at_lo, at_hi = float(func(lo)), float(func(hi))
-        return min(at_lo, at_hi), max(at_lo, at_hi)
+    def bounds(argument_bounds: _Bounds) -> tuple[float, float]:
+        lower, upper = argument_bounds
+        at_lower, at_upper = float(function_values(lower)), float(function_values(upper))
+        return min(at_lower, at_upper), max(at_lower, at_upper)
 
     return bounds
 
 
-def _extrema(
-    func: Callable, critical_points: Callable[[float, float], np.ndarray]
-) -> _BoundsStrategy:
+def _bounds_from_extrema(
+    function_values: Callable, extrema: Callable[[float, float], np.ndarray]
+) -> _ResultBoundsFunction:
     """
-    Non-monotonic function: the extremes sit at the endpoints or at
-    critical points.
+    Result bounds of a non-monotonic function.
 
-    ``critical_points(lo, hi)`` returns the points inside ``[lo, hi]``
-    where the function may have a local extremum. ``nan`` candidates,
-    such as ``sin(inf)``, are ignored.
+    The bounds are the smallest and largest of its values at the
+    argument bounds and at ``extrema(lower, upper)``, the maxima and
+    minima between them. A ``nan`` value, such as ``sin(inf)``, is
+    ignored.
     """
 
-    def bounds(interval: _Interval) -> tuple[float, float]:
-        lo, hi = interval
-        candidates = np.concatenate(([lo, hi], critical_points(lo, hi)))
-        values = np.asarray(func(candidates), dtype=float)
+    def bounds(argument_bounds: _Bounds) -> tuple[float, float]:
+        lower, upper = argument_bounds
+        candidates = np.concatenate(([lower, upper], extrema(lower, upper)))
+        values = np.asarray(function_values(candidates), dtype=float)
         return float(np.nanmin(values)), float(np.nanmax(values))
 
     return bounds
 
 
-def _periodic_critical_points(offset: float) -> Callable[[float, float], np.ndarray]:
+def _periodic_extrema(offset: float) -> Callable[[float, float], np.ndarray]:
     """
-    Critical points ``offset + n*pi`` (n an integer) of sin (``pi/2``)
-    or cos (``0``).
+    Maxima and minima of sine or cosine, at ``offset + n*pi``.
 
-    A whole period, or an infinite interval, holds a maximum and a
-    minimum, so those two are returned without enumerating.
+    The offset is ``pi/2`` for sine and 0 for cosine. An infinite range,
+    or one of a whole period, contains a maximum and a minimum, so two
+    points are returned without listing them all.
     """
 
-    def points(lo: float, hi: float) -> np.ndarray:
-        if not (np.isfinite(lo) and np.isfinite(hi)) or hi - lo >= 2 * np.pi:
+    def points(lower: float, upper: float) -> np.ndarray:
+        if not (np.isfinite(lower) and np.isfinite(upper)) or upper - lower >= 2 * np.pi:
             return np.array([offset, offset + np.pi])
-        n = np.arange(np.ceil((lo - offset) / np.pi), np.floor((hi - offset) / np.pi) + 1)
+        n = np.arange(np.ceil((lower - offset) / np.pi), np.floor((upper - offset) / np.pi) + 1)
         return offset + n * np.pi
 
     return points
 
 
-def _cosh_critical_points(lo: float, hi: float) -> np.ndarray:
+def _cosh_minimum(lower: float, upper: float) -> np.ndarray:
     """The single minimum of cosh, at 0."""
-    return np.array([0.0]) if lo <= 0.0 <= hi else np.array([])
+    return np.array([0.0]) if lower <= 0.0 <= upper else np.array([])
 
 
 def _unnormalized_sinc(x) -> np.ndarray:
@@ -1503,42 +1862,39 @@ def _unnormalized_sinc(x) -> np.ndarray:
     return np.where(np.isinf(x), 0.0, np.sinc(x / np.pi))
 
 
-def _sinc_positive_extrema(lo: float, hi: float, count: int = _SINC_ROOT_COUNT) -> np.ndarray:
+def _sinc_positive_extrema(
+    lower: float, upper: float, count: int = _SINC_ROOT_COUNT
+) -> np.ndarray:
     """
-    Stationary points of sinc on the positive axis inside ``[lo, hi]``,
-    nearest to ``lo``.
+    Maxima and minima of sinc on the positive axis, nearest the lower bound.
 
     They are the positive roots of ``tan(x) = x``, one in each ``(k*pi,
     k*pi + pi/2)``. The heights of the lobes fall off like 1/x, so the
-    largest maximum and the deepest minimum in the interval are among
-    the first few roots at or after ``lo``.
+    largest maximum and the deepest minimum in the range are among
+    the first few roots at or after ``lower``.
 
     Beyond ``_SINC_NEGLIGIBLE_LOBES_FROM`` the lobes are negligible and
     none are returned.
 
     All ``count`` roots are refined at once with Newton's method on
     ``g(x) = x cos(x) - sin(x)``, ``g'(x) = -x sin(x)``, with the
-    vectorised update ``x <- x - g(x) / g'(x)`` (no Python loop over the
-    roots).
+    vectorised update ``x <- x - g(x) / g'(x)``.
     """
-    if hi <= 0.0 or lo > _SINC_NEGLIGIBLE_LOBES_FROM:
+    if upper <= 0.0 or lower > _SINC_NEGLIGIBLE_LOBES_FROM:
         return np.array([])
-    first = max(1, int(np.floor(max(lo, 0.0) / np.pi)))
+    first = max(1, int(np.floor(max(lower, 0.0) / np.pi)))
     k = np.arange(first, first + count)
     x = (k + 0.5) * np.pi
     x = x - 1.0 / x  # asymptotic first guess for the root of tan(x) = x
     for _ in range(_SINC_NEWTON_STEPS):
         x = x - (x * np.cos(x) - np.sin(x)) / (-x * np.sin(x))
-    return x[(x >= lo) & (x <= hi)]
+    return x[(x >= lower) & (x <= upper)]
 
 
-def _sinc_critical_points(lo: float, hi: float) -> np.ndarray:
-    """
-    Stationary points of sinc: 0 (the global maximum) and the roots of
-    tan(x) = x on both sides.
-    """
-    points = [_sinc_positive_extrema(lo, hi), -_sinc_positive_extrema(-hi, -lo)]
-    if lo <= 0.0 <= hi:
+def _sinc_extrema(lower: float, upper: float) -> np.ndarray:
+    """Maxima and minima of sinc: 0, its largest value, and the roots of tan(x) = x."""
+    points = [_sinc_positive_extrema(lower, upper), -_sinc_positive_extrema(-upper, -lower)]
+    if lower <= 0.0 <= upper:
         points.append(np.array([0.0]))
     return np.concatenate(points)
 
@@ -1565,109 +1921,86 @@ def _tan_branch(position: float) -> tuple[float, bool]:
     return (nearest if on_asymptote else float(np.floor(position))), on_asymptote
 
 
-def _tan_bounds(interval: _Interval) -> tuple[float, float]:
+def _tan_bounds(argument_bounds: _Bounds) -> tuple[float, float]:
     """
-    Bounds of tan(x) for ``x`` in radians.
+    Result bounds of tan(x), for argument bounds in radians.
 
-    tan is increasing between asymptotes (``pi/2 + n*pi``). An interval
-    that contains an asymptote in its interior covers all real numbers.
+    tan increases between asymptotes (``pi/2 + n*pi``). Bounds that
+    contain an asymptote give all real numbers.
     A bound exactly on an asymptote makes the result unbounded on that
     side only: ``[0, pi/2]`` gives ``[0, inf)``.
     """
-    lo, hi = interval
-    if not (np.isfinite(lo) and np.isfinite(hi)):
+    lower, upper = argument_bounds
+    if not (np.isfinite(lower) and np.isfinite(upper)):
         return -np.inf, np.inf
-    branch_lo, lo_on_asymptote = _tan_branch((lo - np.pi / 2) / np.pi)
-    branch_hi, hi_on_asymptote = _tan_branch((hi - np.pi / 2) / np.pi)
-    if hi_on_asymptote:
-        branch_hi -= 1  # an upper bound on an asymptote closes the branch below it
-    if branch_lo != branch_hi:
+    branch_lower, lower_on_asymptote = _tan_branch((lower - np.pi / 2) / np.pi)
+    branch_upper, upper_on_asymptote = _tan_branch((upper - np.pi / 2) / np.pi)
+    if upper_on_asymptote:
+        branch_upper -= 1  # an upper bound on an asymptote closes the branch below it
+    if branch_lower != branch_upper:
         return -np.inf, np.inf
-    lower = -np.inf if lo_on_asymptote else float(np.tan(lo))
-    upper = np.inf if hi_on_asymptote else float(np.tan(hi))
+    lower = -np.inf if lower_on_asymptote else float(np.tan(lower))
+    upper = np.inf if upper_on_asymptote else float(np.tan(upper))
     return lower, upper
 
 
-def _std(param: DescriptorNumber) -> float:
-    """Standard deviation of a parameter; 0 if it has no variance."""
-    return math.sqrt(_variance(param))
-
-
-# NOTE(): Design decision awaiting sign-off. The guards below reject a
-# value that lies within one standard deviation of a tan asymptote, because first-order
-# propagation is meaningless there. The price is that a legitimate fit result consistent with the
-# asymptote cannot be turned into a derived quantity. Alternatives: only warn, or return a very
-# large variance instead of raising.
-def _tan_guard(param: DescriptorNumber) -> None:
+def _arctan2_bounds(y_bounds: _Bounds, x_bounds: _Bounds) -> tuple[float, float]:
     """
-    The value must keep clear of a tan asymptote, where the variance
-    would explode.
-
-    The delta method is only meaningful if the asymptote lies more than
-    one standard deviation away, so that distance (never less than
-    ``_TAN_ASYMPTOTE_TOLERANCE``) is the limit.
-    """
-    factor = _native_factor(str(param.unit), 'rad')
-    value = float(param.value) * factor
-    margin = max(_TAN_ASYMPTOTE_TOLERANCE, _std(param) * factor)
-    distance = abs(value % np.pi - np.pi / 2)
-    if distance <= margin:
-        raise ValueError(
-            f"The value of '{param.display_name}' ({param.value} {param.unit}) is within "
-            f'{margin:.3g} rad of a tan asymptote (pi/2 + n*pi); the propagated variance '
-            f'would explode.'
-        )
-
-
-def _arctan2_bounds(y_interval: _Interval, x_interval: _Interval) -> tuple[float, float]:
-    """
-    Bounds of arctan2(y, x) over the box ``y_interval x x_interval``.
+    Result bounds of arctan2(y, x) over the box spanned by the bounds.
 
     The angle is a harmonic function, so away from the branch cut its
     extremes sit on the corners of the box. If the box touches the cut
     (``y = 0`` with ``x < 0``) the angle jumps between -pi and pi and
     the range is the full ``[-pi, pi]``.
     """
-    (y_lo, y_hi), (x_lo, x_hi) = y_interval, x_interval
-    if y_lo < 0.0 <= y_hi and x_lo < 0.0:
+    (y_lower, y_upper), (x_lower, x_upper) = y_bounds, x_bounds
+    if y_lower < 0.0 <= y_upper and x_lower < 0.0:
         return -np.pi, np.pi
-    corners = [np.arctan2(y, x) for y in (y_lo, y_hi) for x in (x_lo, x_hi)]
+    corners = [np.arctan2(y, x) for y in (y_lower, y_upper) for x in (x_lower, x_upper)]
     return float(min(corners)), float(max(corners))
 
 
-# --- The specifications ---
+# --- What each public function evaluates, and how its result bounds are found ---
 
-_POSITIVE = _Domain(lo=0.0, open_lo=True)
-_NON_NEGATIVE = _Domain(lo=0.0)
-_AT_LEAST_ONE = _Domain(lo=1.0)
-_CLOSED_UNIT_INTERVAL = _Domain(lo=-1.0, hi=1.0)
-_OPEN_UNIT_INTERVAL = _Domain(lo=-1.0, hi=1.0, open_lo=True, open_hi=True)
+_NON_NEGATIVE = _InputRange(lower_limit=0.0)
+_AT_LEAST_ONE = _InputRange(lower_limit=1.0)
+_UNIT_INTERVAL = _InputRange(lower_limit=-1.0, upper_limit=1.0)
 
-_EXP = _MathOp('exp', sc.exp, _monotonic(np.exp))
-_LOG = _MathOp('log', sc.log, _monotonic(np.log), domain=_POSITIVE)
-_LOG10 = _MathOp('log10', sc.log10, _monotonic(np.log10), domain=_POSITIVE)
-_SQRT = _MathOp('sqrt', sc.sqrt, _monotonic(np.sqrt), domain=_NON_NEGATIVE)
-_ERF = _MathOp('erf', sc.erf, _monotonic(math.erf))
-_ERFC = _MathOp('erfc', sc.erfc, _monotonic(math.erfc))
+_EXP = _MathFunction('exp', sc.exp, _monotonic_bounds(np.exp))
+_LOG = _MathFunction('log', sc.log, _monotonic_bounds(np.log), input_range=_NON_NEGATIVE)
+_LOG10 = _MathFunction('log10', sc.log10, _monotonic_bounds(np.log10), input_range=_NON_NEGATIVE)
+_SQRT = _MathFunction('sqrt', sc.sqrt, _monotonic_bounds(np.sqrt), input_range=_NON_NEGATIVE)
+_ERF = _MathFunction('erf', sc.erf, _monotonic_bounds(math.erf))
+_ERFC = _MathFunction('erfc', sc.erfc, _monotonic_bounds(math.erfc))
 
-_SIN = _MathOp(
-    'sin', sc.sin, _extrema(np.sin, _periodic_critical_points(np.pi / 2)), native_unit='rad'
+_SIN = _MathFunction(
+    'sin', sc.sin, _bounds_from_extrema(np.sin, _periodic_extrema(np.pi / 2)), bounds_unit='rad'
 )
-_COS = _MathOp('cos', sc.cos, _extrema(np.cos, _periodic_critical_points(0.0)), native_unit='rad')
-_TAN = _MathOp('tan', sc.tan, _tan_bounds, native_unit='rad', guard=_tan_guard)
-_ARCSIN = _MathOp('arcsin', sc.asin, _monotonic(np.arcsin), domain=_CLOSED_UNIT_INTERVAL)
-_ARCCOS = _MathOp('arccos', sc.acos, _monotonic(np.arccos), domain=_CLOSED_UNIT_INTERVAL)
-_ARCTAN = _MathOp('arctan', sc.atan, _monotonic(np.arctan))
-_ARCTAN2 = _MathOp(
+_COS = _MathFunction(
+    'cos', sc.cos, _bounds_from_extrema(np.cos, _periodic_extrema(0.0)), bounds_unit='rad'
+)
+_TAN = _MathFunction('tan', sc.tan, _tan_bounds, bounds_unit='rad')
+_ARCSIN = _MathFunction(
+    'arcsin', sc.asin, _monotonic_bounds(np.arcsin), input_range=_UNIT_INTERVAL
+)
+_ARCCOS = _MathFunction(
+    'arccos', sc.acos, _monotonic_bounds(np.arccos), input_range=_UNIT_INTERVAL
+)
+_ARCTAN = _MathFunction('arctan', sc.atan, _monotonic_bounds(np.arctan))
+_ARCTAN2 = _MathFunction(
     'arctan2',
     lambda y, x: sc.atan2(y=y, x=x),  # Scipp's atan2 is keyword-only
     _arctan2_bounds,
 )
-_SINC = _MathOp('sinc', sc.sinc, _extrema(_unnormalized_sinc, _sinc_critical_points))
+_SINC = _MathFunction('sinc', sc.sinc, _bounds_from_extrema(_unnormalized_sinc, _sinc_extrema))
 
-_SINH = _MathOp('sinh', sc.sinh, _monotonic(np.sinh))
-_COSH = _MathOp('cosh', sc.cosh, _extrema(np.cosh, _cosh_critical_points))
-_TANH = _MathOp('tanh', sc.tanh, _monotonic(np.tanh))
-_ARCSINH = _MathOp('arcsinh', sc.asinh, _monotonic(np.arcsinh))
-_ARCCOSH = _MathOp('arccosh', sc.acosh, _monotonic(np.arccosh), domain=_AT_LEAST_ONE)
-_ARCTANH = _MathOp('arctanh', sc.atanh, _monotonic(np.arctanh), domain=_OPEN_UNIT_INTERVAL)
+_SINH = _MathFunction('sinh', sc.sinh, _monotonic_bounds(np.sinh))
+_COSH = _MathFunction('cosh', sc.cosh, _bounds_from_extrema(np.cosh, _cosh_minimum))
+_TANH = _MathFunction('tanh', sc.tanh, _monotonic_bounds(np.tanh))
+_ARCSINH = _MathFunction('arcsinh', sc.asinh, _monotonic_bounds(np.arcsinh))
+_ARCCOSH = _MathFunction(
+    'arccosh', sc.acosh, _monotonic_bounds(np.arccosh), input_range=_AT_LEAST_ONE
+)
+_ARCTANH = _MathFunction(
+    'arctanh', sc.atanh, _monotonic_bounds(np.arctanh), input_range=_UNIT_INTERVAL
+)
