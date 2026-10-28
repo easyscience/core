@@ -17,7 +17,7 @@ from scipy.optimize import OptimizeResult
 
 from easyscience.variable import Parameter
 
-from ..available_minimizers import AvailableMinimizers
+from ..available_minimizers import Minimizers
 from ..engine_base import PARAMETER_PREFIX
 from .bumps_utils import BumpsProgressMonitor
 from .bumps_utils import EvalCounter
@@ -49,7 +49,7 @@ class Bumps(MinimizerBase):
         self,
         obj: object,
         fit_function: Callable,
-        minimizer_enum: AvailableMinimizers | None = None,
+        minimizer_enum: Minimizers | None = None,
     ):
         """
         Initialize the fitting engine.
@@ -60,7 +60,7 @@ class Bumps(MinimizerBase):
             Object containing the ``Parameter`` instances to fit.
         fit_function : Callable
             Callable returning model y values for the supplied x values.
-        minimizer_enum : AvailableMinimizers | None, default=None
+        minimizer_enum : Minimizers | None, default=None
             Selected BUMPS minimizer configuration. By default, None.
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)

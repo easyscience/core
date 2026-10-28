@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from easyscience import AvailableMinimizers
+from easyscience import Minimizers
 from easyscience import Parameter
 from easyscience.base_classes import ModelBase
 from easyscience.fitting.minimizers import FitError
@@ -74,7 +74,7 @@ class AbsSin2D(AbsSin):
 
 @pytest.mark.parametrize(
     'fit_engine',
-    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
 )
 def test_multi_fit(fit_engine):
     ref_sin_1 = AbsSin(0.2, np.pi)
@@ -124,7 +124,7 @@ def test_multi_fit(fit_engine):
 
 @pytest.mark.parametrize(
     'fit_engine',
-    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
 )
 def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
     """Verify that fit metadata and message are copied into each per-dataset result."""
@@ -167,7 +167,7 @@ def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
 
 @pytest.mark.parametrize(
     'fit_engine',
-    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
 )
 def test_multi_fit2(fit_engine):
     ref_sin_1 = AbsSin(0.2, np.pi)
@@ -232,7 +232,7 @@ def test_multi_fit2(fit_engine):
 
 @pytest.mark.parametrize(
     'fit_engine',
-    [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
 )
 def test_multi_fit_1D_2D(fit_engine):
     # Generate fit and reference objects
@@ -291,7 +291,7 @@ def test_multi_fit_1D_2D(fit_engine):
             sp_sin2D.get_fit_parameters()
         )
         if (
-            fit_engine != AvailableMinimizers.DFO
+            fit_engine != Minimizers.DFO
         ):  # DFO apparently does not fit well with even weights. Can't be bothered to fix
             assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
             assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)

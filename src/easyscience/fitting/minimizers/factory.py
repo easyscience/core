@@ -4,7 +4,7 @@
 from typing import Callable
 
 from .. import available_minimizers
-from ..available_minimizers import AvailableMinimizers
+from ..available_minimizers import Minimizers
 from .minimizer_base import MinimizerBase
 
 if available_minimizers.lmfit_engine_available:
@@ -15,9 +15,7 @@ if available_minimizers.bumps_engine_available:
     from .minimizer_bumps import Bumps
 
 
-def factory(
-    minimizer_enum: AvailableMinimizers, fit_object, fit_function: Callable
-) -> MinimizerBase:
+def factory(minimizer_enum: Minimizers, fit_object, fit_function: Callable) -> MinimizerBase:
     if minimizer_enum.package == 'lm':
         minimizer = LMFit(obj=fit_object, fit_function=fit_function, minimizer_enum=minimizer_enum)
 

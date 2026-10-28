@@ -10,7 +10,7 @@ import numpy as np
 
 from easyscience.variable import Parameter
 
-from ..available_minimizers import AvailableMinimizers
+from ..available_minimizers import Minimizers
 from ..engine_base import EngineBase
 from .utils import FitError
 from .utils import FitResults
@@ -26,7 +26,7 @@ class MinimizerBase(EngineBase):
         self,
         obj,  #: ModelBase,
         fit_function: Callable,
-        minimizer_enum: AvailableMinimizers,
+        minimizer_enum: Minimizers,
     ):  # todo after constraint changes, add type hint: obj: ModelBase  # noqa: E501
         if minimizer_enum.method not in self.supported_methods():
             raise FitError(f'Method {minimizer_enum.method} not available in {self.__class__}')
@@ -36,7 +36,7 @@ class MinimizerBase(EngineBase):
         self._cached_model = None
 
     @property
-    def enum(self) -> AvailableMinimizers:
+    def enum(self) -> Minimizers:
         return self._minimizer_enum
 
     @property

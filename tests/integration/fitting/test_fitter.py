@@ -4,8 +4,8 @@
 import numpy as np
 import pytest
 
-from easyscience import AvailableMinimizers
 from easyscience import Fitter
+from easyscience import Minimizers
 from easyscience import Parameter
 from easyscience.base_classes import ModelBase
 from easyscience.fitting.minimizers import FitError
@@ -115,12 +115,12 @@ def check_fit_results(result, sp_sin, ref_sin, x, expect_error=True, **kwargs):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
-def test_basic_fit(fit_engine: AvailableMinimizers):
+def test_basic_fit(fit_engine: Minimizers):
     ref_sin = AbsSin(0.2, np.pi)
     sp_sin = AbsSin(0.354, 3.05)
 
@@ -150,9 +150,9 @@ def test_basic_fit(fit_engine: AvailableMinimizers):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_fit_result(fit_engine):
@@ -189,9 +189,9 @@ def test_fit_result(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_basic_max_evaluations(fit_engine):
@@ -220,9 +220,9 @@ def test_basic_max_evaluations(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_max_evaluations_populates_fit_result_fields(fit_engine):
@@ -264,7 +264,7 @@ def test_bumps_max_evaluations_counts_objective_calls() -> None:
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    f.switch_minimizer(AvailableMinimizers.Bumps)
+    f.switch_minimizer(Minimizers.Bumps)
 
     f.max_evaluations = 3
     result = f.fit(x=x, y=y, weights=weights)
@@ -281,9 +281,9 @@ def test_bumps_max_evaluations_counts_objective_calls() -> None:
     'fit_engine,tolerance',
     [
         (None, 10),
-        (AvailableMinimizers.LMFit, 10),
-        (AvailableMinimizers.Bumps, 10),
-        (AvailableMinimizers.DFO, 0.1),
+        (Minimizers.LMFit, 10),
+        (Minimizers.Bumps, 10),
+        (Minimizers.DFO, 0.1),
     ],
 )
 def test_basic_tolerance(fit_engine, tolerance):
@@ -343,7 +343,7 @@ def test_bumps_methods(fit_method):
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    f.switch_minimizer(AvailableMinimizers.Bumps)
+    f.switch_minimizer(Minimizers.Bumps)
     assert fit_method in f._minimizer.supported_methods()
     result = f.fit(x, y, weights=weights, method=fit_method)
     check_fit_results(result, sp_sin, ref_sin, x)
@@ -368,7 +368,7 @@ def test_bumps_fit_emits_no_fitness_deprecation_warning():
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    f.switch_minimizer(AvailableMinimizers.Bumps)
+    f.switch_minimizer(Minimizers.Bumps)
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter('always')
@@ -381,7 +381,7 @@ def test_bumps_fit_emits_no_fitness_deprecation_warning():
 @pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
-    [AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+    [Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
 )
 def test_dependent_parameter(fit_engine):
     ref_sin = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
@@ -404,9 +404,7 @@ def test_dependent_parameter(fit_engine):
     # With `offset` dependent on `phase` only one parameter varies against
     # noiseless data, so lmfit's covariance is exactly [[0.]] and it reports
     # `errorbars=False` -> no uncertainties.
-    check_fit_results(
-        result, sp_sin, ref_sin, x, expect_error=fit_engine is not AvailableMinimizers.LMFit
-    )
+    check_fit_results(result, sp_sin, ref_sin, x, expect_error=fit_engine is not Minimizers.LMFit)
 
 
 @pytest.mark.fast
@@ -414,9 +412,9 @@ def test_dependent_parameter(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_2D_vectorized(fit_engine):
@@ -450,9 +448,9 @@ def test_2D_vectorized(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_2D_non_vectorized(fit_engine):
@@ -486,9 +484,9 @@ def test_2D_non_vectorized(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_fixed_parameter_does_not_change(fit_engine):
@@ -546,9 +544,9 @@ def test_fitter_new_model_base_integration():
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_fitter_variable_weights(fit_engine):
@@ -612,9 +610,9 @@ def _analytic_wls(design: np.ndarray, y: np.ndarray, point_weights: np.ndarray):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_weight_convention_matches_analytic_wls(fit_engine):
@@ -660,7 +658,7 @@ def test_weight_convention_matches_analytic_wls(fit_engine):
     assert model.slope.value == pytest.approx(beta[0], abs=tolerance)
     assert model.intercept.value == pytest.approx(beta[1], abs=tolerance)
 
-    if fit_engine in (None, AvailableMinimizers.LMFit):
+    if fit_engine in (None, Minimizers.LMFit):
         # lmfit scales the covariance by reduced chi-square (scale_covar=True)
         residual = y - design @ beta
         chi2 = float(np.sum((residual / sigma) ** 2))

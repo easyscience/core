@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 
 import easyscience.fitting.fitter
-from easyscience import AvailableMinimizers
 from easyscience import Fitter
+from easyscience import Minimizers
 
 
 class TestFitter:
@@ -24,9 +24,9 @@ class TestFitter:
         assert fitter._fit_object == self.mock_fit_object
         assert fitter._fit_function == self.mock_fit_function
         assert fitter._dependent_dims is None
-        assert fitter._enum_current_minimizer is None  # == AvailableMinimizers.LMFit_leastsq
+        assert fitter._enum_current_minimizer is None  # == Minimizers.LMFit_leastsq
         assert fitter._minimizer is None
-        fitter._update_minimizer.assert_called_once_with(AvailableMinimizers.LMFit_leastsq)
+        fitter._update_minimizer.assert_called_once_with(Minimizers.LMFit_leastsq)
 
     def test_make_model(self, fitter: Fitter):
         # When
@@ -72,17 +72,17 @@ class TestFitter:
         fitter._update_minimizer = MagicMock()
 
         # Then
-        fitter.switch_minimizer(AvailableMinimizers.Bumps)
+        fitter.switch_minimizer(Minimizers.Bumps)
 
         # Expect
-        fitter._update_minimizer.assert_called_once_with(AvailableMinimizers.Bumps)
+        fitter._update_minimizer.assert_called_once_with(Minimizers.Bumps)
 
     def test_switch_minimizer_rejects_string(self, fitter: Fitter):
         # When
         fitter._update_minimizer = MagicMock()
 
         # Then Expect
-        with pytest.raises(TypeError, match='AvailableMinimizers'):
+        with pytest.raises(TypeError, match='Minimizers'):
             fitter.switch_minimizer('Bumps')
         fitter._update_minimizer.assert_not_called()
 
@@ -108,18 +108,18 @@ class TestFitter:
 
         # Then Expect
         assert minimizers == [
-            AvailableMinimizers.LMFit,
-            AvailableMinimizers.LMFit_leastsq,
-            AvailableMinimizers.LMFit_powell,
-            AvailableMinimizers.LMFit_cobyla,
-            AvailableMinimizers.LMFit_differential_evolution,
-            AvailableMinimizers.LMFit_scipy_least_squares,
-            AvailableMinimizers.Bumps,
-            AvailableMinimizers.Bumps_simplex,
-            AvailableMinimizers.Bumps_newton,
-            AvailableMinimizers.Bumps_lm,
-            AvailableMinimizers.DFO,
-            AvailableMinimizers.DFO_leastsq,
+            Minimizers.LMFit,
+            Minimizers.LMFit_leastsq,
+            Minimizers.LMFit_powell,
+            Minimizers.LMFit_cobyla,
+            Minimizers.LMFit_differential_evolution,
+            Minimizers.LMFit_scipy_least_squares,
+            Minimizers.Bumps,
+            Minimizers.Bumps_simplex,
+            Minimizers.Bumps_newton,
+            Minimizers.Bumps_lm,
+            Minimizers.DFO,
+            Minimizers.DFO_leastsq,
         ]
 
     def test_minimizer(self, fitter: Fitter):

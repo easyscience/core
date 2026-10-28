@@ -7,14 +7,14 @@ from typing import List
 
 import numpy as np
 
-from .available_minimizers import AvailableMinimizers
+from .available_minimizers import Minimizers
 from .minimizers import FitResults
 from .minimizers import MinimizerBase
 from .minimizers.factory import factory
 from .reshaping import inject_x
 from .reshaping import reshape_dataset
 
-DEFAULT_MINIMIZER = AvailableMinimizers.LMFit_leastsq
+DEFAULT_MINIMIZER = Minimizers.LMFit_leastsq
 
 
 class Fitter:
@@ -31,7 +31,7 @@ class Fitter:
         self._max_evaluations: int = None
 
         self._minimizer: MinimizerBase = None  # set in _update_minimizer
-        self._enum_current_minimizer: AvailableMinimizers = None  # set in _update_minimizer
+        self._enum_current_minimizer: Minimizers = None  # set in _update_minimizer
         self._update_minimizer(DEFAULT_MINIMIZER)
 
     def make_model(self, pars=None) -> Callable:
@@ -56,29 +56,29 @@ class Fitter:
         self._fit_function = fit_function
         self._update_minimizer(DEFAULT_MINIMIZER)
 
-    def switch_minimizer(self, minimizer_enum: AvailableMinimizers) -> None:
+    def switch_minimizer(self, minimizer_enum: Minimizers) -> None:
         """
         Switch minimizer and initialize.
 
         Parameters
         ----------
-        minimizer_enum : AvailableMinimizers
+        minimizer_enum : Minimizers
             The enum of the minimizer to create and instantiate.
 
         Raises
         ------
         TypeError
-            If ``minimizer_enum`` is not an ``AvailableMinimizers``
+            If ``minimizer_enum`` is not a ``Minimizers``
             member.
         """
-        if not isinstance(minimizer_enum, AvailableMinimizers):
+        if not isinstance(minimizer_enum, Minimizers):
             raise TypeError(
-                f'minimizer must be an AvailableMinimizers member, got {minimizer_enum!r}; '
-                f'use AvailableMinimizers[name] to convert a name'
+                f'minimizer must be a Minimizers member, got {minimizer_enum!r}; '
+                f'use Minimizers[name] to convert a name'
             )
         self._update_minimizer(minimizer_enum)
 
-    def _update_minimizer(self, minimizer_enum: AvailableMinimizers) -> None:
+    def _update_minimizer(self, minimizer_enum: Minimizers) -> None:
         self._minimizer = factory(
             minimizer_enum=minimizer_enum,
             fit_object=self._fit_object,
@@ -87,16 +87,16 @@ class Fitter:
         self._enum_current_minimizer = minimizer_enum
 
     @property
-    def available_minimizers(self) -> List[AvailableMinimizers]:
+    def available_minimizers(self) -> List[Minimizers]:
         """
         Get a list of the available fitting minimizers.
 
         Returns
         -------
-        List[AvailableMinimizers]
+        List[Minimizers]
             List of available fitting minimizers.
         """
-        return list(AvailableMinimizers)
+        return list(Minimizers)
 
     @property
     def minimizer(self) -> MinimizerBase:

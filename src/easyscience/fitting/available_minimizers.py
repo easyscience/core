@@ -48,7 +48,7 @@ class AvailableMinimizer:
     enum_id: int
 
 
-class AvailableMinimizers(AvailableMinimizer, Enum):
+class Minimizers(AvailableMinimizer, Enum):
     if lmfit_engine_available:
         LMFit = 'lm', 'leastsq', 11
         LMFit_leastsq = 'lm', 'leastsq', 12
