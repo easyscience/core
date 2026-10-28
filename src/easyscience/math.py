@@ -19,27 +19,6 @@ The result is always one of these base classes, also for a subclass.
 Angles come back in ``rad``; call ``convert_unit('deg')`` on the result
 for degrees.
 
-```python
-import easyscience as es
-
-amplitude = es.Parameter(
-    2.0, display_name='amplitude', variance=0.01, min=0.0, max=5.0
-)
-phase = es.Parameter(
-    30.0,
-    display_name='phase',
-    unit='deg',
-    variance=1.0,
-    min=0.0,
-    max=90.0,
-)
-
-print(es.math.sqrt(amplitude))
-# <Parameter 'sqrt(amplitude)': 1.4142 ± 0.0354, bounds=[0.0:2.23606797749979]>
-print(es.math.sin(phase))
-# <Parameter 'sin(phase)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
-```
-
 For a ``DescriptorArray``, one element that makes the result infinite or
 ``nan`` is enough to raise ``ValueError`` for the whole call.
 
@@ -55,6 +34,25 @@ Two limitations give wrong numbers without raising an error:
 - A result is a snapshot of its inputs and does not follow later
   changes. Inside a model, compute it in ``__call__`` so that it is
   recomputed on every fit evaluation.
+
+Examples
+--------
+>>> import easyscience as es
+>>> amplitude = es.Parameter(
+...     2.0, display_name='amplitude', variance=0.01, min=0.0, max=5.0
+... )
+>>> phase = es.Parameter(
+...     30.0,
+...     display_name='phase',
+...     unit='deg',
+...     variance=1.0,
+...     min=0.0,
+...     max=90.0,
+... )
+>>> print(es.math.sqrt(amplitude))
+<Parameter 'sqrt(amplitude)': 1.4142 ± 0.0354, bounds=[0.0:2.23606797749979]>
+>>> print(es.math.sin(phase))
+<Parameter 'sin(phase)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
 """
 
 import math
@@ -180,13 +178,16 @@ def exp(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
-    print(es.math.exp(x))
-    # <Parameter 'exp(x)': 2.7183 ± 0.2718, bounds=[1.0:7.38905609893065]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
+    >>> print(es.math.exp(x))
+    <Parameter 'exp(x)': 2.7183 ± 0.2718, bounds=[1.0:7.38905609893065]>
+    Traceback (most recent call last):
+    File "<stdin>", line 2, in <module>
+        print(1 / 0)
+            ~~^~~
+    ZeroDivisionError: division by zero
+    >>> del x
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_EXP, descriptor)
 
@@ -250,15 +251,12 @@ def log(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(
-        10.0, display_name='x', variance=0.01, min=1.0, max=100.0
-    )
-    print(es.math.log(x))
-    # <Parameter 'log(x)': 2.3026 ± 0.0100, bounds=[0.0:4.605170185988092]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(
+    ...     10.0, display_name='x', variance=0.01, min=1.0, max=100.0
+    ... )
+    >>> print(es.math.log(x))
+    <Parameter 'log(x)': 2.3026 ± 0.0100, bounds=[0.0:4.605170185988092]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_LOG, descriptor)
 
@@ -321,15 +319,12 @@ def log10(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(
-        100.0, display_name='x', variance=1.0, min=10.0, max=1000.0
-    )
-    print(es.math.log10(x))
-    # <Parameter 'log10(x)': 2.0000 ± 0.0043, bounds=[1.0:3.0]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(
+    ...     100.0, display_name='x', variance=1.0, min=10.0, max=1000.0
+    ... )
+    >>> print(es.math.log10(x))
+    <Parameter 'log10(x)': 2.0000 ± 0.0043, bounds=[1.0:3.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_LOG10, descriptor)
 
@@ -392,20 +387,17 @@ def sqrt(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    area = es.Parameter(
-        9.0,
-        display_name='area',
-        unit='m**2',
-        variance=0.01,
-        min=4.0,
-        max=16.0,
-    )
-    print(es.math.sqrt(area))
-    # <Parameter 'sqrt(area)': 3.0000 ± 0.0167 m, bounds=[2.0:4.0]>
-    ```
+    >>> import easyscience as es
+    >>> area = es.Parameter(
+    ...     9.0,
+    ...     display_name='area',
+    ...     unit='m**2',
+    ...     variance=0.01,
+    ...     min=4.0,
+    ...     max=16.0,
+    ... )
+    >>> print(es.math.sqrt(area))
+    <Parameter 'sqrt(area)': 3.0000 ± 0.0167 m, bounds=[2.0:4.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_SQRT, descriptor)
 
@@ -470,13 +462,10 @@ def erf(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(0.5, display_name='x', min=0.0, max=2.0)
-    print(es.math.erf(x))
-    # <Parameter 'erf(x)': 0.5205, bounds=[0.0:0.9953222650189527]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(0.5, display_name='x', min=0.0, max=2.0)
+    >>> print(es.math.erf(x))
+    <Parameter 'erf(x)': 0.5205, bounds=[0.0:0.9953222650189527]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ERF, descriptor)
 
@@ -538,13 +527,10 @@ def erfc(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(0.5, display_name='x', min=0.0, max=2.0)
-    print(es.math.erfc(x))
-    # <Parameter 'erfc(x)': 0.4795, bounds=[0.004677734981047266:1.0]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(0.5, display_name='x', min=0.0, max=2.0)
+    >>> print(es.math.erfc(x))
+    <Parameter 'erfc(x)': 0.4795, bounds=[0.004677734981047266:1.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ERFC, descriptor)
 
@@ -608,20 +594,17 @@ def sin(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    angle = es.Parameter(
-        30.0,
-        display_name='angle',
-        unit='deg',
-        variance=1.0,
-        min=0.0,
-        max=90.0,
-    )
-    print(es.math.sin(angle))
-    # <Parameter 'sin(angle)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
-    ```
+    >>> import easyscience as es
+    >>> angle = es.Parameter(
+    ...     30.0,
+    ...     display_name='angle',
+    ...     unit='deg',
+    ...     variance=1.0,
+    ...     min=0.0,
+    ...     max=90.0,
+    ... )
+    >>> print(es.math.sin(angle))
+    <Parameter 'sin(angle)': 0.5000 ± 0.0151, bounds=[0.0:1.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_SIN, descriptor)
 
@@ -682,20 +665,17 @@ def cos(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    angle = es.Parameter(
-        60.0,
-        display_name='angle',
-        unit='deg',
-        variance=1.0,
-        min=0.0,
-        max=180.0,
-    )
-    print(es.math.cos(angle))
-    # <Parameter 'cos(angle)': 0.5000 ± 0.0151, bounds=[-1.0:1.0]>
-    ```
+    >>> import easyscience as es
+    >>> angle = es.Parameter(
+    ...     60.0,
+    ...     display_name='angle',
+    ...     unit='deg',
+    ...     variance=1.0,
+    ...     min=0.0,
+    ...     max=180.0,
+    ... )
+    >>> print(es.math.cos(angle))
+    <Parameter 'cos(angle)': 0.5000 ± 0.0151, bounds=[-1.0:1.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_COS, descriptor)
 
@@ -758,20 +738,17 @@ def tan(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    angle = es.Parameter(
-        45.0,
-        display_name='angle',
-        unit='deg',
-        variance=1.0,
-        min=0.0,
-        max=60.0,
-    )
-    print(es.math.tan(angle))
-    # <Parameter 'tan(angle)': 1.0000 ± 0.0349, bounds=[0.0:1.7320508075688767]>
-    ```
+    >>> import easyscience as es
+    >>> angle = es.Parameter(
+    ...     45.0,
+    ...     display_name='angle',
+    ...     unit='deg',
+    ...     variance=1.0,
+    ...     min=0.0,
+    ...     max=60.0,
+    ... )
+    >>> print(es.math.tan(angle))
+    <Parameter 'tan(angle)': 1.0000 ± 0.0349, bounds=[0.0:1.7320508075688767]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_TAN, descriptor)
 
@@ -835,19 +812,20 @@ def arcsin(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(
-        0.5, display_name='x', variance=0.0001, min=0.0, max=1.0
-    )
-    angle = es.math.arcsin(x)
-    angle.convert_unit('deg')
-    print(angle)
-    # <Parameter 'arcsin(x)': 30.0000 ± 0.6616 deg, bounds=[0.0:90.0]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(
+    ...     0.5, display_name='x', variance=0.0001, min=0.0, max=1.0
+    ... )
+    >>> angle = es.math.arcsin(x)
+    >>> angle.convert_unit('deg')
+    >>> print(angle)
+    <Parameter 'arcsin(x)': 30.0000 ± 0.6616 deg, bounds=[0.0:90.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCSIN, descriptor)
+
+
+asin = arcsin
+"""Alias of [`arcsin`][easyscience.math.arcsin]."""
 
 
 @overload
@@ -909,19 +887,20 @@ def arccos(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(
-        0.5, display_name='x', variance=0.0001, min=0.0, max=1.0
-    )
-    angle = es.math.arccos(x)
-    angle.convert_unit('deg')
-    print(angle)
-    # <Parameter 'arccos(x)': 60.0000 ± 0.6616 deg, bounds=[0.0:90.0]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(
+    ...     0.5, display_name='x', variance=0.0001, min=0.0, max=1.0
+    ... )
+    >>> angle = es.math.arccos(x)
+    >>> angle.convert_unit('deg')
+    >>> print(angle)
+    <Parameter 'arccos(x)': 60.0000 ± 0.6616 deg, bounds=[0.0:90.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCCOS, descriptor)
+
+
+acos = arccos
+"""Alias of [`arccos`][easyscience.math.arccos]."""
 
 
 @overload
@@ -981,19 +960,20 @@ def arctan(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(
-        1.0, display_name='x', variance=0.01, min=0.0, max=10.0
-    )
-    angle = es.math.arctan(x)
-    angle.convert_unit('deg')
-    print(angle)
-    # <Parameter 'arctan(x)': 45.0000 ± 2.8648 deg, bounds=[0.0:84.28940686250037]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(
+    ...     1.0, display_name='x', variance=0.01, min=0.0, max=10.0
+    ... )
+    >>> angle = es.math.arctan(x)
+    >>> angle.convert_unit('deg')
+    >>> print(angle)
+    <Parameter 'arctan(x)': 45.0000 ± 2.8648 deg, bounds=[0.0:84.28940686250037]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCTAN, descriptor)
+
+
+atan = arctan
+"""Alias of [`arctan`][easyscience.math.arctan]."""
 
 
 @overload
@@ -1068,18 +1048,19 @@ def arctan2(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    y = es.Parameter(1.0, display_name='y', unit='m', min=0.5, max=2.0)
-    x = es.Parameter(1.0, display_name='x', unit='m', min=1.0, max=3.0)
-    angle = es.math.arctan2(y, x)
-    angle.convert_unit('deg')
-    print(angle)
-    # <Parameter 'arctan2(y, x)': 45.0000 deg, bounds=[9.462322208025617:63.43494882292201]>
-    ```
+    >>> import easyscience as es
+    >>> y = es.Parameter(1.0, display_name='y', unit='m', min=0.5, max=2.0)
+    >>> x = es.Parameter(1.0, display_name='x', unit='m', min=1.0, max=3.0)
+    >>> angle = es.math.arctan2(y, x)
+    >>> angle.convert_unit('deg')
+    >>> print(angle)
+    <Parameter 'arctan2(y, x)': 45.0000 deg, bounds=[9.462322208025617:63.43494882292201]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCTAN2, y, x)
+
+
+atan2 = arctan2
+"""Alias of [`arctan2`][easyscience.math.arctan2]."""
 
 
 @overload
@@ -1145,13 +1126,10 @@ def sinc(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.5, max=2.0)
-    print(es.math.sinc(x))
-    # <Parameter 'sinc(x)': 0.8415 ± 0.0301, bounds=[0.45464871341284085:0.958851077208406]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.5, max=2.0)
+    >>> print(es.math.sinc(x))
+    <Parameter 'sinc(x)': 0.8415 ± 0.0301, bounds=[0.45464871341284085:0.958851077208406]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_SINC, descriptor)
 
@@ -1216,13 +1194,10 @@ def sinh(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
-    print(es.math.sinh(x))
-    # <Parameter 'sinh(x)': 1.1752 ± 0.1543, bounds=[0.0:3.6268604078470186]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
+    >>> print(es.math.sinh(x))
+    <Parameter 'sinh(x)': 1.1752 ± 0.1543, bounds=[0.0:3.6268604078470186]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_SINH, descriptor)
 
@@ -1284,15 +1259,12 @@ def cosh(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(
-        1.0, display_name='x', variance=0.01, min=-1.0, max=2.0
-    )
-    print(es.math.cosh(x))
-    # <Parameter 'cosh(x)': 1.5431 ± 0.1175, bounds=[1.0:3.7621956910836314]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(
+    ...     1.0, display_name='x', variance=0.01, min=-1.0, max=2.0
+    ... )
+    >>> print(es.math.cosh(x))
+    <Parameter 'cosh(x)': 1.5431 ± 0.1175, bounds=[1.0:3.7621956910836314]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_COSH, descriptor)
 
@@ -1353,13 +1325,10 @@ def tanh(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
-    print(es.math.tanh(x))
-    # <Parameter 'tanh(x)': 0.7616 ± 0.0420, bounds=[0.0:0.9640275800758169]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
+    >>> print(es.math.tanh(x))
+    <Parameter 'tanh(x)': 0.7616 ± 0.0420, bounds=[0.0:0.9640275800758169]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_TANH, descriptor)
 
@@ -1419,15 +1388,16 @@ def arcsinh(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
-    print(es.math.arcsinh(x))
-    # <Parameter 'arcsinh(x)': 0.8814 ± 0.0707, bounds=[0.0:1.4436354751788103]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
+    >>> print(es.math.arcsinh(x))
+    <Parameter 'arcsinh(x)': 0.8814 ± 0.0707, bounds=[0.0:1.4436354751788103]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCSINH, descriptor)
+
+
+asinh = arcsinh
+"""Alias of [`arcsinh`][easyscience.math.arcsinh]."""
 
 
 @overload
@@ -1487,15 +1457,16 @@ def arccosh(
 
     Examples
     --------
-    ```python
-    import easyscience as es
-
-    x = es.Parameter(2.0, display_name='x', variance=0.01, min=1.0, max=3.0)
-    print(es.math.arccosh(x))
-    # <Parameter 'arccosh(x)': 1.3170 ± 0.0577, bounds=[0.0:1.762747174039086]>
-    ```
+    >>> import easyscience as es
+    >>> x = es.Parameter(2.0, display_name='x', variance=0.01, min=1.0, max=3.0)
+    >>> print(es.math.arccosh(x))
+    <Parameter 'arccosh(x)': 1.3170 ± 0.0577, bounds=[0.0:1.762747174039086]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCCOSH, descriptor)
+
+
+acosh = arccosh
+"""Alias of [`arccosh`][easyscience.math.arccosh]."""
 
 
 @overload
@@ -1555,41 +1526,15 @@ def arctanh(
 
     Examples
     --------
-    ```python
     >>> import easyscience as es
-    ...
     >>> x = es.Parameter(
-    ...    0.5, display_name='x', variance=0.0001, min=0.0, max=0.9
-    ...)
+    ...     0.5, display_name='x', variance=0.0001, min=0.0, max=0.9
+    ... )
     >>> print(es.math.arctanh(x))
     <Parameter 'arctanh(x)': 0.5493 ± 0.0133, bounds=[0.0:1.4722194895832204]>
-    ```
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCTANH, descriptor)
 
-
-# --- Aliases: the short names of the inverse functions ---
-# They are the same function objects, so their results are named after the long name:
-# ``asin(x)`` returns ``arcsin(x)``.
-
-
-asin = arcsin
-"""Alias of [`arcsin`][easyscience.math.arcsin]."""
-
-acos = arccos
-"""Alias of [`arccos`][easyscience.math.arccos]."""
-
-atan = arctan
-"""Alias of [`arctan`][easyscience.math.arctan]."""
-
-atan2 = arctan2
-"""Alias of [`arctan2`][easyscience.math.arctan2]."""
-
-asinh = arcsinh
-"""Alias of [`arcsinh`][easyscience.math.arcsinh]."""
-
-acosh = arccosh
-"""Alias of [`arccosh`][easyscience.math.arccosh]."""
 
 atanh = arctanh
 """Alias of [`arctanh`][easyscience.math.arctanh]."""
