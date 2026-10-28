@@ -53,7 +53,7 @@ class AbsSin(ModelBase):
 class _StubModel:
     """Duck-types the model attribute checked by the Sampler constructor."""
 
-    def get_fit_parameters(self):
+    def get_free_parameters(self):
         return []
 
 

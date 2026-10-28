@@ -85,7 +85,7 @@ class StraightLine(ModelBase):
 
 
 def check_fit_results(result, sp_sin, ref_sin, x, expect_error=True, **kwargs):
-    assert result.n_pars == len(sp_sin.get_fit_parameters())
+    assert result.n_pars == len(sp_sin.get_free_parameters())
     assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
     assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
@@ -460,7 +460,7 @@ def test_2D_vectorized(fit_engine):
             pytest.skip(reason='MemoryError - Matrix too large')
         else:
             raise e
-    assert result.n_pars == len(m2.get_fit_parameters())
+    assert result.n_pars == len(m2.get_free_parameters())
     assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)
@@ -499,7 +499,7 @@ def test_2D_non_vectorized(fit_engine):
             pytest.skip(reason='MemoryError - Matrix too large')
         else:
             raise e
-    assert result.n_pars == len(m2.get_fit_parameters())
+    assert result.n_pars == len(m2.get_free_parameters())
     assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)

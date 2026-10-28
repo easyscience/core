@@ -96,7 +96,7 @@ def test_fit_with_dependent_parameter(fit_engine):
     # Expect
     assert result.success
     assert calculator.n_calls > 0
-    assert [p.unique_name for p in model.get_fit_parameters()] == [slope.unique_name]
+    assert [p.unique_name for p in model.get_free_parameters()] == [slope.unique_name]
     assert slope.value == pytest.approx(3.0, abs=1e-2)
     assert intercept.value == pytest.approx(0.5 * slope.value)
     np.testing.assert_allclose(calculator.calculate(model, x), y, atol=0.1)
@@ -131,7 +131,7 @@ def test_multi_fit_with_shared_parameter(fit_engine):
 
     # Expect
     assert all(result.success for result in results)
-    assert len({p.unique_name for p in fitter.fit_object.get_fit_parameters()}) == 3
+    assert len({p.unique_name for p in fitter.fit_object.get_free_parameters()}) == 3
     assert model_1.coefficients[0].value == pytest.approx(2.0, abs=1e-2)
     assert model_2.coefficients[0].value == pytest.approx(-3.0, abs=1e-2)
     assert shared.value == pytest.approx(-1.0, abs=1e-2)

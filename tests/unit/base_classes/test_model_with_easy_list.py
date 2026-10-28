@@ -62,11 +62,11 @@ def test_easy_list_is_used_directly():
     assert model.coefficients is collection
 
 
-def test_get_fit_parameters():
+def test_get_free_parameters():
     """Parameters inside the EasyList are exposed for fitting."""
     model = CoefficientModel(coefficients=[1.0, 2.0])
 
-    assert model.get_fit_parameters() == list(model.coefficients)
+    assert model.get_free_parameters() == list(model.coefficients)
 
 
 def test_dict_round_trip():

@@ -116,7 +116,7 @@ class TestSampler:
         assert results.state is not None
 
         # param_names should match the model's fit parameters
-        expected_pars = {p.unique_name for p in sp.get_fit_parameters()}
+        expected_pars = {p.unique_name for p in sp.get_free_parameters()}
         assert set(results.param_names) == expected_pars
 
         # results cached on the sampler
@@ -158,8 +158,8 @@ class TestSampler:
         results = sampler.sample(samples=100, burn=20, thin=2)
 
         # All parameters across both models should appear
-        all_params = {p.unique_name for p in sp_sin_1.get_fit_parameters()}
-        all_params |= {p.unique_name for p in sp_line.get_fit_parameters()}
+        all_params = {p.unique_name for p in sp_sin_1.get_free_parameters()}
+        all_params |= {p.unique_name for p in sp_line.get_free_parameters()}
         assert set(results.param_names) == all_params
 
     def test_sample_population(self):
