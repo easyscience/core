@@ -30,10 +30,12 @@ For a ``DescriptorArray``, one element that makes the result infinite or
 
 Notes
 -----
-Scipp propagates the variance with linear error propagation, which the Guide to the Expression of Uncertainty in Measurement (GUM) [1] calls the law of propagation of uncertainty: the function is
-replaced by its first-order Taylor expansion around the value of the
-input. For a function $f$ of an input $x$ with variance $\sigma_x^2$,
-the variance of the result is
+Scipp propagates the variance with linear error propagation, which the
+Guide to the Expression of Uncertainty in Measurement (GUM) [1] calls
+the law of propagation of uncertainty: the function is replaced by its
+first-order Taylor expansion around the value of the input. For a
+function $f$ of an input $x$ with variance $\sigma_x^2$, the variance of
+the result is
 
 $$ \sigma_f^2 = \left(\frac{df}{dx}\right)^2 \sigma_x^2 $$
 
