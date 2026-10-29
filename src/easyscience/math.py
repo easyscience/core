@@ -22,18 +22,34 @@ for degrees.
 For a ``DescriptorArray``, one element that makes the result infinite or
 ``nan`` is enough to raise ``ValueError`` for the whole call.
 
-The Notes of each function give its variance as Scipp propagates it, to
-first order: $\sigma_x^2$ is the variance of the input and $\sigma_f^2$
-that of the result.
+!!! warning "Correlated inputs"
 
-Two limitations give wrong numbers without raising an error:
+    The variance is propagated to first order and assumes uncorrelated
+    inputs. A ``Parameter`` stores no covariance, so a function of two
+    correlated fit parameters can have a badly wrong variance.
 
-- The variance is propagated to first order and assumes uncorrelated
-  inputs. A ``Parameter`` stores no covariance, so a function of two
-  correlated fit parameters can have a badly wrong variance.
-- A result is a snapshot of its inputs and does not follow later
-  changes. Inside a model, compute it in ``__call__`` so that it is
-  recomputed on every fit evaluation.
+Notes
+-----
+Scipp propagates the variance with linear error propagation, which the Guide to the Expression of Uncertainty in Measurement (GUM) [1] calls the law of propagation of uncertainty: the function is
+replaced by its first-order Taylor expansion around the value of the
+input. For a function $f$ of an input $x$ with variance $\sigma_x^2$,
+the variance of the result is
+
+$$ \sigma_f^2 = \left(\frac{df}{dx}\right)^2 \sigma_x^2 $$
+
+This is Equation (10) of the GUM for uncorrelated inputs, which is also
+what Scipp assumes [2]. It is a good approximation while the function is
+close to linear over the spread of the input. When it is strongly curved
+there, higher-order terms matter and the propagated variance is less
+accurate. The Notes of each function give its own formula.
+
+References
+----------
+1. JCGM 100:2008, *Evaluation of measurement data: Guide to the
+   expression of uncertainty in measurement*, section 5.1.2.
+   <https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf>
+2. Scipp documentation, *Propagation of uncertainties*.
+   <https://scipp.github.io/reference/error-propagation.html>
 
 Examples
 --------
@@ -169,7 +185,8 @@ def exp(
 
     Notes
     -----
-    $$ f(x) = e^{x} $$
+    For $f(x) = e^{x}$, linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = e^{2x}\,\sigma_x^2 $$
 
@@ -182,12 +199,6 @@ def exp(
     >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
     >>> print(es.math.exp(x))
     <Parameter 'exp(x)': 2.7183 ± 0.2718, bounds=[1.0:7.38905609893065]>
-    Traceback (most recent call last):
-    File "<stdin>", line 2, in <module>
-        print(1 / 0)
-            ~~^~~
-    ZeroDivisionError: division by zero
-    >>> del x
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_EXP, descriptor)
 
@@ -241,7 +252,8 @@ def log(
 
     Notes
     -----
-    $$ f(x) = \ln x $$
+    For $f(x) = \ln x$, linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \frac{\sigma_x^2}{x^2} $$
 
@@ -309,7 +321,8 @@ def log10(
 
     Notes
     -----
-    $$ f(x) = \log_{10} x $$
+    For $f(x) = \log_{10} x$, linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \frac{\sigma_x^2}{(x \ln 10)^2} $$
 
@@ -377,7 +390,8 @@ def sqrt(
 
     Notes
     -----
-    $$ f(x) = \sqrt{x} $$
+    For $f(x) = \sqrt{x}$, linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \frac{\sigma_x^2}{4x} $$
 
@@ -455,6 +469,8 @@ def erf(
 
     Notes
     -----
+    The function is defined as
+
     $$ \mathrm{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2}\,dt $$
 
     The function is monotonic, so the result bounds are its values at
@@ -520,6 +536,8 @@ def erfc(
 
     Notes
     -----
+    The function is defined as
+
     $$ \mathrm{erfc}(x) = 1 - \mathrm{erf}(x) $$
 
     The function is monotonic, so the result bounds are its values at
@@ -587,7 +605,11 @@ def sin(
 
     Notes
     -----
-    $$ \sigma_f^2 = \cos^2 x \, \sigma_x^2 \; (x \text{ in rad}) $$
+    For an angle $x$ in radians (Scipp converts degrees first), linear
+    error propagation (see the [module documentation][easyscience.math])
+    gives the variance of the result:
+
+    $$ \sigma_f^2 = \cos^2 x \, \sigma_x^2 $$
 
     The result bounds also include any peak or trough between the input
     bounds.
@@ -658,7 +680,11 @@ def cos(
 
     Notes
     -----
-    $$ \sigma_f^2 = \sin^2 x \, \sigma_x^2 \; (x \text{ in rad}) $$
+    For an angle $x$ in radians (Scipp converts degrees first), linear
+    error propagation (see the [module documentation][easyscience.math])
+    gives the variance of the result:
+
+    $$ \sigma_f^2 = \sin^2 x \, \sigma_x^2 $$
 
     The result bounds also include any peak or trough between the input
     bounds.
@@ -730,7 +756,11 @@ def tan(
 
     Notes
     -----
-    $$ \sigma_f^2 = \frac{\sigma_x^2}{\cos^4 x} \; (x \text{ in rad}) $$
+    For an angle $x$ in radians (Scipp converts degrees first), linear
+    error propagation (see the [module documentation][easyscience.math])
+    gives the variance of the result:
+
+    $$ \sigma_f^2 = \frac{\sigma_x^2}{\cos^4 x} $$
 
     Between two asymptotes the tangent increases, so the result bounds
     are its values at the input bounds. A bound exactly on an asymptote
@@ -804,6 +834,9 @@ def arcsin(
 
     Notes
     -----
+    For $f(x) = \arcsin x$, linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
+
     $$ \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2} $$
 
     The function is monotonic, so the result bounds are its values at
@@ -879,6 +912,9 @@ def arccos(
 
     Notes
     -----
+    For $f(x) = \arccos x$, linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
+
     $$ \sigma_f^2 = \frac{\sigma_x^2}{1 - x^2} $$
 
     The function is monotonic, so the result bounds are its values at
@@ -953,6 +989,9 @@ def arctan(
 
     Notes
     -----
+    For $f(x) = \arctan x$, linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
+
     $$ \sigma_f^2 = \frac{\sigma_x^2}{(1 + x^2)^2} $$
 
     The function is monotonic, so the result bounds are its values at
@@ -1113,9 +1152,15 @@ def sinc(
 
     Notes
     -----
+    The function is defined as
+
     $$ \operatorname{sinc}(x) = \frac{\sin x}{x} $$
 
     $$ \operatorname{sinc}(0) = 1 $$
+
+    With its derivative $f'(x)$, linear error propagation (see the
+    [module documentation][easyscience.math]) gives the variance of the
+    result:
 
     $$ f'(x) = \frac{x \cos x - \sin x}{x^2} $$
 
@@ -1185,7 +1230,12 @@ def sinh(
 
     Notes
     -----
+    The function is defined as
+
     $$ \sinh x = \frac{e^{x} - e^{-x}}{2} $$
+
+    Linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \cosh^2 x \, \sigma_x^2 $$
 
@@ -1250,7 +1300,12 @@ def cosh(
 
     Notes
     -----
+    The function is defined as
+
     $$ \cosh x = \frac{e^{x} + e^{-x}}{2} $$
+
+    Linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \sinh^2 x \, \sigma_x^2 $$
 
@@ -1316,7 +1371,12 @@ def tanh(
 
     Notes
     -----
+    The function is defined as
+
     $$ \tanh x = \frac{\sinh x}{\cosh x} $$
+
+    Linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \frac{\sigma_x^2}{\cosh^4 x} $$
 
@@ -1379,7 +1439,12 @@ def arcsinh(
 
     Notes
     -----
+    The function is defined as
+
     $$ \sinh^{-1} x = \ln\left(x + \sqrt{x^2 + 1}\right) $$
+
+    Linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \frac{\sigma_x^2}{x^2 + 1} $$
 
@@ -1447,7 +1512,12 @@ def arccosh(
 
     Notes
     -----
+    The function is defined as
+
     $$ \cosh^{-1} x = \ln\left(x + \sqrt{x^2 - 1}\right) $$
+
+    Linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \frac{\sigma_x^2}{x^2 - 1} $$
 
@@ -1516,7 +1586,12 @@ def arctanh(
 
     Notes
     -----
+    The function is defined as
+
     $$ \tanh^{-1} x = \frac{1}{2} \ln\frac{1 + x}{1 - x} $$
+
+    Linear error propagation (see the [module
+    documentation][easyscience.math]) gives the variance of the result:
 
     $$ \sigma_f^2 = \frac{\sigma_x^2}{(1 - x^2)^2} $$
 

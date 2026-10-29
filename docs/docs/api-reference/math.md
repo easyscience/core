@@ -6,3 +6,7 @@
       summary:
         attributes: false
         functions: true
+      separate_signature: true
+      show_signature_annotations: true
+      signature_crossrefs: true
+      docstring_section_style: list
