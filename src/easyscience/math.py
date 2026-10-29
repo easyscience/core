@@ -548,9 +548,9 @@ def erfc(
     Examples
     --------
     >>> import easyscience as es
-    >>> x = es.Parameter(0.5, display_name='x', min=0.0, max=2.0)
+    >>> x = es.Parameter(0.5, display_name='x', min=0.0)
     >>> print(es.math.erfc(x))
-    <Parameter 'erfc(x)': 0.4795, bounds=[0.004677734981047266:1.0]>
+    <Parameter 'erfc(x)': 0.4795, bounds=[0.0:1.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ERFC, descriptor)
 
