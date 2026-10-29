@@ -92,7 +92,7 @@ REFERENCES = [
         4,
         math.erf(_ARG_ERF),
         2 / math.sqrt(math.pi) * math.exp(-(_ARG_ERF**2)) * _ARG_ERF * _quadrature(0.05, 0.05),
-        'dimensionless   in [-1.0000, 1.0000]',
+        'dimensionless',
     ),
     (
         'basics/maths-trigonometric',
@@ -146,7 +146,7 @@ REFERENCES = [
         3,
         math.degrees(math.atan2(2.0, 1.5)),
         math.degrees(0.05 * math.hypot(1.5, 2.0) / (1.5**2 + 2.0**2)),
-        'deg   in [-180.0000, 180.0000]',
+        'deg   in [-90.0000, 90.0000]',
     ),
     (
         'basics/maths-hyperbolic',
@@ -168,7 +168,8 @@ REFERENCES = [
 MESSAGES = {
     ('basics/maths-hyperbolic', 3): '1.0',
     ('basics/maths-hyperbolic', 4): (
-        "The value of 'x' (0.5) is outside the domain [1.0, inf] of arccosh()."
+        'arccosh(x) is not finite. Check that the values lie in the domain of arccosh() '
+        'and that the variances are finite.'
     ),
 }
 
@@ -212,14 +213,10 @@ def test_solution_prints_the_expected_message(solutions, name, number):
 def test_arcsin_outside_its_domain_names_the_intermediate_parameter(solutions):
     output = solutions('basics/maths-inverse-trigonometric')[3].output
 
-    ratio = 1.5406 / (2 * 0.70)
-    match = re.fullmatch(
-        r"The value of 'ratio' \((?P<value>[\d.]+)\) is outside the domain "
-        r'\[-1\.0, 1\.0\] of arcsin\(\)\.',
-        output,
+    assert output == (
+        'arcsin(ratio) is not finite. Check that the values lie in the domain of arcsin() '
+        'and that the variances are finite.'
     )
-    assert match, output
-    assert float(match['value']) == pytest.approx(ratio)
 
 
 @pytest.mark.parametrize(

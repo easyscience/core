@@ -51,7 +51,7 @@ def run_notebook(notebook_environment):
     shell, shown = notebook_environment
 
     def run(name: str) -> list[Solution]:
-        global_object.map._clear()
+        global_object.registry.clear()
         shell.user_ns.clear()
         solutions: list[Solution] = []
         exercise = ''

@@ -50,6 +50,9 @@ the inputs are independent. Two consequences follow:
   and [correlation](../tutorials/basics/maths-correlation.ipynb) show
   when and by how much.
 
+`erf`, `erfc` and `arctan2` only take numbers without an uncertainty,
+because Scipp cannot propagate one through them.
+
 ## Models and fitting
 
 A **model** is a class derived from `ModelBase` that holds its
