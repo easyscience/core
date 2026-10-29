@@ -142,7 +142,7 @@ class TestMinimizerBase:
         mock_parm_2.unique_name = 'mock_parm_2'
         mock_parm_2.value = 2.0
         mock_parm_2.error = 0.2
-        minimizer._object.get_fit_parameters = MagicMock(return_value=[mock_parm_1, mock_parm_2])
+        minimizer._object.get_free_parameters = MagicMock(return_value=[mock_parm_1, mock_parm_2])
 
         # Then
         fit_function = minimizer._generate_fit_function()

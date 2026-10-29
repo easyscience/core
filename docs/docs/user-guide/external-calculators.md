@@ -26,7 +26,7 @@ flowchart LR
 
     calc -- "creates" --> func
     func -. "handed over once:<br/>Fitter(model, fit_function)" .-> fitter
-    fitter -- "get_fit_parameters()" --> model
+    fitter -- "get_free_parameters()" --> model
     minimizer -- "trial values" --> fitter
     fitter -- "1: sets Parameter.value" --> model
     fitter -- "2: calls fit_function(x)" --> func
@@ -199,7 +199,7 @@ The callback receives a dictionary with these keys:
 | `refresh_plots`, `finished` | Hints for user interfaces                                                       |
 
 `parameter_values` holds exactly the parameters returned by
-`model.get_fit_parameters()`: the free, independent ones. Fixed and
+`model.get_free_parameters()`: the free, independent ones. Fixed and
 dependent parameters are not in it. To report a dependent value, read it
 from the model or recompute it from the free values in the payload.
 

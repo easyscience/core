@@ -109,8 +109,8 @@ def test_multi_fit(fit_engine):
     F_ref = [ref_sin_1, ref_sin_2]
     F_real = [sp_sin_1, sp_sin_2]
     for idx, result in enumerate(results):
-        assert result.n_pars == len(sp_sin_1.get_fit_parameters()) + len(
-            sp_sin_2.get_fit_parameters()
+        assert result.n_pars == len(sp_sin_1.get_free_parameters()) + len(
+            sp_sin_2.get_free_parameters()
         )
         assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
         assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
@@ -217,9 +217,9 @@ def test_multi_fit2(fit_engine):
     assert len(results) == len(X)
 
     for idx, result in enumerate(results):
-        assert result.n_pars == len(sp_sin_1.get_fit_parameters()) + len(
-            sp_sin_2.get_fit_parameters()
-        ) + len(sp_line.get_fit_parameters())
+        assert result.n_pars == len(sp_sin_1.get_free_parameters()) + len(
+            sp_sin_2.get_free_parameters()
+        ) + len(sp_line.get_free_parameters())
         assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
         assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
         assert result.success
@@ -289,8 +289,8 @@ def test_multi_fit_1D_2D(fit_engine):
     F_ref = [ref_sin1D, ref_sin2D]
     F_real = [sp_sin1D, sp_sin2D]
     for idx, result in enumerate(results):
-        assert result.n_pars == len(sp_sin1D.get_fit_parameters()) + len(
-            sp_sin2D.get_fit_parameters()
+        assert result.n_pars == len(sp_sin1D.get_free_parameters()) + len(
+            sp_sin2D.get_free_parameters()
         )
         if (
             fit_engine != 'DFO'
