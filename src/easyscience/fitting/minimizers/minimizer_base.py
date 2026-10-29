@@ -10,8 +10,8 @@ import numpy as np
 
 from easyscience.variable import Parameter
 
-from ..available_minimizers import Minimizers
 from ..engine_base import EngineBase
+from .minimizers import Minimizers
 from .utils import FitError
 from .utils import FitResults
 

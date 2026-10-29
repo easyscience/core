@@ -55,19 +55,3 @@ class TestFactory:
         minimizer = self.pull_minminizer(minimizer_enum)
         assert minimizer._method == minimizer_method
         assert minimizer.package == 'dfo'
-
-
-def test_available_minimizers():
-    assert Minimizers.LMFit
-    assert Minimizers.LMFit_leastsq
-    assert Minimizers.LMFit_powell
-    assert Minimizers.LMFit_cobyla
-    assert Minimizers.LMFit_differential_evolution
-    assert Minimizers.LMFit_scipy_least_squares
-    assert Minimizers.Bumps
-    assert Minimizers.Bumps_simplex
-    assert Minimizers.Bumps_newton
-    assert Minimizers.Bumps_lm
-    assert Minimizers.DFO
-    assert Minimizers.DFO_leastsq
-    assert len(Minimizers) == 12

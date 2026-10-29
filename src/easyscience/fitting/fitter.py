@@ -7,9 +7,9 @@ from typing import List
 
 import numpy as np
 
-from .available_minimizers import Minimizers
 from .minimizers import FitResults
 from .minimizers import MinimizerBase
+from .minimizers import Minimizers
 from .minimizers.factory import factory
 from .reshaping import inject_x
 from .reshaping import reshape_dataset

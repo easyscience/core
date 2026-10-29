@@ -12,7 +12,7 @@ global_object = GlobalObject()
 from .base_classes import EasyList  # noqa: E402
 from .base_classes import ModelBase  # noqa: E402
 from .fitting import Fitter  # noqa: E402
-from .fitting.available_minimizers import Minimizers  # noqa: E402
+from .fitting.minimizers import Minimizers  # noqa: E402
 from .variable import DescriptorNumber  # noqa: E402
 from .variable import Parameter  # noqa: E402
 

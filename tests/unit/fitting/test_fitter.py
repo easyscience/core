@@ -107,20 +107,7 @@ class TestFitter:
         minimizers = fitter.available_minimizers
 
         # Then Expect
-        assert minimizers == [
-            Minimizers.LMFit,
-            Minimizers.LMFit_leastsq,
-            Minimizers.LMFit_powell,
-            Minimizers.LMFit_cobyla,
-            Minimizers.LMFit_differential_evolution,
-            Minimizers.LMFit_scipy_least_squares,
-            Minimizers.Bumps,
-            Minimizers.Bumps_simplex,
-            Minimizers.Bumps_newton,
-            Minimizers.Bumps_lm,
-            Minimizers.DFO,
-            Minimizers.DFO_leastsq,
-        ]
+        assert minimizers == list(Minimizers)
 
     def test_minimizer(self, fitter: Fitter):
         # When

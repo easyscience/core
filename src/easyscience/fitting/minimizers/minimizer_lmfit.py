@@ -13,9 +13,9 @@ from lmfit.model import ModelResult
 
 from easyscience.variable import Parameter
 
-from ..available_minimizers import Minimizers
 from ..engine_base import PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
+from .minimizers import Minimizers
 from .utils import FitError
 from .utils import FitResults
 

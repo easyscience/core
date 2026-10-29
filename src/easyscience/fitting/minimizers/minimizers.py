@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from enum import unique
 
 from easyscience import global_object
 
@@ -48,6 +49,7 @@ class AvailableMinimizer:
     enum_id: int
 
 
+@unique
 class Minimizers(AvailableMinimizer, Enum):
     if lmfit_engine_available:
         LMFit = 'lm', 'leastsq', 11

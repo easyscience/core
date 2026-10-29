@@ -3,15 +3,15 @@
 
 from typing import Callable
 
-from .. import available_minimizers
-from ..available_minimizers import Minimizers
+from . import minimizers
 from .minimizer_base import MinimizerBase
+from .minimizers import Minimizers
 
-if available_minimizers.lmfit_engine_available:
+if minimizers.lmfit_engine_available:
     from .minimizer_lmfit import LMFit
-if available_minimizers.dfo_engine_available:
+if minimizers.dfo_engine_available:
     from .minimizer_dfo import DFO
-if available_minimizers.bumps_engine_available:
+if minimizers.bumps_engine_available:
     from .minimizer_bumps import Bumps
 
 

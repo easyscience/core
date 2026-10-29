@@ -533,7 +533,7 @@ class Sampler:
         Argument validation for ``samples``/``burn``/``thin`` lives in
         ``DreamSampler.run``.
         """
-        from .available_minimizers import bumps_engine_available
+        from .minimizers.minimizers import bumps_engine_available
 
         if not bumps_engine_available:
             raise RuntimeError(

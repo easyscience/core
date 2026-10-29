@@ -17,7 +17,6 @@ from scipy.optimize import OptimizeResult
 
 from easyscience.variable import Parameter
 
-from ..available_minimizers import Minimizers
 from ..engine_base import PARAMETER_PREFIX
 from .bumps_utils import BumpsProgressMonitor
 from .bumps_utils import EvalCounter
@@ -26,6 +25,7 @@ from .bumps_utils import parameter_names
 from .bumps_utils import parameter_snapshot
 from .bumps_utils import to_bumps_parameter
 from .minimizer_base import MinimizerBase
+from .minimizers import Minimizers
 from .utils import FitError
 from .utils import FitResults
 
