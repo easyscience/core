@@ -431,6 +431,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -497,6 +501,62 @@
     
   
     Controlling Log Output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="parameter-dependency-serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serializing Dependent Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="external-calculators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connecting an External Calculator
   
 
     
@@ -792,10 +852,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -938,34 +994,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../api-reference/io/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    io
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../api-reference/job/" class="md-nav__link">
         
   
@@ -974,34 +1002,6 @@
     
   
     job
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api-reference/models/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    models
   
 
     
@@ -1126,6 +1126,13 @@
   – How to suppress, filter, or redirect the messages that EasyScience
   produces. Covers the <code>EASYSCIENCE_LOG_LEVEL</code> environment variable, the
   logger hierarchy, context managers, and common recipes.</li>
+<li><a href="parameter-dependency-serialization/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.59 13.41c.41.39.41 1.03 0 1.42-.39.39-1.03.39-1.42 0a5.003 5.003 0 0 1 0-7.07l3.54-3.54a5.003 5.003 0 0 1 7.07 0 5.003 5.003 0 0 1 0 7.07l-1.49 1.49c.01-.82-.12-1.64-.4-2.42l.47-.48a2.98 2.98 0 0 0 0-4.24 2.98 2.98 0 0 0-4.24 0l-3.53 3.53a2.98 2.98 0 0 0 0 4.24m2.82-4.24c.39-.39 1.03-.39 1.42 0a5.003 5.003 0 0 1 0 7.07l-3.54 3.54a5.003 5.003 0 0 1-7.07 0 5.003 5.003 0 0 1 0-7.07l1.49-1.49c-.01.82.12 1.64.4 2.43l-.47.47a2.98 2.98 0 0 0 0 4.24 2.98 2.98 0 0 0 4.24 0l3.53-3.53a2.98 2.98 0 0 0 0-4.24.973.973 0 0 1 0-1.42"/></svg></span> Serializing Dependent Parameters</a>
+  – How to save and load parameters that depend on other parameters, and
+  how dependencies are resolved after loading.</li>
+<li><a href="external-calculators/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-6 4.1L14.1 6l1.4 1.4L16.9 6 18 7.1l-1.4 1.4L18 9.9 16.9 11l-1.4-1.4-1.4 1.4L13 9.9l1.4-1.4zm-6.8.6h5v1.5h-5zm5.3 8.3h-2v2H8v-2H6v-1.5h2v-2h1.5v2h2zm6.5 1.2h-5v-1.5h5zm0-2.4h-5v-1.5h5z"/></svg></span> Connecting an External Calculator</a>
+  – How a technique library connects its own calculator to an
+  EasyScience model and to <code>Fitter</code>, and what to change when migrating
+  from <code>InterfaceFactoryTemplate</code>.</li>
 </ul>
 <!-- prettier-ignore-start -->
 

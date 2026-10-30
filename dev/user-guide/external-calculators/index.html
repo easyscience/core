@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://easyscience.github.io/core/dev/api-reference/io/">
+        <link rel="canonical" href="https://easyscience.github.io/core/dev/user-guide/external-calculators/">
       
       
-        <link rel="prev" href="../global_object/">
+        <link rel="prev" href="../parameter-dependency-serialization/">
       
       
-        <link rel="next" href="../job/">
+        <link rel="next" href="../../tutorials/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>io - EasyScience Library</title>
+        <title>Connecting an External Calculator - EasyScience Library</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#easyscience.io" class="md-skip">
+        <a href="#connecting-an-external-calculator" class="md-skip">
           Skip to content
         </a>
       
@@ -128,7 +128,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              io
+              Connecting an External Calculator
             
           </span>
         </div>
@@ -418,6 +418,8 @@
       
   
   
+    
+  
   
   
     
@@ -429,19 +431,23 @@
       
         
       
+        
+      
+        
+      
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../user-guide/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -467,7 +473,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -487,7 +493,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/controlling-log-output/" class="md-nav__link">
+      <a href="../controlling-log-output/" class="md-nav__link">
         
   
   
@@ -503,6 +509,247 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parameter-dependency-serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serializing Dependent Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connecting an External Calculator
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connecting an External Calculator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#general-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-minimal-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Minimal Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#several-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Several Datasets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-values-back" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing Values Back
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#following-a-fit-iteration-by-iteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Following a Fit Iteration by Iteration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stopping-a-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stopping a Fit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stopping a Fit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#raising-from-the-progress-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raising from the progress callback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raising-from-the-fit-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raising from the fit function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abort_test-with-bumps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        abort_test with Bumps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limiting-the-number-of-evaluations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limiting the number of evaluations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -769,8 +1016,6 @@
       
   
   
-    
-  
   
   
     
@@ -792,23 +1037,19 @@
       
         
       
-        
-      
-        
-      
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../api-reference/" class="md-nav__link ">
               
   
   
@@ -834,7 +1075,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -854,7 +1095,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../base_classes/" class="md-nav__link">
+      <a href="../../api-reference/base_classes/" class="md-nav__link">
         
   
   
@@ -882,7 +1123,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../fitting/" class="md-nav__link">
+      <a href="../../api-reference/fitting/" class="md-nav__link">
         
   
   
@@ -910,7 +1151,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../global_object/" class="md-nav__link">
+      <a href="../../api-reference/global_object/" class="md-nav__link">
         
   
   
@@ -935,146 +1176,10 @@
                 
   
   
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    io
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    io
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#easyscience.io-classes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Classes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#easyscience.io-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Modules
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Modules">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#easyscience.io.serializer_base" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        serializer_base
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#easyscience.io.serializer_component" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        serializer_component
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#easyscience.io.serializer_dict" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        serializer_dict
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
   
   
     <li class="md-nav__item">
-      <a href="../job/" class="md-nav__link">
+      <a href="../../api-reference/job/" class="md-nav__link">
         
   
   
@@ -1102,35 +1207,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../models/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    models
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../utils/" class="md-nav__link">
+      <a href="../../api-reference/utils/" class="md-nav__link">
         
   
   
@@ -1158,7 +1235,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../variable/" class="md-nav__link">
+      <a href="../../api-reference/variable/" class="md-nav__link">
         
   
   
@@ -1213,10 +1290,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#easyscience.io-classes" class="md-nav__link">
+  <a href="#general-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Classes
+        General overview
       
     </span>
   </a>
@@ -1224,22 +1301,88 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#easyscience.io-modules" class="md-nav__link">
+  <a href="#the-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Modules
+        The Contract
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Modules">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-minimal-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Minimal Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#several-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Several Datasets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-values-back" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing Values Back
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#following-a-fit-iteration-by-iteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Following a Fit Iteration by Iteration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stopping-a-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stopping a Fit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stopping a Fit">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#easyscience.io.serializer_base" class="md-nav__link">
+  <a href="#raising-from-the-progress-callback" class="md-nav__link">
     <span class="md-ellipsis">
       
-        serializer_base
+        Raising from the progress callback
       
     </span>
   </a>
@@ -1247,10 +1390,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#easyscience.io.serializer_component" class="md-nav__link">
+  <a href="#raising-from-the-fit-function" class="md-nav__link">
     <span class="md-ellipsis">
       
-        serializer_component
+        Raising from the fit function
       
     </span>
   </a>
@@ -1258,10 +1401,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#easyscience.io.serializer_dict" class="md-nav__link">
+  <a href="#abort_test-with-bumps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        serializer_dict
+        abort_test with Bumps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limiting-the-number-of-evaluations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limiting the number of evaluations
       
     </span>
   </a>
@@ -1297,1806 +1451,357 @@
   
 
 
-<div class="doc doc-object doc-module">
+<h1 id="connecting-an-external-calculator">Connecting an External Calculator</h1>
+<p>Technique libraries built on EasyScience usually compute their model
+with an external package (for example refnx or refl1d for
+reflectometry). This page describes how such a calculator connects to
+the EasyScience model and to <code>Fitter</code>.</p>
+<p>EasyScience does not provide a calculator base class, a factory or a
+registry. A calculator is any object your library defines; the only
+thing EasyScience sees is the fit function passed to <code>Fitter</code>.</p>
+<h2 id="general-overview">General overview</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph lib["Technique library"]
+        calc["Calculator&lt;br/&gt;backend choice and configuration"]
+        func["Fit function&lt;br/&gt;calculator.fit_func_for(model)"]
+        backend["Backend package&lt;br/&gt;e.g. refnx, refl1d"]
+    end
+    subgraph core["EasyScience core"]
+        fitter["Fitter / MultiFitter"]
+        minimizer["Minimizer&lt;br/&gt;LMFit, Bumps, DFO"]
+        model["Model (ModelBase)&lt;br/&gt;Parameters: the only state"]
+    end
+
+    calc -- "creates" --&gt; func
+    func -. "handed over once:&lt;br/&gt;Fitter(model, fit_function)" .-&gt; fitter
+    fitter -- "get_free_parameters()" --&gt; model
+    minimizer -- "trial values" --&gt; fitter
+    fitter -- "1: sets Parameter.value" --&gt; model
+    fitter -- "2: calls fit_function(x)" --&gt; func
+    func -- "3: reads current values" --&gt; model
+    func -- "4: builds and evaluates&lt;br/&gt;with plain numbers" --&gt; backend
+    backend -- "5: y" --&gt; func</code></pre>
+<p>The arrows between the library and the model only point one way: the fit
+function reads parameters, it never writes them. <code>Fitter</code> is the only
+common point between core and the library, and the only thing passed
+across is a callable.</p>
+<h2 id="the-contract">The Contract</h2>
+<ul>
+<li><strong>EasyScience is the only store of parameter state.</strong> Values,
+  uncertainties, bounds, fixed flags and dependencies live in the
+  <code>Parameter</code> objects of the model. The calculator does not keep its own
+  copy.</li>
+<li><strong>The calculator reads the model when asked to calculate.</strong> Each
+  evaluation uses the current values of the independent parameters and
+  of the dependent parameters derived from them.</li>
+<li><strong>Reading a parameter has no side effects.</strong> <code>Parameter.value</code> returns
+  the stored value; it never calls into a calculator.</li>
+<li><strong>Evaluation does not change the model.</strong> Calculating leaves values,
+  uncertainties, bounds, fixed flags and dependencies as they were. Only
+  the fitting engine writes parameter values during a fit, through the
+  ordinary <code>value</code> setter.</li>
+<li><strong>Structural edits are seen by the next evaluation.</strong> Adding or
+  removing a part of the model needs no extra step, because the
+  calculator reads the model fresh.</li>
+</ul>
+<h2 id="a-minimal-example">A Minimal Example</h2>
+<p>The calculator below evaluates a straight line. It holds no parameter
+values; it reads them from the model on every call.</p>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">easyscience</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easyscience.base_classes</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easyscience.fitting</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fitter</span>
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">Line</span><span class="p">(</span><span class="n">ModelBase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slope</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">intercept</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slope</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">slope</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">&#39;slope&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intercept</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">intercept</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">&#39;intercept&#39;</span><span class="p">)</span>
 
-<h1 id="easyscience.io" class="doc doc-heading">
-            <code>io</code>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">slope</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slope</span>
 
-
-</h1>
-
-    <div class="doc doc-contents first">
-
-
-
-
-
-
-<p><span class="doc-section-title">Modules:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;serializer_base&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_base&lt;/code&gt;)" href="#easyscience.io.serializer_base">serializer_base</a></code></td>
-            <td>
-              <div class="doc-md-description">
-                
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;serializer_component&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component&lt;/code&gt;)" href="#easyscience.io.serializer_component">serializer_component</a></code></td>
-            <td>
-              <div class="doc-md-description">
-                
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;serializer_dict&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_dict&lt;/code&gt;)" href="#easyscience.io.serializer_dict">serializer_dict</a></code></td>
-            <td>
-              <div class="doc-md-description">
-                
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intercept</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intercept</span>
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">LineCalculator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Owned by the technique library, unknown to EasyScience.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Line</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="c1"># Hand plain numbers to the backend</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">slope</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">intercept</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit_func_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Line</span><span class="p">):</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 
 
+<span class="n">model</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">slope</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">intercept</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">calculator</span> <span class="o">=</span> <span class="n">LineCalculator</span><span class="p">()</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+<span class="n">fitter</span> <span class="o">=</span> <span class="n">Fitter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">calculator</span><span class="o">.</span><span class="n">fit_func_for</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">slope</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">intercept</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># close to 3.0 and 1.5</span>
+</code></pre></div>
+<p>During the fit, the engine sets the parameter values and then calls the
+fit function, so the calculator always uses the values being tried.</p>
+<p>Dependent parameters need no special handling. If the intercept is made
+dependent on the slope, the engine fits only the slope and the
+calculator reads the recomputed intercept:</p>
+<div class="language-python highlight"><pre><span></span><code><span class="n">model</span><span class="o">.</span><span class="n">intercept</span><span class="o">.</span><span class="n">make_dependent_on</span><span class="p">(</span>
+    <span class="n">dependency_expression</span><span class="o">=</span><span class="s1">&#39;0.5 * s&#39;</span><span class="p">,</span>
+    <span class="n">dependency_map</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">slope</span><span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="several-datasets">Several Datasets</h2>
+<p>With <code>MultiFitter</code>, pass one fit function per dataset. A <code>Parameter</code>
+object used by several models is fitted once and every calculator call
+will read the same value:</p>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">easyscience.fitting.multi_fitter</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiFitter</span>
+
+<span class="n">fitter</span> <span class="o">=</span> <span class="n">MultiFitter</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">model_1</span><span class="p">,</span> <span class="n">model_2</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">calculator</span><span class="o">.</span><span class="n">fit_func_for</span><span class="p">(</span><span class="n">model_1</span><span class="p">),</span> <span class="n">calculator</span><span class="o">.</span><span class="n">fit_func_for</span><span class="p">(</span><span class="n">model_2</span><span class="p">)],</span>
+<span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">x_1</span><span class="p">,</span> <span class="n">x_2</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">y_1</span><span class="p">,</span> <span class="n">y_2</span><span class="p">],</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="n">w_1</span><span class="p">,</span> <span class="n">w_2</span><span class="p">])</span>
+</code></pre></div>
+<h2 id="performance">Performance</h2>
+<p>Rebuilding the backend object on every evaluation is simple and, for
+typical models, cheap. If profiling shows that construction dominates,
+build the backend object once when a fit starts, refresh only the
+numbers on each call, and discard it when the fit ends. Such a
+fit-scoped session lives inside the fit function in your library. The
+parameter set does not change during a fit, so the session does not have
+to track structural edits.</p>
+<h2 id="writing-values-back">Writing Values Back</h2>
+<p>EasyScience has no API for a backend to write values into the model, and
+ordinary evaluation should never need one. If your library has an
+operation that genuinely changes the model based on a backend result,
+perform it in your own code through the public <code>Parameter.value</code> setter,
+outside the fit, as an explicit step the user can see.</p>
+<h2 id="following-a-fit-iteration-by-iteration">Following a Fit Iteration by Iteration</h2>
+<p>Because the calculator only reads the model, it is not the place to
+watch a fit's progress. To see the parameter values at each iteration,
+pass a <code>progress_callback</code> to <code>fit()</code>. Starting again from a fresh,
+independent line (the dependent intercept from the previous section
+would not be in the payload, see below):</p>
+<div class="language-python highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">slope</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">intercept</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">on_iteration</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># Called by the minimizer as the fit progresses. Values are keyed</span>
+    <span class="c1"># by unique_name and describe the point the minimizer reports.</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;parameter_values&#39;</span><span class="p">]</span>
+    <span class="n">slope</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">slope</span><span class="o">.</span><span class="n">unique_name</span><span class="p">]</span>
+    <span class="n">intercept</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">intercept</span><span class="o">.</span><span class="n">unique_name</span><span class="p">]</span>
+    <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">payload</span><span class="p">[</span><span class="s1">&#39;iteration&#39;</span><span class="p">],</span> <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;iteration </span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;iteration&quot;</span><span class="p">]</span><span class="si">:</span><span class="s1">3d</span><span class="si">}</span><span class="s1">: &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;slope=</span><span class="si">{</span><span class="n">slope</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> intercept=</span><span class="si">{</span><span class="n">intercept</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> chi2=</span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;chi2&quot;</span><span class="p">]</span><span class="si">:</span><span class="s1">.4g</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="p">)</span>
 
 
+<span class="n">fitter</span> <span class="o">=</span> <span class="n">Fitter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">calculator</span><span class="o">.</span><span class="n">fit_func_for</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">progress_callback</span><span class="o">=</span><span class="n">on_iteration</span><span class="p">)</span>
+</code></pre></div>
+<p>The callback receives a dictionary with these keys:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>iteration</code></td>
+<td>Iteration or evaluation number, as counted by the minimizer</td>
+</tr>
+<tr>
+<td><code>chi2</code></td>
+<td>Chi-squared at the reported point</td>
+</tr>
+<tr>
+<td><code>reduced_chi2</code></td>
+<td>Chi-squared divided by the degrees of freedom</td>
+</tr>
+<tr>
+<td><code>parameter_values</code></td>
+<td>Values of the fitted parameters at the reported point, indexed by <code>unique_name</code></td>
+</tr>
+<tr>
+<td><code>refresh_plots</code>, <code>finished</code></td>
+<td>Hints for user interfaces</td>
+</tr>
+</tbody>
+</table>
+<p><code>parameter_values</code> holds exactly the parameters returned by
+<code>model.get_free_parameters()</code>: the free, independent ones. Fixed and
+dependent parameters are not in it. To report a dependent value, read it
+from the model or recompute it from the free values in the payload.</p>
+<p>Its return value is ignored. To stop a fit from the callback, see
+<a href="#stopping-a-fit">Stopping a Fit</a>.</p>
+<p>When the callback is called, and which point it reports, depends on the
+minimizer:</p>
+<table>
+<thead>
+<tr>
+<th>Minimizer</th>
+<th>Called</th>
+<th>Reported point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LMFit</td>
+<td>on every function evaluation</td>
+<td>the point just evaluated</td>
+</tr>
+<tr>
+<td>Bumps</td>
+<td>once per optimizer step</td>
+<td>the optimizer's current point for that step</td>
+</tr>
+<tr>
+<td>DFO</td>
+<td>on every function evaluation</td>
+<td>the best point found so far</td>
+</tr>
+</tbody>
+</table>
+<p>With LMFit <code>iteration</code> is an evaluation counter, not a step index: it
+starts at <code>-1</code>, the first few callbacks all describe the starting point,
+the small steps of about 1e-5 are LMFit estimating the gradient
+numerically, and the last number is reported twice. Compare the values
+rather than the counter if you only want real steps. With DFO the
+reported values change only when an evaluation improves on the best
+point.</p>
+<p>If you need a hook on every evaluation rather than every iteration, put
+it in the fit function your calculator returns: it is called each time
+and reads the current values from the model.</p>
+<h2 id="stopping-a-fit">Stopping a Fit</h2>
+<p>EasyScience has no single cancel switch that works the same way on every
+minimizer. The options and how each minimizer responds:</p>
+<table>
+<thead>
+<tr>
+<th>How</th>
+<th>LMFit</th>
+<th>Bumps</th>
+<th>DFO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raise from <code>progress_callback</code></td>
+<td>stops, raises <code>FitError</code></td>
+<td>stops, raises <code>FitError</code></td>
+<td>stops, raises <code>FitError</code></td>
+</tr>
+<tr>
+<td>Raise from the fit function</td>
+<td>stops, raises <code>FitError</code></td>
+<td>stops only after logging every failed evaluation</td>
+<td>stops, raises <code>FitError</code></td>
+</tr>
+<tr>
+<td><code>abort_test=</code> passed to <code>fit()</code></td>
+<td>ignored with a warning</td>
+<td>stops, returns <code>success=False</code></td>
+<td>raises <code>FitError</code> (unknown keyword)</td>
+</tr>
+<tr>
+<td><code>fitter.max_evaluations</code> property</td>
+<td>stops after N evaluations</td>
+<td>stops after N optimizer steps</td>
+<td>stops after N evaluations</td>
+</tr>
+</tbody>
+</table>
+<h3 id="raising-from-the-progress-callback">Raising from the progress callback</h3>
+<p>This is the one approach that works on all three minimizers. Each
+minimizer catches the exception, puts the fitted parameters back to the
+values they had before the fit, and raises <code>FitError</code> with your
+exception as its argument.</p>
+<p>A user interface can set a flag from its "Stop" button and let the
+callback check it:</p>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">easyscience.fitting.minimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">FitError</span>
 
 
-
-<div class="doc doc-children">
-
-
+<span class="k">class</span><span class="w"> </span><span class="nc">FitCancelled</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
 
 
+<span class="n">stop_requested</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># set to True from the user interface</span>
 
 
-
-<h2 id="easyscience.io-classes">Classes</h2>
-
-<h2 id="easyscience.io-modules">Modules</h2>
-
-<div class="doc doc-object doc-module">
+<span class="k">def</span><span class="w"> </span><span class="nf">on_iteration</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">stop_requested</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">FitCancelled</span><span class="p">()</span>
 
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">progress_callback</span><span class="o">=</span><span class="n">on_iteration</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">FitError</span><span class="p">:</span>
+    <span class="c1"># The fit was cancelled; the model is back at its pre-fit values.</span>
+    <span class="o">...</span>
+</code></pre></div>
+<p>With LMFit and DFO the callback runs on every function evaluation, so
+the fit stops at the next evaluation. With Bumps it runs once per
+optimizer step, so the fit stops at the end of the current step.</p>
+<h3 id="raising-from-the-fit-function">Raising from the fit function</h3>
+<p>Avoid using the fit function as a stop signal. LMFit and DFO stop as
+they would for an exception from the callback, but Bumps catches the
+error on every evaluation, logs a traceback, and carries on for many
+failing evaluations before it gives up.</p>
+<h3 id="abort_test-with-bumps"><code>abort_test</code> with Bumps</h3>
+<p>Bumps, and the DREAM sampler, accept an <code>abort_test</code> argument: a
+function without arguments that returns <code>True</code> when the fit should stop.
+It is polled during the optimizer loop and once more after it finishes,
+so it must have no side effects:</p>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">easyscience</span><span class="w"> </span><span class="kn">import</span> <span class="n">Minimizers</span>
 
-<h3 id="easyscience.io.serializer_base" class="doc doc-heading">
-            <code>serializer_base</code>
-
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-
-
-
-
-
-
-
-
-
-<p><span class="doc-section-title">Classes:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerBase&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_base.SerializerBase&lt;/code&gt;)" href="#easyscience.io.serializer_base.SerializerBase">SerializerBase</a></code></td>
-            <td>
-              <div class="doc-md-description">
-                <p>This is the base class for creating an encoder/decoder which can</p>
+<span class="n">fitter</span><span class="o">.</span><span class="n">switch_minimizer</span><span class="p">(</span><span class="n">Minimizers</span><span class="o">.</span><span class="n">Bumps</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">abort_test</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">stop_requested</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>  <span class="c1"># &#39;Fit aborted before convergence&#39;</span>
+</code></pre></div>
+<p>Unlike raising an exception, an aborted Bumps fit returns normally and
+keeps the best values found so far in the model. Do not pass
+<code>abort_test</code> to the other minimizers: LMFit ignores it and runs the fit
+to the end, and DFO rejects it with a <code>FitError</code>.</p>
+<h3 id="limiting-the-number-of-evaluations">Limiting the number of evaluations</h3>
+<p>Set the budget on the <code>Fitter</code> before calling <code>fit()</code>. Do not pass
+<code>max_evaluations=</code> (or <code>tolerance=</code>) as a keyword to <code>fit()</code>: the
+<code>Fitter</code> already forwards its own value, and a second one raises
+<code>TypeError: got multiple values for keyword argument</code> on every
+minimizer.</p>
+<div class="language-python highlight"><pre><span></span><code><span class="n">fitter</span><span class="o">.</span><span class="n">max_evaluations</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+</code></pre></div>
+<p>The budget means different things to the minimizers. For LMFit and DFO
+it is a limit on function evaluations. For Bumps it is forwarded as the
+optimizer's <code>steps</code> setting, and one step can contain several
+evaluations, so the calculator may be called many more times than the
+number you set. The <code>iterations</code> reported in the result and in the
+progress payload count the same quantity as the budget for each
+minimizer, so they are not comparable across minimizers. It is a budget,
+not a cancel button, and it does not bound elapsed time when an
+evaluation is slow.</p>
 <!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-<h4 id="easyscience.io.serializer_base-classes">Classes</h4>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h5 id="easyscience.io.serializer_base.SerializerBase" class="doc doc-heading">
-            <code>SerializerBase</code>
-
-
-</h5>
-
-
-    <div class="doc doc-contents ">
-
-
-
-        <p>This is the base class for creating an encoder/decoder which can
-convert EasyScience objects.</p>
-<p><code>encode</code> and <code>decode</code> are abstract methods to be implemented for
-each serializer. It is expected that the helper function
-<code>_convert_to_dict</code> will be used as a base for encoding (or the
-<code>SerializerDict</code> as it's more flexible).</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-
-
-
-
-
-
-
-
-
-
-<p><span class="doc-section-title">Methods:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;skip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kwargs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-abstractmethod&quot;&gt;&lt;code&gt;abstractmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_base.SerializerBase.encode&lt;/code&gt;)" href="#easyscience.io.serializer_base.SerializerBase.encode">encode</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Abstract implementation of an encoder.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-abstractmethod&quot;&gt;&lt;code&gt;abstractmethod&lt;/code&gt;&lt;/small&gt;
-      &lt;small class=&quot;doc doc-label doc-label-classmethod&quot;&gt;&lt;code&gt;classmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_base.SerializerBase.decode&lt;/code&gt;)" href="#easyscience.io.serializer_base.SerializerBase.decode">decode</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Re-create an EasyScience object from the output of an encoder.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;get_arg_spec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-staticmethod&quot;&gt;&lt;code&gt;staticmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_base.SerializerBase.get_arg_spec&lt;/code&gt;)" href="#easyscience.io.serializer_base.SerializerBase.get_arg_spec">get_arg_spec</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Get the full argument specification of a function (typically</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;deserialize_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-staticmethod&quot;&gt;&lt;code&gt;staticmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_base.SerializerBase.deserialize_dict&lt;/code&gt;)" href="#easyscience.io.serializer_base.SerializerBase.deserialize_dict">deserialize_dict</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Deserialize a dictionary using from_dict for ES objects and</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-      </tbody>
-    </table>
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-
-<h6 id="easyscience.io.serializer_base.SerializerBase-functions">Methods:</h6>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_base.SerializerBase.encode" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">encode</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Abstract implementation of an encoder.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>obj</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerComponent&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent">SerializerComponent</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Object to be encoded.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>skip</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<span title="str">str</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>List of field names as strings to skip when forming the
-encoded object. By default, None.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>**kwargs</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Any additional key word arguments to be passed to the
-encoder.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>{}</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="any">any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Encoded object containing all information to reform an
-EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_base.SerializerBase.decode" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">decode</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Re-create an EasyScience object from the output of an encoder.
-The default decoder is <code>SerializerDict</code>.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>obj</code>
-            </td>
-            <td>
-                  <code><span title="typing.Any">Any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Encoded EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Any">Any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Reformed EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_base.SerializerBase.get_arg_spec" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_arg_spec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Get the full argument specification of a function (typically
-<code>__init__</code>)</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>func</code>
-            </td>
-            <td>
-                  <code><span title="typing.Callable">Callable</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Function to be inspected.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Any">Any</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Tuple of argument spec and arguments.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_base.SerializerBase.deserialize_dict" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">deserialize_dict</span><span class="p">(</span><span class="n">in_dict</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Deserialize a dictionary using from_dict for ES objects and
-SerializerBase otherwise. This method processes constructor
-arguments, skipping metadata keys starting with '@'.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>in_dict</code>
-            </td>
-            <td>
-                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Dictionary to deserialize.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Deserialized dictionary with constructor arguments.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-module">
-
-
-
-<h3 id="easyscience.io.serializer_component" class="doc doc-heading">
-            <code>serializer_component</code>
-
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-
-
-
-
-
-
-
-
-
-<p><span class="doc-section-title">Classes:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerComponent&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent">SerializerComponent</a></code></td>
-            <td>
-              <div class="doc-md-description">
-                <p>This base class adds the capability of saving and loading</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-<h4 id="easyscience.io.serializer_component-classes">Classes</h4>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h5 id="easyscience.io.serializer_component.SerializerComponent" class="doc doc-heading">
-            <code>SerializerComponent</code>
-
-
-</h5>
-
-
-    <div class="doc doc-contents ">
-
-
-
-        <p>This base class adds the capability of saving and loading
-(encoding/decoding, serializing/deserializing) easyscience objects
-via the <code>encode</code> and <code>decode</code> methods. The default encoder is
-<code>SerializerDict</code>, which converts the object to a dictionary.</p>
-<p>Shortcuts for dictionary and encoding is also present.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-
-
-
-
-
-
-
-
-
-
-<p><span class="doc-section-title">Methods:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;skip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kwargs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent.encode&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent.encode">encode</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Use an encoder to covert an EasyScience object into another</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;decoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-classmethod&quot;&gt;&lt;code&gt;classmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent.decode&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent.decode">decode</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Re-create an EasyScience object from the output of an encoder.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;as_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;skip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent.as_dict&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent.as_dict">as_dict</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Convert an EasyScience object into a full dictionary using</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;from_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-classmethod&quot;&gt;&lt;code&gt;classmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent.from_dict&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent.from_dict">from_dict</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Re-create an EasyScience object from a full encoded dictionary.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-      </tbody>
-    </table>
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-
-<h6 id="easyscience.io.serializer_component.SerializerComponent-functions">Methods:</h6>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_component.SerializerComponent.encode" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">encode</span><span class="p">(</span><span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encoder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Use an encoder to covert an EasyScience object into another
-format. Default is to a dictionary using <code>SerializerDict</code>.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>skip</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<span title="str">str</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>List of field names as strings to skip when forming the
-encoded object. By default, None.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>encoder</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerBase&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_base.SerializerBase&lt;/code&gt;)" href="#easyscience.io.serializer_base.SerializerBase">SerializerBase</a>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>The encoder to be used for encoding the data. By default,
-None.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>**kwargs</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Any additional key word arguments to be passed to the
-encoder.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>{}</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Any">Any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Encoded object containing all information to reform an
-EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_component.SerializerComponent.decode" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">decode</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">decoder</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Re-create an EasyScience object from the output of an encoder.
-The default decoder is <code>SerializerDict</code>.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>obj</code>
-            </td>
-            <td>
-                  <code><span title="typing.Any">Any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Encoded EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>decoder</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerBase&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_base.SerializerBase&lt;/code&gt;)" href="#easyscience.io.serializer_base.SerializerBase">SerializerBase</a>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Decoder to be used to reform the EasyScience object. By
-default, None.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Any">Any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Reformed EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_component.SerializerComponent.as_dict" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">as_dict</span><span class="p">(</span><span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Convert an EasyScience object into a full dictionary using
-<code>SerializerDict</code>. This is a shortcut for
-<code>obj.encode(encoder=SerializerDict)</code></p>
-<h6 id="easyscience.io.serializer_component.SerializerComponent.as_dict--parameters">Parameters</h6>
-<p>skip : Optional[List[str]], default=None
-    List of field names as strings to skip when forming
-    the dictionary. By default, None.</p>
-<h6 id="easyscience.io.serializer_component.SerializerComponent.as_dict--returns">Returns</h6>
-<p>Dict[str, Any]
-    Encoded object containing all information to reform an
-    EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_component.SerializerComponent.from_dict" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">from_dict</span><span class="p">(</span><span class="n">obj_dict</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Re-create an EasyScience object from a full encoded dictionary.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>obj_dict</code>
-            </td>
-            <td>
-                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Dictionary containing the serialized contents (from
-<code>SerializerDict</code>) of an EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Any">Any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Reformed EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-module">
-
-
-
-<h3 id="easyscience.io.serializer_dict" class="doc doc-heading">
-            <code>serializer_dict</code>
-
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-
-
-
-
-
-
-
-
-
-<p><span class="doc-section-title">Classes:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerDict&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_dict.SerializerDict&lt;/code&gt;)" href="#easyscience.io.serializer_dict.SerializerDict">SerializerDict</a></code></td>
-            <td>
-              <div class="doc-md-description">
-                <p>This is a serializer that can encode and decode EasyScience objects</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-<h4 id="easyscience.io.serializer_dict-classes">Classes</h4>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h5 id="easyscience.io.serializer_dict.SerializerDict" class="doc doc-heading">
-            <code>SerializerDict</code>
-
-
-</h5>
-
-
-    <div class="doc doc-contents ">
-
-
-
-        <p>This is a serializer that can encode and decode EasyScience objects
-to and from a dictionary.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-
-
-
-
-
-
-
-
-
-
-<p><span class="doc-section-title">Methods:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;skip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;full_encode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kwargs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_dict.SerializerDict.encode&lt;/code&gt;)" href="#easyscience.io.serializer_dict.SerializerDict.encode">encode</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Convert an EasyScience object to a dictionary.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-classmethod&quot;&gt;&lt;code&gt;classmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_dict.SerializerDict.decode&lt;/code&gt;)" href="#easyscience.io.serializer_dict.SerializerDict.decode">decode</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Re-create an EasyScience object from the dictionary</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;get_arg_spec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-staticmethod&quot;&gt;&lt;code&gt;staticmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_dict.SerializerDict.get_arg_spec&lt;/code&gt;)" href="#easyscience.io.serializer_dict.SerializerDict.get_arg_spec">get_arg_spec</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Get the full argument specification of a function (typically</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;deserialize_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-staticmethod&quot;&gt;&lt;code&gt;staticmethod&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;easyscience.io.serializer_dict.SerializerDict.deserialize_dict&lt;/code&gt;)" href="#easyscience.io.serializer_dict.SerializerDict.deserialize_dict">deserialize_dict</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Deserialize a dictionary using from_dict for ES objects and</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-                </div>
-              </td>
-            </tr>
-      </tbody>
-    </table>
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-
-<h6 id="easyscience.io.serializer_dict.SerializerDict-functions">Methods:</h6>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_dict.SerializerDict.encode" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">encode</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_encode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Convert an EasyScience object to a dictionary.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>obj</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerComponent&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent">SerializerComponent</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Object to be encoded.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>skip</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<span title="str">str</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>List of field names as strings to skip when forming the
-encoded object. By default, None.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>full_encode</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Should the data also be encoded (default False). By default,
-False.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>False</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>**kwargs</code>
-            </td>
-            <td>
-                  <code><span title="typing.Any">Any</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Any additional key word arguments to be passed to the
-encoder.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                  <code>{}</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Object encoded to dictionary containing all information to
-reform an EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_dict.SerializerDict.decode" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">decode</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Re-create an EasyScience object from the dictionary
-representation.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>d</code>
-            </td>
-            <td>
-                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Dict representation of an EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><a class="autorefs autorefs-internal" title="&lt;code&gt;SerializerComponent&lt;/code&gt; (&lt;code&gt;easyscience.io.serializer_component.SerializerComponent&lt;/code&gt;)" href="#easyscience.io.serializer_component.SerializerComponent">SerializerComponent</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>EasyScience object.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_dict.SerializerDict.get_arg_spec" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_arg_spec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Get the full argument specification of a function (typically
-<code>__init__</code>)</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>func</code>
-            </td>
-            <td>
-                  <code><span title="typing.Callable">Callable</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Function to be inspected.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Any">Any</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Tuple of argument spec and arguments.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h7 id="easyscience.io.serializer_dict.SerializerDict.deserialize_dict" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">deserialize_dict</span><span class="p">(</span><span class="n">in_dict</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
-  </span>
-
-</h7>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Deserialize a dictionary using from_dict for ES objects and
-SerializerBase otherwise. This method processes constructor
-arguments, skipping metadata keys starting with '@'.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>in_dict</code>
-            </td>
-            <td>
-                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Dictionary to deserialize.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Deserialized dictionary with constructor arguments.</p>
-<!-- prettier-ignore-start -->
-
-<!-- prettier-ignore-end -->
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-
-  </div>
-
-    </div>
-
-</div><!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
 
@@ -3135,7 +1840,7 @@ arguments, skipping metadata keys starting with '@'.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../global_object/" class="md-footer__link md-footer__link--prev" aria-label="Previous: global_object">
+          <a href="../parameter-dependency-serialization/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Serializing Dependent Parameters">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -3145,20 +1850,20 @@ arguments, skipping metadata keys starting with '@'.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                global_object
+                Serializing Dependent Parameters
               </div>
             </div>
           </a>
         
         
           
-          <a href="../job/" class="md-footer__link md-footer__link--next" aria-label="Next: job">
+          <a href="../../tutorials/" class="md-footer__link md-footer__link--next" aria-label="Next: Tutorials">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                job
+                Tutorials
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -14,7 +14,7 @@
         <link rel="prev" href="../">
       
       
-        <link rel="next" href="../../tutorials/">
+        <link rel="next" href="../parameter-dependency-serialization/">
       
       
         
@@ -431,6 +431,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -679,6 +683,62 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parameter-dependency-serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serializing Dependent Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../external-calculators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connecting an External Calculator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -966,10 +1026,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1112,34 +1168,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api-reference/io/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    io
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../api-reference/job/" class="md-nav__link">
         
   
@@ -1148,34 +1176,6 @@
     
   
     job
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api-reference/models/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    models
   
 
     
@@ -1453,14 +1453,13 @@ can do it in one line:</p>
 individual subsystems:</p>
 <div class="language-text highlight"><pre><span></span><code>easyscience                        # root — controls everything
 ├── easyscience.base_classes       # EasyList runtime warnings
-├── easyscience.legacy             # ObjBase / CollectionBase deprecations
 ├── easyscience.deprecated         # @deprecated decorator messages
 ├── easyscience.fitting            # import-availability warnings
 │   ├── easyscience.fitting.bumps  # Bumps fitting runtime messages
 │   ├── easyscience.fitting.lmfit  # LMFit fitting runtime messages
 │   └── easyscience.fitting.dfo    # DFO fitting runtime messages
 ├── easyscience.variable           # parameter warnings
-└── easyscience.global_object      # undo/redo, debugging diagnostics
+└── easyscience.global_object      # debugging diagnostics
 </code></pre></div>
 <p>Setting the level on a parent logger affects all its children, because
 child loggers inherit the parent's effective level.</p>
@@ -1471,9 +1470,6 @@ child loggers inherit the parent's effective level.</p>
 
 <span class="c1"># Suppress only Bumps runtime messages</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;easyscience.fitting.bumps&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-
-<span class="c1"># Suppress only legacy deprecation notices</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;easyscience.legacy&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="environment-variable">Environment Variable</h2>
 <p>You can control the log level <strong>before</strong> importing EasyScience by
@@ -1675,13 +1671,13 @@ and where.</p>
         
         
           
-          <a href="../../tutorials/" class="md-footer__link md-footer__link--next" aria-label="Next: Tutorials">
+          <a href="../parameter-dependency-serialization/" class="md-footer__link md-footer__link--next" aria-label="Next: Serializing Dependent Parameters">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Tutorials
+                Serializing Dependent Parameters
               </div>
             </div>
             <div class="md-footer__button md-icon">

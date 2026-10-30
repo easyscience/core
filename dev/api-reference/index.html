@@ -429,6 +429,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -495,6 +499,62 @@
     
   
     Controlling Log Output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/parameter-dependency-serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serializing Dependent Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/external-calculators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connecting an External Calculator
   
 
     
@@ -792,10 +852,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -938,34 +994,6 @@
   
   
     <li class="md-nav__item">
-      <a href="io/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    io
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="job/" class="md-nav__link">
         
   
@@ -974,34 +1002,6 @@
     
   
     job
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="models/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    models
   
 
     
@@ -1125,22 +1125,19 @@
 available in EasyScience.</p>
 <ul>
 <li><a href="base_classes/">base_classes</a> – Core abstract and helper base
-  classes used to build EasyScience objects (e.g. <code>ObjBase</code>,
-  <code>ModelBase</code>).</li>
-<li><a href="fitting/">fitting</a> – Fitting utilities and interfaces, including
-  <code>Fitter</code> and available minimizers.</li>
+  classes used to build EasyScience objects (e.g. <code>EasyBase</code>,
+  <code>ModelBase</code>, <code>EasyList</code>, <code>SerializerBase</code>).</li>
+<li><a href="fitting/">fitting</a> – Fitting and sampling, including <code>Fitter</code>,
+  <code>Sampler</code> and the available minimizers.</li>
 <li><a href="global_object/">global_object</a> – Global singleton providing shared
-  services (logger, map, undo/redo stack, script manager).</li>
-<li><a href="io/">io</a> – Serialization and deserialization framework for
-  persisting EasyScience objects (serializers and components).</li>
+  services (logger and object registry).</li>
 <li><a href="job/">job</a> – Job and experiment abstractions for running and
   organizing analyses.</li>
-<li><a href="models/">models</a> – Predefined model implementations (e.g.
-  polynomial models) used in fitting workflows.</li>
 <li><a href="utils/">utils</a> – Miscellaneous utility functions and helpers (class
   tools, decorators, type helpers).</li>
 <li><a href="variable/">variable</a> – Descriptor types and variable abstractions
-  (e.g. <code>DescriptorNumber</code>, <code>Parameter</code>, <code>DescriptorArray</code>).</li>
+  (e.g. <code>DescriptorNumber</code>, <code>Parameter</code>, <code>DescriptorArray</code>). All of them
+  are <code>EasyBase</code> objects, serialized with <code>to_dict</code>/<code>from_dict</code>.</li>
 </ul>
 <!-- prettier-ignore-start -->
 
