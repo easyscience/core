@@ -7,6 +7,12 @@ from easyscience import global_object
 from easyscience.base_classes import EasyBase
 
 
+class NestedEasyBase(EasyBase):
+    def __init__(self, unique_name=None, display_name=None, nested_easy_base=None):
+        super().__init__(unique_name=unique_name, display_name=display_name)
+        self.nested_easy_base = nested_easy_base or EasyBase()
+
+
 class TestEasyBase:
     @pytest.fixture
     def clear(self):
@@ -172,6 +178,36 @@ class TestEasyBase:
         assert obj_dict['@module'] == 'easyscience.base_classes.easy_base'
         assert obj_dict['@class'] == 'EasyBase'
         assert '@version' in obj_dict
+
+    def test_to_dict_nested_easy_base(self):
+        # When
+        obj = EasyBase()
+        parent_obj = NestedEasyBase(unique_name='parent', display_name='Parent Object')
+        parent_obj.nested_easy_base = obj
+        # Then
+        obj_dict = parent_obj.to_dict()
+        # Expect
+        assert isinstance(obj_dict, dict)
+        assert 'nested_easy_base' in obj_dict
+        assert 'unique_name' in obj_dict
+        assert 'display_name' in obj_dict
+        assert 'unique_name' not in obj_dict['nested_easy_base']
+        assert 'display_name' not in obj_dict['nested_easy_base']
+
+    def test_to_dict_nested_easy_base_reverse(self):
+        # When
+        obj = EasyBase(unique_name='child', display_name='Child Object')
+        parent_obj = NestedEasyBase()
+        parent_obj.nested_easy_base = obj
+        # Then
+        obj_dict = parent_obj.to_dict()
+        # Expect
+        assert isinstance(obj_dict, dict)
+        assert 'nested_easy_base' in obj_dict
+        assert 'unique_name' not in obj_dict
+        assert 'display_name' not in obj_dict
+        assert 'unique_name' in obj_dict['nested_easy_base']
+        assert 'display_name' in obj_dict['nested_easy_base']
 
     def test_from_dict(self):
         # When
