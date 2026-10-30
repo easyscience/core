@@ -7,23 +7,23 @@ from unittest.mock import MagicMock
 import pytest
 
 from easyscience import global_object
+from easyscience.base_classes.easy_base import EasyBase
 from easyscience.base_classes.easy_list import EasyList
 from easyscience.base_classes.model_base import ModelBase
-from easyscience.base_classes.new_base import NewBase
-from easyscience.io.serializer_base import SerializerBase
+from easyscience.base_classes.serializer_base import SerializerBase
 from easyscience.variable import DescriptorNumber
 from easyscience.variable import Parameter
 
 
-class Alpha(NewBase):
-    """Concrete subclass of NewBase for testing."""
+class Alpha(EasyBase):
+    """Concrete subclass of EasyBase for testing."""
 
     def __init__(self, unique_name=None, display_name=None):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
 
-class Beta(NewBase):
-    """Another concrete subclass of NewBase for testing."""
+class Beta(EasyBase):
+    """Another concrete subclass of EasyBase for testing."""
 
     def __init__(self, unique_name=None, display_name=None):
         super().__init__(unique_name=unique_name, display_name=display_name)
@@ -32,10 +32,12 @@ class Beta(NewBase):
 class MockModel(ModelBase):
     """A ModelBase subclass with a Parameter and a DescriptorNumber for testing get_all_variables."""
 
-    def __init__(self, unique_name=None, display_name=None, temperature=25, volume=1.0, items=None):
+    def __init__(
+        self, unique_name=None, display_name=None, temperature=25, volume=1.0, items=None
+    ):
         super().__init__(unique_name=unique_name, display_name=display_name)
-        self._temperature = Parameter(name='temperature', value=temperature)
-        self._volume = DescriptorNumber(name='volume', value=volume)
+        self._temperature = Parameter(display_name='temperature', value=temperature)
+        self._volume = DescriptorNumber(display_name='volume', value=volume)
         if items is None:
             items = EasyList()
         self._items = items
@@ -62,7 +64,7 @@ class MockModelNested(ModelBase):
 
     def __init__(self, unique_name=None, display_name=None, component=None, pressure=0):
         super().__init__(unique_name=unique_name, display_name=display_name)
-        self._pressure = Parameter(name='pressure', value=pressure)
+        self._pressure = Parameter(display_name='pressure', value=pressure)
         self._component = component or MockModel(unique_name='inner', temperature=30, volume=2.0)
 
     @property
@@ -81,7 +83,7 @@ class MockModelNested(ModelBase):
 class TestEasyList:
     @pytest.fixture(autouse=True)
     def clear(self):
-        global_object.map._clear()
+        global_object.registry.clear()
 
     @pytest.fixture
     def populated_list(self):
@@ -96,7 +98,7 @@ class TestEasyList:
         el = EasyList()
         assert len(el) == 0
         assert len(el._protected_types) == 1
-        assert el._protected_types[0] == NewBase
+        assert el._protected_types[0] == EasyBase
 
     def test_init_with_items(self):
         a = Alpha(unique_name='a1')
@@ -120,11 +122,11 @@ class TestEasyList:
         assert el._protected_types == [Alpha, Beta]
 
     def test_init_invalid_protected_types_raises(self):
-        with pytest.raises(TypeError, match='protected_types must be a NewBase subclass'):
+        with pytest.raises(TypeError, match='protected_types must be an EasyBase subclass'):
             EasyList(protected_types=int)
 
     def test_init_invalid_protected_types_list_raises(self):
-        with pytest.raises(TypeError, match='protected_types must be a NewBase subclass'):
+        with pytest.raises(TypeError, match='protected_types must be an EasyBase subclass'):
             EasyList(protected_types=[int, str])
 
     def test_init_with_data_kwarg(self):
@@ -146,10 +148,10 @@ class TestEasyList:
         el.append(a)
         assert len(el) == 1
 
-    def test_append_non_newbase_raises(self):
+    def test_append_non_easybase_raises(self):
         el = EasyList()
         with pytest.raises(TypeError, match='Items must be one of'):
-            el.append('not a NewBase')
+            el.append('not an EasyBase')
 
     def test_insert_wrong_type_raises(self):
         el = EasyList(protected_types=Alpha)
@@ -555,7 +557,7 @@ class TestEasyList:
         assert d['protected_types'][0]['@class'] == 'Alpha'
 
     def test_to_dict_default_protected_type_not_serialized(self):
-        a1 = NewBase(unique_name='nb1')
+        a1 = EasyBase(unique_name='nb1')
         el = EasyList(a1, unique_name='my_list')
         d = el.to_dict()
         assert 'protected_types' not in d
@@ -588,19 +590,96 @@ class TestEasyList:
         a2 = Alpha(unique_name='a2')
         el = EasyList(a1, a2, unique_name='my_list', protected_types=Alpha)
         d = el.to_dict()
-        # Clear the global map so deserialized objects can reuse the same unique names
-        global_object.map._clear()
+        # Clear the global registry so deserialized objects can reuse the same unique names
+        global_object.registry.clear()
         el2 = EasyList.from_dict(d)
         assert len(el2) == 2
         assert el2[0].unique_name == 'a1'
         assert el2[1].unique_name == 'a2'
         assert d == el2.to_dict()  # The dicts should be the same after round trip
 
+    def test_to_dict_forwards_skip_to_items(self):
+        a1 = Alpha(unique_name='a1', display_name='first')
+        el = EasyList(a1, unique_name='my_list', protected_types=Alpha)
+
+        d = el.to_dict(skip=['display_name'])
+
+        assert 'display_name' not in d['data'][0]
+        assert d['data'][0]['unique_name'] == 'a1'
+
+    def test_to_dict_unnamed_list_keeps_item_names(self):
+        """A list without its own names must not strip names from its items."""
+        a1 = Alpha(unique_name='a1', display_name='first')
+        el = EasyList(a1, protected_types=Alpha)  # auto unique_name, no display_name
+
+        d = el.to_dict()
+
+        assert 'unique_name' not in d
+        assert 'display_name' not in d
+        assert d['data'][0]['unique_name'] == 'a1'
+        assert d['data'][0]['display_name'] == 'first'
+
+    def test_to_dict_does_not_mutate_skip(self):
+        el = EasyList(Alpha(unique_name='a1'), protected_types=Alpha)
+        skip = ['display_name']
+
+        el.to_dict(skip=skip)
+
+        assert skip == ['display_name']
+
+    def test_to_dict_without_skip(self):
+        """``to_dict`` works when called without ``skip``."""
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, protected_types=Alpha)
+
+        d = el.to_dict()
+
+        assert d['data'][0]['unique_name'] == 'a1'
+        assert d['protected_types'][0]['@class'] == 'Alpha'
+        assert not hasattr(el, '_convert_to_dict')
+
+    def test_to_dict_nested_list_uses_override(self):
+        """A list held by another object is serialized by its own ``to_dict``."""
+        inner = EasyList(Alpha(unique_name='a1'), protected_types=Alpha)
+        outer = EasyList(inner, unique_name='outer')
+
+        d = outer.to_dict()
+
+        nested = d['data'][0]
+        assert nested['@class'] == 'EasyList'
+        assert nested['protected_types'][0]['@class'] == 'Alpha'
+        assert nested['data'][0]['unique_name'] == 'a1'
+
+        global_object.registry.clear()
+        outer2 = EasyList.from_dict(d)
+        assert isinstance(outer2[0], EasyList)
+        assert outer2[0]._protected_types == [Alpha]
+        assert outer2[0][0].unique_name == 'a1'
+
+    def test_from_dict_round_trip_keyword_only_arguments(self):
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, unique_name='my_list', display_name='My list', protected_types=Alpha)
+        d = el.to_dict()
+        assert d['unique_name'] == 'my_list'
+        assert d['display_name'] == 'My list'
+        global_object.registry.clear()
+        el2 = EasyList.from_dict(d)
+        assert el2.unique_name == 'my_list'
+        assert el2.display_name == 'My list'
+        assert el2._protected_types == [Alpha]
+
+    def test_to_dict_skip(self):
+        a1 = Alpha(unique_name='a1')
+        el = EasyList(a1, unique_name='my_list', display_name='My list', protected_types=Alpha)
+        d = el.to_dict(skip=['display_name'])
+        assert 'display_name' not in d
+        assert 'protected_types' in d
+
     def test_from_dict_round_trip_empty(self):
         el = EasyList(unique_name='my_list', protected_types=Alpha)
         d = el.to_dict()
-        # Clear the global map so deserialized objects can reuse the same unique names
-        global_object.map._clear()
+        # Clear the global registry so deserialized objects can reuse the same unique names
+        global_object.registry.clear()
         el2 = EasyList.from_dict(d)
         assert len(el2) == 0
         assert d == el2.to_dict()  # The dicts should be the same after round trip
@@ -630,8 +709,8 @@ class TestEasyList:
         )
         # Then
         list_dict = el.to_dict()
-        # Clear the global map so deserialized objects can reuse the same unique names
-        global_object.map._clear()
+        # Clear the global registry so deserialized objects can reuse the same unique names
+        global_object.registry.clear()
         el2 = EasyList.from_dict(list_dict)
         # Expect
         assert len(el2) == 2
@@ -643,9 +722,12 @@ class TestEasyList:
         el_dict = {
             '@module': 'easyscience',
             '@class': 'EasyList',
-            'protected_types': [{'@module': 'easyscience.base_classes', '@class': 'ModelBase'}]
+            'protected_types': [{'@module': 'easyscience.base_classes', '@class': 'ModelBase'}],
         }
-        with pytest.raises(ValueError, match='The provided dictionary does not represent an EasyList. Missing the "data" key.'):
+        with pytest.raises(
+            ValueError,
+            match='The provided dictionary does not represent an EasyList. Missing the "data" key.',
+        ):
             EasyList.from_dict(el_dict)
 
     # --- get_all_variables ---
@@ -656,9 +738,9 @@ class TestEasyList:
         assert el.get_all_variables() == []
 
     def test_get_all_variables_no_modelbase_elements(self):
-        """An EasyList with only plain NewBase elements (not ModelBase) should return an empty list."""
+        """An EasyList with only plain EasyBase elements (not ModelBase) should return an empty list."""
         a1 = Alpha(unique_name='a1')
-        a2 = NewBase(unique_name='nb1')
+        a2 = EasyBase(unique_name='nb1')
         el = EasyList(a1, a2)
         assert el.get_all_variables() == []
 
@@ -668,13 +750,13 @@ class TestEasyList:
         el = EasyList(m1, protected_types=ModelBase)
         vars = el.get_all_variables()
         assert len(vars) == 2
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert 'temperature' in names
         assert 'volume' in names
         # Verify specific values
-        temp_var = next(v for v in vars if v.name == 'temperature')
+        temp_var = next(v for v in vars if v.display_name == 'temperature')
         assert temp_var.value == 10
-        vol_var = next(v for v in vars if v.name == 'volume')
+        vol_var = next(v for v in vars if v.display_name == 'volume')
         assert vol_var.value == 5.0
 
     def test_get_all_variables_multiple_modelbase(self):
@@ -684,17 +766,17 @@ class TestEasyList:
         el = EasyList(m1, m2, protected_types=ModelBase)
         vars = el.get_all_variables()
         assert len(vars) == 4
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert names == {'temperature', 'volume'}
 
     def test_get_all_variables_mixed_elements(self):
-        """Only ModelBase-derived elements contribute variables; plain NewBase elements are skipped."""
+        """Only ModelBase-derived elements contribute variables; plain EasyBase elements are skipped."""
         m1 = MockModel(unique_name='m1', temperature=10, volume=5.0)
         a1 = Alpha(unique_name='a1')
         el = EasyList(m1, a1)
         vars = el.get_all_variables()
         assert len(vars) == 2
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert names == {'temperature', 'volume'}
 
     def test_get_all_variables_nested_model(self):
@@ -705,7 +787,7 @@ class TestEasyList:
         vars = el.get_all_variables()
         # parent: pressure (Parameter), inner: temperature (Parameter), volume (DescriptorNumber)
         assert len(vars) == 3
-        names = {v.name for v in vars}
+        names = {v.display_name for v in vars}
         assert names == {'pressure', 'temperature', 'volume'}
 
     def test_get_all_variables_returns_descriptorbase_instances(self):
@@ -718,10 +800,70 @@ class TestEasyList:
 
             assert isinstance(v, DescriptorBase)
 
+    def test_get_all_variables_bare_parameters(self):
+        """Bare Parameters passed to the constructor should be collected directly."""
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
+        el = EasyList(p1, p2)
+        vars = el.get_all_variables()
+        assert vars == [p1, p2]
+        assert el.get_free_parameters() == [p1, p2]
+
+    def test_get_all_variables_bare_descriptors(self):
+        """Bare DescriptorNumbers are collected as variables but are not fit parameters."""
+        p1 = Parameter(value=1.0, display_name='a')
+        d1 = DescriptorNumber(value=2.0, display_name='b')
+        el = EasyList(p1, d1)
+        assert el.get_all_variables() == [p1, d1]
+        assert el.get_all_parameters() == [p1]
+        assert el.get_free_parameters() == [p1]
+
+    def test_get_all_variables_fixed_parameter_not_fitted(self):
+        """A fixed bare Parameter is returned as a variable but not as a fit parameter."""
+        free = Parameter(value=1.0, display_name='a')
+        fixed = Parameter(value=2.0, fixed=True, display_name='b')
+        el = EasyList(free, fixed)
+        assert el.get_all_variables() == [free, fixed]
+        assert el.get_free_parameters() == [free]
+
+    def test_get_all_variables_parameters_from_list(self):
+        """A plain list of Parameters should be flattened and collected."""
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
+        el = EasyList([p1, p2])
+        assert len(el) == 2
+        assert el.get_all_variables() == [p1, p2]
+
+    def test_get_all_variables_parameters_from_tuple(self):
+        """A plain tuple of Parameters should be flattened and collected."""
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
+        el = EasyList((p1, p2))
+        assert len(el) == 2
+        assert el.get_all_variables() == [p1, p2]
+
+    def test_get_all_variables_bare_parameters_and_model(self):
+        """Bare Parameters and ModelBase items should both contribute variables."""
+        p1 = Parameter(value=1.0, display_name='a')
+        m1 = MockModel(unique_name='m1', temperature=10, volume=5.0)
+        el = EasyList(p1, m1)
+        vars = el.get_all_variables()
+        assert len(vars) == 3
+        assert vars[0] is p1
+        assert {v.display_name for v in vars[1:]} == {'temperature', 'volume'}
+
+    def test_get_all_variables_bare_parameters_in_nested_easylist(self):
+        """Bare Parameters inside a nested EasyList should be collected by the outer list."""
+        p1 = Parameter(value=1.0, display_name='a')
+        p2 = Parameter(value=2.0, display_name='b')
+        inner_list = EasyList(p1)
+        outer_list = EasyList(inner_list, p2)
+        assert outer_list.get_all_variables() == [p1, p2]
+
     def test_get_all_variables_nested_easylist(self):
-        """An EasyList containing another EasyList with mixed NewBase/ModelBase elements
+        """An EasyList containing another EasyList with mixed EasyBase/ModelBase elements
         should collect variables from the inner EasyList's ModelBase items,
-        skipping plain NewBase items."""
+        skipping plain EasyBase items."""
         inner_model = MockModel(unique_name='inner_m', temperature=50, volume=3.0)
         inner_plain = Alpha(unique_name='inner_a')
         inner_list = EasyList(inner_model, inner_plain)
@@ -751,7 +893,7 @@ class TestEasyList:
             assert isinstance(v, DescriptorNumber)
 
         # Collect temperatures and volumes from both models
-        temps = {v.value for v in vars if v.name == 'temperature'}
-        vols = {v.value for v in vars if v.name == 'volume'}
+        temps = {v.value for v in vars if v.display_name == 'temperature'}
+        vols = {v.value for v in vars if v.display_name == 'volume'}
         assert temps == {50, 70}
         assert vols == {3.0, 4.0}

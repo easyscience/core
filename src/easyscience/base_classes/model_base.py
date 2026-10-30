@@ -13,13 +13,13 @@ if TYPE_CHECKING:
     from typing import List
     from typing import Optional
 
-from ..io import SerializerBase
 from ..variable import Parameter
 from ..variable.descriptor_base import DescriptorBase
-from .new_base import NewBase
+from .easy_base import EasyBase
+from .serializer_base import SerializerBase
 
 
-class ModelBase(NewBase):
+class ModelBase(EasyBase):
     """
     This is the base class for all model classes in EasyScience. It
     provides methods to get parameters for fitting and analysis as well
@@ -98,15 +98,6 @@ class ModelBase(NewBase):
         """
         return [param for param in self.get_fittable_parameters() if not param.fixed]
 
-    def get_fit_parameters(self) -> List[Parameter]:
-        """
-        This is an alias for ``get_free_parameters``.
-
-        To be removed when fully moved to new base classes and minimizer
-        can be changed.
-        """
-        return self.get_free_parameters()
-
     @classmethod
     def from_dict(cls, obj_dict: Dict[str, Any]) -> ModelBase:
         """
@@ -117,7 +108,7 @@ class ModelBase(NewBase):
         ----------
         obj_dict : Dict[str, Any]
             Dictionary containing the serialized contents (from
-            ``SerializerDict``) of an EasyScience object.
+            ``to_dict``) of an EasyScience object.
 
         Returns
         -------
@@ -147,7 +138,7 @@ class ModelBase(NewBase):
                 try:
                     temp_param = getattr(cls_instance, key)
                     setattr(cls_instance, '_' + key, value)
-                    cls_instance._global_object.map.prune(temp_param.unique_name)
+                    cls_instance._global_object.registry.discard(temp_param.unique_name)
                 except Exception as e:
                     raise SyntaxError(f"""Could not set parameter {key} during `from_dict` with full deserialized variable. \n'
                             This should be fixed in the class definition. Error: {e}""") from e

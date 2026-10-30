@@ -9,7 +9,7 @@ from easyscience import DescriptorNumber
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import ModelBase
-from easyscience.io import SerializerBase
+from easyscience.base_classes import SerializerBase
 from easyscience.variable import DescriptorStr
 
 
@@ -20,9 +20,11 @@ class MockModelComponent(ModelBase):
 
     def __init__(self, display_name=None, unique_name=None, temperature=0, room_temperature=22):
         super().__init__(display_name=display_name, unique_name=unique_name)
-        self._temperature = Parameter(name='temperature', value=temperature)
-        self._room_temperature = DescriptorNumber(name='room_temperature', value=room_temperature)
-        self._status = DescriptorStr(name='status', value='OK')
+        self._temperature = Parameter(display_name='temperature', value=temperature)
+        self._room_temperature = DescriptorNumber(
+            display_name='room_temperature', value=room_temperature
+        )
+        self._status = DescriptorStr(display_name='status', value='OK')
 
     @property
     def temperature(self):
@@ -56,8 +58,8 @@ class MockModelFull(ModelBase):
 
     def __init__(self, component=None, display_name=None, unique_name=None, pressure=0, area=1):
         super().__init__(display_name=display_name, unique_name=unique_name)
-        self._pressure = Parameter(name='pressure', value=pressure)
-        self._area = Parameter(name='area', value=area)
+        self._pressure = Parameter(display_name='pressure', value=pressure)
+        self._area = Parameter(display_name='area', value=area)
         if component is not None:
             self._component = component
         else:
@@ -102,8 +104,8 @@ class TestModelBase:
 
     @pytest.fixture
     def clear(self):
-        # Clear the global object map before each test
-        global_object.map._clear()
+        # Clear the global object registry before each test
+        global_object.registry.clear()
 
     def test_init(self):
         # When Then
@@ -156,15 +158,6 @@ class TestModelBase:
         )
         assert nested_model.component.get_all_variables.call_count == 1
 
-    def test_get_fit_parameters_alias(self, monkeypatch):
-        # When
-        model = MockModelFull(pressure=1)
-        monkeypatch.setattr(model, 'get_free_parameters', MagicMock())
-        # Then
-        fit_params = model.get_fit_parameters()
-        # Expect
-        assert model.get_free_parameters.call_count == 1
-
     def test_get_free_parameters_nested(self, nested_model):
         # When Then
         free_params = nested_model.get_free_parameters()
@@ -193,7 +186,7 @@ class TestModelBase:
                 )
             ),
         )
-        global_object.map._clear()
+        global_object.registry.clear()
         # Then
         new_model = MockModelComponent.from_dict(obj_dict)
         # Expect
@@ -202,11 +195,10 @@ class TestModelBase:
         assert new_model._room_temperature.value == 22.0
         assert isinstance(new_model._temperature, Parameter)
         assert isinstance(new_model._room_temperature, DescriptorNumber)
-        assert len(global_object.map.vertices()) == 4
-        assert global_object.map.get_item_by_key('Parameter_0') is new_model._temperature
+        assert len(global_object.registry) == 4
+        assert global_object.registry['Parameter_0'] is new_model._temperature
         assert (
-            len([param for param in global_object.map.vertices() if param.startswith('Parameter')])
-            == 1
+            len([param for param in global_object.registry if param.startswith('Parameter')]) == 1
         )
 
     def test_from_dict_nested(self, monkeypatch, clear):
@@ -234,7 +226,7 @@ class TestModelBase:
                 )
             ),
         )
-        global_object.map._clear()
+        global_object.registry.clear()
         # Then
         new_model = MockModelFull.from_dict(obj_dict)
         # Expect
@@ -248,15 +240,14 @@ class TestModelBase:
         assert isinstance(new_model._area, Parameter)
         assert isinstance(new_model.component._temperature, Parameter)
         assert isinstance(new_model.component._room_temperature, DescriptorNumber)
-        assert len(global_object.map.vertices()) == 7
-        assert global_object.map.get_item_by_key('Parameter_0') in [
+        assert len(global_object.registry) == 7
+        assert global_object.registry['Parameter_0'] in [
             new_model._pressure,
             new_model._area,
             new_model.component._temperature,
         ]
         assert (
-            len([param for param in global_object.map.vertices() if param.startswith('Parameter')])
-            == 3
+            len([param for param in global_object.registry if param.startswith('Parameter')]) == 3
         )
 
     def test_from_dict_not_easyscience(self):
@@ -312,7 +303,7 @@ class TestModelBase:
             'temperature',
             property(lambda self: (_ for _ in ()).throw(Exception('Simulated failure'))),
         )
-        global_object.map._clear()
+        global_object.registry.clear()
         # Then Expect
         with pytest.raises(
             SyntaxError,

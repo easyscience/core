@@ -16,8 +16,7 @@ class TestGlobalObject:
 
         # Expect
         assert global_object.log == GlobalObject().log
-        assert global_object.map == GlobalObject().map
-        assert global_object.stack == GlobalObject().stack
+        assert global_object.registry == GlobalObject().registry
         assert global_object.debug == GlobalObject().debug
 
     def test_generate_unique_name(self):
@@ -33,13 +32,13 @@ class TestGlobalObject:
         global_object = GlobalObject()
         # Block the other_name_prefix_2 name
         keep_due_toweakref_1 = DescriptorBool(
-            name='test', value=True, unique_name='other_name_prefix_2'
+            display_name='test', value=True, unique_name='other_name_prefix_2'
         )
         keep_due_toweakref_2 = DescriptorBool(
-            name='test', value=True, unique_name='other_name_prefix_a_3'
+            display_name='test', value=True, unique_name='other_name_prefix_a_3'
         )
         keep_due_toweakref_3 = DescriptorBool(
-            name='test', value=True, unique_name='almost_other_name_prefix_3'
+            display_name='test', value=True, unique_name='almost_other_name_prefix_3'
         )
 
         # Then
@@ -50,10 +49,10 @@ class TestGlobalObject:
 
     @pytest.fixture
     def clear_global_map(self):
-        """Clear global map before and after each test"""
-        global_object.map._clear()
+        """Clear global registry before and after each test"""
+        global_object.registry.clear()
         yield
-        global_object.map._clear()
+        global_object.registry.clear()
 
     def test_singleton_behavior(self):
         """Test that GlobalObject is truly a singleton"""
@@ -64,22 +63,8 @@ class TestGlobalObject:
         # Then
         assert obj1 is obj2
         assert id(obj1) == id(obj2)
-        assert obj1.map is obj2.map
+        assert obj1.registry is obj2.registry
         assert obj1.log is obj2.log
-
-    def test_instantiate_stack(self, clear_global_map):
-        """Test stack instantiation"""
-        # Given
-        global_obj = GlobalObject()
-
-        # When
-        global_obj.instantiate_stack()
-
-        # Then
-        assert global_obj.stack is not None
-        from easyscience.global_object.undo_redo import UndoStack
-
-        assert isinstance(global_obj.stack, UndoStack)
 
     def test_debug_property(self):
         """Test debug property access"""
@@ -94,7 +79,7 @@ class TestGlobalObject:
         assert global_obj.debug is global_obj2.debug
 
     def test_generate_unique_name_empty_map(self, clear_global_map):
-        """Test unique name generation with empty map"""
+        """Test unique name generation with empty registry"""
         # Given
         global_obj = GlobalObject()
 
@@ -109,9 +94,9 @@ class TestGlobalObject:
         # Given
         global_obj = GlobalObject()
         # Create objects with non-sequential names
-        keep1 = DescriptorBool(name='test', value=True, unique_name='prefix_0')
-        keep2 = DescriptorBool(name='test', value=True, unique_name='prefix_2')
-        keep3 = DescriptorBool(name='test', value=True, unique_name='prefix_5')
+        keep1 = DescriptorBool(display_name='test', value=True, unique_name='prefix_0')
+        keep2 = DescriptorBool(display_name='test', value=True, unique_name='prefix_2')
+        keep3 = DescriptorBool(display_name='test', value=True, unique_name='prefix_5')
 
         # When
         name = global_obj.generate_unique_name('prefix')
@@ -123,8 +108,8 @@ class TestGlobalObject:
         """Test that non-numeric suffixes are ignored"""
         # Given
         global_obj = GlobalObject()
-        keep1 = DescriptorBool(name='test', value=True, unique_name='prefix_abc')
-        keep2 = DescriptorBool(name='test', value=True, unique_name='prefix_1')
+        keep1 = DescriptorBool(display_name='test', value=True, unique_name='prefix_abc')
+        keep2 = DescriptorBool(display_name='test', value=True, unique_name='prefix_1')
 
         # When
         name = global_obj.generate_unique_name('prefix')
@@ -136,8 +121,8 @@ class TestGlobalObject:
         """Test that similar but different prefixes don't interfere"""
         # Given
         global_obj = GlobalObject()
-        keep1 = DescriptorBool(name='test', value=True, unique_name='test_param_5')
-        keep2 = DescriptorBool(name='test', value=True, unique_name='test_parameter_10')
+        keep1 = DescriptorBool(display_name='test', value=True, unique_name='test_param_5')
+        keep2 = DescriptorBool(display_name='test', value=True, unique_name='test_parameter_10')
 
         # When
         name1 = global_obj.generate_unique_name('test_param')
@@ -153,25 +138,14 @@ class TestGlobalObject:
         global_obj = GlobalObject()
 
         # When
-        param1 = Parameter(name='test1', value=1.0)
-        param2 = Parameter(name='test2', value=2.0)
+        param1 = Parameter(display_name='test1', value=1.0)
+        param2 = Parameter(display_name='test2', value=2.0)
 
         # Then
-        assert len(global_obj.map.vertices()) == 2
-        assert param1.unique_name in global_obj.map.vertices()
-        assert param2.unique_name in global_obj.map.vertices()
+        assert len(global_obj.registry) == 2
+        assert param1.unique_name in global_obj.registry
+        assert param2.unique_name in global_obj.registry
 
         # Test retrieval
-        retrieved1 = global_obj.map.get_item_by_key(param1.unique_name)
+        retrieved1 = global_obj.registry[param1.unique_name]
         assert retrieved1 is param1
-
-    def test_script_manager_access(self):
-        """Test that script manager is accessible"""
-        # Given
-        global_obj = GlobalObject()
-
-        # Then
-        assert hasattr(global_obj, 'script')
-        from easyscience.global_object.hugger.hugger import ScriptManager
-
-        assert isinstance(global_obj.script, ScriptManager)

@@ -4,37 +4,43 @@
 import numpy as np
 import pytest
 
-from easyscience import AvailableMinimizers
 from easyscience import Fitter
-from easyscience import ObjBase
+from easyscience import Minimizers
 from easyscience import Parameter
 from easyscience.base_classes import ModelBase
 from easyscience.fitting.minimizers import FitError
 
 
 # Model and container of parameters for tests
-class AbsSin(ObjBase):
-    phase: Parameter
-    offset: Parameter
-
+class _PhaseOffset(ModelBase):
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
-        super().__init__('sin', offset=offset, phase=phase)
+        super().__init__()
+        self._offset = Parameter(offset_val, display_name='offset')
+        self._phase = Parameter(phase_val, display_name='phase')
 
+    @property
+    def offset(self) -> Parameter:
+        return self._offset
+
+    @offset.setter
+    def offset(self, value: float) -> None:
+        self._offset.value = value
+
+    @property
+    def phase(self) -> Parameter:
+        return self._phase
+
+    @phase.setter
+    def phase(self, value: float) -> None:
+        self._phase.value = value
+
+
+class AbsSin(_PhaseOffset):
     def __call__(self, x):
         return np.abs(np.sin(self.phase.value * x + self.offset.value))
 
 
-class AbsSin2D(ObjBase):
-    phase: Parameter
-    offset: Parameter
-
-    def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
-        super().__init__('sin2D', offset=offset, phase=phase)
-
+class AbsSin2D(_PhaseOffset):
     def __call__(self, x):
         X = x[:, :, 0]  # x is a 2D array
         Y = x[:, :, 1]
@@ -55,8 +61,8 @@ class AbsSin2DL(AbsSin2D):
 class StraightLine(ModelBase):
     def __init__(self, slope: float, intercept: float):
         super().__init__()
-        self._slope = Parameter('slope', slope)
-        self._intercept = Parameter('intercept', intercept)
+        self._slope = Parameter(slope, display_name='slope')
+        self._intercept = Parameter(intercept, display_name='intercept')
 
     @property
     def slope(self) -> Parameter:
@@ -78,8 +84,8 @@ class StraightLine(ModelBase):
         return self.slope.value * x + self.intercept.value
 
 
-def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
-    assert result.n_pars == len(sp_sin.get_fit_parameters())
+def check_fit_results(result, sp_sin, ref_sin, x, expect_error=True, **kwargs):
+    assert result.n_pars == len(sp_sin.get_free_parameters())
     assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
     assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
@@ -90,9 +96,14 @@ def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
             assert key in result.p0.keys()
             assert result.p0[key] == pytest.approx(value)  # Bumps does something strange here
     assert np.all(result.x == x)
-    for item1, item2 in zip(sp_sin._kwargs.values(), ref_sin._kwargs.values()):
-        # assert item.error > 0 % This does not work as some methods don't calculate error
-        assert item1.error == pytest.approx(0, abs=2.1e-1)
+    for item1, item2 in zip(sp_sin.get_all_parameters(), ref_sin.get_all_parameters()):
+        # Gradient-free methods (e.g. lmfit's powell/cobyla) have no covariance
+        # matrix, so they report error as None rather than a fake 0.0. Every
+        # other method must still produce a real uncertainty.
+        if expect_error:
+            assert item1.error == pytest.approx(0, abs=2.1e-1)
+        else:
+            assert item1.error is None
         assert item1.value == pytest.approx(item2.value, abs=5e-3)
     y_calc_ref = ref_sin(x)
     assert result.y_calc == pytest.approx(y_calc_ref, abs=1e-2)
@@ -104,12 +115,12 @@ def check_fit_results(result, sp_sin, ref_sin, x, **kwargs):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
-def test_basic_fit(fit_engine: AvailableMinimizers):
+def test_basic_fit(fit_engine: Minimizers):
     ref_sin = AbsSin(0.2, np.pi)
     sp_sin = AbsSin(0.354, 3.05)
 
@@ -122,10 +133,7 @@ def test_basic_fit(fit_engine: AvailableMinimizers):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x=x, y=y, weights=weights)
 
@@ -142,9 +150,9 @@ def test_basic_fit(fit_engine: AvailableMinimizers):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_fit_result(fit_engine):
@@ -160,20 +168,17 @@ def test_fit_result(fit_engine):
 
     sp_ref1 = {
         f'p{item1.unique_name}': item1.value
-        for item1, item2 in zip(sp_sin._kwargs.values(), ref_sin._kwargs.values())
+        for item1, item2 in zip(sp_sin.get_all_parameters(), ref_sin.get_all_parameters())
     }
     sp_ref2 = {
         f'p{item1.unique_name}': item2.value
-        for item1, item2 in zip(sp_sin._kwargs.values(), ref_sin._kwargs.values())
+        for item1, item2 in zip(sp_sin.get_all_parameters(), ref_sin.get_all_parameters())
     }
 
     f = Fitter(sp_sin, sp_sin)
 
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x, y, weights=weights)
     check_fit_results(result, sp_sin, ref_sin, x, sp_ref1=sp_ref1, sp_ref2=sp_ref2)
@@ -184,9 +189,9 @@ def test_fit_result(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_basic_max_evaluations(fit_engine):
@@ -202,10 +207,7 @@ def test_basic_max_evaluations(fit_engine):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     f.max_evaluations = 3
     result = f.fit(x=x, y=y, weights=weights)
     # Result should not be the same as the reference
@@ -218,9 +220,9 @@ def test_basic_max_evaluations(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_max_evaluations_populates_fit_result_fields(fit_engine):
@@ -237,10 +239,7 @@ def test_max_evaluations_populates_fit_result_fields(fit_engine):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     f.max_evaluations = 3
     result = f.fit(x=x, y=y, weights=weights)
 
@@ -265,10 +264,7 @@ def test_bumps_max_evaluations_counts_objective_calls() -> None:
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    try:
-        f.switch_minimizer(AvailableMinimizers.Bumps)
-    except AttributeError:
-        pytest.skip(reason=f'{AvailableMinimizers.Bumps} is not installed')
+    f.switch_minimizer(Minimizers.Bumps)
 
     f.max_evaluations = 3
     result = f.fit(x=x, y=y, weights=weights)
@@ -285,9 +281,9 @@ def test_bumps_max_evaluations_counts_objective_calls() -> None:
     'fit_engine,tolerance',
     [
         (None, 10),
-        (AvailableMinimizers.LMFit, 10),
-        (AvailableMinimizers.Bumps, 10),
-        (AvailableMinimizers.DFO, 0.1),
+        (Minimizers.LMFit, 10),
+        (Minimizers.Bumps, 10),
+        (Minimizers.DFO, 0.1),
     ],
 )
 def test_basic_tolerance(fit_engine, tolerance):
@@ -303,10 +299,7 @@ def test_basic_tolerance(fit_engine, tolerance):
 
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     f.tolerance = tolerance
     result = f.fit(x=x, y=y, weights=weights)
     # Result should not be the same as the reference
@@ -330,7 +323,9 @@ def test_lmfit_methods(fit_method):
     f = Fitter(sp_sin, sp_sin)
     assert fit_method in f._minimizer.supported_methods()
     result = f.fit(x, y, weights=weights, method=fit_method)
-    check_fit_results(result, sp_sin, ref_sin, x)
+    check_fit_results(
+        result, sp_sin, ref_sin, x, expect_error=fit_method not in ('powell', 'cobyla')
+    )
 
 
 # @pytest.mark.xfail(reason="known bumps issue")
@@ -348,16 +343,45 @@ def test_bumps_methods(fit_method):
     sp_sin.phase.fixed = False
 
     f = Fitter(sp_sin, sp_sin)
-    f.switch_minimizer('Bumps')
+    f.switch_minimizer(Minimizers.Bumps)
     assert fit_method in f._minimizer.supported_methods()
     result = f.fit(x, y, weights=weights, method=fit_method)
     check_fit_results(result, sp_sin, ref_sin, x)
 
 
 @pytest.mark.fast
+def test_bumps_fit_emits_no_fitness_deprecation_warning():
+    """Regression (CR-1): the classical BUMPS fit path must not read the
+    deprecated ``FitProblem.fitness`` property, which emits a ``UserWarning``
+    on bumps >= 1.0.4 — the ``Curve`` comes back from ``build_curve_problem``
+    directly."""
+    import warnings
+
+    ref_sin = AbsSin(0.2, np.pi)
+    sp_sin = AbsSin(0.354, 3.05)
+
+    x = np.linspace(0, 5, 200)
+    weights = np.ones_like(x)
+    y = ref_sin(x)
+
+    sp_sin.offset.fixed = False
+    sp_sin.phase.fixed = False
+
+    f = Fitter(sp_sin, sp_sin)
+    f.switch_minimizer(Minimizers.Bumps)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        f.fit(x, y, weights=weights)
+
+    fitness_warnings = [w for w in caught if 'fitness' in str(w.message)]
+    assert fitness_warnings == []
+
+
+@pytest.mark.fast
 @pytest.mark.parametrize(
     'fit_engine',
-    [AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO],
+    [Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
 )
 def test_dependent_parameter(fit_engine):
     ref_sin = AbsSin(np.pi * 0.45, 0.45 * np.pi * 0.5)
@@ -374,13 +398,13 @@ def test_dependent_parameter(fit_engine):
     )
 
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x, y, weights=weights)
-    check_fit_results(result, sp_sin, ref_sin, x)
+    # With `offset` dependent on `phase` only one parameter varies against
+    # noiseless data, so lmfit's covariance is exactly [[0.]] and it reports
+    # `errorbars=False` -> no uncertainties.
+    check_fit_results(result, sp_sin, ref_sin, x, expect_error=fit_engine is not Minimizers.LMFit)
 
 
 @pytest.mark.fast
@@ -388,9 +412,9 @@ def test_dependent_parameter(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_2D_vectorized(fit_engine):
@@ -402,10 +426,7 @@ def test_2D_vectorized(fit_engine):
     weights = np.ones_like(mm(XY))
     ff = Fitter(m2, m2)
     if fit_engine is not None:
-        try:
-            ff.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        ff.switch_minimizer(fit_engine)
     try:
         result = ff.fit(x=XY, y=mm(XY), weights=weights, vectorized=True)
     except FitError as e:
@@ -413,7 +434,7 @@ def test_2D_vectorized(fit_engine):
             pytest.skip(reason='MemoryError - Matrix too large')
         else:
             raise e
-    assert result.n_pars == len(m2.get_fit_parameters())
+    assert result.n_pars == len(m2.get_free_parameters())
     assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)
@@ -427,9 +448,9 @@ def test_2D_vectorized(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_2D_non_vectorized(fit_engine):
@@ -441,10 +462,7 @@ def test_2D_non_vectorized(fit_engine):
     weights = np.ones_like(mm(XY.reshape(-1, 2)))
     ff = Fitter(m2, m2)
     if fit_engine is not None:
-        try:
-            ff.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        ff.switch_minimizer(fit_engine)
     try:
         result = ff.fit(x=XY, y=mm(XY.reshape(-1, 2)), weights=weights, vectorized=False)
     except FitError as e:
@@ -452,7 +470,7 @@ def test_2D_non_vectorized(fit_engine):
             pytest.skip(reason='MemoryError - Matrix too large')
         else:
             raise e
-    assert result.n_pars == len(m2.get_fit_parameters())
+    assert result.n_pars == len(m2.get_free_parameters())
     assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
     assert result.success
     assert np.all(result.x == XY)
@@ -466,9 +484,9 @@ def test_2D_non_vectorized(fit_engine):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_fixed_parameter_does_not_change(fit_engine):
@@ -489,10 +507,7 @@ def test_fixed_parameter_does_not_change(fit_engine):
     # THEN
     f = Fitter(sp_sin, sp_sin)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x=x, y=y, weights=weights)
 
@@ -529,9 +544,9 @@ def test_fitter_new_model_base_integration():
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_fitter_variable_weights(fit_engine):
@@ -564,10 +579,7 @@ def test_fitter_variable_weights(fit_engine):
 
         f = Fitter(model, model)
         if fit_engine is not None:
-            try:
-                f.switch_minimizer(fit_engine)
-            except AttributeError:
-                pytest.skip(reason=f'{fit_engine} is not installed')
+            f.switch_minimizer(fit_engine)
 
         f.fit(x=x, y=y, weights=weights)
         return model.offset.value, model.phase.value
@@ -598,9 +610,9 @@ def _analytic_wls(design: np.ndarray, y: np.ndarray, point_weights: np.ndarray):
     'fit_engine',
     [
         None,
-        AvailableMinimizers.LMFit,
-        AvailableMinimizers.Bumps,
-        AvailableMinimizers.DFO,
+        Minimizers.LMFit,
+        Minimizers.Bumps,
+        Minimizers.DFO,
     ],
 )
 def test_weight_convention_matches_analytic_wls(fit_engine):
@@ -638,10 +650,7 @@ def test_weight_convention_matches_analytic_wls(fit_engine):
 
     f = Fitter(model, model)
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(reason=f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     result = f.fit(x=x, y=y, weights=1.0 / sigma)
 
@@ -649,7 +658,7 @@ def test_weight_convention_matches_analytic_wls(fit_engine):
     assert model.slope.value == pytest.approx(beta[0], abs=tolerance)
     assert model.intercept.value == pytest.approx(beta[1], abs=tolerance)
 
-    if fit_engine in (None, AvailableMinimizers.LMFit):
+    if fit_engine in (None, Minimizers.LMFit):
         # lmfit scales the covariance by reduced chi-square (scale_covar=True)
         residual = y - design @ beta
         chi2 = float(np.sum((residual / sigma) ** 2))

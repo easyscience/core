@@ -1,0 +1,204 @@
+# SPDX-FileCopyrightText: 2025 EasyScience contributors <https://github.com/easyscience>
+# SPDX-License-Identifier: BSD-3-Clause
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
+    from typing import Dict
+    from typing import Iterable
+    from typing import List
+    from typing import Optional
+
+from easyscience import global_object
+
+from .serializer_base import SerializerBase
+
+
+class EasyBase:
+    """
+    This is the base class for easyscience objects.
+
+    It provides serialization capabilities as well as unique naming and
+    display naming.
+    """
+
+    def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
+        self._global_object = global_object
+        if unique_name is None:
+            unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
+            self._default_unique_name = True
+        else:
+            self._default_unique_name = False
+        if not isinstance(unique_name, str):
+            raise TypeError('Unique name has to be a string.')
+        self._unique_name = unique_name
+        self._global_object.registry.add(self)
+        if display_name is not None and not isinstance(display_name, str):
+            raise TypeError('Display name must be a string or None')
+        self._display_name = display_name
+
+    @property
+    def unique_name(self) -> str:
+        """Get the unique name of the object."""
+        return self._unique_name
+
+    @unique_name.setter
+    def unique_name(self, new_unique_name: str):
+        """
+        Set a new unique name for the object.
+
+        The old name is removed from the registry.
+
+        Parameters
+        ----------
+        new_unique_name : str
+            New unique name for the object.
+
+        Raises
+        ------
+        TypeError
+            If ``new_unique_name`` is not a string.
+        ValueError
+            If ``new_unique_name`` is already registered to another object.
+        """
+        if not isinstance(new_unique_name, str):
+            raise TypeError('Unique name has to be a string.')
+        registry = self._global_object.registry
+        old_unique_name = self._unique_name
+        if new_unique_name != old_unique_name:
+            self._unique_name = new_unique_name
+            try:
+                registry.add(self)
+            except ValueError:
+                # Keep the old name if the new one is taken
+                self._unique_name = old_unique_name
+                raise
+            if old_unique_name in registry and registry[old_unique_name] is self:
+                # Only drop the old name if it is still ours. If it was
+                # discarded while this object stayed alive (e.g. in
+                # ModelBase.from_dict or registry.clear()), it may since
+                # have been given to another object.
+                registry.discard(old_unique_name)
+        self._default_unique_name = False
+
+    @property
+    def display_name(self) -> str:
+        """
+        Get a pretty display name.
+
+        Returns
+        -------
+        str
+            The pretty display name.
+        """
+        display_name = self._display_name
+        if display_name is None:
+            display_name = self.unique_name
+        return display_name
+
+    @display_name.setter
+    def display_name(self, name: str | None) -> None:
+        """
+        Set the pretty display name.
+
+        Parameters
+        ----------
+        name : str | None
+            Pretty display name of the object.
+
+        Raises
+        ------
+        TypeError
+            If ``name`` is neither a string nor ``None``.
+        """
+        if name is not None and not isinstance(name, str):
+            raise TypeError('Display name must be a string or None')
+        self._display_name = name
+
+    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Convert an EasyScience object into a full dictionary using
+        ``SerializerBase``s generic ``convert_to_dict`` method.
+
+        Parameters
+        ----------
+        skip : Optional[List[str]], default=None
+            List of field names as strings to skip when forming the
+            dictionary. By default, None.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Encoded object containing all information to reform an
+            EasyScience object.
+
+        Notes
+        -----
+        A ``unique_name`` that was generated automatically is not
+        written; only an explicitly supplied one is, so that a
+        deserialized object gets a fresh name instead of clashing with
+        the original. Likewise ``display_name`` is omitted when it is
+        ``None``. Pass ``skip`` to drop further fields.
+        """
+        serializer = SerializerBase()
+        skip = list(skip) if skip else []
+        return serializer._convert_to_dict(self, skip=skip, full_encode=False)
+
+    @classmethod
+    def from_dict(cls, obj_dict: Dict[str, Any]) -> EasyBase:
+        """
+        Re-create an EasyScience object from a full encoded dictionary.
+
+        Parameters
+        ----------
+        obj_dict : Dict[str, Any]
+            Dictionary containing the serialized contents (from
+            ``to_dict``) of an EasyScience object.
+
+        Returns
+        -------
+        EasyBase
+            Reformed EasyScience object.
+
+        Raises
+        ------
+        ValueError
+            If the input dictionary does not describe the expected
+            class.
+        """
+        if not SerializerBase._is_serialized_easyscience_object(obj_dict):
+            raise ValueError('Input must be a dictionary representing an EasyScience object.')
+        if obj_dict['@class'] == cls.__name__:
+            kwargs = SerializerBase.deserialize_dict(obj_dict)
+            return cls(**kwargs)
+        else:
+            raise ValueError(
+                f'Class name in dictionary does not match the expected class: {cls.__name__}.'
+            )
+
+    def __dir__(self) -> Iterable[str]:
+        """
+        This creates auto-completion and helps out in iPython notebooks.
+
+        Returns
+        -------
+        Iterable[str]
+            List of function and parameter names for auto- completion.
+        """
+        new_class_objs = list(k for k in dir(self.__class__) if not k.startswith('_'))
+        return sorted(new_class_objs)
+
+    def __copy__(self) -> EasyBase:
+        """Return a copy of the object."""
+        temp = self.to_dict(skip=['unique_name'])
+        new_obj = self.__class__.from_dict(temp)
+        return new_obj
+
+    def __deepcopy__(self, memo):
+        return self.__copy__()
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__} `{self.unique_name}`'

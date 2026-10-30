@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from ..utils.classUtils import singleton
-from .hugger.hugger import ScriptManager
 from .logger import Logger
-from .map import Map
+from .object_registry import ObjectRegistry
 
 
 @singleton
@@ -17,8 +16,7 @@ class GlobalObject:
     """
 
     __log = Logger()
-    __map = Map()
-    __stack = None
+    __registry = ObjectRegistry()
     __debug = False
 
     def __init__(self):
@@ -26,22 +24,8 @@ class GlobalObject:
         self.log: Logger = self.__log
         # Debug. Global debugging level
         self.debug: bool = self.__debug
-        # Stack. This is where the undo/redo operations are stored.
-        self.stack = self.__stack
-        #
-        self.script: ScriptManager = ScriptManager()
-        # Map. This is the conduit database between all global object species
-        self.map: Map = self.__map
-
-    def instantiate_stack(self):
-        """
-        The undo/redo stack references the collective.
-
-        Hence it has to be imported after initialization.
-        """
-        from easyscience.global_object.undo_redo import UndoStack
-
-        self.stack = UndoStack()
+        # Registry. All live EasyScience objects, looked up by unique name
+        self.registry: ObjectRegistry = self.__registry
 
     def generate_unique_name(self, name_prefix: str) -> str:
         """
@@ -59,9 +43,7 @@ class GlobalObject:
         str
             Generated unique name.
         """
-        names_with_prefix = [
-            name for name in self.map.vertices() if name.startswith(name_prefix + '_')
-        ]
+        names_with_prefix = [name for name in self.registry if name.startswith(name_prefix + '_')]
         if names_with_prefix:
             name_with_prefix_count = [0]
             for name in names_with_prefix:

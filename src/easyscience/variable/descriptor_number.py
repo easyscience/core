@@ -17,9 +17,6 @@ import scipp as sc
 from scipp import UnitError
 from scipp import Variable
 
-from easyscience.global_object.undo_redo import PropertyStack
-from easyscience.global_object.undo_redo import property_stack
-
 from .descriptor_base import DescriptorBase
 
 
@@ -57,33 +54,64 @@ class DescriptorNumber(DescriptorBase):
 
     def __init__(
         self,
-        name: str,
         value: numbers.Number,
+        *,
         unit: Optional[Union[str, sc.Unit]] = '',
         variance: Optional[numbers.Number] = None,
         unique_name: Optional[str] = None,
         description: Optional[str] = None,
         url: Optional[str] = None,
         display_name: Optional[str] = None,
-        parent: Optional[Any] = None,
         **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
         """
         Constructor for the DescriptorNumber class.
 
-        param name: Name of the descriptor param value: Value of the
-        descriptor param unit: Unit of the descriptor param variance:
-        Variance of the descriptor param description: Description of the
-        descriptor param url: URL of the descriptor param display_name:
-        Display name of the descriptor param parent: Parent of the
-        descriptor .. note:: Undo/Redo functionality is implemented for
-        the attributes ``variance``, ``error``, ``unit`` and ``value``.
+        All arguments after ``value`` are keyword-only.
+
+        Parameters
+        ----------
+        value : numbers.Number
+            Value of this object.
+        unit : Optional[Union[str, sc.Unit]], default=''
+            This object can have a physical unit associated with it. By
+            default, ''.
+        variance : Optional[numbers.Number], default=None
+            The variance of the value. By default, None.
+        unique_name : Optional[str], default=None
+            Unique identifier for this object. By default, None.
+        description : Optional[str], default=None
+            A brief summary of what this object is. By default, None.
+        url : Optional[str], default=None
+            Lookup url for documentation/information. By default, None.
+        display_name : Optional[str], default=None
+            A pretty name for the object. Falls back to ``unique_name``
+            when not given. By default, None.
+        **kwargs : Any
+            Additional keyword arguments used during (de)serialization.
+
+        Raises
+        ------
+        TypeError
+            If ``value`` or ``variance`` is not a number, if ``unit`` is
+            not a string or scipp unit, or if an unexpected keyword
+            argument is given.
+        UnitError
+            If ``unit`` is not a valid scipp unit.
+        ValueError
+            If ``variance`` is negative.
+
         """
         self._observers: List[DescriptorNumber] = []
 
         # Extract serializer_id if provided during deserialization
         if '__serializer_id' in kwargs:
             self.__serializer_id = kwargs.pop('__serializer_id')
+        if kwargs:
+            raise TypeError(
+                f'{self.__class__.__name__}.__init__() got unexpected keyword '
+                f'argument(s): {", ".join(sorted(kwargs))}.'
+            )
 
         if not isinstance(value, numbers.Number) or isinstance(value, bool):
             raise TypeError(f'{value=} must be a number')
@@ -102,12 +130,10 @@ class DescriptorNumber(DescriptorBase):
         except Exception as message:
             raise UnitError(message)
         super().__init__(
-            name=name,
             unique_name=unique_name,
             description=description,
             url=url,
             display_name=display_name,
-            parent=parent,
         )
 
         # Call convert_unit during initialization to ensure that the unit has no numbers in it, and to ensure unit consistency.
@@ -115,14 +141,12 @@ class DescriptorNumber(DescriptorBase):
             self._convert_unit(self._base_unit())
 
     @classmethod
-    def from_scipp(cls, name: str, full_value: Variable, **kwargs: Any) -> DescriptorNumber:
+    def from_scipp(cls, full_value: Variable, **kwargs: Any) -> DescriptorNumber:
         """
         Create a DescriptorNumber from a scipp constant.
 
         Parameters
         ----------
-        name : str
-            Name of the descriptor.
         full_value : Variable
             Value of the descriptor as a scipp scalar.
         **kwargs : Any
@@ -143,7 +167,6 @@ class DescriptorNumber(DescriptorBase):
         if len(full_value.dims) != 0:
             raise TypeError(f'{full_value=} must be a scipp scalar')
         return cls(
-            name=name,
             value=full_value.value,
             unit=full_value.unit,
             variance=full_value.variance,
@@ -231,7 +254,6 @@ class DescriptorNumber(DescriptorBase):
 
     @value.setter
     @notify_observers
-    @property_stack
     def value(self, value: numbers.Number) -> None:
         """
         Set the value of self.
@@ -288,7 +310,6 @@ class DescriptorNumber(DescriptorBase):
 
     @variance.setter
     @notify_observers
-    @property_stack
     def variance(self, variance_float: float) -> None:
         """
         Set the variance.
@@ -329,7 +350,6 @@ class DescriptorNumber(DescriptorBase):
 
     @error.setter
     @notify_observers
-    @property_stack
     def error(self, value: float) -> None:
         """
         Set the standard deviation for the parameter.
@@ -378,25 +398,11 @@ class DescriptorNumber(DescriptorBase):
             raise TypeError(f'{unit_str=} must be a string representing a valid scipp unit')
         new_unit = sc.Unit(unit_str)
 
-        # Save the current state for undo/redo
-        old_scalar = self._scalar
-
         # Perform the unit conversion
         try:
             new_scalar = self._scalar.to(unit=new_unit)
         except Exception as e:
             raise UnitError(f'Failed to convert unit: {e}') from e
-
-        # Define the setter function for the undo stack
-        def set_scalar(obj, scalar):
-            obj._scalar = scalar
-
-        # Push to undo stack
-        self._global_object.stack.push(
-            PropertyStack(
-                self, set_scalar, old_scalar, new_scalar, text=f'Convert unit to {unit_str}'
-            )
-        )
 
         # Update the scalar
         self._scalar = new_scalar
@@ -422,7 +428,7 @@ class DescriptorNumber(DescriptorBase):
         """Return printable representation."""
         string = '<'
         string += self.__class__.__name__ + ' '
-        string += f"'{self._name}': "
+        string += f"'{self.display_name}': "
         if np.abs(self._scalar.value) > 1e4 or (
             np.abs(self._scalar.value) < 1e-4 and self._scalar.value != 0
         ):
@@ -444,8 +450,8 @@ class DescriptorNumber(DescriptorBase):
         return string
         # return f"<{class_name} '{obj_name}': {obj_value:0.04f}{obj_unit}>"
 
-    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
-        raw_dict = super().as_dict(skip=skip)
+    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+        raw_dict = super().to_dict(skip=skip)
         raw_dict['value'] = self._scalar.value
         raw_dict['unit'] = str(self._scalar.unit)
         raw_dict['variance'] = self._scalar.variance
@@ -470,9 +476,7 @@ class DescriptorNumber(DescriptorBase):
             other._convert_unit(original_unit)
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __radd__(self, other: numbers.Number) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
@@ -481,9 +485,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other + self.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __sub__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
@@ -502,9 +504,7 @@ class DescriptorNumber(DescriptorBase):
             other._convert_unit(original_unit)
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rsub__(self, other: numbers.Number) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
@@ -513,9 +513,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other - self.full_value
         else:
             return NotImplemented
-        descriptor = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor.name = descriptor.unique_name
-        return descriptor
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __mul__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
@@ -524,9 +522,8 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value * other.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         descriptor_number._convert_unit(descriptor_number._base_unit())
-        descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
     def __rmul__(self, other: numbers.Number) -> DescriptorNumber:
@@ -534,9 +531,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other * self.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __truediv__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
@@ -549,9 +544,8 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value / other.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
+        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
         descriptor_number._convert_unit(descriptor_number._base_unit())
-        descriptor_number.name = descriptor_number.unique_name
         return descriptor_number
 
     def __rtruediv__(self, other: numbers.Number) -> DescriptorNumber:
@@ -561,9 +555,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = other / self.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> DescriptorNumber:
         if isinstance(other, numbers.Number):
@@ -582,9 +574,7 @@ class DescriptorNumber(DescriptorBase):
             raise message from None
         if np.isnan(new_value.value):
             raise ValueError('The result of the exponentiation is not a number')
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rpow__(self, other: numbers.Number) -> numbers.Number:
         if isinstance(other, numbers.Number):
@@ -599,15 +589,11 @@ class DescriptorNumber(DescriptorBase):
 
     def __neg__(self) -> DescriptorNumber:
         new_value = -self.full_value
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __abs__(self) -> DescriptorNumber:
         new_value = abs(self.full_value)
-        descriptor_number = DescriptorNumber.from_scipp(name=self.name, full_value=new_value)
-        descriptor_number.name = descriptor_number.unique_name
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def _base_unit(self) -> str:
         """
