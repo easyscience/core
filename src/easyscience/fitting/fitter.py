@@ -4,21 +4,17 @@
 import functools
 from typing import Callable
 from typing import List
-from typing import Union
 
 import numpy as np
 
-from easyscience import global_object
-
-from .available_minimizers import AvailableMinimizers
-from .available_minimizers import from_string_to_enum
 from .minimizers import FitResults
 from .minimizers import MinimizerBase
+from .minimizers import Minimizers
 from .minimizers.factory import factory
 from .reshaping import inject_x
 from .reshaping import reshape_dataset
 
-DEFAULT_MINIMIZER = AvailableMinimizers.LMFit_leastsq
+DEFAULT_MINIMIZER = Minimizers.LMFit_leastsq
 
 
 class Fitter:
@@ -35,7 +31,7 @@ class Fitter:
         self._max_evaluations: int = None
 
         self._minimizer: MinimizerBase = None  # set in _update_minimizer
-        self._enum_current_minimizer: AvailableMinimizers = None  # set in _update_minimizer
+        self._enum_current_minimizer: Minimizers = None  # set in _update_minimizer
         self._update_minimizer(DEFAULT_MINIMIZER)
 
     def make_model(self, pars=None) -> Callable:
@@ -60,42 +56,29 @@ class Fitter:
         self._fit_function = fit_function
         self._update_minimizer(DEFAULT_MINIMIZER)
 
-    # TODO: remove this method when we are ready to adjust the dependent products
-    def create(self, minimizer_enum: Union[AvailableMinimizers, str] = DEFAULT_MINIMIZER) -> None:
-        """
-        Create the required minimizer.
-
-        Parameters
-        ----------
-        minimizer_enum : Union[AvailableMinimizers, str], default=DEFAULT_MINIMIZER
-            The enum of the minimization engine to create. By default,
-            DEFAULT_MINIMIZER.
-        """
-        if isinstance(minimizer_enum, str):
-            global_object.log.getLogger('fitting').warning(
-                'minimizer should be set with enum %s', minimizer_enum
-            )
-            minimizer_enum = from_string_to_enum(minimizer_enum)
-        self._update_minimizer(minimizer_enum)
-
-    def switch_minimizer(self, minimizer_enum: Union[AvailableMinimizers, str]) -> None:
+    def switch_minimizer(self, minimizer_enum: Minimizers) -> None:
         """
         Switch minimizer and initialize.
 
         Parameters
         ----------
-        minimizer_enum : Union[AvailableMinimizers, str]
+        minimizer_enum : Minimizers
             The enum of the minimizer to create and instantiate.
-        """
-        if isinstance(minimizer_enum, str):
-            global_object.log.getLogger('fitting').warning(
-                'minimizer should be set with enum %s', minimizer_enum
-            )
-            minimizer_enum = from_string_to_enum(minimizer_enum)
 
+        Raises
+        ------
+        TypeError
+            If ``minimizer_enum`` is not a ``Minimizers``
+            member.
+        """
+        if not isinstance(minimizer_enum, Minimizers):
+            raise TypeError(
+                f'minimizer must be a Minimizers member, got {minimizer_enum!r}; '
+                f'use Minimizers[name] to convert a name'
+            )
         self._update_minimizer(minimizer_enum)
 
-    def _update_minimizer(self, minimizer_enum: AvailableMinimizers) -> None:
+    def _update_minimizer(self, minimizer_enum: Minimizers) -> None:
         self._minimizer = factory(
             minimizer_enum=minimizer_enum,
             fit_object=self._fit_object,
@@ -104,16 +87,16 @@ class Fitter:
         self._enum_current_minimizer = minimizer_enum
 
     @property
-    def available_minimizers(self) -> List[str]:
+    def available_minimizers(self) -> List[Minimizers]:
         """
-        Get a list of the names of available fitting minimizers.
+        Get a list of the available fitting minimizers.
 
         Returns
         -------
-        List[str]
+        List[Minimizers]
             List of available fitting minimizers.
         """
-        return [minimize.name for minimize in AvailableMinimizers]
+        return list(Minimizers)
 
     @property
     def minimizer(self) -> MinimizerBase:

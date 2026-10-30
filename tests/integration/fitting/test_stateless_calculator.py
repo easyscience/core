@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 from easy_test_models import CoefficientModel
 
+from easyscience import Minimizers
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.fitting import Fitter
@@ -76,7 +77,7 @@ def test_calculation_reads_current_values_and_leaves_model_untouched():
     np.testing.assert_allclose(calculator.calculate(model, x), 3.0 * x + 1.0)
 
 
-@pytest.mark.parametrize('fit_engine', ['LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize('fit_engine', [Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO])
 def test_fit_with_dependent_parameter(fit_engine):
     # When # The intercept is tied to the slope, so only the slope is fitted
     slope = Parameter(1.0, display_name='slope', min=-10, max=10)
@@ -102,7 +103,7 @@ def test_fit_with_dependent_parameter(fit_engine):
     np.testing.assert_allclose(calculator.calculate(model, x), y, atol=0.1)
 
 
-@pytest.mark.parametrize('fit_engine', ['LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize('fit_engine', [Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO])
 def test_multi_fit_with_shared_parameter(fit_engine):
     # When # Two models share their intercept
     shared = Parameter(0.0, display_name='shared', min=-10, max=10)

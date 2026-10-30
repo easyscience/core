@@ -12,9 +12,9 @@ import numpy as np
 
 from easyscience.variable import Parameter
 
-from ..available_minimizers import AvailableMinimizers
 from ..engine_base import PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
+from .minimizers import Minimizers
 from .utils import FitError
 from .utils import FitResults
 
@@ -46,7 +46,7 @@ class DFO(MinimizerBase):
         self,
         obj: object,  #: ModelBase,
         fit_function: Callable,
-        minimizer_enum: AvailableMinimizers | None = None,
+        minimizer_enum: Minimizers | None = None,
     ):  # todo after constraint changes, add type hint: obj: ModelBase  # noqa: E501
         """
         Initialize the fitting engine.
@@ -57,7 +57,7 @@ class DFO(MinimizerBase):
             Object containing the ``Parameter`` instances to fit.
         fit_function : Callable
             Callable returning model y values for the supplied x values.
-        minimizer_enum : AvailableMinimizers | None, default=None
+        minimizer_enum : Minimizers | None, default=None
             Selected DFO minimizer configuration. By default, None.
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)

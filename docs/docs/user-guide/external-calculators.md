@@ -291,7 +291,9 @@ It is polled during the optimizer loop and once more after it finishes,
 so it must have no side effects:
 
 ```python
-fitter.switch_minimizer('Bumps')
+from easyscience import Minimizers
+
+fitter.switch_minimizer(Minimizers.Bumps)
 result = fitter.fit(
     x=x, y=y, weights=np.ones_like(x), abort_test=lambda: stop_requested
 )
