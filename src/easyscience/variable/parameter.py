@@ -89,7 +89,6 @@ class Parameter(DescriptorNumber):
         ValueError
             If ``value`` falls outside the provided bounds or if the
             bounds are invalid.
-
         """
         # Extract and ignore serialization-specific fields from kwargs
         kwargs.pop('_dependency_string', None)
