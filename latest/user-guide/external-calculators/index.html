@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://easyscience.github.io/core/3.0.0/user-guide/external-calculators/">
+        <link rel="canonical" href="https://easyscience.github.io/core/3.0.1/user-guide/external-calculators/">
       
       
         <link rel="prev" href="../parameter-dependency-serialization/">
@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1517,8 +1517,8 @@ values; it reads them from the model on every call.</p>
 <span class="k">class</span><span class="w"> </span><span class="nc">Line</span><span class="p">(</span><span class="n">ModelBase</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slope</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">intercept</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_slope</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">slope</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">&#39;slope&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_intercept</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">intercept</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">&#39;intercept&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slope</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">slope</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">'slope'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intercept</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">intercept</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">'intercept'</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">slope</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
@@ -1530,7 +1530,7 @@ values; it reads them from the model on every call.</p>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">LineCalculator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Owned by the technique library, unknown to EasyScience.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Owned by the technique library, unknown to EasyScience."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Line</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="c1"># Hand plain numbers to the backend</span>
@@ -1557,8 +1557,8 @@ fit function, so the calculator always uses the values being tried.</p>
 dependent on the slope, the engine fits only the slope and the
 calculator reads the recomputed intercept:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="n">model</span><span class="o">.</span><span class="n">intercept</span><span class="o">.</span><span class="n">make_dependent_on</span><span class="p">(</span>
-    <span class="n">dependency_expression</span><span class="o">=</span><span class="s1">&#39;0.5 * s&#39;</span><span class="p">,</span>
-    <span class="n">dependency_map</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">slope</span><span class="p">},</span>
+    <span class="n">dependency_expression</span><span class="o">=</span><span class="s1">'0.5 * s'</span><span class="p">,</span>
+    <span class="n">dependency_map</span><span class="o">=</span><span class="p">{</span><span class="s1">'s'</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">slope</span><span class="p">},</span>
 <span class="p">)</span>
 </code></pre></div>
 <h2 id="several-datasets">Several Datasets</h2>
@@ -1600,13 +1600,13 @@ would not be in the payload, see below):</p>
 <span class="k">def</span><span class="w"> </span><span class="nf">on_iteration</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="c1"># Called by the minimizer as the fit progresses. Values are keyed</span>
     <span class="c1"># by unique_name and describe the point the minimizer reports.</span>
-    <span class="n">values</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;parameter_values&#39;</span><span class="p">]</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">'parameter_values'</span><span class="p">]</span>
     <span class="n">slope</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">slope</span><span class="o">.</span><span class="n">unique_name</span><span class="p">]</span>
     <span class="n">intercept</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">intercept</span><span class="o">.</span><span class="n">unique_name</span><span class="p">]</span>
-    <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">payload</span><span class="p">[</span><span class="s1">&#39;iteration&#39;</span><span class="p">],</span> <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">))</span>
+    <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">payload</span><span class="p">[</span><span class="s1">'iteration'</span><span class="p">],</span> <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s1">&#39;iteration </span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;iteration&quot;</span><span class="p">]</span><span class="si">:</span><span class="s1">3d</span><span class="si">}</span><span class="s1">: &#39;</span>
-        <span class="sa">f</span><span class="s1">&#39;slope=</span><span class="si">{</span><span class="n">slope</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> intercept=</span><span class="si">{</span><span class="n">intercept</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> chi2=</span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;chi2&quot;</span><span class="p">]</span><span class="si">:</span><span class="s1">.4g</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">'iteration </span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s2">"iteration"</span><span class="p">]</span><span class="si">:</span><span class="s1">3d</span><span class="si">}</span><span class="s1">: '</span>
+        <span class="sa">f</span><span class="s1">'slope=</span><span class="si">{</span><span class="n">slope</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> intercept=</span><span class="si">{</span><span class="n">intercept</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> chi2=</span><span class="si">{</span><span class="n">payload</span><span class="p">[</span><span class="s2">"chi2"</span><span class="p">]</span><span class="si">:</span><span class="s1">.4g</span><span class="si">}</span><span class="s1">'</span>
     <span class="p">)</span>
 
 
@@ -1775,7 +1775,7 @@ so it must have no side effects:</p>
     <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">abort_test</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">stop_requested</span>
 <span class="p">)</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>  <span class="c1"># &#39;Fit aborted before convergence&#39;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>  <span class="c1"># 'Fit aborted before convergence'</span>
 </code></pre></div>
 <p>Unlike raising an exception, an aborted Bumps fit returns normally and
 keeps the best values found so far in the model. Do not pass
@@ -1966,10 +1966,10 @@ evaluation is slow.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tooltips", "navigation.footer", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tooltips", "navigation.footer", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../assets/javascripts/extra.js"></script>
       
@@ -1978,5 +1978,112 @@ evaluation is slow.</p>
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
-  </body>
+  <script data-mkdocs-jupyter-mathjax="{&quot;url&quot;: &quot;https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js&quot;, &quot;version&quot;: 4}">
+/* Shared by full pages and Material's instant navigation. */
+(() => {
+  const config = JSON.parse(document.currentScript.dataset.mkdocsJupyterMathjax);
+  if (window.mkdocsJupyterMathJax) return;
+
+  let loading;
+  let queue = Promise.resolve();
+  let previous = [];
+
+  const ready = async () => {
+    if (!loading) {
+      loading = (async () => {
+        let math = window.MathJax;
+        if (!math?.typesetPromise) {
+          const url = new URL(config.url, document.baseURI).href;
+          const existing = Array.from(document.scripts).find(script =>
+            script.src && (script.src === url || script.id === 'MathJax-script' ||
+              (/mathjax/i.test(script.src) &&
+               /\/(?:MathJax|latest|(?:tex|mml)(?:-mml)?-(?:chtml|svg))\.js(?:[?#]|$)/i.test(script.src))));
+          if (existing) {
+            if (!math?.startup?.promise) {
+              await new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+              });
+            }
+          } else {
+            // Keep site macros, delimiters and startup hooks when supplied.
+            const options = math || {};
+            window.MathJax = {
+              ...options,
+              loader: {
+                ...options.loader,
+                load: Array.from(new Set(['ui/safe', ...(options.loader?.load || [])]))
+              },
+              startup: { typeset: false, ...options.startup },
+              tex: {
+                tags: 'ams',
+                useLabelIds: true,
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true,
+                ...options.tex
+              }
+            };
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = config.url;
+              script.id = 'MathJax-script';
+              script.async = true;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+        }
+        math = window.MathJax;
+        await math.startup.promise;
+        return math;
+      })();
+    }
+    const math = await loading;
+    // A site owner can extend the v3 queue again on each navigation.
+    await math.startup.promise;
+    return math;
+  };
+
+  const unrendered = node => {
+    if (node.matches('mjx-container')) return [];
+    if (!node.querySelector('mjx-container')) return [node];
+    // In v3, scanning generated assistive MathML again produces nested output.
+    return Array.from(node.children).flatMap(unrendered);
+  };
+
+  const refresh = () => {
+    // A separate chain also serializes v3, without changing v4's startup promise.
+    queue = queue.then(async () => {
+      const notebooks = Array.from(document.querySelectorAll('.jupyter-wrapper'));
+      if (!notebooks.length && !previous.length) return;
+      if (notebooks.length === previous.length &&
+          notebooks.every((node, index) => node === previous[index])) return;
+      const math = await ready();
+      if (previous.length) {
+        math.typesetClear(previous);
+        math.texReset();
+      }
+      previous = notebooks.filter(node => node.isConnected);
+      const pending = previous.flatMap(unrendered);
+      if (pending.length) await math.typesetPromise(pending);
+    }).catch(error => console.error('mkdocs-jupyter: MathJax rendering failed', error));
+    return queue;
+  };
+
+  window.mkdocsJupyterMathJax = { refresh };
+  const start = () => {
+    if (typeof document$ !== 'undefined') document$.subscribe(refresh);
+    else refresh();
+  };
+  // Theme bundles and user-provided MathJax scripts can follow notebook content.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else start();
+})();
+
+</script>
+</body>
 </html>

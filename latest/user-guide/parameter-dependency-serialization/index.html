@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://easyscience.github.io/core/3.0.0/user-guide/parameter-dependency-serialization/">
+        <link rel="canonical" href="https://easyscience.github.io/core/3.0.1/user-guide/parameter-dependency-serialization/">
       
       
         <link rel="prev" href="../controlling-log-output/">
@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1296,15 +1296,15 @@ and how their dependencies are rebuilt when they are loaded.</p>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">easyscience</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parameter</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">'m'</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">display_name</span><span class="o">=</span><span class="s1">'a'</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">from_dependency</span><span class="p">(</span>
-    <span class="n">dependency_expression</span><span class="o">=</span><span class="s1">&#39;2 * a&#39;</span><span class="p">,</span>
-    <span class="n">dependency_map</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="n">a</span><span class="p">},</span>
-    <span class="n">display_name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span>
+    <span class="n">dependency_expression</span><span class="o">=</span><span class="s1">'2 * a'</span><span class="p">,</span>
+    <span class="n">dependency_map</span><span class="o">=</span><span class="p">{</span><span class="s1">'a'</span><span class="p">:</span> <span class="n">a</span><span class="p">},</span>
+    <span class="n">display_name</span><span class="o">=</span><span class="s1">'b'</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;parameters.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">b</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()},</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'parameters.json'</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">({</span><span class="s1">'a'</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="s1">'b'</span><span class="p">:</span> <span class="n">b</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()},</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 </code></pre></div>
 <p>To load them, deserialize all parameters first. Then resolve the
 dependencies in a single step:</p>
@@ -1315,13 +1315,13 @@ dependencies in a single step:</p>
     <span class="n">resolve_all_parameter_dependencies</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;parameters.json&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'parameters.json'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">params_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-<span class="n">new_a</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_dict</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">])</span>
-<span class="n">new_b</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_dict</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">])</span>
+<span class="n">new_a</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_dict</span><span class="p">[</span><span class="s1">'a'</span><span class="p">])</span>
+<span class="n">new_b</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_dict</span><span class="p">[</span><span class="s1">'b'</span><span class="p">])</span>
 
-<span class="n">resolve_all_parameter_dependencies</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="n">new_a</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">new_b</span><span class="p">})</span>
+<span class="n">resolve_all_parameter_dependencies</span><span class="p">({</span><span class="s1">'a'</span><span class="p">:</span> <span class="n">new_a</span><span class="p">,</span> <span class="s1">'b'</span><span class="p">:</span> <span class="n">new_b</span><span class="p">})</span>
 
 <span class="n">new_a</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">5.0</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">new_b</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># 10.0</span>
@@ -1342,8 +1342,8 @@ both steps:</p>
 <span class="p">)</span>
 
 <span class="n">params</span> <span class="o">=</span> <span class="n">deserialize_and_resolve_parameters</span><span class="p">(</span><span class="n">params_dict</span><span class="p">)</span>
-<span class="n">params</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">3.0</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># 6.0</span>
+<span class="n">params</span><span class="p">[</span><span class="s1">'a'</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">'b'</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># 6.0</span>
 </code></pre></div>
 <h2 id="what-is-written">What Is Written</h2>
 <p>An independent parameter is written with its constructor arguments
@@ -1381,15 +1381,15 @@ A dependent parameter gets the following additional fields:</p>
 parameter depends on it. It is what <code>_dependency_map_serializer_ids</code>
 refers to:</p>
 <div class="language-json highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;@module&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;easyscience.variable.parameter&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;@class&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Parameter&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;m&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;b&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;_dependency_string&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2 * a&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;_independent&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;_dependency_map_serializer_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;a&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;a48db37b-519b-4bea-9873-aa3cc5b2ec76&quot;</span>
+<span class="w">  </span><span class="nt">"@module"</span><span class="p">:</span><span class="w"> </span><span class="s2">"easyscience.variable.parameter"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"@class"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Parameter"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">4.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"unit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"m"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"display_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"b"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"_dependency_string"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2 * a"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"_independent"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"_dependency_map_serializer_ids"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"a"</span><span class="p">:</span><span class="w"> </span><span class="s2">"a48db37b-519b-4bea-9873-aa3cc5b2ec76"</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -1421,15 +1421,15 @@ before the parameters it depends on.</p>
     <span class="n">get_parameters_with_pending_dependencies</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">pending</span> <span class="o">=</span> <span class="n">get_parameters_with_pending_dependencies</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="n">new_a</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">new_b</span><span class="p">})</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pending</span><span class="p">)</span><span class="si">}</span><span class="s1"> parameter(s) still need resolving&#39;</span><span class="p">)</span>
+<span class="n">pending</span> <span class="o">=</span> <span class="n">get_parameters_with_pending_dependencies</span><span class="p">({</span><span class="s1">'a'</span><span class="p">:</span> <span class="n">new_a</span><span class="p">,</span> <span class="s1">'b'</span><span class="p">:</span> <span class="n">new_b</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pending</span><span class="p">)</span><span class="si">}</span><span class="s1"> parameter(s) still need resolving'</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="errors">Errors</h2>
 <p><code>resolve_all_parameter_dependencies</code> tries every pending parameter and
 then raises a single <code>ValueError</code> listing all failures. The typical
 cause is a referenced parameter that was not loaded:</p>
 <div class="language-text highlight"><pre><span></span><code>ValueError: Failed to resolve dependencies for 1 parameter(s):
-Failed to resolve dependencies for parameter &#39;Parameter_0&#39; (display_name: &#39;b&#39;, serializer_id: &#39;unknown&#39;): Cannot find parameter with serializer_id &#39;f9040c2a-...&#39;
+Failed to resolve dependencies for parameter 'Parameter_0' (display_name: 'b', serializer_id: 'unknown'): Cannot find parameter with serializer_id 'f9040c2a-...'
 </code></pre></div>
 <p>An invalid expression, or one that would create a cyclic dependency, is
 reported the same way, with the underlying error message appended.</p>
@@ -1622,10 +1622,10 @@ serialize dependent parameters directly as shown above.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tooltips", "navigation.footer", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tooltips", "navigation.footer", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../assets/javascripts/extra.js"></script>
       
@@ -1634,5 +1634,112 @@ serialize dependent parameters directly as shown above.</p>
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
-  </body>
+  <script data-mkdocs-jupyter-mathjax="{&quot;url&quot;: &quot;https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js&quot;, &quot;version&quot;: 4}">
+/* Shared by full pages and Material's instant navigation. */
+(() => {
+  const config = JSON.parse(document.currentScript.dataset.mkdocsJupyterMathjax);
+  if (window.mkdocsJupyterMathJax) return;
+
+  let loading;
+  let queue = Promise.resolve();
+  let previous = [];
+
+  const ready = async () => {
+    if (!loading) {
+      loading = (async () => {
+        let math = window.MathJax;
+        if (!math?.typesetPromise) {
+          const url = new URL(config.url, document.baseURI).href;
+          const existing = Array.from(document.scripts).find(script =>
+            script.src && (script.src === url || script.id === 'MathJax-script' ||
+              (/mathjax/i.test(script.src) &&
+               /\/(?:MathJax|latest|(?:tex|mml)(?:-mml)?-(?:chtml|svg))\.js(?:[?#]|$)/i.test(script.src))));
+          if (existing) {
+            if (!math?.startup?.promise) {
+              await new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+              });
+            }
+          } else {
+            // Keep site macros, delimiters and startup hooks when supplied.
+            const options = math || {};
+            window.MathJax = {
+              ...options,
+              loader: {
+                ...options.loader,
+                load: Array.from(new Set(['ui/safe', ...(options.loader?.load || [])]))
+              },
+              startup: { typeset: false, ...options.startup },
+              tex: {
+                tags: 'ams',
+                useLabelIds: true,
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true,
+                ...options.tex
+              }
+            };
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = config.url;
+              script.id = 'MathJax-script';
+              script.async = true;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+        }
+        math = window.MathJax;
+        await math.startup.promise;
+        return math;
+      })();
+    }
+    const math = await loading;
+    // A site owner can extend the v3 queue again on each navigation.
+    await math.startup.promise;
+    return math;
+  };
+
+  const unrendered = node => {
+    if (node.matches('mjx-container')) return [];
+    if (!node.querySelector('mjx-container')) return [node];
+    // In v3, scanning generated assistive MathML again produces nested output.
+    return Array.from(node.children).flatMap(unrendered);
+  };
+
+  const refresh = () => {
+    // A separate chain also serializes v3, without changing v4's startup promise.
+    queue = queue.then(async () => {
+      const notebooks = Array.from(document.querySelectorAll('.jupyter-wrapper'));
+      if (!notebooks.length && !previous.length) return;
+      if (notebooks.length === previous.length &&
+          notebooks.every((node, index) => node === previous[index])) return;
+      const math = await ready();
+      if (previous.length) {
+        math.typesetClear(previous);
+        math.texReset();
+      }
+      previous = notebooks.filter(node => node.isConnected);
+      const pending = previous.flatMap(unrendered);
+      if (pending.length) await math.typesetPromise(pending);
+    }).catch(error => console.error('mkdocs-jupyter: MathJax rendering failed', error));
+    return queue;
+  };
+
+  window.mkdocsJupyterMathJax = { refresh };
+  const start = () => {
+    if (typeof document$ !== 'undefined') document$.subscribe(refresh);
+    else refresh();
+  };
+  // Theme bundles and user-provided MathJax scripts can follow notebook content.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else start();
+})();
+
+</script>
+</body>
 </html>
