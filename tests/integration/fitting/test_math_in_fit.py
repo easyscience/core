@@ -30,7 +30,7 @@ import pytest
 import scipp as sc
 
 import easyscience as es
-from easyscience import AvailableMinimizers
+from easyscience import Minimizers
 from easyscience import Fitter
 from easyscience import Parameter
 from easyscience import global_object
@@ -427,7 +427,7 @@ class TestFittedQuadrature:
 # estimate is wrong is a question for the lead developer. A derived variance is only as good as the
 # variance it starts from, so these tests compare a derived variance only with the variance of the
 # same engine's fit, never across engines.
-ENGINES = [None, AvailableMinimizers.LMFit, AvailableMinimizers.Bumps, AvailableMinimizers.DFO]
+ENGINES = [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO]
 
 
 def count_parameters() -> int:
