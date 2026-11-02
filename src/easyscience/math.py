@@ -87,25 +87,18 @@ from easyscience.variable.descriptor_array import DescriptorArray
 from easyscience.variable.descriptor_number import DescriptorNumber
 from easyscience.variable.parameter import Parameter
 
-# Lower and upper bound of an argument or a result.
 _Bounds = tuple[float, float]
-# Takes the bounds of each argument and returns the bounds of the result.
 _ResultBoundsFunction = Callable[..., _Bounds]
 
-# tan: a bound this close (in units of pi) to an asymptote is on it; catches 90 deg after rounding.
-_TAN_EDGE_TOLERANCE = 1e-12
+_TAN_ASYMPTOTE_TOLERANCE_IN_PI = 1e-12
 
-# sinc: two consecutive extrema hold the largest maximum and deepest minimum of a range, and
-# the root just below the lower bound may be filtered out, so four roots are refined.
-_SINC_ROOT_COUNT = 4
-# Newton's method needs about 4 steps from the asymptotic first guess to reach machine precision.
-_SINC_NEWTON_STEPS = 8
-# Beyond this the lobes of sinc are below 1e-15 and the lobe index overflows numpy integers.
-_SINC_NEGLIGIBLE_LOBES_FROM = 1e15
+_SINC_EXTREMA_TO_REFINE = 4
+_SINC_EXTREMUM_NEWTON_ITERATIONS = 8
+_SINC_LOBES_NEGLIGIBLE_ABOVE_X = 1e15
 
-# Twice the relative tolerance (1e-9) at which ``Parameter`` rejects ``min`` and ``max`` as equal.
-_COLLAPSE_PAD = 2e-9
-_COLLAPSE_PAD_ZERO = 1e-12
+_PARAMETER_BOUNDS_RELATIVE_TOLERANCE = 1e-9
+_COLLAPSED_BOUNDS_RELATIVE_PADDING = 2 * _PARAMETER_BOUNDS_RELATIVE_TOLERANCE
+_COLLAPSED_BOUNDS_ABSOLUTE_PADDING_AT_ZERO = 1e-12
 
 __all__ = [
     'acos',
@@ -136,9 +129,6 @@ __all__ = [
     'tan',
     'tanh',
 ]
-
-
-# --- Power, exponential and logarithmic functions ---
 
 
 @overload
@@ -418,9 +408,6 @@ def sqrt(
     return _evaluate(_SQRT, descriptor)
 
 
-# --- Special functions ---
-
-
 @overload
 def erf(descriptor: Parameter) -> Parameter: ...
 
@@ -553,9 +540,6 @@ def erfc(
     <Parameter 'erfc(x)': 0.4795, bounds=[0.0:1.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ERFC, descriptor)
-
-
-# --- Trigonometric functions ---
 
 
 @overload
@@ -1179,9 +1163,6 @@ def sinc(
     return _evaluate(_SINC, descriptor)
 
 
-# --- Hyperbolic functions ---
-
-
 @overload
 def sinh(descriptor: Parameter) -> Parameter: ...
 
@@ -1615,9 +1596,6 @@ atanh = arctanh
 """Alias of [`arctanh`][easyscience.math.arctanh]."""
 
 
-# --- How a maths function is described ---
-
-
 @dataclass(frozen=True)
 class _InputRange:
     """The argument values a function is defined for."""
@@ -1661,9 +1639,6 @@ class _MathFunction:
     result_bounds: _ResultBoundsFunction
     input_range: _InputRange = _InputRange()
     bounds_unit: str | None = None
-
-
-# --- Evaluating a maths function ---
 
 
 def _evaluate(
@@ -1720,15 +1695,11 @@ def _evaluate(
     argument_bounds = [_argument_bounds(function, arg) for arg in args]
     with np.errstate(all='ignore'):
         new_min, new_max = function.result_bounds(*argument_bounds)
-    # Round-off at an extremum can leave the value just outside its own bounds.
     new_min, new_max = min(new_min, result.value), max(new_max, result.value)
     new_min, new_max = _widen_collapsed_bounds(new_min, new_max, result.value)
     return Parameter.from_scipp(result, display_name=name, min=new_min, max=new_max)
 
 
-# TODO(): ``Parameter`` rejects ``min`` and ``max`` within a relative 1e-9 of each other, a literal
-# in its ``__init__`` and its min/max setters. Make it a named constant in parameter.py and use it
-# here, so that the two cannot drift apart.
 def _widen_collapsed_bounds(
     lower: float | np.ndarray, upper: float | np.ndarray, value: float | np.ndarray
 ) -> tuple[float | np.ndarray, float | np.ndarray]:
@@ -1752,11 +1723,17 @@ def _widen_collapsed_bounds(
     -------
     tuple[float | np.ndarray, float | np.ndarray]
         ``(lower, upper)``, padded on each side where they are within
-        the tolerance of ``Parameter``: by ``_COLLAPSE_PAD * |value|``,
-        or by ``_COLLAPSE_PAD_ZERO`` where the value is 0.
+        the tolerance of ``Parameter``: by
+        ``_COLLAPSED_BOUNDS_RELATIVE_PADDING * |value|``, or by
+        ``_COLLAPSED_BOUNDS_ABSOLUTE_PADDING_AT_ZERO`` where the value
+        is 0.
     """
-    collapsed = np.isclose(lower, upper, rtol=1e-9, atol=0.0)
-    pad = np.where(value == 0, _COLLAPSE_PAD_ZERO, np.abs(value) * _COLLAPSE_PAD)
+    collapsed = np.isclose(lower, upper, rtol=_PARAMETER_BOUNDS_RELATIVE_TOLERANCE, atol=0.0)
+    pad = np.where(
+        value == 0,
+        _COLLAPSED_BOUNDS_ABSOLUTE_PADDING_AT_ZERO,
+        np.abs(value) * _COLLAPSED_BOUNDS_RELATIVE_PADDING,
+    )
     pad = np.where(collapsed, pad, 0.0)
     return lower - pad, upper + pad
 
@@ -1813,12 +1790,6 @@ def _argument_bounds(function: _MathFunction, param: DescriptorNumber) -> _Bound
         return lower, upper
     factor = _unit_factor(str(param.unit), function.bounds_unit)
     return lower * factor, upper * factor
-
-
-# --- Result bounds ---
-# Each function below takes the bounds of every argument and returns the exact lower and upper
-# bound of the result. They run under ``np.errstate(all='ignore')``, so an edge value such as
-# log(0) = -inf is returned without a warning.
 
 
 def _monotonic_bounds(function_values: Callable) -> _ResultBoundsFunction:
@@ -1891,7 +1862,7 @@ def _unnormalized_sinc(x) -> np.ndarray:
 
 
 def _sinc_positive_extrema(
-    lower: float, upper: float, count: int = _SINC_ROOT_COUNT
+    lower: float, upper: float, count: int = _SINC_EXTREMA_TO_REFINE
 ) -> np.ndarray:
     """
     Maxima and minima of sinc on the positive axis, nearest the lower
@@ -1902,20 +1873,20 @@ def _sinc_positive_extrema(
     largest maximum and the deepest minimum in the range are among the
     first few roots at or after ``lower``.
 
-    Beyond ``_SINC_NEGLIGIBLE_LOBES_FROM`` the lobes are negligible and
-    none are returned.
+    Beyond ``_SINC_LOBES_NEGLIGIBLE_ABOVE_X`` the lobes are negligible
+    and none are returned.
 
     All ``count`` roots are refined at once with Newton's method on
     ``g(x) = x cos(x) - sin(x)``, ``g'(x) = -x sin(x)``, with the
     vectorised update ``x <- x - g(x) / g'(x)``.
     """
-    if upper <= 0.0 or lower > _SINC_NEGLIGIBLE_LOBES_FROM:
+    if upper <= 0.0 or lower > _SINC_LOBES_NEGLIGIBLE_ABOVE_X:
         return np.array([])
     first = max(1, int(np.floor(max(lower, 0.0) / np.pi)))
     k = np.arange(first, first + count)
     x = (k + 0.5) * np.pi
-    x = x - 1.0 / x  # asymptotic first guess for the root of tan(x) = x
-    for _ in range(_SINC_NEWTON_STEPS):
+    x = x - 1.0 / x
+    for _ in range(_SINC_EXTREMUM_NEWTON_ITERATIONS):
         x = x - (x * np.cos(x) - np.sin(x)) / (-x * np.sin(x))
     return x[(x >= lower) & (x <= upper)]
 
@@ -1949,7 +1920,7 @@ def _tan_branch(position: float) -> tuple[float, bool]:
         one) and whether the point sits on an asymptote.
     """
     nearest = float(np.round(position))
-    on_asymptote = abs(position - nearest) <= _TAN_EDGE_TOLERANCE
+    on_asymptote = abs(position - nearest) <= _TAN_ASYMPTOTE_TOLERANCE_IN_PI
     return (nearest if on_asymptote else float(np.floor(position))), on_asymptote
 
 
@@ -1968,7 +1939,7 @@ def _tan_bounds(argument_bounds: _Bounds) -> tuple[float, float]:
     branch_lower, lower_on_asymptote = _tan_branch((lower - np.pi / 2) / np.pi)
     branch_upper, upper_on_asymptote = _tan_branch((upper - np.pi / 2) / np.pi)
     if upper_on_asymptote:
-        branch_upper -= 1  # an upper bound on an asymptote closes the branch below it
+        branch_upper -= 1
     if branch_lower != branch_upper:
         return -np.inf, np.inf
     lower = -np.inf if lower_on_asymptote else float(np.tan(lower))
@@ -1991,8 +1962,6 @@ def _arctan2_bounds(y_bounds: _Bounds, x_bounds: _Bounds) -> tuple[float, float]
     corners = [np.arctan2(y, x) for y in (y_lower, y_upper) for x in (x_lower, x_upper)]
     return float(min(corners)), float(max(corners))
 
-
-# --- What each public function evaluates, and how its result bounds are found ---
 
 _NON_NEGATIVE = _InputRange(lower_limit=0.0)
 _AT_LEAST_ONE = _InputRange(lower_limit=1.0)
@@ -2021,7 +1990,7 @@ _ARCCOS = _MathFunction(
 _ARCTAN = _MathFunction('arctan', sc.atan, _monotonic_bounds(np.arctan))
 _ARCTAN2 = _MathFunction(
     'arctan2',
-    lambda y, x: sc.atan2(y=y, x=x),  # Scipp's atan2 is keyword-only
+    lambda y, x: sc.atan2(y=y, x=x),
     _arctan2_bounds,
 )
 _SINC = _MathFunction('sinc', sc.sinc, _bounds_from_extrema(_unnormalized_sinc, _sinc_extrema))
