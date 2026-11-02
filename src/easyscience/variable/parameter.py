@@ -3,10 +3,8 @@
 
 from __future__ import annotations
 
-import copy
 import numbers
 import re
-import weakref
 from typing import Any
 from typing import Dict
 from typing import List
@@ -20,7 +18,6 @@ from scipp import UnitError
 from scipp import Variable
 
 from easyscience import global_object
-from easyscience.global_object.undo_redo import property_stack
 
 from .descriptor_number import DescriptorNumber
 from .descriptor_number import notify_observers
@@ -33,15 +30,10 @@ class Parameter(DescriptorNumber):
     It has additional fields to facilitate this.
     """
 
-    # Used by serializer
-    # We copy the parent's _REDIRECT and modify it to avoid altering the parent's class dict
-    _REDIRECT = DescriptorNumber._REDIRECT.copy()
-    _REDIRECT['callback'] = None
-
     def __init__(
         self,
-        name: str,
         value: numbers.Number,
+        *,
         unit: Optional[Union[str, sc.Unit]] = '',
         variance: Optional[numbers.Number] = 0.0,
         min: Optional[numbers.Number] = -np.inf,
@@ -51,8 +43,6 @@ class Parameter(DescriptorNumber):
         description: Optional[str] = None,
         url: Optional[str] = None,
         display_name: Optional[str] = None,
-        callback: property = property(),
-        parent: Optional[Any] = None,
         **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
         """
@@ -62,10 +52,10 @@ class Parameter(DescriptorNumber):
         for dynamic objects. A parameter has the ability to be used in
         fitting and has additional fields to facilitate this.
 
+        All arguments after ``value`` are keyword-only.
+
         Parameters
         ----------
-        name : str
-            Name of this object.
         value : numbers.Number
             Value of this object.
         unit : Optional[Union[str, sc.Unit]], default=''
@@ -87,14 +77,8 @@ class Parameter(DescriptorNumber):
         url : Optional[str], default=None
             Lookup url for documentation/information. By default, None.
         display_name : Optional[str], default=None
-            The name of the object as it should be displayed. By
-            default, None.
-        callback : property, default=property()
-            Callback used to synchronize the parameter with an external
-            model.
-        parent : Optional[Any], default=None
-            The object which is the parent to this one. By default,
-            None.
+            The name of the object as it should be displayed. Falls back
+            to ``unique_name`` when not given. By default, None.
         **kwargs : Any
             Additional keyword arguments used during serialization.
 
@@ -106,11 +90,6 @@ class Parameter(DescriptorNumber):
             If ``value`` falls outside the provided bounds or if the
             bounds are invalid.
 
-        Notes
-        -----
-        Undo/Redo functionality is implemented for the attributes
-        ``value``, ``variance``, ``error``, ``min``, ``max``,
-        ``bounds``, ``fixed``, ``unit``
         """
         # Extract and ignore serialization-specific fields from kwargs
         kwargs.pop('_dependency_string', None)
@@ -139,7 +118,6 @@ class Parameter(DescriptorNumber):
         self._max = sc.scalar(float(max), unit=unit)
 
         super().__init__(
-            name=name,
             value=value,
             unit=unit,
             variance=variance,
@@ -147,21 +125,12 @@ class Parameter(DescriptorNumber):
             description=description,
             url=url,
             display_name=display_name,
-            parent=parent,
             **kwargs,  # Additional keyword arguments (used for (de)serialization)
         )
-
-        self._callback = callback  # Callback is used by interface to link to model
-        if self._callback.fdel is not None:
-            weakref.finalize(self, self._callback.fdel)
-
-        # Create additional fitting elements
-        self._initial_scalar = copy.deepcopy(self._scalar)
 
     @classmethod
     def from_dependency(
         cls,
-        name: str,
         dependency_expression: str,
         dependency_map: Optional[dict] = None,
         desired_unit: str | sc.Unit | None = None,
@@ -173,8 +142,6 @@ class Parameter(DescriptorNumber):
 
         Parameters
         ----------
-        name : str
-            The name of the parameter.
         dependency_expression : str
             The dependency expression to evaluate. This should be a
             string which can be evaluated by the ASTEval interpreter.
@@ -198,7 +165,7 @@ class Parameter(DescriptorNumber):
         default_kwargs = {'value': 0.0, 'variance': 0.0, 'min': -np.inf, 'max': np.inf}
         # Update with user-provided kwargs, to avoid errors.
         default_kwargs.update(kwargs)
-        parameter = cls(name=name, **default_kwargs)
+        parameter = cls(**default_kwargs)
         parameter.make_dependent_on(
             dependency_expression=dependency_expression,
             dependency_map=dependency_map,
@@ -234,9 +201,6 @@ class Parameter(DescriptorNumber):
 
             if self._desired_unit is not None:
                 self._convert_unit(self._desired_unit)
-
-            if self._callback.fset is not None:
-                self._callback.fset(self._scalar.value)
 
             self._notify_observers()
         else:
@@ -527,18 +491,6 @@ class Parameter(DescriptorNumber):
         )
 
     @property
-    def value_no_call_back(self) -> numbers.Number:
-        """
-        Get the currently hold value of self suppressing call back.
-
-        Returns
-        -------
-        numbers.Number
-            Value of self without unit.
-        """
-        return self._scalar.value
-
-    @property
     def full_value(self) -> Variable:
         """
         Get the value of self as a scipp scalar.
@@ -570,14 +522,9 @@ class Parameter(DescriptorNumber):
         numbers.Number
             Value of self without unit.
         """
-        if self._callback.fget is not None:
-            existing_value = self._callback.fget()
-            if existing_value != self._scalar.value:
-                self._scalar.value = existing_value
         return self._scalar.value
 
     @value.setter
-    @property_stack
     def value(self, value: numbers.Number) -> None:
         """
         Set the value of self.
@@ -607,9 +554,6 @@ class Parameter(DescriptorNumber):
                 value = self._max.value
 
             self._scalar.value = value
-
-            if self._callback.fset is not None:
-                self._callback.fset(self._scalar.value)
 
             # Notify observers of the change
             self._notify_observers()
@@ -745,12 +689,9 @@ class Parameter(DescriptorNumber):
         return self._min.value
 
     @min.setter
-    @property_stack
     def min(self, min_value: numbers.Number) -> None:
         """
         Set the minimum value for fitting.
-
-        - implements undo/redo functionality.
 
         Parameters
         ----------
@@ -804,12 +745,9 @@ class Parameter(DescriptorNumber):
         return self._max.value
 
     @max.setter
-    @property_stack
     def max(self, max_value: numbers.Number) -> None:
         """
         Get the maximum value for fitting.
-
-        - implements undo/redo functionality.
 
         Parameters
         ----------
@@ -863,12 +801,9 @@ class Parameter(DescriptorNumber):
         return self._fixed
 
     @fixed.setter
-    @property_stack
     def fixed(self, fixed: bool) -> None:
         """
         Change the parameter vary while fitting state.
-
-        - implements undo/redo functionality.
 
         Parameters
         ----------
@@ -887,9 +822,6 @@ class Parameter(DescriptorNumber):
         if self._independent:
             self._fixed = fixed
         else:
-            if self._global_object.stack.enabled:
-                # Remove the recorded change from the stack
-                global_object.stack.pop()
             raise AttributeError(
                 'This is a dependent parameter, dependent parameters cannot be fixed.'
             )
@@ -903,11 +835,11 @@ class Parameter(DescriptorNumber):
     def free(self, value: bool) -> None:
         self.fixed = not value
 
-    def as_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
         """
-        Overwrite the as_dict method to handle dependency information.
+        Overwrite the to_dict method to handle dependency information.
         """
-        raw_dict = super().as_dict(skip=skip)
+        raw_dict = super().to_dict(skip=skip)
 
         # Add dependency information for dependent parameters
         if not self._independent:
@@ -970,15 +902,15 @@ class Parameter(DescriptorNumber):
         inputted_unique_names += re.findall('(".+?")', dependency_expression)
 
         clean_dependency_string = dependency_expression
-        existing_unique_names = self._global_object.map.vertices()
         # Add the unique names of the parameters to the ASTEVAL interpreter
         for name in inputted_unique_names:
             stripped_name = name.strip('\'"')
-            if stripped_name not in existing_unique_names:
+            try:
+                dependent_parameter = self._global_object.registry[stripped_name]
+            except KeyError:
                 raise ValueError(
                     f'A Parameter with unique_name {stripped_name} does not exist. Please check your dependency expression.'
-                )  # noqa: E501
-            dependent_parameter = self._global_object.map.get_item_by_key(stripped_name)
+                ) from None  # noqa: E501
             if isinstance(dependent_parameter, DescriptorNumber):
                 self._dependency_map['__' + stripped_name + '__'] = dependent_parameter
                 clean_dependency_string = clean_dependency_string.replace(
@@ -1019,11 +951,6 @@ class Parameter(DescriptorNumber):
 
         return param
 
-    def __copy__(self) -> Parameter:
-        new_obj = super().__copy__()
-        new_obj._callback = property()
-        return new_obj
-
     def __repr__(self) -> str:
         """Return printable representation of a Parameter object."""
         super_str = super().__repr__()
@@ -1031,6 +958,8 @@ class Parameter(DescriptorNumber):
         s = []
         if self.fixed:
             super_str += ' (fixed)'
+        elif not self.independent:
+            super_str += ' (dependent)'
         s.append(super_str)
         s.append('bounds=[%s:%s]' % (repr(float(self.min)), repr(float(self.max))))
         return '%s>' % ', '.join(s)
@@ -1066,11 +995,7 @@ class Parameter(DescriptorNumber):
             other._convert_unit(other_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
-        parameter.name = parameter.unique_name
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __radd__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
         if isinstance(other, numbers.Number):
@@ -1095,11 +1020,7 @@ class Parameter(DescriptorNumber):
             self._convert_unit(original_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
-        parameter.name = parameter.unique_name
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __sub__(self, other: Union[DescriptorNumber, Parameter, numbers.Number]) -> Parameter:
         if isinstance(other, numbers.Number):
@@ -1128,11 +1049,7 @@ class Parameter(DescriptorNumber):
             other._convert_unit(other_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
-        parameter.name = parameter.unique_name
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __rsub__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
         if isinstance(other, numbers.Number):
@@ -1157,21 +1074,13 @@ class Parameter(DescriptorNumber):
             self._convert_unit(original_unit)
         else:
             return NotImplemented
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
-        parameter.name = parameter.unique_name
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __mul__(self, other: Union[DescriptorNumber, Parameter, numbers.Number]) -> Parameter:
         if isinstance(other, numbers.Number):
             new_full_value = self.full_value * other
             if other == 0:
-                descriptor_number = DescriptorNumber.from_scipp(
-                    name=self.name, full_value=new_full_value
-                )
-                descriptor_number.name = descriptor_number.unique_name
-                return descriptor_number
+                return DescriptorNumber.from_scipp(full_value=new_full_value)
             combinations = [self.min * other, self.max * other]
         elif isinstance(
             other, DescriptorNumber
@@ -1180,11 +1089,7 @@ class Parameter(DescriptorNumber):
             if (
                 other.value == 0 and type(other) is DescriptorNumber
             ):  # Only return DescriptorNumber if other is strictly 0, i.e. not a parameter  # noqa: E501
-                descriptor_number = DescriptorNumber.from_scipp(
-                    name=self.name, full_value=new_full_value
-                )
-                descriptor_number.name = descriptor_number.unique_name
-                return descriptor_number
+                return DescriptorNumber.from_scipp(full_value=new_full_value)
             if isinstance(other, Parameter):
                 combinations = []
                 for first, second in [
@@ -1205,43 +1110,29 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
+        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
         parameter._convert_unit(parameter._base_unit())
-        parameter.name = parameter.unique_name
         return parameter
 
     def __rmul__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
         if isinstance(other, numbers.Number):
             new_full_value = other * self.full_value
             if other == 0:
-                descriptor_number = DescriptorNumber.from_scipp(
-                    name=self.name, full_value=new_full_value
-                )
-                descriptor_number.name = descriptor_number.unique_name
-                return descriptor_number
+                return DescriptorNumber.from_scipp(full_value=new_full_value)
             combinations = [other * self.min, other * self.max]
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
             new_full_value = other.full_value * self.full_value
             if other.value == 0:
-                descriptor_number = DescriptorNumber.from_scipp(
-                    name=self.name, full_value=new_full_value
-                )
-                descriptor_number.name = descriptor_number.unique_name
-                return descriptor_number
+                return DescriptorNumber.from_scipp(full_value=new_full_value)
             combinations = [self.min * other.value, self.max * other.value]
         else:
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
+        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
         parameter._convert_unit(parameter._base_unit())
-        parameter.name = parameter.unique_name
         return parameter
 
     def __truediv__(self, other: Union[DescriptorNumber, Parameter, numbers.Number]) -> Parameter:
@@ -1287,11 +1178,8 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
+        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
         parameter._convert_unit(parameter._base_unit())
-        parameter.name = parameter.unique_name
         return parameter
 
     def __rtruediv__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
@@ -1302,22 +1190,14 @@ class Parameter(DescriptorNumber):
             new_full_value = other / self.full_value
             other_value = other
             if other_value == 0:
-                descriptor_number = DescriptorNumber.from_scipp(
-                    name=self.name, full_value=new_full_value
-                )
-                descriptor_number.name = descriptor_number.unique_name
-                return descriptor_number
+                return DescriptorNumber.from_scipp(full_value=new_full_value)
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
             new_full_value = other.full_value / self.full_value
             other_value = other.value
             if other_value == 0:
-                descriptor_number = DescriptorNumber.from_scipp(
-                    name=self.name, full_value=new_full_value
-                )
-                descriptor_number.name = descriptor_number.unique_name
-                return descriptor_number
+                return DescriptorNumber.from_scipp(full_value=new_full_value)
         else:
             return NotImplemented
         if self.min < 0 and self.max > 0:
@@ -1336,11 +1216,8 @@ class Parameter(DescriptorNumber):
             combinations = [other_value / self.min, other_value / self.max]
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
+        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
         parameter._convert_unit(parameter._base_unit())
-        parameter.name = parameter.unique_name
         return parameter
 
     def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
@@ -1365,11 +1242,7 @@ class Parameter(DescriptorNumber):
         if np.isnan(new_full_value.value):
             raise ValueError('The result of the exponentiation is not a number')
         if exponent == 0:
-            descriptor_number = DescriptorNumber.from_scipp(
-                name=self.name, full_value=new_full_value
-            )
-            descriptor_number.name = descriptor_number.unique_name
-            return descriptor_number
+            return DescriptorNumber.from_scipp(full_value=new_full_value)
         elif exponent < 0:
             if self.min < 0 and self.max > 0:
                 combinations = [-np.inf, np.inf]
@@ -1391,21 +1264,13 @@ class Parameter(DescriptorNumber):
             combinations = [combination for combination in combinations if combination >= 0]
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
-        parameter.name = parameter.unique_name
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __neg__(self) -> Parameter:
         new_full_value = -self.full_value
         min_value = -self.max
         max_value = -self.min
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
-        parameter.name = parameter.unique_name
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __abs__(self) -> Parameter:
         new_full_value = abs(self.full_value)
@@ -1414,11 +1279,7 @@ class Parameter(DescriptorNumber):
             combinations.append(0.0)
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(
-            name=self.name, full_value=new_full_value, min=min_value, max=max_value
-        )
-        parameter.name = parameter.unique_name
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def resolve_pending_dependencies(self) -> None:
         """
@@ -1463,9 +1324,9 @@ class Parameter(DescriptorNumber):
     def _find_parameter_by_serializer_id(self, serializer_id: str) -> Optional['DescriptorNumber']:
         """
         Find a parameter by its serializer_id from all parameters in the
-        global map.
+        object registry.
         """
-        for obj in self._global_object.map._store.values():
+        for obj in self._global_object.registry.objects():
             if isinstance(obj, DescriptorNumber) and hasattr(
                 obj, '_DescriptorNumber__serializer_id'
             ):

@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 
 import easyscience.fitting.fitter
-from easyscience import AvailableMinimizers
 from easyscience import Fitter
+from easyscience import Minimizers
 
 
 class TestFitter:
@@ -24,9 +24,9 @@ class TestFitter:
         assert fitter._fit_object == self.mock_fit_object
         assert fitter._fit_function == self.mock_fit_function
         assert fitter._dependent_dims is None
-        assert fitter._enum_current_minimizer is None  # == AvailableMinimizers.LMFit_leastsq
+        assert fitter._enum_current_minimizer is None  # == Minimizers.LMFit_leastsq
         assert fitter._minimizer is None
-        fitter._update_minimizer.assert_called_once_with(AvailableMinimizers.LMFit_leastsq)
+        fitter._update_minimizer.assert_called_once_with(Minimizers.LMFit_leastsq)
 
     def test_make_model(self, fitter: Fitter):
         # When
@@ -54,19 +54,6 @@ class TestFitter:
         assert result == 'result'
         mock_minimizer.evaluate.assert_called_once_with('pars')
 
-    def test_convert_to_pars_obj(self, fitter: Fitter):
-        # When
-        mock_minimizer = MagicMock()
-        mock_minimizer.convert_to_pars_obj = MagicMock(return_value='obj')
-        fitter._minimizer = mock_minimizer
-
-        # Then
-        obj = fitter.convert_to_pars_obj('pars')
-
-        # Expect
-        assert obj == 'obj'
-        mock_minimizer.convert_to_pars_obj.assert_called_once_with('pars')
-
     def test_initialize(self, fitter: Fitter):
         # When
         mock_fit_object = MagicMock()
@@ -80,41 +67,31 @@ class TestFitter:
         assert fitter._fit_function == mock_fit_function
         fitter._update_minimizer.count(2)
 
-    def test_create(self, fitter: Fitter, monkeypatch):
+    def test_switch_minimizer(self, fitter: Fitter):
         # When
         fitter._update_minimizer = MagicMock()
-        mock_string_to_enum = MagicMock(return_value=10)
-        monkeypatch.setattr(easyscience.fitting.fitter, 'from_string_to_enum', mock_string_to_enum)
 
         # Then
-        fitter.create('great-minimizer')
+        fitter.switch_minimizer(Minimizers.Bumps)
 
         # Expect
-        mock_string_to_enum.assert_called_once_with('great-minimizer')
-        fitter._update_minimizer.assert_called_once_with(10)
+        fitter._update_minimizer.assert_called_once_with(Minimizers.Bumps)
 
-    def test_switch_minimizer(self, fitter: Fitter, monkeypatch):
+    def test_switch_minimizer_rejects_string(self, fitter: Fitter):
         # When
-        mock_minimizer = MagicMock()
-        fitter._minimizer = mock_minimizer
-        mock_string_to_enum = MagicMock(return_value=10)
-        monkeypatch.setattr(easyscience.fitting.fitter, 'from_string_to_enum', mock_string_to_enum)
+        fitter._update_minimizer = MagicMock()
 
-        # Then
-        fitter.switch_minimizer('great-minimizer')
-
-        # Expect
-        fitter._update_minimizer.count(2)
-        mock_string_to_enum.assert_called_once_with('great-minimizer')
+        # Then Expect
+        with pytest.raises(TypeError, match='Minimizers'):
+            fitter.switch_minimizer('Bumps')
+        fitter._update_minimizer.assert_not_called()
 
     def test_update_minimizer(self, monkeypatch):
         # When
         mock_fit_object = MagicMock()
         mock_fit_function = MagicMock()
 
-        mock_string_to_enum = MagicMock(return_value=10)
         mock_factory = MagicMock(return_value='minimizer')
-        monkeypatch.setattr(easyscience.fitting.fitter, 'from_string_to_enum', mock_string_to_enum)
         monkeypatch.setattr(easyscience.fitting.fitter, 'factory', mock_factory)
         fitter = Fitter(mock_fit_object, mock_fit_function)
 
@@ -130,20 +107,7 @@ class TestFitter:
         minimizers = fitter.available_minimizers
 
         # Then Expect
-        assert minimizers == [
-            'LMFit',
-            'LMFit_leastsq',
-            'LMFit_powell',
-            'LMFit_cobyla',
-            'LMFit_differential_evolution',
-            'LMFit_scipy_least_squares',
-            'Bumps',
-            'Bumps_simplex',
-            'Bumps_newton',
-            'Bumps_lm',
-            'DFO',
-            'DFO_leastsq',
-        ]
+        assert minimizers == list(Minimizers)
 
     def test_minimizer(self, fitter: Fitter):
         # When

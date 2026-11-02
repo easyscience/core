@@ -61,7 +61,7 @@ class TestMinimizerBase:
         # Then
         result = minimizer.evaluate(
             'x',
-            minimizer_parameters={'parms_key': 'parms_val'},
+            parameters={'parms_key': 'parms_val'},
             kwargs={'kwargs_key': 'kwargs_val'},
         )
 
@@ -84,7 +84,7 @@ class TestMinimizerBase:
         # Then
         minimizer.evaluate(
             'x',
-            minimizer_parameters={'parms_key': 'parms_val'},
+            parameters={'parms_key': 'parms_val'},
             kwargs={'kwargs_key': 'kwargs_val'},
         )
 
@@ -108,11 +108,11 @@ class TestMinimizerBase:
 
     def test_evaluate_exception(self, minimizer: MinimizerBase):
         # When
-        minimizer_parameters = 'not dict type'
+        parameters = 'not dict type'
 
         # Then Expect
         with pytest.raises(TypeError):
-            minimizer.evaluate('x', minimizer_parameters=minimizer_parameters)
+            minimizer.evaluate('x', parameters=parameters)
 
     def test_prepare_parameters(self, minimizer: MinimizerBase):
         # When
@@ -142,7 +142,7 @@ class TestMinimizerBase:
         mock_parm_2.unique_name = 'mock_parm_2'
         mock_parm_2.value = 2.0
         mock_parm_2.error = 0.2
-        minimizer._object.get_fit_parameters = MagicMock(return_value=[mock_parm_1, mock_parm_2])
+        minimizer._object.get_free_parameters = MagicMock(return_value=[mock_parm_1, mock_parm_2])
 
         # Then
         fit_function = minimizer._generate_fit_function()
