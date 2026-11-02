@@ -1247,9 +1247,9 @@ def sinh(
     Examples
     --------
     >>> import easyscience as es
-    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0, max=2.0)
+    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0)
     >>> print(es.math.sinh(x))
-    <Parameter 'sinh(x)': 1.1752 ± 0.1543, bounds=[0.0:3.6268604078470186]>
+    <Parameter 'sinh(x)': 1.1752 ± 0.1543, bounds=[0.0:inf]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_SINH, descriptor)
 
