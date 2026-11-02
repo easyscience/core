@@ -423,10 +423,9 @@ class TestFittedQuadrature:
 # deliberately not filtered here so that it stays visible.
 #
 # NOTE(): The uncertainty a fit reports depends on the minimizer. For the same data the variance of
-# the fitted FWHM was about 6.2e-5 (LMFit), 6.7e-5 (Bumps) and 3.0e-6 (DFO). Whether DFO's error
-# estimate is wrong is a question for the lead developer. A derived variance is only as good as the
-# variance it starts from, so these tests compare a derived variance only with the variance of the
-# same engine's fit, never across engines.
+# the fitted FWHM was about 6.2e-5 (LMFit), 6.7e-5 (Bumps) and 3.0e-6 (DFO). A derived variance is
+# only as good as the variance it starts from, so these tests compare a derived variance only with
+# the variance of the same engine's fit, never across engines.
 ENGINES = [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO]
 
 

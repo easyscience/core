@@ -4,7 +4,7 @@
 """
 Unit tests for ``easyscience.math``.
 
-Conventions encoded here (agreed with the lead developer):
+Conventions encoded here:
 
 * **Values are validated strictly.** A value outside a function's domain,
   or a result that is not finite, raises ``ValueError`` (such values break
