@@ -306,10 +306,10 @@ class Sampler:
     Raises
     ------
     TypeError
-        If ``fit_object`` has no ``get_free_parameters``, ``fit_function``
-        is not callable, any dataset in ``x``/``y``/``weights`` is not a
-        numeric array (e.g. a string), or ``vectorized``/``sampler_kwargs``
-        have the wrong type.
+        If ``fit_object`` has no ``get_free_parameters``,
+        ``fit_function`` is not callable, any dataset in
+        ``x``/``y``/``weights`` is not a numeric array (e.g. a string),
+        or ``vectorized``/``sampler_kwargs`` have the wrong type.
     ValueError
         If ``fit_function``, ``x``, ``y`` and ``weights`` do not hold
         matching structures (all single, or lists of the same length),

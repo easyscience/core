@@ -68,8 +68,7 @@ class Fitter:
         Raises
         ------
         TypeError
-            If ``minimizer_enum`` is not a ``Minimizers``
-            member.
+            If ``minimizer_enum`` is not a ``Minimizers`` member.
         """
         if not isinstance(minimizer_enum, Minimizers):
             raise TypeError(
