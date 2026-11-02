@@ -10,11 +10,35 @@ documented output, so the documentation cannot go stale.
 """
 
 import doctest
+import re
 
 import pytest
 
 from easyscience import global_object
 from easyscience import math as es_math
+
+FLOAT = re.compile(r'[-+]?\d+\.\d+(?:[eE][-+]?\d+)?')
+SIGNIFICANT_DIGITS = 10
+
+
+def round_floats(text):
+    """Round every float in ``text`` to ``SIGNIFICANT_DIGITS`` significant digits."""
+    return FLOAT.sub(lambda match: f'{float(match.group()):.{SIGNIFICANT_DIGITS}g}', text)
+
+
+class FloatTolerantChecker(doctest.OutputChecker):
+    """
+    Compare doctest output exactly, then again with the floats rounded.
+
+    The last digits of ``sinh``, ``arctan`` and other libm functions differ between platforms,
+    so the documented output is compared to about ten significant digits.
+    """
+
+    def check_output(self, want, got, optionflags):
+        if super().check_output(want, got, optionflags):
+            return True
+        return super().check_output(round_floats(want), round_floats(got), optionflags)
+
 
 # Aliases such as ``asin`` are the same objects as ``arcsin`` and share its docstring.
 CANONICAL_FUNCTIONS = [name for name in es_math.__all__ if getattr(es_math, name).__name__ == name]
@@ -39,7 +63,7 @@ class TestDocstringExamples:
         report = []
 
         # THEN
-        result = doctest.DocTestRunner().run(test, out=report.append)
+        result = doctest.DocTestRunner(checker=FloatTolerantChecker()).run(test, out=report.append)
 
         # EXPECT
         assert result.failed == 0, ''.join(report)

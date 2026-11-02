@@ -30,8 +30,8 @@ import pytest
 import scipp as sc
 
 import easyscience as es
-from easyscience import Minimizers
 from easyscience import Fitter
+from easyscience import Minimizers
 from easyscience import Parameter
 from easyscience import global_object
 from easyscience.base_classes import ModelBase

@@ -1002,13 +1002,11 @@ def arctan(
     Examples
     --------
     >>> import easyscience as es
-    >>> x = es.Parameter(
-    ...     1.0, display_name='x', variance=0.01, min=0.0, max=10.0
-    ... )
+    >>> x = es.Parameter(1.0, display_name='x', variance=0.01, min=0.0)
     >>> angle = es.math.arctan(x)
     >>> angle.convert_unit('deg')
     >>> print(angle)
-    <Parameter 'arctan(x)': 45.0000 ± 2.8648 deg, bounds=[0.0:84.28940686250037]>
+    <Parameter 'arctan(x)': 45.0000 ± 2.8648 deg, bounds=[0.0:90.0]>
     """  # noqa: DOC502 -- raised in _evaluate
     return _evaluate(_ARCTAN, descriptor)
 
