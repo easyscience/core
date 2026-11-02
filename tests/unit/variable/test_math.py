@@ -1321,7 +1321,10 @@ class TestInheritance:
         assert type(result) is DescriptorNumber
         assert not hasattr(result, 'min')
         assert result.value == pytest.approx(reference.value, rel=1e-12)
-        assert result.variance == pytest.approx(reference.variance, rel=1e-12)
+        if reference.variance is None:  # erf and erfc: Scipp cannot propagate a variance
+            assert result.variance is None
+        else:
+            assert result.variance == pytest.approx(reference.variance, rel=1e-12)
 
     @pytest.mark.parametrize('name', UNARY_FUNCTIONS)
     def test_parameter_input_still_returns_a_parameter(self, name):
