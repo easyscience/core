@@ -4,47 +4,66 @@
 import numpy as np
 import pytest
 
-from easyscience import ObjBase
+from easyscience import Minimizers
 from easyscience import Parameter
+from easyscience.base_classes import ModelBase
 from easyscience.fitting.minimizers import FitError
 from easyscience.fitting.multi_fitter import MultiFitter
 
 
-class Line(ObjBase):
-    m: Parameter
-    c: Parameter
-
+class Line(ModelBase):
     def __init__(self, m_val: float, c_val: float):
-        m = Parameter('m', m_val)
-        c = Parameter('c', c_val)
-        super(Line, self).__init__('line', m=m, c=c)
+        super().__init__()
+        self._m = Parameter(m_val, display_name='m')
+        self._c = Parameter(c_val, display_name='c')
+
+    @property
+    def m(self) -> Parameter:
+        return self._m
+
+    @m.setter
+    def m(self, value: float) -> None:
+        self._m.value = value
+
+    @property
+    def c(self) -> Parameter:
+        return self._c
+
+    @c.setter
+    def c(self, value: float) -> None:
+        self._c.value = value
 
     def __call__(self, x):
         return self.m.value * x + self.c.value
 
 
-class AbsSin(ObjBase):
-    phase: Parameter
-    offset: Parameter
-
+class AbsSin(ModelBase):
     def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
-        super().__init__('sin', offset=offset, phase=phase)
+        super().__init__()
+        self._offset = Parameter(offset_val, display_name='offset')
+        self._phase = Parameter(phase_val, display_name='phase')
+
+    @property
+    def offset(self) -> Parameter:
+        return self._offset
+
+    @offset.setter
+    def offset(self, value: float) -> None:
+        self._offset.value = value
+
+    @property
+    def phase(self) -> Parameter:
+        return self._phase
+
+    @phase.setter
+    def phase(self, value: float) -> None:
+        self._phase.value = value
 
     def __call__(self, x):
         return np.abs(np.sin(self.phase.value * x + self.offset.value))
 
 
-class AbsSin2D(ObjBase):
-    phase: Parameter
-    offset: Parameter
-
-    def __init__(self, offset_val: float, phase_val: float):
-        offset = Parameter('offset', offset_val)
-        phase = Parameter('phase', phase_val)
-        super().__init__('sin2D', offset=offset, phase=phase)
-
+class AbsSin2D(AbsSin):
     def __call__(self, x):
         X = x[:, :, 0]  # x is a 2D array
         Y = x[:, :, 1]
@@ -53,7 +72,10 @@ class AbsSin2D(ObjBase):
         )
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
+)
 def test_multi_fit(fit_engine):
     ref_sin_1 = AbsSin(0.2, np.pi)
     sp_sin_1 = AbsSin(0.354, 3.05)
@@ -80,10 +102,7 @@ def test_multi_fit(fit_engine):
 
     f = MultiFitter([sp_sin_1, sp_sin_2], [sp_sin_1, sp_sin_2])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     results = f.fit(x=[x1, x2], y=[y1, y2], weights=[weights, weights])
     X = [x1, x2]
@@ -91,8 +110,8 @@ def test_multi_fit(fit_engine):
     F_ref = [ref_sin_1, ref_sin_2]
     F_real = [sp_sin_1, sp_sin_2]
     for idx, result in enumerate(results):
-        assert result.n_pars == len(sp_sin_1.get_fit_parameters()) + len(
-            sp_sin_2.get_fit_parameters()
+        assert result.n_pars == len(sp_sin_1.get_free_parameters()) + len(
+            sp_sin_2.get_free_parameters()
         )
         assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
         assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
@@ -103,7 +122,10 @@ def test_multi_fit(fit_engine):
         assert result.residual == pytest.approx(F_real[idx](X[idx]) - F_ref[idx](X[idx]), abs=1e-2)
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
+)
 def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
     """Verify that fit metadata and message are copied into each per-dataset result."""
     ref_sin_1 = AbsSin(0.2, np.pi)
@@ -130,10 +152,7 @@ def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
 
     f = MultiFitter([sp_sin_1, sp_sin_2], [sp_sin_1, sp_sin_2])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     results = f.fit(x=[x1, x2], y=[y1, y2], weights=[weights, weights])
     for result in results:
@@ -146,7 +165,10 @@ def test_multi_fit_propagates_iteration_metadata_and_message(fit_engine):
         assert isinstance(result.message, str)
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
+)
 def test_multi_fit2(fit_engine):
     ref_sin_1 = AbsSin(0.2, np.pi)
     sp_sin_1 = AbsSin(0.354, 3.05)
@@ -185,10 +207,7 @@ def test_multi_fit2(fit_engine):
 
     f = MultiFitter([sp_sin_1, sp_line, sp_sin_2], [sp_sin_1, sp_line, sp_sin_2])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
 
     results = f.fit(x=[x1, x2, x3], y=[y1, y2, y3], weights=[weights, weights, weights])
     X = [x1, x2, x3]
@@ -199,9 +218,9 @@ def test_multi_fit2(fit_engine):
     assert len(results) == len(X)
 
     for idx, result in enumerate(results):
-        assert result.n_pars == len(sp_sin_1.get_fit_parameters()) + len(
-            sp_sin_2.get_fit_parameters()
-        ) + len(sp_line.get_fit_parameters())
+        assert result.n_pars == len(sp_sin_1.get_free_parameters()) + len(
+            sp_sin_2.get_free_parameters()
+        ) + len(sp_line.get_free_parameters())
         assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
         assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)
         assert result.success
@@ -211,7 +230,10 @@ def test_multi_fit2(fit_engine):
         assert result.residual == pytest.approx(F_ref[idx](X[idx]) - F_real[idx](X[idx]), abs=1e-2)
 
 
-@pytest.mark.parametrize('fit_engine', [None, 'LMFit', 'Bumps', 'DFO'])
+@pytest.mark.parametrize(
+    'fit_engine',
+    [None, Minimizers.LMFit, Minimizers.Bumps, Minimizers.DFO],
+)
 def test_multi_fit_1D_2D(fit_engine):
     # Generate fit and reference objects
     ref_sin1D = AbsSin(0.2, np.pi)
@@ -241,10 +263,7 @@ def test_multi_fit_1D_2D(fit_engine):
 
     ff = MultiFitter([sp_sin1D, sp_sin2D], [sp_sin1D, sp_sin2D])
     if fit_engine is not None:
-        try:
-            ff.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        ff.switch_minimizer(fit_engine)
 
     sp_sin1D.offset.fixed = False
     sp_sin1D.phase.fixed = False
@@ -252,10 +271,7 @@ def test_multi_fit_1D_2D(fit_engine):
 
     f = MultiFitter([sp_sin1D, sp_sin2D], [sp_sin1D, sp_sin2D])
     if fit_engine is not None:
-        try:
-            f.switch_minimizer(fit_engine)
-        except AttributeError:
-            pytest.skip(f'{fit_engine} is not installed')
+        f.switch_minimizer(fit_engine)
     try:
         results = f.fit(
             x=[x1D, x2D], y=[y1D, y2D], weights=[weights1D, weights2D], vectorized=True
@@ -271,11 +287,11 @@ def test_multi_fit_1D_2D(fit_engine):
     F_ref = [ref_sin1D, ref_sin2D]
     F_real = [sp_sin1D, sp_sin2D]
     for idx, result in enumerate(results):
-        assert result.n_pars == len(sp_sin1D.get_fit_parameters()) + len(
-            sp_sin2D.get_fit_parameters()
+        assert result.n_pars == len(sp_sin1D.get_free_parameters()) + len(
+            sp_sin2D.get_free_parameters()
         )
         if (
-            fit_engine != 'DFO'
+            fit_engine != Minimizers.DFO
         ):  # DFO apparently does not fit well with even weights. Can't be bothered to fix
             assert result.chi2 == pytest.approx(0, abs=1.5e-3 * (len(result.x) - result.n_pars))
             assert result.reduced_chi2 == pytest.approx(0, abs=1.5e-3)

@@ -35,14 +35,13 @@ individual subsystems:
 ```
 easyscience                        # root — controls everything
 ├── easyscience.base_classes       # EasyList runtime warnings
-├── easyscience.legacy             # ObjBase / CollectionBase deprecations
 ├── easyscience.deprecated         # @deprecated decorator messages
 ├── easyscience.fitting            # import-availability warnings
 │   ├── easyscience.fitting.bumps  # Bumps fitting runtime messages
 │   ├── easyscience.fitting.lmfit  # LMFit fitting runtime messages
 │   └── easyscience.fitting.dfo    # DFO fitting runtime messages
 ├── easyscience.variable           # parameter warnings
-└── easyscience.global_object      # undo/redo, debugging diagnostics
+└── easyscience.global_object      # debugging diagnostics
 ```
 
 Setting the level on a parent logger affects all its children, because
@@ -56,9 +55,6 @@ logging.getLogger('easyscience.fitting').setLevel(logging.ERROR)
 
 # Suppress only Bumps runtime messages
 logging.getLogger('easyscience.fitting.bumps').setLevel(logging.ERROR)
-
-# Suppress only legacy deprecation notices
-logging.getLogger('easyscience.legacy').setLevel(logging.ERROR)
 ```
 
 ## Environment Variable

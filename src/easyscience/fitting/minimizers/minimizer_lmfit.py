@@ -11,13 +11,11 @@ from lmfit import Parameter as LMParameter
 from lmfit import Parameters as LMParameters
 from lmfit.model import ModelResult
 
-# causes circular import when Parameter is imported
-# from easyscience.base_classes import ObjBase
 from easyscience.variable import Parameter
 
-from ..available_minimizers import AvailableMinimizers
-from .minimizer_base import MINIMIZER_PARAMETER_PREFIX
+from ..engine_base import PARAMETER_PREFIX
 from .minimizer_base import MinimizerBase
+from .minimizers import Minimizers
 from .utils import FitError
 from .utils import FitResults
 
@@ -27,17 +25,17 @@ class LMFit(MinimizerBase):  # noqa: S101
     This is a wrapper to the extended Levenberg-Marquardt Fit:
     https://lmfit.github.io/lmfit-py/ It allows for the lmfit fitting
     engine to use parameters declared in an
-    ``EasyScience.base_classes.ObjBase``.
+    ``easyscience.base_classes.ModelBase``.
     """
 
     package = 'lmfit'
 
     def __init__(
         self,
-        obj: object,  #: ObjBase,
+        obj: object,  #: ModelBase,
         fit_function: Callable,
-        minimizer_enum: AvailableMinimizers | None = None,
-    ):  # todo after constraint changes, add type hint: obj: ObjBase  # noqa: E501
+        minimizer_enum: Minimizers | None = None,
+    ):  # todo after constraint changes, add type hint: obj: ModelBase  # noqa: E501
         """
         Initialize the minimizer.
 
@@ -47,7 +45,7 @@ class LMFit(MinimizerBase):  # noqa: S101
             Object containing the ``Parameter`` instances to fit.
         fit_function : Callable
             Callable returning model y values for the supplied x values.
-        minimizer_enum : AvailableMinimizers | None, default=None
+        minimizer_enum : Minimizers | None, default=None
             Selected LMFit minimizer configuration. By default, None.
         """
         super().__init__(obj=obj, fit_function=fit_function, minimizer_enum=minimizer_enum)
@@ -85,12 +83,10 @@ class LMFit(MinimizerBase):  # noqa: S101
         x: np.ndarray,
         y: np.ndarray,
         weights: np.ndarray = None,
-        model: LMModel | None = None,
-        parameters: LMParameters | None = None,
         method: str | None = None,
         tolerance: float | None = None,
         max_evaluations: int | None = None,
-        progress_callback: Callable[[dict], bool | None] | None = None,
+        progress_callback: Callable[[dict], None] | None = None,
         minimizer_kwargs: dict | None = None,
         engine_kwargs: dict | None = None,
         **kwargs,
@@ -106,18 +102,15 @@ class LMFit(MinimizerBase):  # noqa: S101
             Measured points.
         weights : np.ndarray, default=None
             Weights for supplied measured points. By default, None.
-        model : LMModel | None, default=None
-            Optional Model which is being fitted to. By default, None.
-        parameters : LMParameters | None, default=None
-            Optional parameters for the fit. By default, None.
         method : str | None, default=None
             Minimizer method. By default, None.
         tolerance : float | None, default=None
             Requested optimizer tolerance. By default, None.
         max_evaluations : int | None, default=None
             Maximum number of function evaluations. By default, None.
-        progress_callback : Callable[[dict], bool | None] | None, default=None
-            Optional callback receiving normalized progress payloads.
+        progress_callback : Callable[[dict], None] | None, default=None
+            Optional callback receiving normalized progress payloads. Its
+            return value is ignored.
         minimizer_kwargs : dict | None, default=None
             Additional keyword arguments passed to LMFit's minimizer. By
             default, None.
@@ -137,22 +130,10 @@ class LMFit(MinimizerBase):  # noqa: S101
         ------
         FitError
             If the LMFit optimization fails.
-        ValueError
-            If the input shapes or weights are invalid.
         """
         x, y, weights = np.asarray(x), np.asarray(y), np.asarray(weights)
 
-        if y.shape != x.shape:
-            raise ValueError('x and y must have the same shape.')
-
-        if weights.shape != x.shape:
-            raise ValueError('Weights must have the same shape as x and y.')
-
-        if not np.isfinite(weights).all():
-            raise ValueError('Weights cannot be NaN or infinite.')
-
-        if (weights <= 0).any():
-            raise ValueError('Weights must be strictly positive and non-zero.')
+        self.validate_arrays(x, y, weights)
 
         if engine_kwargs is None:
             engine_kwargs = {}
@@ -160,15 +141,8 @@ class LMFit(MinimizerBase):  # noqa: S101
         method_kwargs = self._get_method_kwargs(method)
         fit_kws_dict = self._get_fit_kws(method, tolerance, minimizer_kwargs)
 
-        # Why do we do this? Because a fitting template has to have global_object instantiated outside pre-runtime
-        from easyscience import global_object
-
-        stack_status = global_object.stack.enabled
-        global_object.stack.enabled = False
-
         try:
-            if model is None:
-                model = self._make_model()
+            model = self._make_model()
 
             self._last_iteration = None
             iter_cb = self._create_iter_callback(progress_callback)
@@ -183,18 +157,16 @@ class LMFit(MinimizerBase):  # noqa: S101
                 **engine_kwargs,
                 **kwargs,
             )
-            self._set_parameter_fit_result(model_results, stack_status)
+            self._set_parameter_fit_result(model_results)
             results = self._gen_fit_results(model_results, iterations=self._last_iteration)
         except Exception as e:
             self._restore_parameter_values()
             raise FitError(e)
-        finally:
-            global_object.stack.enabled = stack_status
         return results
 
     def _create_iter_callback(
         self,
-        progress_callback: Callable[[dict], bool | None] | None,
+        progress_callback: Callable[[dict], None] | None,
     ) -> Callable | None:
 
         def iter_cb(params, iteration: int, residuals: np.ndarray, *args, **kwargs) -> bool:
@@ -218,12 +190,12 @@ class LMFit(MinimizerBase):  # noqa: S101
         reduced_chi2 = chi2 / degrees_of_freedom if degrees_of_freedom > 0 else chi2
 
         parameter_values = {
-            parameter_name[len(MINIMIZER_PARAMETER_PREFIX) :]: float(parameter.value)
+            parameter_name[len(PARAMETER_PREFIX) :]: float(parameter.value)
             for parameter_name, parameter in params.items()
-            if parameter_name.startswith(MINIMIZER_PARAMETER_PREFIX)
+            if parameter_name.startswith(PARAMETER_PREFIX)
         }
         for parameter_name, parameter in self._cached_pars.items():
-            lmfit_parameter_name = f'{MINIMIZER_PARAMETER_PREFIX}{parameter_name}'
+            lmfit_parameter_name = f'{PARAMETER_PREFIX}{parameter_name}'
             if lmfit_parameter_name not in params:
                 parameter_values[parameter_name] = float(parameter.value)
 
@@ -241,64 +213,16 @@ class LMFit(MinimizerBase):  # noqa: S101
     ) -> dict[str:str]:
         if minimizer_kwargs is None:
             minimizer_kwargs = {}
+        # `method` is usually None, because `Fitter.fit`
+        # does not pass one; the minimizer's own method is what actually runs,
+        # so it decides which tolerance keyword the backend accepts.
+        effective_method = method if method is not None else self._method
         if tolerance is not None:
-            if method in [None, 'least_squares', 'leastsq']:
+            if effective_method in ['least_squares', 'leastsq']:
                 minimizer_kwargs['ftol'] = tolerance
-            if method in ['differential_evolution', 'powell', 'cobyla']:
+            if effective_method in ['differential_evolution', 'powell', 'cobyla']:
                 minimizer_kwargs['tol'] = tolerance
         return minimizer_kwargs
-
-    def convert_to_pars_obj(self, parameters: List[Parameter] | None = None) -> LMParameters:
-        """
-        Create an lmfit compatible container with the ``Parameters``
-        converted from the base object.
-
-        Parameters
-        ----------
-        parameters : List[Parameter] | None, default=None
-            If only a single/selection of parameter is required. Specify
-            as a list. By default, None.
-
-        Returns
-        -------
-        LMParameters
-            Lmfit Parameters compatible object.
-        """
-        if parameters is None:
-            # Assume that we have a ObjBase for which we can obtain a list
-            parameters = self._object.get_fit_parameters()
-        lm_parameters = LMParameters().add_many([
-            self.convert_to_par_object(parameter) for parameter in parameters
-        ])
-        return lm_parameters
-
-    @staticmethod
-    def convert_to_par_object(parameter: Parameter) -> LMParameter:
-        """
-        Convert an EasyScience Parameter object to a lmfit Parameter
-        object.
-
-        Parameters
-        ----------
-        parameter : Parameter
-            EasyScience parameter to convert.
-
-        Returns
-        -------
-        LMParameter
-            Lmfit Parameter compatible object.
-        """
-        value = parameter.value
-
-        return LMParameter(
-            MINIMIZER_PARAMETER_PREFIX + parameter.unique_name,
-            value=value,
-            vary=not parameter.fixed,
-            min=parameter.min,
-            max=parameter.max,
-            expr=None,
-            brute_step=None,
-        )
 
     def _make_model(self, pars: LMParameters | None = None) -> LMModel:
         """
@@ -326,7 +250,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         model = LMModel(
             fit_func,
             independent_vars=['x'],
-            param_names=[MINIMIZER_PARAMETER_PREFIX + str(key) for key in pars.keys()],
+            param_names=[PARAMETER_PREFIX + str(key) for key in pars.keys()],
         )
         # Assign values from the `Parameter` to the model
         for name, item in pars.items():
@@ -336,7 +260,7 @@ class LMFit(MinimizerBase):  # noqa: S101
                 value = item.value
 
             model.set_param_hint(
-                MINIMIZER_PARAMETER_PREFIX + str(name),
+                PARAMETER_PREFIX + str(name),
                 value=value,
                 min=item.min,
                 max=item.max,
@@ -346,7 +270,7 @@ class LMFit(MinimizerBase):  # noqa: S101
         self._cached_model = model
         return model
 
-    def _set_parameter_fit_result(self, fit_result: ModelResult, stack_status: bool) -> None:
+    def _set_parameter_fit_result(self, fit_result: ModelResult) -> None:
         """
         Update parameters to their final values and assign a std error
         to them.
@@ -355,24 +279,18 @@ class LMFit(MinimizerBase):  # noqa: S101
         ----------
         fit_result : ModelResult
             Fit object which contains info on the fit.
-        stack_status : bool
-            Whether the undo stack was enabled.
         """
-        from easyscience import global_object
-
         pars = self._cached_pars
-        if stack_status:
-            self._restore_parameter_values()
-            global_object.stack.enabled = True
-            global_object.stack.beginMacro('Fitting routine')
         for name in pars.keys():
-            pars[name].value = fit_result.params[MINIMIZER_PARAMETER_PREFIX + str(name)].value
+            pars[name].value = fit_result.params[PARAMETER_PREFIX + str(name)].value
             if fit_result.errorbars:
-                pars[name].error = fit_result.params[MINIMIZER_PARAMETER_PREFIX + str(name)].stderr
+                pars[name].error = fit_result.params[PARAMETER_PREFIX + str(name)].stderr
             else:
-                pars[name].error = 0.0
-        if stack_status:
-            global_object.stack.endMacro()
+                # No covariance available (gradient-free method, aborted fit, or a
+                # parameter at a bound). None keeps that distinguishable from a
+                # genuine zero uncertainty and clears any stale error from a
+                # previous fit.
+                pars[name].error = None
 
     def _gen_fit_results(self, fit_results: ModelResult, **kwargs: Any) -> FitResults:
         """
