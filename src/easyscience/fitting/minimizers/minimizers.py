@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from enum import unique
 
 from easyscience import global_object
 
@@ -48,7 +49,8 @@ class AvailableMinimizer:
     enum_id: int
 
 
-class AvailableMinimizers(AvailableMinimizer, Enum):
+@unique
+class Minimizers(AvailableMinimizer, Enum):
     if lmfit_engine_available:
         LMFit = 'lm', 'leastsq', 11
         LMFit_leastsq = 'lm', 'leastsq', 12
@@ -66,39 +68,3 @@ class AvailableMinimizers(AvailableMinimizer, Enum):
     if dfo_engine_available:
         DFO = 'dfo', 'leastsq', 31
         DFO_leastsq = 'dfo', 'leastsq', 32
-
-
-# Temporary solution to convert string to enum
-def from_string_to_enum(minimizer_name: str) -> AvailableMinimizers:
-    if minimizer_name == 'LMFit':
-        minmizer_enum = AvailableMinimizers.LMFit
-    elif minimizer_name == 'LMFit_leastsq':
-        minmizer_enum = AvailableMinimizers.LMFit_leastsq
-    elif minimizer_name == 'LMFit_powell':
-        minmizer_enum = AvailableMinimizers.LMFit_powell
-    elif minimizer_name == 'LMFit_cobyla':
-        minmizer_enum = AvailableMinimizers.LMFit_cobyla
-    elif minimizer_name == 'LMFit_differential_evolution':
-        minmizer_enum = AvailableMinimizers.LMFit_differential_evolution
-    elif minimizer_name == 'LMFit_scipy_least_squares':
-        minmizer_enum = AvailableMinimizers.LMFit_scipy_least_squares
-
-    elif minimizer_name == 'Bumps':
-        minmizer_enum = AvailableMinimizers.Bumps
-    elif minimizer_name == 'Bumps_simplex':
-        minmizer_enum = AvailableMinimizers.Bumps_simplex
-    elif minimizer_name == 'Bumps_newton':
-        minmizer_enum = AvailableMinimizers.Bumps_newton
-    elif minimizer_name == 'Bumps_lm':
-        minmizer_enum = AvailableMinimizers.Bumps_lm
-
-    elif minimizer_name == 'DFO':
-        minmizer_enum = AvailableMinimizers.DFO
-    elif minimizer_name == 'DFO_leastsq':
-        minmizer_enum = AvailableMinimizers.DFO_leastsq
-    else:
-        raise ValueError(
-            f'Invalid minimizer name: {minimizer_name}. The following minimizers are available: {[minimize.name for minimize in AvailableMinimizers]}'  # noqa: E501
-        )
-
-    return minmizer_enum

@@ -270,7 +270,7 @@ class TestSamplerErrorPaths:
         x, y, w = _xyw()
         sampler = Sampler(_StubModel(), _identity, x, y, w)
         monkeypatch.setattr(
-            'easyscience.fitting.available_minimizers.bumps_engine_available', False
+            'easyscience.fitting.minimizers.minimizers.bumps_engine_available', False
         )
         with pytest.raises(RuntimeError, match='requires the bumps package'):
             sampler.sample(samples=10, burn=5, thin=1)

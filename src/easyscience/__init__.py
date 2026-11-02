@@ -11,8 +11,8 @@ global_object = GlobalObject()
 
 from .base_classes import EasyList  # noqa: E402
 from .base_classes import ModelBase  # noqa: E402
-from .fitting import AvailableMinimizers  # noqa: E402
 from .fitting import Fitter  # noqa: E402
+from .fitting.minimizers import Minimizers  # noqa: E402
 from .variable import DescriptorNumber  # noqa: E402
 from .variable import Parameter  # noqa: E402
 
@@ -22,12 +22,12 @@ from . import math  # noqa: E402  # isort: skip
 __version__ = version('easyscience')
 
 __all__ = [
-    '__version__',
-    'global_object',
-    'ModelBase',
-    'EasyList',
-    'AvailableMinimizers',
-    'Fitter',
-    'DescriptorNumber',
-    'Parameter',
+    __version__,
+    global_object,
+    ModelBase,
+    EasyList,
+    Minimizers,
+    Fitter,
+    DescriptorNumber,
+    Parameter,
 ]
