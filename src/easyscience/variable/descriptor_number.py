@@ -10,6 +10,7 @@ from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Self
 from typing import Union
 
 import numpy as np
@@ -100,7 +101,6 @@ class DescriptorNumber(DescriptorBase):
             If ``unit`` is not a valid scipp unit.
         ValueError
             If ``variance`` is negative.
-
         """
         self._observers: List[DescriptorNumber] = []
 
@@ -141,7 +141,7 @@ class DescriptorNumber(DescriptorBase):
             self._convert_unit(self._base_unit())
 
     @classmethod
-    def from_scipp(cls, full_value: Variable, **kwargs: Any) -> DescriptorNumber:
+    def from_scipp(cls, full_value: Variable, **kwargs: Any) -> Self:
         """
         Create a DescriptorNumber from a scipp constant.
 
@@ -154,14 +154,14 @@ class DescriptorNumber(DescriptorBase):
 
         Returns
         -------
-        DescriptorNumber
-            DescriptorNumber.
+        Self
+            A new instance of the class this is called on.
 
         Raises
         ------
         TypeError
             If ``full_value`` is not a scalar scipp ``Variable``.
-        """
+        """  # noqa: DOC203 -- Self in the signature, the class name in the docs
         if not isinstance(full_value, Variable):
             raise TypeError(f'{full_value=} must be a scipp scalar')
         if len(full_value.dims) != 0:

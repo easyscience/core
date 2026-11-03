@@ -9,6 +9,7 @@
   --sz-body-text-color--lightmode:        #525252;
   --sz-body-heading-color--lightmode:     #434343;
   --sz-code-background-color--lightmode:  #ececec;
+  --sz-repl-prompt-color--lightmode:      #000080;
 
   --sz-link-color--darkmode:              #37bdf9;
   --sz-hovered-link-color--darkmode:      #2890c0;
@@ -16,6 +17,7 @@
   --sz-body-text-color--darkmode:         #a3a3a3;
   --sz-body-heading-color--darkmode:      #e5e5e5;
   --sz-code-background-color--darkmode:   #212121;
+  --sz-repl-prompt-color--darkmode:       #ff4689;
 }
 
 /****************/
@@ -29,6 +31,9 @@
 /* Default light mode https://github.com/squidfunk/mkdocs-material/blob/master/src/assets/stylesheets/main/_colors.scss */
 
 [data-md-color-scheme="default"] {
+
+  /* Python console prompts (>>> and ...), as on docs.python.org */
+  --sz-repl-prompt-color:           var(--sz-repl-prompt-color--lightmode);
 
   /* Primary color shades */
   --md-primary-fg-color:            var(--sz-body-background-color--lightmode);  /* Navigation background */
@@ -77,6 +82,9 @@
 /* Default dark mode: https://github.com/squidfunk/mkdocs-material/blob/master/src/assets/stylesheets/palette/_scheme.scss */
 
 [data-md-color-scheme="slate"] {
+
+  /* Python console prompts (>>> and ...), as on docs.python.org */
+  --sz-repl-prompt-color:           var(--sz-repl-prompt-color--darkmode);
 
   /* Primary color shades */
   --md-primary-fg-color:            var(--sz-body-background-color--darkmode);   /* Navigation background */
@@ -363,4 +371,23 @@ h1 .label-experiment {
 
 .label-experiment:hover {
   color: white !important;
+}
+
+/* Python console examples (pycon, e.g. doctests): colour the >>> and ... prompts,
+   keep prompts, output and tracebacks out of text selection, and leave them out
+   of the code copy button, so that copying gives runnable code. Tracebacks are
+   wrapped in .sz-traceback by extra.js */
+.highlight .gp {
+  color: var(--sz-repl-prompt-color);
+  font-weight: bold;
+}
+.highlight .gp,
+.highlight .go,
+.highlight .sz-traceback {
+  user-select: none;
+}
+.highlight code[data-md-copying] .gp,
+.highlight code[data-md-copying] .go,
+.highlight code[data-md-copying] .sz-traceback {
+  display: none;
 }

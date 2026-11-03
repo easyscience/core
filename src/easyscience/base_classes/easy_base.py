@@ -62,7 +62,8 @@ class EasyBase:
         TypeError
             If ``new_unique_name`` is not a string.
         ValueError
-            If ``new_unique_name`` is already registered to another object.
+            If ``new_unique_name`` is already registered to another
+            object.
         """
         if not isinstance(new_unique_name, str):
             raise TypeError('Unique name has to be a string.')

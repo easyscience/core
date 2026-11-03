@@ -24,4 +24,20 @@
   window.onscroll = function () {
     toggleHeaderShadow()
   }
+
+  // Python console examples: wrap each traceback, from its first line up to
+  // the next prompt or output, so that the copy button leaves it out (see
+  // extra.css). Only its first line has a class (.gt); the rest is plain text.
+  function isPromptOrOutput(node) {
+    return node.nodeType === Node.ELEMENT_NODE && node.matches('.gp, .go')
+  }
+
+  for (const firstLine of document.querySelectorAll('.highlight .gt')) {
+    const traceback = document.createElement('span')
+    traceback.className = 'sz-traceback'
+    firstLine.before(traceback)
+    while (traceback.nextSibling && !isPromptOrOutput(traceback.nextSibling)) {
+      traceback.append(traceback.nextSibling)
+    }
+  }
 })()

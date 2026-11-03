@@ -68,8 +68,7 @@ class Fitter:
         Raises
         ------
         TypeError
-            If ``minimizer_enum`` is not a ``Minimizers``
-            member.
+            If ``minimizer_enum`` is not a ``Minimizers`` member.
         """
         if not isinstance(minimizer_enum, Minimizers):
             raise TypeError(
@@ -192,8 +191,8 @@ class Fitter:
         """
         Get the EasyScience object used as a model.
 
-        For a ``Fitter`` this is not one of the supplied fit
-        objects but a read-only, indexable and iterable aggregate.
+        For a ``Fitter`` this is not one of the supplied fit objects but
+        a read-only, indexable and iterable aggregate.
 
         Returns
         -------
@@ -221,8 +220,9 @@ class Fitter:
         flatten: bool = True,
     ) -> Callable:
         """
-        Wrap the fit function so it evaluates on the real X (independent)
-        values instead of the optimizer's dummy x, flattening if needed.
+        Wrap the fit function so it evaluates on the real X
+        (independent) values instead of the optimizer's dummy x,
+        flattening if needed.
 
         Parameters
         ----------
