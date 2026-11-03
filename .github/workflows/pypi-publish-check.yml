@@ -1,0 +1,77 @@
+# Dry run of the PyPI publishing workflow (see pypi-publish.yml).
+# Performs the same setup and build steps on a simulated release tag, but
+# never uploads anything. It fails if:
+# - pixi.lock is out of date for the pixi version used on GitHub runners
+#   (pixi commands without --frozen would rewrite it, e.g. the shell-hook
+#   run by setup-pixi to activate the environment)
+# - any tracked file is modified before the build, which gives
+#   versioningit a '+dirty' local version that PyPI rejects
+# - the built package has a local version or fails 'twine check'
+
+name: PyPI publishing check
+
+on:
+  pull_request:
+    branches: [master, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pypi-publish-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # Same setup as in pypi-publish.yml, so any pixi.lock rewrite done by
+      # setup-pixi itself is reproduced here
+      - name: Set up pixi
+        uses: ./.github/actions/setup-pixi
+
+      # setup-pixi may already have rewritten pixi.lock, so compare it with
+      # the committed version as well as running 'pixi lock --check'
+      - name: Check pixi.lock is up to date
+        run: |
+          pixi --version
+          if ! git diff --quiet -- pixi.lock || ! pixi lock --check; then
+            git diff --stat -- pixi.lock
+            echo "::error file=pixi.lock::pixi.lock is out of date for $(pixi --version). Update pixi locally (pixi self-update), run 'pixi lock' and commit pixi.lock."
+            exit 1
+          fi
+
+      - name: Check working tree is clean
+        run: |
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+            echo "::error::Tracked files were modified before the build, so the package version would get a '+dirty' suffix:"
+            git status --porcelain --untracked-files=no
+            git diff --stat
+            exit 1
+          fi
+
+      - name: Simulate release tag
+        run: git tag v9999.0.0
+
+      - name: Create Python package
+        run: pixi run --frozen default-build
+
+      - name: Check package version
+        run: |
+          ls -l dist/
+          for f in dist/*; do
+            if [[ "$(basename "$f")" == *+* ]]; then
+              echo "::error::$(basename "$f") has a local version, which PyPI rejects."
+              exit 1
+            fi
+          done
+
+      - name: Check package metadata
+        run: pipx run twine check --strict dist/*
