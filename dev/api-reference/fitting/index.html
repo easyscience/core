@@ -1447,7 +1447,7 @@
             <td><code><a class="autorefs autorefs-internal" title="&lt;code&gt;reshaping&lt;/code&gt; (&lt;code&gt;easyscience.fitting.reshaping&lt;/code&gt;)" href="#easyscience.fitting.reshaping">reshaping</a></code></td>
             <td>
               <div class="doc-md-description">
-                <p>Data reshaping and fit-function wrapping shared by <code>Fitter</code> and <code>Sampler</code>.</p>
+                <p>Data reshaping and fit-function wrapping shared by <code>Fitter</code> and</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -1576,9 +1576,9 @@
 <p>An engine binds an EasyScience object and a fit function, and
 repeatedly evaluates the function while writing values back into the
 object's <code>Parameter</code> instances. <code>EngineBase</code> owns this shared
-system: the parameter cache, the <code>Parameter</code>-writing wrapped
-fit function, and value restore on failure. It deliberately declares
-no abstract methods: the interfaces are defined on its subclasses
+system: the parameter cache, the <code>Parameter</code>-writing wrapped fit
+function, and value restore on failure. It deliberately declares no
+abstract methods: the interfaces are defined on its subclasses
 (<code>MinimizerBase.fit</code>, <code>DreamSampler.run</code>).</p>
 <!-- prettier-ignore-start -->
 
@@ -1757,9 +1757,9 @@ no abstract methods: the interfaces are defined on its subclasses
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If any array is non-numeric, the shapes disagree, x or y contain
-NaN or infinite values, or the weights are non-finite or
-non-positive.</p>
+                <p>If any array is non-numeric, the shapes disagree, x or y
+contain NaN or infinite values, or the weights are
+non-finite or non-positive.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -2495,8 +2495,8 @@ utilizing one of the supported minimizers.</p>
     <div class="doc doc-contents ">
 
         <p>Get the EasyScience object used as a model.</p>
-<p>For a <code>Fitter</code> this is not one of the supplied fit
-objects but a read-only, indexable and iterable aggregate.</p>
+<p>For a <code>Fitter</code> this is not one of the supplied fit objects but
+a read-only, indexable and iterable aggregate.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -2704,8 +2704,7 @@ the fit is completed, reshape the inputs to those expected.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>minimizer_enum</code> is not a <code>Minimizers</code>
-member.</p>
+                <p>If <code>minimizer_enum</code> is not a <code>Minimizers</code> member.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -3086,7 +3085,7 @@ from the minimizer.</p>
               <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;to_bumps_parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;par&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.minimizers.bumps_utils.problem.to_bumps_parameter&lt;/code&gt;)" href="#easyscience.fitting.minimizers.bumps_utils.problem.to_bumps_parameter">to_bumps_parameter</a></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Convert an EasyScience <code>Parameter</code> to a prefixed <code>BumpsParameter</code>.</p>
+                  <p>Convert an EasyScience <code>Parameter</code> to a prefixed</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -3097,7 +3096,7 @@ from the minimizer.</p>
               <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;build_curve_problem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;engine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.minimizers.bumps_utils.problem.build_curve_problem&lt;/code&gt;)" href="#easyscience.fitting.minimizers.bumps_utils.problem.build_curve_problem">build_curve_problem</a></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Build a BUMPS <code>FitProblem</code> around an engine's wrapped fit function.</p>
+                  <p>Build a BUMPS <code>FitProblem</code> around an engine's wrapped fit</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -3155,7 +3154,8 @@ from the minimizer.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Convert an EasyScience <code>Parameter</code> to a prefixed <code>BumpsParameter</code>.</p>
+        <p>Convert an EasyScience <code>Parameter</code> to a prefixed
+<code>BumpsParameter</code>.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -3177,7 +3177,7 @@ from the minimizer.</p>
                 <code>par</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#x27;&#x27;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;variance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fixed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unique_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;display_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kwargs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.variable.Parameter&lt;/code&gt;)" href="../variable/#easyscience.variable.Parameter">Parameter</a></code>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#x27;&#x27;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;variance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fixed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unique_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;display_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kwargs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.variable.Parameter&lt;/code&gt;)" href="../variable/#easyscience.variable.Parameter">Parameter</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3237,9 +3237,10 @@ from the minimizer.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Build a BUMPS <code>FitProblem</code> around an engine's wrapped fit function.</p>
-<p>Wraps <code>engine._generate_fit_function()</code> in an :class:<code>EvalCounter</code>,
-converts the engine's cached parameters via
+        <p>Build a BUMPS <code>FitProblem</code> around an engine's wrapped fit
+function.</p>
+<p>Wraps <code>engine._generate_fit_function()</code> in an
+:class:<code>EvalCounter</code>, converts the engine's cached parameters via
 :func:<code>to_bumps_parameter</code>, and assembles
 <code>Curve(fit_func, x, y, dy=1/weights, **bumps_pars)</code> into a
 <code>FitProblem</code>.</p>
@@ -3264,7 +3265,7 @@ converts the engine's cached parameters via
                 <code>engine</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;EngineBase&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.engine_base.EngineBase&lt;/code&gt;)" href="#easyscience.fitting.engine_base.EngineBase">EngineBase</a></code>
+                  <code>&#39;EngineBase&#39;</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3356,9 +3357,9 @@ parameter cache.</p>
             <td>
               <div class="doc-md-description">
                 <p>The assembled problem, the evaluation counter wrapping the fit
-function, and the <code>Curve</code> model itself.
-The <code>Curve</code> is returned because <code>FitProblem.fitness</code> is
-deprecated in current BUMPS.</p>
+function, and the <code>Curve</code> model itself. The <code>Curve</code> is
+returned because <code>FitProblem.fitness</code> is deprecated in current
+BUMPS.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -4319,9 +4320,9 @@ default, None.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If any array is non-numeric, the shapes disagree, x or y contain
-NaN or infinite values, or the weights are non-finite or
-non-positive.</p>
+                <p>If any array is non-numeric, the shapes disagree, x or y
+contain NaN or infinite values, or the weights are
+non-finite or non-positive.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -4912,8 +4913,9 @@ running fit. By default, None.</p>
 fit should be aborted.  Called periodically during the BUMPS
 optimizer iteration loop, and once more after the optimizer
 returns in order to distinguish an aborted fit from a
-converged one, so it must be side-effect free. An aborted fit
-returns <code>FitResults(success=False)</code> rather than raising.</p>
+converged one, so it must be side-effect free. An aborted
+fit returns <code>FitResults(success=False)</code> rather than
+raising.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -5001,15 +5003,15 @@ default, None.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Fit results. <code>FitResults.iterations</code> is the number of BUMPS
-<em>optimizer steps</em> consumed (the last reported step index plus
-one), which is what <code>max_evaluations</code> tests against; it is
-not comparable to LMFit's <code>nfev</code> or DFO-LS' <code>nf</code>. The
-objective-call count is reported separately as
+                <p>Fit results. <code>FitResults.iterations</code> is the number of
+BUMPS <em>optimizer steps</em> consumed (the last reported step
+index plus one), which is what <code>max_evaluations</code> tests
+against; it is not comparable to LMFit's <code>nfev</code> or DFO-LS'
+<code>nf</code>. The objective-call count is reported separately as
 <code>FitResults.n_evaluations</code>, which is the cross-backend
-consistent figure. Note that BUMPS derives the step index from
-whatever the selected fitter reports to its monitors, so the
-granularity of a "step" varies between fitters.</p>
+consistent figure. Note that BUMPS derives the step index
+from whatever the selected fitter reports to its monitors,
+so the granularity of a "step" varies between fitters.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -5173,9 +5175,9 @@ is reported as <code>FitResults(success=False)</code> instead.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If any array is non-numeric, the shapes disagree, x or y contain
-NaN or infinite values, or the weights are non-finite or
-non-positive.</p>
+                <p>If any array is non-numeric, the shapes disagree, x or y
+contain NaN or infinite values, or the weights are
+non-finite or non-positive.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -5808,8 +5810,8 @@ https://numericalalgorithmsgroup.github.io/dfols/.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional callback receiving normalized progress payloads. Its
-return value is ignored.</p>
+                <p>Optional callback receiving normalized progress payloads.
+Its return value is ignored.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -6030,9 +6032,9 @@ these should be 1.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If any array is non-numeric, the shapes disagree, x or y contain
-NaN or infinite values, or the weights are non-finite or
-non-positive.</p>
+                <p>If any array is non-numeric, the shapes disagree, x or y
+contain NaN or infinite values, or the weights are
+non-finite or non-positive.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -6595,8 +6597,8 @@ engine to use parameters declared in an
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional callback receiving normalized progress payloads. Its
-return value is ignored.</p>
+                <p>Optional callback receiving normalized progress payloads.
+Its return value is ignored.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -6833,9 +6835,9 @@ these should be 1.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If any array is non-numeric, the shapes disagree, x or y contain
-NaN or infinite values, or the weights are non-finite or
-non-positive.</p>
+                <p>If any array is non-numeric, the shapes disagree, x or y
+contain NaN or infinite values, or the weights are
+non-finite or non-positive.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -7774,8 +7776,8 @@ minimizer.</p>
     <div class="doc doc-contents ">
 
         <p>Get the EasyScience object used as a model.</p>
-<p>For a <code>Fitter</code> this is not one of the supplied fit
-objects but a read-only, indexable and iterable aggregate.</p>
+<p>For a <code>Fitter</code> this is not one of the supplied fit objects but
+a read-only, indexable and iterable aggregate.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -7983,8 +7985,7 @@ the fit is completed, reshape the inputs to those expected.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>minimizer_enum</code> is not a <code>Minimizers</code>
-member.</p>
+                <p>If <code>minimizer_enum</code> is not a <code>Minimizers</code> member.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8028,11 +8029,12 @@ member.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Data reshaping and fit-function wrapping shared by <code>Fitter</code> and <code>Sampler</code>.</p>
+        <p>Data reshaping and fit-function wrapping shared by <code>Fitter</code> and
+<code>Sampler</code>.</p>
 <p>Both fitting and sampling provide the engine witha flat 1-D <code>y</code> array
-and a dummy 1-D <code>x</code> index array, while the user's fit function is called
-with the real <code>x</code>. The helpers here do the translation in one place:
-<code>reshape_dataset</code>/<code>inject_x</code> do one dataset,
+and a dummy 1-D <code>x</code> index array, while the user's fit function is
+called with the real <code>x</code>. The helpers here do the translation in one
+place: <code>reshape_dataset</code>/<code>inject_x</code> do one dataset,
 <code>reshape_datasets</code>/<code>inject_x_multi</code> do a list of datasets.</p>
 <!-- prettier-ignore-start -->
 
@@ -8095,7 +8097,7 @@ with the real <code>x</code>. The helpers here do the translation in one place:
               <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;inject_x_multi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_functions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;real_x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flatten&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.reshaping.inject_x_multi&lt;/code&gt;)" href="#easyscience.fitting.reshaping.inject_x_multi">inject_x_multi</a></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Wrap one fit function per dataset into a single function whose output</p>
+                  <p>Wrap one fit function per dataset into a single function whose</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8245,9 +8247,10 @@ the last axis.</p>
             <td>
               <div class="doc-md-description">
                 <p>Dummy x index array for the engine, reshaped x values, flattened
-y values, flattened weights, and the shape of <code>y</code> (the dependent
-dimensions; its product is the number of observations, which the
-multi-dataset helpers use to slice the combined output).</p>
+y values, flattened weights, and the shape of <code>y</code> (the
+dependent dimensions; its product is the number of observations,
+which the multi-dataset helpers use to slice the combined
+output).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8413,9 +8416,9 @@ multi-dataset helpers use to slice the combined output).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Dummy x index array for the engine, per-dataset reshaped x values,
-concatenated y values, concatenated weights, and the per-dataset
-dependent dimensions.</p>
+                <p>Dummy x index array for the engine, per-dataset reshaped x
+values, concatenated y values, concatenated weights, and the
+per-dataset dependent dimensions.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8561,8 +8564,8 @@ on <code>real_x</code> instead, flattening the result if needed.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Wrap one fit function per dataset into a single function whose output
-is the concatenation of the per-dataset outputs.</p>
+        <p>Wrap one fit function per dataset into a single function whose
+output is the concatenation of the per-dataset outputs.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8742,7 +8745,7 @@ output, as returned by <code>reshape_datasets</code>.</p>
   &lt;/span&gt; (&lt;code&gt;easyscience.fitting.sampler.SamplingResults&lt;/code&gt;)" href="#easyscience.fitting.sampler.SamplingResults">SamplingResults</a></code></td>
             <td>
               <div class="doc-md-description">
-                <p>Structured result of an MCMC sampling run (analogous to <code>FitResults</code>).</p>
+                <p>Structured result of an MCMC sampling run (analogous to</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8753,7 +8756,7 @@ output, as returned by <code>reshape_datasets</code>.</p>
             <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;Sampler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fit_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vectorized&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampler_kwargs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler">Sampler</a></code></td>
             <td>
               <div class="doc-md-description">
-                <p>Bayesian MCMC sampler for one dataset, backed by the BUMPS DREAM engine.</p>
+                <p>Bayesian MCMC sampler for one dataset, backed by the BUMPS DREAM</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8821,7 +8824,8 @@ output, as returned by <code>reshape_datasets</code>.</p>
 
 
 
-        <p>Structured result of an MCMC sampling run (analogous to <code>FitResults</code>).</p>
+        <p>Structured result of an MCMC sampling run (analogous to
+<code>FitResults</code>).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8844,10 +8848,11 @@ output, as returned by <code>reshape_datasets</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Posterior samples, shape <code>(n_samples, n_params)</code>. For results from
-<code>Sampler.sample()</code>/<code>Sampler.extend()</code> this is a <em>trimmed,
-outlier-filtered</em> view of the chain, not the raw buffer, so it holds
-fewer rows than <code>samples / thin</code> — see the notes on <code>Sampler</code>.</p>
+                <p>Posterior samples, shape <code>(n_samples, n_params)</code>. For results
+from <code>Sampler.sample()</code>/<code>Sampler.extend()</code> this is a
+<em>trimmed, outlier-filtered</em> view of the chain, not the raw
+buffer, so it holds fewer rows than <code>samples / thin</code> — see the
+notes on <code>Sampler</code>.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8947,17 +8952,19 @@ fewer rows than <code>samples / thin</code> — see the notes on <code>Sampler</
 
 
 
-        <p>Bayesian MCMC sampler for one dataset, backed by the BUMPS DREAM engine.</p>
-<p>One <code>Sampler</code> instance represents one chain over one <code>(x, y, weights)</code>
-dataset. The data is bound at construction; <code>sample()</code> and <code>extend()</code>
-take no data arguments, so a chain can never be extended against different
-data (undefined behaviour in BUMPS). The bound data is a defensive,
-read-only copy of the caller's arrays, exposed via the <code>x</code>, <code>y</code> and
-<code>weights</code> properties — mutating the originals after construction has no
-effect on the sampler, and there are deliberately no setters: to sample
+        <p>Bayesian MCMC sampler for one dataset, backed by the BUMPS DREAM
+engine.</p>
+<p>One <code>Sampler</code> instance represents one chain over one
+<code>(x, y, weights)</code> dataset. The data is bound at construction;
+<code>sample()</code> and <code>extend()</code> take no data arguments, so a chain can
+never be extended against different data (undefined behaviour in
+BUMPS). The bound data is a defensive, read-only copy of the
+caller's arrays, exposed via the <code>x</code>, <code>y</code> and <code>weights</code>
+properties — mutating the originals after construction has no effect
+on the sampler, and there are deliberately no setters: to sample
 different data, create a new <code>Sampler</code>.</p>
-<p><code>Sampler</code> is a parallel entry point to <code>Fitter</code>: it takes the same
-<code>(fit_object, fit_function)</code> pair plus the data.</p>
+<p><code>Sampler</code> is a parallel entry point to <code>Fitter</code>: it takes the
+same <code>(fit_object, fit_function)</code> pair plus the data.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -8983,9 +8990,9 @@ different data, create a new <code>Sampler</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The EasyScience model object holding the <code>Parameter</code> instances to
-sample. For multiple datasets this is one object exposing all the
-parameters (for example an <code>EasyList</code> of models, or the
+                <p>The EasyScience model object holding the <code>Parameter</code> instances
+to sample. For multiple datasets this is one object exposing all
+the parameters (for example an <code>EasyList</code> of models, or the
 <code>fit_object</code> of a <code>MultiFitter</code>).</p>
 <!-- prettier-ignore-start -->
 
@@ -9104,9 +9111,9 @@ rejected here rather than deep inside the sampling engine.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Per-instance default keyword arguments forwarded to the BUMPS DREAM
-sampler on every run, merged with (and overridden by) per-call
-<code>sampler_kwargs</code>.</p>
+                <p>Per-instance default keyword arguments forwarded to the BUMPS
+DREAM sampler on every run, merged with (and overridden by)
+per-call <code>sampler_kwargs</code>.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9135,10 +9142,10 @@ sampler on every run, merged with (and overridden by) per-call
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>fit_object</code> has no <code>get_free_parameters</code>, <code>fit_function</code>
-is not callable, any dataset in <code>x</code>/<code>y</code>/<code>weights</code> is not a
-numeric array (e.g. a string), or <code>vectorized</code>/<code>sampler_kwargs</code>
-have the wrong type.</p>
+                <p>If <code>fit_object</code> has no <code>get_free_parameters</code>,
+<code>fit_function</code> is not callable, any dataset in
+<code>x</code>/<code>y</code>/<code>weights</code> is not a numeric array (e.g. a string),
+or <code>vectorized</code>/<code>sampler_kwargs</code> have the wrong type.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9152,8 +9159,8 @@ have the wrong type.</p>
             <td>
               <div class="doc-md-description">
                 <p>If <code>fit_function</code>, <code>x</code>, <code>y</code> and <code>weights</code> do not hold
-matching structures (all single, or lists of the same length), or
-any dataset is a scalar or empty array.</p>
+matching structures (all single, or lists of the same length),
+or any dataset is a scalar or empty array.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9169,30 +9176,31 @@ any dataset is a scalar or empty array.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end --></summary>
-  <p><strong>The retained draws are a trimmed view, not the whole chain.</strong> BUMPS'
-DREAM sampler defaults to <code>trim=True</code>: once sampling finishes it runs a
-convergence-based burn-point detector over the chain and returns only the
-portion after that point. <code>state.draw()</code> additionally drops chains
-flagged as outliers. So <code>results.draws</code> is usually <em>smaller</em> than the
-chain, and its length is not deterministic — the detector re-runs from
-scratch on every <code>sample()</code> and <code>extend()</code> call and may place the burn
-point differently each time. Read the count off the array; do not predict
-it.</p>
-<p>Nor is the chain itself exactly <code>samples / thin</code> rows: <code>samples</code> is a
-guaranteed minimum, not an exact count. DREAM advances in blocks of 10
-generations (one generation = one draw per chain) and only checks its
-stopping condition between blocks, so the raw chain length is <code>samples</code>
-rounded up to a multiple of <code>10 * n_chains</code>.</p>
-<p>The trimming is only a <em>view</em> — nothing is dropped from the buffer. To
-read the full untrimmed chain::</p>
+  <p><strong>The retained draws are a trimmed view, not the whole chain.</strong>
+BUMPS' DREAM sampler defaults to <code>trim=True</code>: once sampling
+finishes it runs a convergence-based burn-point detector over the
+chain and returns only the portion after that point.
+<code>state.draw()</code> additionally drops chains flagged as outliers. So
+<code>results.draws</code> is usually <em>smaller</em> than the chain, and its
+length is not deterministic — the detector re-runs from scratch on
+every <code>sample()</code> and <code>extend()</code> call and may place the burn
+point differently each time. Read the count off the array; do not
+predict it.</p>
+<p>Nor is the chain itself exactly <code>samples / thin</code> rows: <code>samples</code>
+is a guaranteed minimum, not an exact count. DREAM advances in
+blocks of 10 generations (one generation = one draw per chain) and
+only checks its stopping condition between blocks, so the raw chain
+length is <code>samples</code> rounded up to a multiple of <code>10 * n_chains</code>.</p>
+<p>The trimming is only a <em>view</em> — nothing is dropped from the buffer.
+To read the full untrimmed chain::</p>
 <div class="language-text highlight"><pre><span></span><code>results = sampler.sample(samples=10000, burn=500, thin=2)
 full = results.state.draw(portion=1.0, outliers=True)
 full.points  # (n_chain_rows, n_params)
 full.logp
 </code></pre></div>
-<p>To switch the automatic trimming off entirely, pass BUMPS' own <code>trim</code>
-option straight through <code>sampler_kwargs</code>; <code>results.draws</code> then holds
-the whole chain::</p>
+<p>To switch the automatic trimming off entirely, pass BUMPS' own
+<code>trim</code> option straight through <code>sampler_kwargs</code>;
+<code>results.draws</code> then holds the whole chain::</p>
 <div class="language-text highlight"><pre><span></span><code>sampler = Sampler(
     parameter_container,
     model_function,
@@ -9202,10 +9210,11 @@ the whole chain::</p>
     sampler_kwargs={'trim': False},
 )
 </code></pre></div>
-<p>Note also that trimming does not survive a <code>save()</code>/<code>load_state()</code>
-round-trip: BUMPS does not persist the trim point, so a reloaded chain
-comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws than the
-<code>sample()</code> call that created it. The chain itself is identical.</p>
+<p>Note also that trimming does not survive a
+<code>save()</code>/<code>load_state()</code> round-trip: BUMPS does not persist the
+trim point, so a reloaded chain comes back untrimmed and
+<code>load_state()</code> reports <em>more</em> draws than the <code>sample()</code> call
+that created it. The chain itself is identical.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9238,7 +9247,7 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
   &lt;/span&gt; (&lt;code&gt;easyscience.fitting.sampler.Sampler.from_fitter&lt;/code&gt;)" href="#easyscience.fitting.sampler.Sampler.from_fitter">from_fitter</a></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Build a <code>Sampler</code> from the model bound to an existing <code>Fitter</code>.</p>
+                  <p>Build a <code>Sampler</code> from the model bound to an existing</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9316,7 +9325,7 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The EasyScience model object holding the sampled parameters (read-only).</p>
+                <p>The EasyScience model object holding the sampled parameters</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9334,7 +9343,7 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The model function, or list of them for multiple datasets (read-only).</p>
+                <p>The model function, or list of them for multiple datasets</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9519,7 +9528,8 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
 
     <div class="doc doc-contents ">
 
-        <p>The EasyScience model object holding the sampled parameters (read-only).</p>
+        <p>The EasyScience model object holding the sampled parameters
+(read-only).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9544,7 +9554,8 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
 
     <div class="doc doc-contents ">
 
-        <p>The model function, or list of them for multiple datasets (read-only).</p>
+        <p>The model function, or list of them for multiple datasets
+(read-only).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9771,12 +9782,14 @@ comes back untrimmed and <code>load_state()</code> reports <em>more</em> draws t
 
     <div class="doc doc-contents ">
 
-        <p>Build a <code>Sampler</code> from the model bound to an existing <code>Fitter</code>.</p>
-<p>A convenience for the common fit-then-sample workflow: the sampler
-takes the fitter's <code>fit_object</code> and fit function(s) and is
-otherwise identical to one constructed directly. The fitter is not
-retained or modified. A <code>MultiFitter</code> yields a multi-dataset
-sampler, so <code>x</code>, <code>y</code> and <code>weights</code> must then be lists of arrays.</p>
+        <p>Build a <code>Sampler</code> from the model bound to an existing
+<code>Fitter</code>.</p>
+<p>A convenience for the common fit-then-sample workflow: the
+sampler takes the fitter's <code>fit_object</code> and fit function(s)
+and is otherwise identical to one constructed directly. The
+fitter is not retained or modified. A <code>MultiFitter</code> yields a
+multi-dataset sampler, so <code>x</code>, <code>y</code> and <code>weights</code> must then
+be lists of arrays.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9802,8 +9815,8 @@ sampler, so <code>x</code>, <code>y</code> and <code>weights</code> must then be
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A configured <code>Fitter</code> or <code>MultiFitter</code>. It does not need to
-have been fitted.</p>
+                <p>A configured <code>Fitter</code> or <code>MultiFitter</code>. It does not need
+to have been fitted.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9822,7 +9835,8 @@ have been fitted.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Independent variable array (or list of arrays, one per dataset).</p>
+                <p>Independent variable array (or list of arrays, one per
+dataset).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9841,7 +9855,8 @@ have been fitted.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Dependent variable array (or list of arrays, one per dataset).</p>
+                <p>Dependent variable array (or list of arrays, one per
+dataset).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9954,9 +9969,9 @@ have been fitted.</p>
     <div class="doc doc-contents ">
 
         <p>Run fresh Bayesian MCMC sampling on the bound data.</p>
-<p>Calling <code>sample()</code> on a sampler that already holds a chain starts a
-<strong>fresh</strong> chain — the previous state and results are replaced. Use
-<code>extend()</code> to continue an existing chain.</p>
+<p>Calling <code>sample()</code> on a sampler that already holds a chain
+starts a <strong>fresh</strong> chain — the previous state and results are
+replaced. Use <code>extend()</code> to continue an existing chain.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -9982,10 +9997,11 @@ have been fitted.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Number of raw samples to draw across all chains, before thinning.
-This is a guaranteed minimum, not an exact count: DREAM advances
-in blocks of 10 generations (one generation = one draw per chain)
-and stops at the first block boundary at or past <code>samples</code>.</p>
+                <p>Number of raw samples to draw across all chains, before
+thinning. This is a guaranteed minimum, not an exact count:
+DREAM advances in blocks of 10 generations (one generation =
+one draw per chain) and stops at the first block boundary at
+or past <code>samples</code>.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10004,9 +10020,10 @@ and stops at the first block boundary at or past <code>samples</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Burn-in generations to discard before collecting samples. Note
-BUMPS counts <code>burn</code> in generations while <code>samples</code> counts raw
-draws, so <code>burn=500</code> discards <code>500 * n_chains</code> raw samples.</p>
+                <p>Burn-in generations to discard before collecting samples.
+Note BUMPS counts <code>burn</code> in generations while <code>samples</code>
+counts raw draws, so <code>burn=500</code> discards
+<code>500 * n_chains</code> raw samples.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10025,8 +10042,9 @@ draws, so <code>burn=500</code> discards <code>500 * n_chains</code> raw samples
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Thinning interval — only every <code>thin</code>-th generation is kept,
-which reduces autocorrelation between consecutive draws.</p>
+                <p>Thinning interval — only every <code>thin</code>-th generation is
+kept, which reduces autocorrelation between consecutive
+draws.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10045,8 +10063,9 @@ which reduces autocorrelation between consecutive draws.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>DREAM population <strong>scale factor</strong> (not an absolute chain count):
-BUMPS creates <code>ceil(population * n_parameters)</code> parallel chains.</p>
+                <p>DREAM population <strong>scale factor</strong> (not an absolute chain
+count): BUMPS creates <code>ceil(population * n_parameters)</code>
+parallel chains.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10085,9 +10104,9 @@ sampler (merged over the instance defaults).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional callback invoked at each DREAM generation. The payload
-dict includes <code>iteration</code> and <code>sampling: True</code>. Any return
-value is ignored.</p>
+                <p>Optional callback invoked at each DREAM generation. The
+payload dict includes <code>iteration</code> and <code>sampling: True</code>.
+Any return value is ignored.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10106,7 +10125,8 @@ value is ignored.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional callable that returns <code>True</code> to abort sampling early.</p>
+                <p>Optional callable that returns <code>True</code> to abort sampling
+early.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10155,13 +10175,14 @@ value is ignored.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end --></summary>
-  <p><code>results.draws</code> is a trimmed, outlier-filtered view of the chain,
-so it is usually smaller than the chain and its length is not
-predictable from <code>samples</code>/<code>thin</code>. See the <code>Sampler</code> class notes
-for how to read the full chain or switch trimming off.</p>
+  <p><code>results.draws</code> is a trimmed, outlier-filtered view of the
+chain, so it is usually smaller than the chain and its length is
+not predictable from <code>samples</code>/<code>thin</code>. See the <code>Sampler</code>
+class notes for how to read the full chain or switch trimming
+off.</p>
 <p>Exceptions propagate from the sampling engine: <code>ValueError</code> if
-<code>samples</code>, <code>burn</code>, or <code>thin</code> are invalid, and <code>RuntimeError</code>
-if the <code>bumps</code> package is not installed.</p>
+<code>samples</code>, <code>burn</code>, or <code>thin</code> are invalid, and
+<code>RuntimeError</code> if the <code>bumps</code> package is not installed.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10184,12 +10205,13 @@ if the <code>bumps</code> package is not installed.</p>
 
         <p>Continue the existing chain with additional samples.</p>
 <p>DREAM stores draws in a fixed-size ring buffer sized to its
-<code>samples</code> parameter; this method does the ring-buffer arithmetic
-for you (<code>samples = stored_generations * population +
-additional_samples</code>) so no existing draws are dropped from the
-buffer, regardless of the thinning interval. Runs with <code>burn=0</code> —
-re-burning a converged chain is usually a mistake, and BUMPS forces
-it to 0 on resume in any case. The DREAM population is recovered from
+<code>samples</code> parameter; this method does the ring-buffer
+arithmetic for you
+(<code>samples = stored_generations * population + additional_samples</code>)
+so no existing draws are dropped from the buffer, regardless of
+the thinning interval. Runs with <code>burn=0</code> — re-burning a
+converged chain is usually a mistake, and BUMPS forces it to 0
+on resume in any case. The DREAM population is recovered from
 the saved state and cannot be changed on extend.</p>
 <!-- prettier-ignore-start -->
 
@@ -10216,11 +10238,12 @@ the saved state and cannot be changed on extend.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Number of additional DREAM samples to draw, in the same units
-as <code>samples</code> in <code>sample()</code>. This grows the ring buffer by
-exactly <code>additional_samples</code>; how many of the new draws become
-<em>visible</em> in <code>results.draws</code> depends on the thinning interval
-and on BUMPS' automatic trimming (see Notes).</p>
+                <p>Number of additional DREAM samples to draw, in the same
+units as <code>samples</code> in <code>sample()</code>. This grows the ring
+buffer by exactly <code>additional_samples</code>; how many of the
+new draws become <em>visible</em> in <code>results.draws</code> depends on
+the thinning interval and on BUMPS' automatic trimming (see
+Notes).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10258,9 +10281,10 @@ and on BUMPS' automatic trimming (see Notes).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Advanced: total retained samples requested from the ring buffer,
-<strong>overriding</strong> the <code>additional_samples</code> arithmetic. With
-<code>total_samples=N</code>, only the last N draws are retained.</p>
+                <p>Advanced: total retained samples requested from the ring
+buffer, <strong>overriding</strong> the <code>additional_samples</code>
+arithmetic. With <code>total_samples=N</code>, only the last N draws
+are retained.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10299,8 +10323,8 @@ sampler (merged over the instance defaults).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional callback invoked at each DREAM generation. Any return
-value is ignored.</p>
+                <p>Optional callback invoked at each DREAM generation. Any
+return value is ignored.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10319,7 +10343,8 @@ value is ignored.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional callable that returns <code>True</code> to abort sampling early.</p>
+                <p>Optional callable that returns <code>True</code> to abort sampling
+early.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10397,16 +10422,17 @@ installed.</p>
 
 <!-- prettier-ignore-end --></summary>
   <p><code>results.draws</code> will <strong>not</strong> grow by exactly
-<code>additional_samples / thin</code>. Two things get in the way, neither of
-them a re-applied burn-in: BUMPS re-runs its burn-point detector over
-the whole extended chain and re-trims the returned view (so the
-visible count can even shrink), and DREAM advances in blocks of 10
-generations, so the raw growth is <code>additional_samples</code> rounded up
-to a multiple of <code>10 * n_chains</code> (i.e. at least
-<code>additional_samples / thin</code> retained rows). To see the chain
-itself, compare <code>results.state.draw(portion=1.0, outliers=True)</code>
-before and after, or run with <code>sampler_kwargs={'trim': False}</code>. See
-the <code>Sampler</code> class notes.</p>
+<code>additional_samples / thin</code>. Two things get in the way,
+neither of them a re-applied burn-in: BUMPS re-runs its
+burn-point detector over the whole extended chain and re-trims
+the returned view (so the visible count can even shrink), and
+DREAM advances in blocks of 10 generations, so the raw growth is
+<code>additional_samples</code> rounded up to a multiple of
+<code>10 * n_chains</code> (i.e. at least <code>additional_samples / thin</code>
+retained rows). To see the chain itself, compare
+<code>results.state.draw(portion=1.0, outliers=True)</code> before and
+after, or run with <code>sampler_kwargs={'trim': False}</code>. See the
+<code>Sampler</code> class notes.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10431,9 +10457,9 @@ the <code>Sampler</code> class notes.</p>
 <p>Writes the BUMPS native files (<code>&lt;path&gt;-chain.mc.gz</code>,
 <code>&lt;path&gt;-point.mc.gz</code> and <code>&lt;path&gt;-stats.mc.gz</code>) plus a
 <code>&lt;path&gt;.params.json</code> sidecar with the parameter names, the
-easyscience version, and a fingerprint of the bound data (verified
-with a warning on <code>load_state()</code>). Use <code>load_chain</code> to read the
-files back without the model.</p>
+easyscience version, and a fingerprint of the bound data
+(verified with a warning on <code>load_state()</code>). Use
+<code>load_chain</code> to read the files back without the model.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10528,11 +10554,11 @@ files back without the model.</p>
     <div class="doc doc-contents ">
 
         <p>Load a previously saved chain into this sampler.</p>
-<p>The sampler must be constructed with the same model and data used to
-create the chain — <code>extend()</code> then continues the saved chain. If the
-sidecar carries a data fingerprint and it does not match this
-sampler's bound data, a warning is logged (extending a chain against
-different data is undefined behaviour).</p>
+<p>The sampler must be constructed with the same model and data
+used to create the chain — <code>extend()</code> then continues the saved
+chain. If the sidecar carries a data fingerprint and it does not
+match this sampler's bound data, a warning is logged (extending
+a chain against different data is undefined behaviour).</p>
 <p>Populates <code>state</code> and <code>results</code> (draws, log-posterior and
 parameter names) from the saved chain, so summaries and
 <code>PosteriorResults.from_sampler()</code> work without resampling.</p>
@@ -10580,8 +10606,8 @@ parameter names) from the saved chain, so summaries and
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Discard the first <code>skip</code> saved generations on load. Useful for
-trimming additional burn-in without re-sampling.</p>
+                <p>Discard the first <code>skip</code> saved generations on load. Useful
+for trimming additional burn-in without re-sampling.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10669,11 +10695,11 @@ trimming additional burn-in without re-sampling.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end --></summary>
-  <p>BUMPS does not persist its automatic trim point, so a reloaded chain
-comes back <strong>untrimmed</strong>: this method reports more draws than the
-<code>sample()</code> call that wrote the file, even though the chain is
-identical. Use <code>skip</code> to discard leading generations explicitly.
-See the <code>Sampler</code> class notes.</p>
+  <p>BUMPS does not persist its automatic trim point, so a reloaded
+chain comes back <strong>untrimmed</strong>: this method reports more draws
+than the <code>sample()</code> call that wrote the file, even though the
+chain is identical. Use <code>skip</code> to discard leading generations
+explicitly. See the <code>Sampler</code> class notes.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10704,11 +10730,12 @@ See the <code>Sampler</code> class notes.</p>
     <div class="doc doc-contents ">
 
         <p>Reload a DREAM chain state saved by <code>Sampler.save</code>.</p>
-<p>This is the standalone reader: unlike <code>Sampler.load_state</code> it needs no
-model or data, so a saved chain can be inspected or post-processed
-on a machine that does not have the model. Parameter names are restored
-from the sidecar when available (schema versions 1 and 2), falling back to
-the state's labels with the minimizer prefix stripped.</p>
+<p>This is the standalone reader: unlike <code>Sampler.load_state</code> it
+needs no model or data, so a saved chain can be inspected or
+post-processed on a machine that does not have the model. Parameter
+names are restored from the sidecar when available (schema versions
+1 and 2), falling back to the state's labels with the minimizer
+prefix stripped.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10753,8 +10780,8 @@ the state's labels with the minimizer prefix stripped.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Discard the first <code>skip</code> saved generations on load, forwarded to
-<code>bumps.dream.state.load_state</code>.</p>
+                <p>Discard the first <code>skip</code> saved generations on load, forwarded
+to <code>bumps.dream.state.load_state</code>.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -10783,9 +10810,9 @@ the state's labels with the minimizer prefix stripped.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The reloaded BUMPS chain state, the parameter names (or <code>None</code> if
-neither sidecar nor labels yielded them), and the raw sidecar dict
-(empty if absent/unreadable).</p>
+                <p>The reloaded BUMPS chain state, the parameter names (or <code>None</code>
+if neither sidecar nor labels yielded them), and the raw sidecar
+dict (empty if absent/unreadable).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -11242,10 +11269,11 @@ construction.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Number of raw samples to draw across all chains, before thinning.
-A guaranteed minimum, not an exact count: DREAM advances in
-blocks of 10 generations (one generation = one draw per chain)
-and stops at the first block boundary at or past <code>samples</code>.</p>
+                <p>Number of raw samples to draw across all chains, before
+thinning. A guaranteed minimum, not an exact count: DREAM
+advances in blocks of 10 generations (one generation = one
+draw per chain) and stops at the first block boundary at or
+past <code>samples</code>.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -11265,8 +11293,8 @@ and stops at the first block boundary at or past <code>samples</code>.</p>
             <td>
               <div class="doc-md-description">
                 <p>Burn-in generations to discard. BUMPS counts <code>burn</code> in
-generations while <code>samples</code> counts raw draws, so <code>burn=500</code>
-discards <code>500 * n_chains</code> raw samples.</p>
+generations while <code>samples</code> counts raw draws, so
+<code>burn=500</code> discards <code>500 * n_chains</code> raw samples.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -11285,7 +11313,8 @@ discards <code>500 * n_chains</code> raw samples.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Thinning interval: only every <code>thin</code>-th generation is stored.</p>
+                <p>Thinning interval: only every <code>thin</code>-th generation is
+stored.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -11304,8 +11333,9 @@ discards <code>500 * n_chains</code> raw samples.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>BUMPS DREAM population count per parameter (number of parallel
-chains): BUMPS creates <code>ceil(population * n_parameters)</code> chains.</p>
+                <p>BUMPS DREAM population count per parameter (number of
+parallel chains): BUMPS creates
+<code>ceil(population * n_parameters)</code> chains.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -11327,20 +11357,20 @@ chains): BUMPS creates <code>ceil(population * n_parameters)</code> chains.</p>
                 <p>A BUMPS <code>MCMCDraw</code> state object from a previous <code>run()</code>
 call. When provided, DREAM <strong>continues</strong> the saved chain
 instead of starting cold.  The population, parameter count,
-and parameter names must match the current model. Otherwise, a
-<code>ValueError</code> is raised.</p>
-<p><code>samples</code> must be the <strong>total</strong> number of raw samples, not an
-increment: to extend an existing chain of <code>N</code> raw samples by
-<code>M</code>, pass <code>samples=N + M</code> (DREAM keeps only the last
-<code>samples</code> draws in its buffer). The <code>Sampler.extend</code> helper
-computes this for you.</p>
-<p><code>burn</code> is forced to 0 on resume: a previously-converged chain is
-never re-burned.</p>
-<p>The <code>population</code> and <code>initializer</code> parameters
-have <strong>no effect</strong> when <code>resume_state</code> is provided. They
-are determined by the saved state.</p>
-<p>Resuming against <em>different</em> data is undefined behaviour (the
-chain's likelihood changes underneath it).</p>
+and parameter names must match the current model. Otherwise,
+a <code>ValueError</code> is raised.</p>
+<p><code>samples</code> must be the <strong>total</strong> number of raw samples, not
+an increment: to extend an existing chain of <code>N</code> raw
+samples by <code>M</code>, pass <code>samples=N + M</code> (DREAM keeps only
+the last <code>samples</code> draws in its buffer). The
+<code>Sampler.extend</code> helper computes this for you.</p>
+<p><code>burn</code> is forced to 0 on resume: a previously-converged
+chain is never re-burned.</p>
+<p>The <code>population</code> and <code>initializer</code> parameters have <strong>no
+effect</strong> when <code>resume_state</code> is provided. They are
+determined by the saved state.</p>
+<p>Resuming against <em>different</em> data is undefined behaviour
+(the chain's likelihood changes underneath it).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -11459,9 +11489,9 @@ DREAM sampling loop.</p>
             <td>
               <div class="doc-md-description">
                 <p>If the input shapes or weights are invalid, if
-<code>progress_callback</code> is not callable, or if <code>resume_state</code>
-is incompatible with the current model (parameter count,
-names/order, or population mismatch).</p>
+<code>progress_callback</code> is not callable, or if
+<code>resume_state</code> is incompatible with the current model
+(parameter count, names/order, or population mismatch).</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
@@ -11612,9 +11642,9 @@ names/order, or population mismatch).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If any array is non-numeric, the shapes disagree, x or y contain
-NaN or infinite values, or the weights are non-finite or
-non-positive.</p>
+                <p>If any array is non-numeric, the shapes disagree, x or y
+contain NaN or infinite values, or the weights are
+non-finite or non-positive.</p>
 <!-- prettier-ignore-start -->
 
 <!-- prettier-ignore-end -->
