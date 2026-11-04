@@ -6,7 +6,8 @@ from typing import Iterator
 
 
 class ObjectRegistry:
-    """Global registry of EasyScience objects, indexed by ``unique_name``.
+    """
+    Global registry of EasyScience objects, indexed by ``unique_name``.
 
     Registered objects must have a ``unique_name`` attribute. Values are
     held weakly, so an entry disappears once nothing else references the
@@ -39,15 +40,17 @@ class ObjectRegistry:
         return list(self._store)
 
     def objects(self) -> list[object]:
-        """All registered objects that are still alive.
+        """
+        All registered objects that are still alive.
 
-        The list holds strong references, so it keeps those objects alive
-        until it is released.
+        The list holds strong references, so it keeps those objects
+        alive until it is released.
         """
         return list(self._store.values())
 
     def add(self, obj: object) -> None:
-        """Register ``obj`` under its ``unique_name``.
+        """
+        Register ``obj`` under its ``unique_name``.
 
         Parameters
         ----------

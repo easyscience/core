@@ -52,27 +52,27 @@ class Parameter(DescriptorNumber):
 
         Parameters
         ----------
-        value : float | int
+        value : numbers.Real
             Value of this object.
-        unit : str | sc.Unit
+        unit : str | sc.Unit, default=''
             This object can have a physical unit associated with it. By
             default, ''.
-        variance : numbers.Real | None
+        variance : numbers.Real | None, default=None
             The variance of the value. By default, None.
-        min : numbers.Real
+        min : numbers.Real, default=-np.inf
             The minimum value for fitting. By default, -np.inf.
-        max : numbers.Real
+        max : numbers.Real, default=np.inf
             The maximum value for fitting. By default, np.inf.
-        fixed : bool
+        fixed : bool, default=False
             If the parameter is free to vary during fitting. By default,
             False.
-        unique_name : str | None
+        unique_name : str | None, default=None
             Unique identifier for this object. By default, None.
-        description : str | None
+        description : str | None, default=None
             A brief summary of what this object is. By default, None.
-        url : str | None
+        url : str | None, default=None
             Lookup url for documentation/information. By default, None.
-        display_name : str | None
+        display_name : str | None, default=None
             The name of the object as it should be displayed. Falls back
             to ``unique_name`` when not given. By default, None.
         **kwargs : Any
@@ -85,7 +85,6 @@ class Parameter(DescriptorNumber):
         ValueError
             If ``value`` falls outside the provided bounds or if the
             bounds are invalid.
-
         """
         # Extract and ignore serialization-specific fields from kwargs
         kwargs.pop('_dependency_string', None)
@@ -141,11 +140,11 @@ class Parameter(DescriptorNumber):
         dependency_expression : str
             The dependency expression to evaluate. This should be a
             string which can be evaluated by the ASTEval interpreter.
-        dependency_map : dict | None
+        dependency_map : dict | None, default=None
             A dictionary of dependency expression symbol name and
             dependency object pairs. This is inserted into the asteval
             interpreter to resolve dependencies. By default, None.
-        desired_unit : str | sc.Unit | None
+        desired_unit : str | sc.Unit | None, default=None
             The desired unit of the dependent parameter. By default,
             None.
         **kwargs : Any
@@ -234,11 +233,11 @@ class Parameter(DescriptorNumber):
         dependency_expression : str
             The dependency expression to evaluate. This should be a
             string which can be evaluated by a python interpreter.
-        dependency_map : dict | None
+        dependency_map : dict | None, default=None
             A dictionary of dependency expression symbol name and
             dependency object pairs. This is inserted into the asteval
             interpreter to resolve dependencies. By default, None.
-        desired_unit : str | sc.Unit | None
+        desired_unit : str | sc.Unit | None, default=None
             The desired unit of the dependent parameter. If None, the
             default unit of the dependency expression result is used. By
             default, None.
@@ -515,7 +514,7 @@ class Parameter(DescriptorNumber):
 
         Returns
         -------
-        int | float
+        numbers.Real
             Value of self without unit.
         """
         return self._scalar.value
@@ -679,7 +678,7 @@ class Parameter(DescriptorNumber):
 
         Returns
         -------
-        int | float 
+        numbers.Real
             Minimum value.
         """
         return self._min.value
@@ -691,7 +690,7 @@ class Parameter(DescriptorNumber):
 
         Parameters
         ----------
-        min_value : int | float
+        min_value : numbers.Real
             New minimum value.
 
         Returns
@@ -735,7 +734,7 @@ class Parameter(DescriptorNumber):
 
         Returns
         -------
-        int | float
+        numbers.Real
             Maximum value.
         """
         return self._max.value
@@ -747,7 +746,7 @@ class Parameter(DescriptorNumber):
 
         Parameters
         ----------
-        max_value : int | float
+        max_value : numbers.Real
             New maximum value.
 
         Returns
