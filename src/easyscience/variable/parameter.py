@@ -6,10 +6,6 @@ from __future__ import annotations
 import numbers
 import re
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
 
 import numpy as np
 import scipp as sc
@@ -32,17 +28,17 @@ class Parameter(DescriptorNumber):
 
     def __init__(
         self,
-        value: numbers.Number,
+        value: numbers.Real,
         *,
-        unit: Optional[Union[str, sc.Unit]] = '',
-        variance: Optional[numbers.Number] = 0.0,
-        min: Optional[numbers.Number] = -np.inf,
-        max: Optional[numbers.Number] = np.inf,
-        fixed: Optional[bool] = False,
-        unique_name: Optional[str] = None,
-        description: Optional[str] = None,
-        url: Optional[str] = None,
-        display_name: Optional[str] = None,
+        unit: str | sc.Unit = '',
+        variance: numbers.Real | None = None,
+        min: numbers.Real = -np.inf,
+        max: numbers.Real = np.inf,
+        fixed: bool = False,
+        unique_name: str | None = None,
+        description: str | None = None,
+        url: str | None = None,
+        display_name: str | None = None,
         **kwargs: Any,  # Additional keyword arguments (used for (de)serialization)
     ):
         """
@@ -56,27 +52,27 @@ class Parameter(DescriptorNumber):
 
         Parameters
         ----------
-        value : numbers.Number
+        value : float | int
             Value of this object.
-        unit : Optional[Union[str, sc.Unit]], default=''
+        unit : str | sc.Unit
             This object can have a physical unit associated with it. By
             default, ''.
-        variance : Optional[numbers.Number], default=0.0
-            The variance of the value. By default, 0.0.
-        min : Optional[numbers.Number], default=-np.inf
+        variance : numbers.Real | None
+            The variance of the value. By default, None.
+        min : numbers.Real
             The minimum value for fitting. By default, -np.inf.
-        max : Optional[numbers.Number], default=np.inf
+        max : numbers.Real
             The maximum value for fitting. By default, np.inf.
-        fixed : Optional[bool], default=False
+        fixed : bool
             If the parameter is free to vary during fitting. By default,
             False.
-        unique_name : Optional[str], default=None
+        unique_name : str | None
             Unique identifier for this object. By default, None.
-        description : Optional[str], default=None
+        description : str | None
             A brief summary of what this object is. By default, None.
-        url : Optional[str], default=None
+        url : str | None
             Lookup url for documentation/information. By default, None.
-        display_name : Optional[str], default=None
+        display_name : str | None
             The name of the object as it should be displayed. Falls back
             to ``unique_name`` when not given. By default, None.
         **kwargs : Any
@@ -96,11 +92,11 @@ class Parameter(DescriptorNumber):
         kwargs.pop('_dependency_map_serializer_ids', None)
         kwargs.pop('_independent', None)
 
-        if not isinstance(min, numbers.Number):
+        if not isinstance(min, numbers.Real):
             raise TypeError('`min` must be a number')
-        if not isinstance(max, numbers.Number):
+        if not isinstance(max, numbers.Real):
             raise TypeError('`max` must be a number')
-        if not isinstance(value, numbers.Number):
+        if not isinstance(value, numbers.Real):
             raise TypeError('`value` must be a number')
         if value < min:
             raise ValueError(f'{value=} can not be less than {min=}')
@@ -132,7 +128,7 @@ class Parameter(DescriptorNumber):
     def from_dependency(
         cls,
         dependency_expression: str,
-        dependency_map: Optional[dict] = None,
+        dependency_map: dict | None = None,
         desired_unit: str | sc.Unit | None = None,
         **kwargs: Any,
     ) -> Parameter:  # noqa: E501
@@ -145,11 +141,11 @@ class Parameter(DescriptorNumber):
         dependency_expression : str
             The dependency expression to evaluate. This should be a
             string which can be evaluated by the ASTEval interpreter.
-        dependency_map : Optional[dict], default=None
+        dependency_map : dict | None
             A dictionary of dependency expression symbol name and
             dependency object pairs. This is inserted into the asteval
             interpreter to resolve dependencies. By default, None.
-        desired_unit : str | sc.Unit | None, default=None
+        desired_unit : str | sc.Unit | None
             The desired unit of the dependent parameter. By default,
             None.
         **kwargs : Any
@@ -211,7 +207,7 @@ class Parameter(DescriptorNumber):
     def make_dependent_on(
         self,
         dependency_expression: str,
-        dependency_map: Optional[dict] = None,
+        dependency_map: dict | None = None,
         desired_unit: str | sc.Unit | None = None,
     ) -> None:
         """
@@ -238,11 +234,11 @@ class Parameter(DescriptorNumber):
         dependency_expression : str
             The dependency expression to evaluate. This should be a
             string which can be evaluated by a python interpreter.
-        dependency_map : Optional[dict], default=None
+        dependency_map : dict | None
             A dictionary of dependency expression symbol name and
             dependency object pairs. This is inserted into the asteval
             interpreter to resolve dependencies. By default, None.
-        desired_unit : str | sc.Unit | None, default=None
+        desired_unit : str | sc.Unit | None
             The desired unit of the dependent parameter. If None, the
             default unit of the dependency expression result is used. By
             default, None.
@@ -465,13 +461,13 @@ class Parameter(DescriptorNumber):
         )  # noqa: E501
 
     @property
-    def dependency_map(self) -> Dict[str, DescriptorNumber]:
+    def dependency_map(self) -> dict[str, DescriptorNumber]:
         """
         Get the dependency map of this parameter.
 
         Returns
         -------
-        Dict[str, DescriptorNumber]
+        dict[str, DescriptorNumber]
             The dependency map of this parameter.
 
         Raises
@@ -485,7 +481,7 @@ class Parameter(DescriptorNumber):
             raise AttributeError('This parameter is independent. It has no dependency map.')
 
     @dependency_map.setter
-    def dependency_map(self, new_map: Dict[str, DescriptorNumber]) -> None:
+    def dependency_map(self, new_map: dict[str, DescriptorNumber]) -> None:
         raise AttributeError(
             'Dependency map is read-only. Use `make_dependent_on` to change the dependency map.'
         )
@@ -513,19 +509,19 @@ class Parameter(DescriptorNumber):
         )  # noqa: E501
 
     @property
-    def value(self) -> numbers.Number:
+    def value(self) -> numbers.Real:
         """
         Get the value of self as a Number.
 
         Returns
         -------
-        numbers.Number
+        int | float
             Value of self without unit.
         """
         return self._scalar.value
 
     @value.setter
-    def value(self, value: numbers.Number) -> None:
+    def value(self, value: numbers.Real) -> None:
         """
         Set the value of self.
 
@@ -533,7 +529,7 @@ class Parameter(DescriptorNumber):
 
         Parameters
         ----------
-        value : numbers.Number
+        value : numbers.Real
             New value of self.
 
         Raises
@@ -544,8 +540,8 @@ class Parameter(DescriptorNumber):
             If ``value`` is not numeric.
         """
         if self._independent:
-            if not isinstance(value, numbers.Number):
-                raise TypeError(f'{value=} must be a number')
+            if not isinstance(value, numbers.Real):
+                raise TypeError(f'{value=} must be a real number')
 
             value = float(value)
             if value < self._min.value:
@@ -677,25 +673,25 @@ class Parameter(DescriptorNumber):
         self._update()
 
     @property
-    def min(self) -> numbers.Number:
+    def min(self) -> numbers.Real:
         """
         Get the minimum value for fitting.
 
         Returns
         -------
-        numbers.Number
+        int | float 
             Minimum value.
         """
         return self._min.value
 
     @min.setter
-    def min(self, min_value: numbers.Number) -> None:
+    def min(self, min_value: numbers.Real) -> None:
         """
         Set the minimum value for fitting.
 
         Parameters
         ----------
-        min_value : numbers.Number
+        min_value : int | float
             New minimum value.
 
         Returns
@@ -714,7 +710,7 @@ class Parameter(DescriptorNumber):
             bound.
         """
         if self._independent:
-            if not isinstance(min_value, numbers.Number):
+            if not isinstance(min_value, numbers.Real):
                 raise TypeError('`min` must be a number')
             if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
                 raise ValueError(
@@ -733,25 +729,25 @@ class Parameter(DescriptorNumber):
             )
 
     @property
-    def max(self) -> numbers.Number:
+    def max(self) -> numbers.Real:
         """
         Get the maximum value for fitting.
 
         Returns
         -------
-        numbers.Number
+        int | float
             Maximum value.
         """
         return self._max.value
 
     @max.setter
-    def max(self, max_value: numbers.Number) -> None:
+    def max(self, max_value: numbers.Real) -> None:
         """
         Get the maximum value for fitting.
 
         Parameters
         ----------
-        max_value : numbers.Number
+        max_value : int | float
             New maximum value.
 
         Returns
@@ -770,8 +766,8 @@ class Parameter(DescriptorNumber):
             bound.
         """
         if self._independent:
-            if not isinstance(max_value, numbers.Number):
-                raise TypeError('`max` must be a number')
+            if not isinstance(max_value, numbers.Real):
+                raise TypeError('`max` must be a real number')
             if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
                 raise ValueError(
                     'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
@@ -835,7 +831,7 @@ class Parameter(DescriptorNumber):
     def free(self, value: bool) -> None:
         self.fixed = not value
 
-    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+    def to_dict(self, skip: list[str] | None = None) -> dict[str, Any]:
         """
         Overwrite the to_dict method to handle dependency information.
         """
@@ -968,8 +964,8 @@ class Parameter(DescriptorNumber):
     # def __float__(self) -> float:
     #     return float(self._scalar.value)
 
-    def __add__(self, other: Union[DescriptorNumber, Parameter, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __add__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             if self.unit != 'dimensionless':
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_full_value = self.full_value + other
@@ -997,8 +993,8 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
-    def __radd__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __radd__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             if self.unit != 'dimensionless':
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_full_value = self.full_value + other
@@ -1022,8 +1018,8 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
-    def __sub__(self, other: Union[DescriptorNumber, Parameter, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __sub__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             if self.unit != 'dimensionless':
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_full_value = self.full_value - other
@@ -1051,8 +1047,8 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
-    def __rsub__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __rsub__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             if self.unit != 'dimensionless':
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_full_value = other - self.full_value
@@ -1076,8 +1072,8 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
-    def __mul__(self, other: Union[DescriptorNumber, Parameter, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __mul__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             new_full_value = self.full_value * other
             if other == 0:
                 return DescriptorNumber.from_scipp(full_value=new_full_value)
@@ -1114,8 +1110,8 @@ class Parameter(DescriptorNumber):
         parameter._convert_unit(parameter._base_unit())
         return parameter
 
-    def __rmul__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __rmul__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             new_full_value = other * self.full_value
             if other == 0:
                 return DescriptorNumber.from_scipp(full_value=new_full_value)
@@ -1135,8 +1131,8 @@ class Parameter(DescriptorNumber):
         parameter._convert_unit(parameter._base_unit())
         return parameter
 
-    def __truediv__(self, other: Union[DescriptorNumber, Parameter, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __truediv__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             if other == 0:
                 raise ZeroDivisionError('Cannot divide by zero')
             new_full_value = self.full_value / other
@@ -1182,11 +1178,11 @@ class Parameter(DescriptorNumber):
         parameter._convert_unit(parameter._base_unit())
         return parameter
 
-    def __rtruediv__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
+    def __rtruediv__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         original_self = self.value
         if original_self == 0:
             raise ZeroDivisionError('Cannot divide by zero')
-        if isinstance(other, numbers.Number):
+        if isinstance(other, numbers.Real):
             new_full_value = other / self.full_value
             other_value = other
             if other_value == 0:
@@ -1220,8 +1216,8 @@ class Parameter(DescriptorNumber):
         parameter._convert_unit(parameter._base_unit())
         return parameter
 
-    def __pow__(self, other: Union[DescriptorNumber, numbers.Number]) -> Parameter:
-        if isinstance(other, numbers.Number):
+    def __pow__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
+        if isinstance(other, numbers.Real):
             exponent = other
         elif (
             type(other) is DescriptorNumber
@@ -1321,7 +1317,7 @@ class Parameter(DescriptorNumber):
             delattr(self, '_pending_dependency_map_serializer_ids')
             delattr(self, '_pending_desired_unit')
 
-    def _find_parameter_by_serializer_id(self, serializer_id: str) -> Optional['DescriptorNumber']:
+    def _find_parameter_by_serializer_id(self, serializer_id: str) -> DescriptorNumber | None:
         """
         Find a parameter by its serializer_id from all parameters in the
         object registry.
