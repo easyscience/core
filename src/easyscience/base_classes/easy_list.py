@@ -7,10 +7,7 @@ import copy
 from collections.abc import MutableSequence
 from typing import Any
 from typing import Callable
-from typing import Dict
 from typing import Iterable
-from typing import List
-from typing import Optional
 from typing import Type
 from typing import TypeVar
 from typing import overload
@@ -32,8 +29,8 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         self,
         *args: ProtectedType_ | Iterable[ProtectedType_],
         protected_types: list[Type[EasyBase]] | Type[EasyBase] | None = None,
-        unique_name: Optional[str] = None,
-        display_name: Optional[str] = None,
+        unique_name: str | None = None,
+        display_name: str | None = None,
         **kwargs: Any,
     ):
         """
@@ -50,9 +47,9 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
             descriptors and ``ModelBase`` items contribute to
             ``get_all_variables`` and hence to fitting. By default,
             None.
-        unique_name : Optional[str], default=None
+        unique_name : str | None, default=None
             Optional unique name for the list. By default, None.
-        display_name : Optional[str], default=None
+        display_name : str | None, default=None
             Optional display name for the list. By default, None.
         **kwargs : Any
             Additional keyword arguments used during deserialization.
@@ -76,7 +73,7 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
             raise TypeError(
                 'protected_types must be an EasyBase subclass or an iterable of EasyBase subclasses'
             )
-        self._data: List[ProtectedType_] = []
+        self._data: list[ProtectedType_] = []
 
         # Add initial items
         for item in args:
@@ -268,7 +265,7 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         """
         return obj.unique_name
 
-    def get_all_variables(self) -> List[DescriptorBase]:
+    def get_all_variables(self) -> list[DescriptorBase]:
         """
         Get all ``Descriptor`` and ``Parameter`` objects held by this
         list.
@@ -281,11 +278,11 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
 
         Returns
         -------
-        List[DescriptorBase]
+        list[DescriptorBase]
             Flat list of all ``DescriptorBase`` objects from all
             ``ModelBase`` elements.
         """
-        all_vars: List[DescriptorBase] = []
+        all_vars: list[DescriptorBase] = []
         for item in self._data:
             if isinstance(item, DescriptorBase):
                 all_vars.append(item)
@@ -394,13 +391,13 @@ class EasyList(ModelBase, MutableSequence[ProtectedType_]):
         return dict_repr
 
     @classmethod
-    def from_dict(cls, obj_dict: Dict[str, Any]) -> EasyBase:
+    def from_dict(cls, obj_dict: dict[str, Any]) -> EasyBase:
         """
         Re-create an EasyScience object from a full encoded dictionary.
 
         Parameters
         ----------
-        obj_dict : Dict[str, Any]
+        obj_dict : dict[str, Any]
             Dictionary containing the serialized contents of an
             EasyScience object.
 
