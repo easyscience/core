@@ -817,9 +817,7 @@ class DescriptorArray(DescriptorBase):
             raise ZeroDivisionError('Cannot divide by zero')
         return self._apply_operation(other, operator.truediv, units_must_match=False)
 
-    def __rtruediv__(
-        self, other: DescriptorNumber | list | numbers.Real
-    ) -> DescriptorArray:
+    def __rtruediv__(self, other: DescriptorNumber | list | numbers.Real) -> DescriptorArray:
         """
         Handle reverse division for DescriptorNumbers, lists, and
         scalars.
@@ -1015,9 +1013,7 @@ class DescriptorArray(DescriptorBase):
 
         return constructor(full_value=trace)
 
-    def sum(
-        self, dim: str | list | None = None
-    ) -> DescriptorArray | DescriptorNumber:
+    def sum(self, dim: str | list | None = None) -> DescriptorArray | DescriptorNumber:
         """
         Uses scipp to sum over the requested dims.
 
