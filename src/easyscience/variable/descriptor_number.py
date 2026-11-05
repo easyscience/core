@@ -460,15 +460,18 @@ class DescriptorNumber(DescriptorBase):
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_value = self.full_value + other
         elif type(other) is DescriptorNumber:
-            original_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be added'
-                ) from None
-            new_value = self.full_value + other.full_value
-            other._convert_unit(original_unit)
+            if other.unit != self.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be added'
+                    ) from None
+                new_value = self.full_value + other.full_value
+                other._convert_unit(original_unit)
+            else:
+                new_value = self.full_value + other.full_value
         else:
             return NotImplemented
         return DescriptorNumber.from_scipp(full_value=new_value)
@@ -488,15 +491,18 @@ class DescriptorNumber(DescriptorBase):
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_value = self.full_value - other
         elif type(other) is DescriptorNumber:
-            original_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be subtracted'
-                ) from None
-            new_value = self.full_value - other.full_value
-            other._convert_unit(original_unit)
+            if other.unit != self.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be subtracted'
+                    ) from None
+                new_value = self.full_value - other.full_value
+                other._convert_unit(original_unit)
+            else:
+                new_value = self.full_value - other.full_value
         else:
             return NotImplemented
         return DescriptorNumber.from_scipp(full_value=new_value)

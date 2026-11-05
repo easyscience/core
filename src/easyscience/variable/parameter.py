@@ -973,21 +973,39 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            other_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be added'
-                ) from None
-            new_full_value = self.full_value + other.full_value
-            min_value = (
-                self.min + other.min if isinstance(other, Parameter) else self.min + other.value
-            )
-            max_value = (
-                self.max + other.max if isinstance(other, Parameter) else self.max + other.value
-            )
-            other._convert_unit(other_unit)
+            if other.unit != self.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be added'
+                    ) from None
+                new_full_value = self.full_value + other.full_value
+                min_value = (
+                    self.min + other.min
+                    if isinstance(other, Parameter)
+                    else self.min + other.value
+                )
+                max_value = (
+                    self.max + other.max
+                    if isinstance(other, Parameter)
+                    else self.max + other.value
+                )
+                other._convert_unit(original_unit)
+            else:
+                new_full_value = self.full_value + other.full_value
+                min_value = (
+                    self.min + other.min
+                    if isinstance(other, Parameter)
+                    else self.min + other.value
+                )
+                max_value = (
+                    self.max + other.max
+                    if isinstance(other, Parameter)
+                    else self.max + other.value
+                )
+            return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
@@ -1002,17 +1020,22 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            original_unit = self.unit
-            try:
-                self._convert_unit(other.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {other.unit} and {self.unit} cannot be added'
-                ) from None
-            new_full_value = self.full_value + other.full_value
-            min_value = self.min + other.value
-            max_value = self.max + other.value
-            self._convert_unit(original_unit)
+            if other.unit != self.unit:
+                original_unit = self.unit
+                try:
+                    self._convert_unit(other.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {other.unit} and {self.unit} cannot be added'
+                    ) from None
+                new_full_value = self.full_value + other.full_value
+                min_value = self.min + other.value
+                max_value = self.max + other.value
+                self._convert_unit(original_unit)
+            else:
+                new_full_value = self.full_value + other.full_value
+                min_value = self.min + other.value
+                max_value = self.max + other.value
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
@@ -1056,17 +1079,22 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            original_unit = self.unit
-            try:
-                self._convert_unit(other.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {other.unit} and {self.unit} cannot be subtracted'
-                ) from None
-            new_full_value = other.full_value - self.full_value
-            min_value = other.value - self.max
-            max_value = other.value - self.min
-            self._convert_unit(original_unit)
+            if other.unit != self.unit:
+                original_unit = self.unit
+                try:
+                    self._convert_unit(other.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {other.unit} and {self.unit} cannot be subtracted'
+                    ) from None
+                new_full_value = other.full_value - self.full_value
+                min_value = other.value - self.max
+                max_value = other.value - self.min
+                self._convert_unit(original_unit)
+            else:
+                new_full_value = other.full_value - self.full_value
+                min_value = other.value - self.max
+                max_value = other.value - self.min
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
