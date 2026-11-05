@@ -973,7 +973,7 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            if other.unit != self.unit:
+            if other._scalar.unit != self._scalar.unit:
                 original_unit = other.unit
                 try:
                     other._convert_unit(self.unit)
@@ -1020,7 +1020,7 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            if other.unit != self.unit:
+            if other._scalar.unit != self._scalar.unit:
                 original_unit = self.unit
                 try:
                     self._convert_unit(other.unit)
@@ -1050,21 +1050,30 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            other_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be subtracted'
-                ) from None
-            new_full_value = self.full_value - other.full_value
-            if isinstance(other, Parameter):
-                min_value = self.min - other.max if other.max != np.inf else -np.inf
-                max_value = self.max - other.min if other.min != -np.inf else np.inf
+            if other._scalar.unit != self._scalar.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be subtracted'
+                    ) from None
+                new_full_value = self.full_value - other.full_value
+                if isinstance(other, Parameter):
+                    min_value = self.min - other.max if other.max != np.inf else -np.inf
+                    max_value = self.max - other.min if other.min != -np.inf else np.inf
+                else:
+                    min_value = self.min - other.value
+                    max_value = self.max - other.value
+                other._convert_unit(original_unit)
             else:
-                min_value = self.min - other.value
-                max_value = self.max - other.value
-            other._convert_unit(other_unit)
+                new_full_value = self.full_value - other.full_value
+                if isinstance(other, Parameter):
+                    min_value = self.min - other.max if other.max != np.inf else -np.inf
+                    max_value = self.max - other.min if other.min != -np.inf else np.inf
+                else:
+                    min_value = self.min - other.value
+                    max_value = self.max - other.value
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
@@ -1079,7 +1088,7 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            if other.unit != self.unit:
+            if other._scalar.unit != self._scalar.unit:
                 original_unit = self.unit
                 try:
                     self._convert_unit(other.unit)

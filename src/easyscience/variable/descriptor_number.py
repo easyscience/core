@@ -460,7 +460,7 @@ class DescriptorNumber(DescriptorBase):
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_value = self.full_value + other
         elif type(other) is DescriptorNumber:
-            if other.unit != self.unit:
+            if other._scalar.unit != self._scalar.unit:
                 original_unit = other.unit
                 try:
                     other._convert_unit(self.unit)
@@ -491,7 +491,7 @@ class DescriptorNumber(DescriptorBase):
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_value = self.full_value - other
         elif type(other) is DescriptorNumber:
-            if other.unit != self.unit:
+            if other._scalar.unit != self._scalar.unit:
                 original_unit = other.unit
                 try:
                     other._convert_unit(self.unit)
