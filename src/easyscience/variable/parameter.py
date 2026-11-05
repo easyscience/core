@@ -157,7 +157,7 @@ class Parameter(DescriptorNumber):
             A new dependent Parameter object.
         """
         # Set default values for required parameters for the constructor, they get overwritten by the dependency anyways
-        default_kwargs = {'value': 0.0, 'variance': 0.0, 'min': -np.inf, 'max': np.inf}
+        default_kwargs = {'value': 0.0, 'variance': None, 'min': -np.inf, 'max': np.inf}
         # Update with user-provided kwargs, to avoid errors.
         default_kwargs.update(kwargs)
         parameter = cls(**default_kwargs)
@@ -558,14 +558,14 @@ class Parameter(DescriptorNumber):
             )
 
     @DescriptorNumber.variance.setter
-    def variance(self, variance_float: float) -> None:
+    def variance(self, variance_float: numbers.Real | None) -> None:
         """
         Set the variance.
 
         Parameters
         ----------
-        variance_float : float
-            Variance as a float.
+        variance_float : numbers.Real | None
+            Variance as a float, int, or None if not set.
 
         Raises
         ------
@@ -580,14 +580,14 @@ class Parameter(DescriptorNumber):
             )
 
     @DescriptorNumber.error.setter
-    def error(self, value: float) -> None:
+    def error(self, value: numbers.Real | None) -> None:
         """
         Set the standard deviation for the parameter.
 
         Parameters
         ----------
-        value : float
-            New error value.
+        value : numbers.Real | None
+            New error value, or None if not set.
 
         Raises
         ------

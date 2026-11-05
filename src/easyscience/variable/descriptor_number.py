@@ -292,27 +292,27 @@ class DescriptorNumber(DescriptorBase):
         )  # noqa: E501
 
     @property
-    def variance(self) -> float:
+    def variance(self) -> float | None:
         """
         Get the variance.
 
         Returns
         -------
-        float
+        float | None
             Variance.
         """
         return self._scalar.variance
 
     @variance.setter
     @notify_observers
-    def variance(self, variance_float: float) -> None:
+    def variance(self, variance_float: numbers.Real | None) -> None:
         """
         Set the variance.
 
         Parameters
         ----------
-        variance_float : float
-            Variance as a float.
+        variance_float : numbers.Real | None
+            The variance of the descriptor, or None if not set.
 
         Raises
         ------
@@ -330,13 +330,13 @@ class DescriptorNumber(DescriptorBase):
         self._scalar.variance = variance_float
 
     @property
-    def error(self) -> float:
+    def error(self) -> float | None:
         """
         The standard deviation for the parameter.
 
         Returns
         -------
-        float
+        float | None
             Error associated with parameter.
         """
         if self._scalar.variance is None:
@@ -345,14 +345,14 @@ class DescriptorNumber(DescriptorBase):
 
     @error.setter
     @notify_observers
-    def error(self, value: float) -> None:
+    def error(self, value: numbers.Real | None) -> None:
         """
         Set the standard deviation for the parameter.
 
         Parameters
         ----------
-        value : float
-            New error value.
+        value : numbers.Real | None
+            New error value, or None if not set.
 
         Raises
         ------

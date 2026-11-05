@@ -296,19 +296,19 @@ class DescriptorArray(DescriptorBase):
         )  # noqa: E501
 
     @property
-    def variance(self) -> np.ndarray:
+    def variance(self) -> np.ndarray | None:
         """
         Get the variance as a Numpy ndarray.
 
         Returns
         -------
-        np.ndarray
+        np.ndarray | None
             Variance.
         """
         return self._array.variances
 
     @variance.setter
-    def variance(self, variance: list | np.ndarray) -> None:
+    def variance(self, variance: list | np.ndarray | None) -> None:
         """
         Set the variance of self.
 
@@ -317,9 +317,9 @@ class DescriptorArray(DescriptorBase):
 
         Parameters
         ----------
-        variance : list | np.ndarray
+        variance : list | np.ndarray | None
             New variance for the DescriptorArray, must be a list or
-            numpy array.
+            numpy array, or None if not set.
 
         Raises
         ------
@@ -364,15 +364,16 @@ class DescriptorArray(DescriptorBase):
         return np.sqrt(self._array.variances)
 
     @error.setter
-    def error(self, error: list | np.ndarray) -> None:
+    def error(self, error: list | np.ndarray | None) -> None:
         """
         Set the standard deviation for the parameter, which updates the
         variances.
 
         Parameters
         ----------
-        error : list | np.ndarray
-            A list or numpy array of standard deviations.
+        error : list | np.ndarray | None
+            A list or numpy array of standard deviations, or None if not
+            set.
 
         Raises
         ------
