@@ -3,8 +3,6 @@
 
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Any
-from typing import Optional
 
 import numpy as np
 
@@ -21,8 +19,8 @@ class AnalysisBase(ModelBase, metaclass=ABCMeta):
     def __init__(
         self,
         *,
-        display_name: Optional[str] = None,
-        unique_name: Optional[str] = None,
+        display_name: str | None = None,
+        unique_name: str | None = None,
     ):
         super(AnalysisBase, self).__init__(unique_name=unique_name, display_name=display_name)
         self._minimizer = None

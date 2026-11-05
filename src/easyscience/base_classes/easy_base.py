@@ -7,10 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Any
-    from typing import Dict
     from typing import Iterable
-    from typing import List
-    from typing import Optional
 
 from easyscience import global_object
 
@@ -25,7 +22,7 @@ class EasyBase:
     display naming.
     """
 
-    def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
+    def __init__(self, unique_name: str | None = None, display_name: str | None = None):
         self._global_object = global_object
         if unique_name is None:
             unique_name = self._global_object.generate_unique_name(self.__class__.__name__)
@@ -62,7 +59,8 @@ class EasyBase:
         TypeError
             If ``new_unique_name`` is not a string.
         ValueError
-            If ``new_unique_name`` is already registered to another object.
+            If ``new_unique_name`` is already registered to another
+            object.
         """
         if not isinstance(new_unique_name, str):
             raise TypeError('Unique name has to be a string.')
@@ -118,20 +116,20 @@ class EasyBase:
             raise TypeError('Display name must be a string or None')
         self._display_name = name
 
-    def to_dict(self, skip: Optional[List[str]] = None) -> Dict[str, Any]:
+    def to_dict(self, skip: list[str] | None = None) -> dict[str, Any]:
         """
         Convert an EasyScience object into a full dictionary using
         ``SerializerBase``s generic ``convert_to_dict`` method.
 
         Parameters
         ----------
-        skip : Optional[List[str]], default=None
+        skip : list[str] | None, default=None
             List of field names as strings to skip when forming the
             dictionary. By default, None.
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
             Encoded object containing all information to reform an
             EasyScience object.
 
@@ -148,13 +146,13 @@ class EasyBase:
         return serializer._convert_to_dict(self, skip=skip, full_encode=False)
 
     @classmethod
-    def from_dict(cls, obj_dict: Dict[str, Any]) -> EasyBase:
+    def from_dict(cls, obj_dict: dict[str, Any]) -> EasyBase:
         """
         Re-create an EasyScience object from a full encoded dictionary.
 
         Parameters
         ----------
-        obj_dict : Dict[str, Any]
+        obj_dict : dict[str, Any]
             Dictionary containing the serialized contents (from
             ``to_dict``) of an EasyScience object.
 

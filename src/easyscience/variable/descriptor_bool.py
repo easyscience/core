@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from .descriptor_base import DescriptorBase
 
 
@@ -15,10 +13,10 @@ class DescriptorBool(DescriptorBase):
         self,
         value: bool,
         *,
-        unique_name: Optional[str] = None,
-        description: Optional[str] = None,
-        url: Optional[str] = None,
-        display_name: Optional[str] = None,
+        unique_name: str | None = None,
+        description: str | None = None,
+        url: str | None = None,
+        display_name: str | None = None,
     ):
         """
         Constructor for the DescriptorBool class.
@@ -29,13 +27,13 @@ class DescriptorBool(DescriptorBase):
         ----------
         value : bool
             Value of this object.
-        unique_name : Optional[str], default=None
+        unique_name : str | None, default=None
             Unique identifier for this object. By default, None.
-        description : Optional[str], default=None
+        description : str | None, default=None
             A brief summary of what this object is. By default, None.
-        url : Optional[str], default=None
+        url : str | None, default=None
             Lookup url for documentation/information. By default, None.
-        display_name : Optional[str], default=None
+        display_name : str | None, default=None
             A pretty name for the object. Falls back to ``unique_name``
             when not given. By default, None.
 

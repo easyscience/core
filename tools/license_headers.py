@@ -10,8 +10,6 @@ import tomllib
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from typing import Optional
-from typing import Union
 
 from git import Repo
 from spdx_headers.core import find_repository_root
@@ -24,7 +22,7 @@ from spdx_headers.operations import remove_header_from_single_file
 LICENSE_DATABASE = load_license_data()
 
 
-def load_pyproject(repo_path: Union[str, Path]) -> dict[str, Any]:
+def load_pyproject(repo_path: str | Path) -> dict[str, Any]:
     """
     Load and return parsed ``pyproject.toml`` data for the repository.
     """
@@ -54,9 +52,9 @@ def normalize_pattern(pattern: str) -> str:
 
 
 def get_exclude_patterns(
-    repo_path: Union[str, Path],
+    repo_path: str | Path,
     exclude_values: list[str],
-    exclude_from_pyproject_toml: Optional[str],
+    exclude_from_pyproject_toml: str | None,
 ) -> list[str]:
     """
     Return normalized exclude patterns from CLI and ``pyproject.toml``.
@@ -94,7 +92,7 @@ def get_exclude_patterns(
     return normalized_patterns
 
 
-def get_file_creation_year(file_path: Union[str, Path]) -> str:
+def get_file_creation_year(file_path: str | Path) -> str:
     """Return the year the file was first added to Git history.
 
     If the year cannot be determined, fall back to the current year.
@@ -122,7 +120,7 @@ def get_file_creation_year(file_path: Union[str, Path]) -> str:
     return year or str(datetime.now().year)
 
 
-def get_org_url(repo_path: Union[str, Path]) -> str:
+def get_org_url(repo_path: str | Path) -> str:
     """
     Return the organization URL derived from the repository source URL.
     """
@@ -131,20 +129,20 @@ def get_org_url(repo_path: Union[str, Path]) -> str:
     return repo_url.rsplit('/', 1)[0]
 
 
-def get_project_license(repo_path: Union[str, Path]) -> str:
+def get_project_license(repo_path: str | Path) -> str:
     """Return the project license value from ``pyproject.toml``."""
     pyproject_data = load_pyproject(repo_path)
     return pyproject_data['project']['license']
 
 
-def get_copyright_holder(repo_path: Union[str, Path]) -> str:
+def get_copyright_holder(repo_path: str | Path) -> str:
     """Return the repository copyright holder name."""
     _, name, _ = get_copyright_info(repo_path)
     return name
 
 
 def add_spdx_header(
-    target_file: Union[str, Path],
+    target_file: str | Path,
     *,
     license_key: str,
     copyright_holder: str,
@@ -281,7 +279,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Run the SPDX header CLI."""
     parser = build_parser()
     args = parser.parse_args(argv)

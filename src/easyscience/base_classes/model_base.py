@@ -9,9 +9,6 @@ from easyscience.variable.descriptor_number import DescriptorNumber
 
 if TYPE_CHECKING:
     from typing import Any
-    from typing import Dict
-    from typing import List
-    from typing import Optional
 
 from ..variable import Parameter
 from ..variable.descriptor_base import DescriptorBase
@@ -43,16 +40,16 @@ class ModelBase(EasyBase):
     ```
     """
 
-    def __init__(self, unique_name: Optional[str] = None, display_name: Optional[str] = None):
+    def __init__(self, unique_name: str | None = None, display_name: str | None = None):
         super().__init__(unique_name=unique_name, display_name=display_name)
 
-    def get_all_variables(self) -> List[DescriptorBase]:
+    def get_all_variables(self) -> list[DescriptorBase]:
         """
         Get all ``Descriptor`` and ``Parameter`` objects as a list.
 
         Returns
         -------
-        List[DescriptorBase]
+        list[DescriptorBase]
             List of ``Descriptor`` and ``Parameter`` objects.
         """
         vars = []
@@ -64,49 +61,49 @@ class ModelBase(EasyBase):
                 vars += attr.get_all_variables()
         return vars
 
-    def get_all_parameters(self) -> List[Parameter]:
+    def get_all_parameters(self) -> list[Parameter]:
         """
         Get all ``Parameter`` objects as a list.
 
         Returns
         -------
-        List[Parameter]
+        list[Parameter]
             List of ``Parameter`` objects.
         """
         return [param for param in self.get_all_variables() if isinstance(param, Parameter)]
 
-    def get_fittable_parameters(self) -> List[Parameter]:
+    def get_fittable_parameters(self) -> list[Parameter]:
         """
         Get all parameters which can be fitted as a list.
 
         Returns
         -------
-        List[Parameter]
+        list[Parameter]
             List of ``Parameter`` objects.
         """
         return [param for param in self.get_all_parameters() if param.independent]
 
-    def get_free_parameters(self) -> List[Parameter]:
+    def get_free_parameters(self) -> list[Parameter]:
         """
         Get all parameters which are currently free to be fitted as a
         list.
 
         Returns
         -------
-        List[Parameter]
+        list[Parameter]
             List of ``Parameter`` objects.
         """
         return [param for param in self.get_fittable_parameters() if not param.fixed]
 
     @classmethod
-    def from_dict(cls, obj_dict: Dict[str, Any]) -> ModelBase:
+    def from_dict(cls, obj_dict: dict[str, Any]) -> ModelBase:
         """
         Re-create an EasyScience object with DescriptorNumber attributes
         from a full encoded dictionary.
 
         Parameters
         ----------
-        obj_dict : Dict[str, Any]
+        obj_dict : dict[str, Any]
             Dictionary containing the serialized contents (from
             ``to_dict``) of an EasyScience object.
 

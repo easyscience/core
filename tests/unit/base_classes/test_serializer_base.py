@@ -5,8 +5,6 @@ import datetime
 import json
 from enum import Enum
 from typing import Any
-from typing import List
-from typing import Optional
 from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
@@ -25,7 +23,7 @@ from easyscience.base_classes import SerializerBase
 class MockSerializable:
     """Minimal stand-in for an object that knows how to encode itself."""
 
-    def encode(self, skip: Optional[List[str]] = None, encoder=None, **kwargs) -> Any:
+    def encode(self, skip: list[str] | None = None, encoder=None, **kwargs) -> Any:
         return (encoder or ConcreteSerializer)().encode(self, skip=skip, **kwargs)
 
 
@@ -38,7 +36,7 @@ class MockSerializableObj(MockSerializable):
     """Mock serializer component for testing"""
 
     def __init__(
-        self, name: str = 'test', value: int = 1, optional_param: Optional[str] = None, **kwargs
+        self, name: str = 'test', value: int = 1, optional_param: str | None = None, **kwargs
     ):
         self.name = name
         self.value = value
@@ -65,7 +63,7 @@ class MockSerializerWithArgSpec(MockSerializable):
 class MockModelWithParameter(ModelBase):
     """Model holding a Parameter as a constructor argument"""
 
-    def __init__(self, p: Optional[Parameter] = None):
+    def __init__(self, p: Parameter | None = None):
         super().__init__()
         self._p = p
 
@@ -87,7 +85,7 @@ class MockSerializerWithConvertToDict(MockSerializable):
 class ConcreteSerializer(SerializerBase):
     """Concrete implementation for testing abstract methods"""
 
-    def encode(self, obj: Any, skip: Optional[List[str]] = None, **kwargs) -> Any:
+    def encode(self, obj: Any, skip: list[str] | None = None, **kwargs) -> Any:
         return self._convert_to_dict(obj, skip=skip, **kwargs)
 
     @classmethod

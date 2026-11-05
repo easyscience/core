@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2026 EasyScience contributors <https://github.com/easyscience>
 # SPDX-License-Identifier: BSD-3-Clause
 
-from typing import Optional
-
 from ..base_classes.model_base import ModelBase
 
 
@@ -12,7 +10,7 @@ class ExperimentBase(ModelBase):
     Experiment objects.
     """
 
-    def __init__(self, display_name: Optional[str] = None, unique_name: Optional[str] = None):
+    def __init__(self, display_name: str | None = None, unique_name: str | None = None):
         super(ExperimentBase, self).__init__(unique_name=unique_name, display_name=display_name)
 
     # required dunder methods

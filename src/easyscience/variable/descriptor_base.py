@@ -5,9 +5,6 @@ from __future__ import annotations
 
 import abc
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 from easyscience import global_object
 from easyscience.base_classes.easy_base import EasyBase
@@ -31,10 +28,10 @@ class DescriptorBase(EasyBase, metaclass=abc.ABCMeta):
     def __init__(
         self,
         *,
-        unique_name: Optional[str] = None,
-        description: Optional[str] = None,
-        url: Optional[str] = None,
-        display_name: Optional[str] = None,
+        unique_name: str | None = None,
+        description: str | None = None,
+        url: str | None = None,
+        display_name: str | None = None,
     ):
         """
         This is the base of variables for models.
@@ -49,13 +46,13 @@ class DescriptorBase(EasyBase, metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        unique_name : Optional[str], default=None
+        unique_name : str | None, default=None
             Unique identifier for this object. By default, None.
-        description : Optional[str], default=None
+        description : str | None, default=None
             A brief summary of what this object is. By default, None.
-        url : Optional[str], default=None
+        url : str | None, default=None
             Lookup url for documentation/information. By default, None.
-        display_name : Optional[str], default=None
+        display_name : str | None, default=None
             A pretty name for the object. Falls back to ``unique_name``
             when not given. By default, None.
 
@@ -92,13 +89,13 @@ class DescriptorBase(EasyBase, metaclass=abc.ABCMeta):
         return self._description
 
     @description.setter
-    def description(self, description: Optional[str]) -> None:
+    def description(self, description: str | None) -> None:
         """
         Set the description of the object.
 
         Parameters
         ----------
-        description : Optional[str]
+        description : str | None
             Description of the object.
 
         Raises
@@ -123,13 +120,13 @@ class DescriptorBase(EasyBase, metaclass=abc.ABCMeta):
         return self._url
 
     @url.setter
-    def url(self, url: Optional[str]) -> None:
+    def url(self, url: str | None) -> None:
         """
         Set the url of the object.
 
         Parameters
         ----------
-        url : Optional[str]
+        url : str | None
             Url of the object.
 
         Raises

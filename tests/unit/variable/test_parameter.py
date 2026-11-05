@@ -65,6 +65,18 @@ class TestParameter:
         assert parameter._fixed == False
         assert parameter._observers == []
 
+    def test_init_defaults(self):
+        # When
+        parameter = Parameter(value=1)
+        # Then Expect
+        assert parameter.variance is None
+        assert parameter.error is None
+        assert parameter.min == -np.inf
+        assert parameter.max == np.inf
+        assert parameter.unit == 'dimensionless'
+        assert parameter.fixed == False
+        assert parameter.independent == True
+
     def test_init_value_min_exception(self):
         # When
         value = -1
