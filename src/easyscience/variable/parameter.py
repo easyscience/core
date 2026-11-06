@@ -966,7 +966,7 @@ class Parameter(DescriptorNumber):
 
     def __add__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_full_value = self.full_value + other
             min_value = self.min + other
@@ -1013,7 +1013,7 @@ class Parameter(DescriptorNumber):
 
     def __radd__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_full_value = self.full_value + other
             min_value = self.min + other
@@ -1043,7 +1043,7 @@ class Parameter(DescriptorNumber):
 
     def __sub__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_full_value = self.full_value - other
             min_value = self.min - other
@@ -1081,7 +1081,7 @@ class Parameter(DescriptorNumber):
 
     def __rsub__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_full_value = other - self.full_value
             min_value = other - self.max
@@ -1253,7 +1253,7 @@ class Parameter(DescriptorNumber):
         elif (
             type(other) is DescriptorNumber
         ):  # Strictly a DescriptorNumber, We can't raise to the power of a Parameter
-            if other.unit != 'dimensionless':
+            if other._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Exponents must be dimensionless')
             if other.variance is not None:
                 raise ValueError('Exponents must not have variance')

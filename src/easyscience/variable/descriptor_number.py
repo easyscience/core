@@ -455,7 +455,7 @@ class DescriptorNumber(DescriptorBase):
 
     def __add__(self, other: DescriptorNumber | numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_value = self.full_value + other
         elif type(other) is DescriptorNumber:
@@ -477,7 +477,7 @@ class DescriptorNumber(DescriptorBase):
 
     def __radd__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_value = other + self.full_value
         else:
@@ -486,7 +486,7 @@ class DescriptorNumber(DescriptorBase):
 
     def __sub__(self, other: DescriptorNumber | numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_value = self.full_value - other
         elif type(other) is DescriptorNumber:
@@ -508,7 +508,7 @@ class DescriptorNumber(DescriptorBase):
 
     def __rsub__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_value = other - self.full_value
         else:
@@ -557,7 +557,7 @@ class DescriptorNumber(DescriptorBase):
         if isinstance(other, numbers.Real):
             exponent = other
         elif type(other) is DescriptorNumber:
-            if other.unit != 'dimensionless':
+            if other._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Exponents must be dimensionless')
             if other.variance is not None:
                 raise ValueError('Exponents must not have variance')
@@ -574,7 +574,7 @@ class DescriptorNumber(DescriptorBase):
 
     def __rpow__(self, other: numbers.Real) -> numbers.Real:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Exponents must be dimensionless')
             if self.variance is not None:
                 raise ValueError('Exponents must not have variance')
