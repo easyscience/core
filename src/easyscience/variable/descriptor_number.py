@@ -132,8 +132,7 @@ class DescriptorNumber(DescriptorBase):
         )
 
         # Call convert_unit during initialization to ensure that the unit has no numbers in it, and to ensure unit consistency.
-        if self.unit is not None:
-            self._convert_unit(self._base_unit())
+        self._convert_unit(self._base_unit())
 
     @classmethod
     def from_scipp(cls, full_value: Variable, **kwargs: Any) -> DescriptorNumber:
@@ -523,9 +522,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value * other.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
-        descriptor_number._convert_unit(descriptor_number._base_unit())
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rmul__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
@@ -545,9 +542,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value / other.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
-        descriptor_number._convert_unit(descriptor_number._base_unit())
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rtruediv__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):

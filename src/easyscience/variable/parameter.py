@@ -1142,9 +1142,7 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __rmul__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
@@ -1210,9 +1208,7 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __rtruediv__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         original_self = self.value
@@ -1248,9 +1244,7 @@ class Parameter(DescriptorNumber):
             combinations = [other_value / self.min, other_value / self.max]
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __pow__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
