@@ -102,7 +102,7 @@ class Parameter(DescriptorNumber):
             raise ValueError(f'{value=} can not be less than {min=}')
         if value > max:
             raise ValueError(f'{value=} can not be greater than {max=}')
-        if math.isclose(min, max, rtol=1e-9, atol=0.0):
+        if math.isclose(min, max, rel_tol=1e-9, abs_tol=0.0):
             raise ValueError(
                 'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
             )
@@ -712,7 +712,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             if not isinstance(min_value, numbers.Real):
                 raise TypeError('`min` must be a number')
-            if math.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
+            if math.isclose(min_value, self._max.value, rel_tol=1e-9, abs_tol=0.0):
                 raise ValueError(
                     'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
                 )
@@ -768,7 +768,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             if not isinstance(max_value, numbers.Real):
                 raise TypeError('`max` must be a real number')
-            if math.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
+            if math.isclose(max_value, self._min.value, rel_tol=1e-9, abs_tol=0.0):
                 raise ValueError(
                     'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
                 )
@@ -1162,9 +1162,7 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __truediv__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):

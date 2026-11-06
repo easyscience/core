@@ -132,7 +132,11 @@ class DescriptorNumber(DescriptorBase):
         )
 
         # Call convert_unit during initialization to ensure that the unit has no numbers in it, and to ensure unit consistency.
-        self._convert_unit(self._base_unit())
+        # Only convert when needed, as conversion is slow.
+        unit_str = str(self._scalar.unit)
+        base_unit = self._base_unit(unit_str)
+        if base_unit != unit_str:
+            self._convert_unit(base_unit)
 
     @classmethod
     def from_scipp(cls, full_value: Variable, **kwargs: Any) -> DescriptorNumber:
@@ -591,12 +595,19 @@ class DescriptorNumber(DescriptorBase):
         new_value = abs(self.full_value)
         return DescriptorNumber.from_scipp(full_value=new_value)
 
-    def _base_unit(self) -> str:
+    def _base_unit(self, string: str | None = None) -> str:
         """
         Extract the base unit from the unit string by removing numeric
         components and scientific notation.
+
+        Parameters
+        ----------
+        string : str | None
+            Unit string to strip. If None, the unit of this object is
+            used.
         """
-        string = str(self._scalar.unit)
+        if string is None:
+            string = str(self._scalar.unit)
         for i, letter in enumerate(string):
             if letter == 'e':
                 if string[i : i + 2] not in ['e+', 'e-']:
