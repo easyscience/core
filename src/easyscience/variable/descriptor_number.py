@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import math
 import numbers
 import uuid
 from typing import Any
@@ -572,7 +573,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value**exponent
         except Exception as message:
             raise message from None
-        if np.isnan(new_value.value):
+        if math.isnan(new_value.value):
             raise ValueError('The result of the exponentiation is not a number')
         return DescriptorNumber.from_scipp(full_value=new_value)
 

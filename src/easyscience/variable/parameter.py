@@ -1131,9 +1131,9 @@ class Parameter(DescriptorNumber):
                     (self.max, other.min),
                     (self.max, other.max),
                 ]:  # noqa: E501
-                    if first == 0 and np.isinf(second):
+                    if first == 0 and math.isinf(second):
                         combinations.append(0)
-                    elif second == 0 and np.isinf(first):
+                    elif second == 0 and math.isinf(first):
                         combinations.append(0)
                     else:
                         combinations.append(first * second)
@@ -1264,7 +1264,7 @@ class Parameter(DescriptorNumber):
         except Exception as message:
             raise message from None
 
-        if np.isnan(new_full_value.value):
+        if math.isnan(new_full_value.value):
             raise ValueError('The result of the exponentiation is not a number')
         if exponent == 0:
             return DescriptorNumber.from_scipp(full_value=new_full_value)
