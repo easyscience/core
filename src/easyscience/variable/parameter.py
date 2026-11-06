@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import math
 import numbers
 import re
 from typing import Any
@@ -101,7 +102,7 @@ class Parameter(DescriptorNumber):
             raise ValueError(f'{value=} can not be less than {min=}')
         if value > max:
             raise ValueError(f'{value=} can not be greater than {max=}')
-        if np.isclose(min, max, rtol=1e-9, atol=0.0):
+        if math.isclose(min, max, rel_tol=1e-9, abs_tol=0.0):
             raise ValueError(
                 'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
             )
@@ -179,7 +180,7 @@ class Parameter(DescriptorNumber):
             # Update the value of the parameter using the dependency interpreter
             temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
             self._scalar.value = temporary_parameter.value
-            self._scalar.unit = temporary_parameter.unit
+            self._scalar.unit = temporary_parameter._scalar.unit
             self._scalar.variance = temporary_parameter.variance
             self._min.value = (
                 temporary_parameter.min
@@ -191,8 +192,8 @@ class Parameter(DescriptorNumber):
                 if isinstance(temporary_parameter, Parameter)
                 else temporary_parameter.value
             )  # noqa: E501
-            self._min.unit = temporary_parameter.unit
-            self._max.unit = temporary_parameter.unit
+            self._min.unit = temporary_parameter._scalar.unit
+            self._max.unit = temporary_parameter._scalar.unit
 
             if self._desired_unit is not None:
                 self._convert_unit(self._desired_unit)
@@ -711,7 +712,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             if not isinstance(min_value, numbers.Real):
                 raise TypeError('`min` must be a number')
-            if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
+            if math.isclose(min_value, self._max.value, rel_tol=1e-9, abs_tol=0.0):
                 raise ValueError(
                     'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
                 )
@@ -767,7 +768,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             if not isinstance(max_value, numbers.Real):
                 raise TypeError('`max` must be a real number')
-            if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
+            if math.isclose(max_value, self._min.value, rel_tol=1e-9, abs_tol=0.0):
                 raise ValueError(
                     'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
                 )
@@ -965,7 +966,7 @@ class Parameter(DescriptorNumber):
 
     def __add__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_full_value = self.full_value + other
             min_value = self.min + other
@@ -973,28 +974,45 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            other_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be added'
-                ) from None
-            new_full_value = self.full_value + other.full_value
-            min_value = (
-                self.min + other.min if isinstance(other, Parameter) else self.min + other.value
-            )
-            max_value = (
-                self.max + other.max if isinstance(other, Parameter) else self.max + other.value
-            )
-            other._convert_unit(other_unit)
+            if other._scalar.unit != self._scalar.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be added'
+                    ) from None
+                new_full_value = self.full_value + other.full_value
+                min_value = (
+                    self.min + other.min
+                    if isinstance(other, Parameter)
+                    else self.min + other.value
+                )
+                max_value = (
+                    self.max + other.max
+                    if isinstance(other, Parameter)
+                    else self.max + other.value
+                )
+                other._convert_unit(original_unit)
+            else:
+                new_full_value = self.full_value + other.full_value
+                min_value = (
+                    self.min + other.min
+                    if isinstance(other, Parameter)
+                    else self.min + other.value
+                )
+                max_value = (
+                    self.max + other.max
+                    if isinstance(other, Parameter)
+                    else self.max + other.value
+                )
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __radd__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_full_value = self.full_value + other
             min_value = self.min + other
@@ -1002,24 +1020,29 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            original_unit = self.unit
-            try:
-                self._convert_unit(other.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {other.unit} and {self.unit} cannot be added'
-                ) from None
-            new_full_value = self.full_value + other.full_value
-            min_value = self.min + other.value
-            max_value = self.max + other.value
-            self._convert_unit(original_unit)
+            if other._scalar.unit != self._scalar.unit:
+                original_unit = self.unit
+                try:
+                    self._convert_unit(other.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {other.unit} and {self.unit} cannot be added'
+                    ) from None
+                new_full_value = self.full_value + other.full_value
+                min_value = self.min + other.value
+                max_value = self.max + other.value
+                self._convert_unit(original_unit)
+            else:
+                new_full_value = self.full_value + other.full_value
+                min_value = self.min + other.value
+                max_value = self.max + other.value
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __sub__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_full_value = self.full_value - other
             min_value = self.min - other
@@ -1027,28 +1050,37 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            other_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be subtracted'
-                ) from None
-            new_full_value = self.full_value - other.full_value
-            if isinstance(other, Parameter):
-                min_value = self.min - other.max if other.max != np.inf else -np.inf
-                max_value = self.max - other.min if other.min != -np.inf else np.inf
+            if other._scalar.unit != self._scalar.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be subtracted'
+                    ) from None
+                new_full_value = self.full_value - other.full_value
+                if isinstance(other, Parameter):
+                    min_value = self.min - other.max if other.max != np.inf else -np.inf
+                    max_value = self.max - other.min if other.min != -np.inf else np.inf
+                else:
+                    min_value = self.min - other.value
+                    max_value = self.max - other.value
+                other._convert_unit(original_unit)
             else:
-                min_value = self.min - other.value
-                max_value = self.max - other.value
-            other._convert_unit(other_unit)
+                new_full_value = self.full_value - other.full_value
+                if isinstance(other, Parameter):
+                    min_value = self.min - other.max if other.max != np.inf else -np.inf
+                    max_value = self.max - other.min if other.min != -np.inf else np.inf
+                else:
+                    min_value = self.min - other.value
+                    max_value = self.max - other.value
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __rsub__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_full_value = other - self.full_value
             min_value = other - self.max
@@ -1056,17 +1088,22 @@ class Parameter(DescriptorNumber):
         elif isinstance(
             other, DescriptorNumber
         ):  # Parameter inherits from DescriptorNumber and is also handled here
-            original_unit = self.unit
-            try:
-                self._convert_unit(other.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {other.unit} and {self.unit} cannot be subtracted'
-                ) from None
-            new_full_value = other.full_value - self.full_value
-            min_value = other.value - self.max
-            max_value = other.value - self.min
-            self._convert_unit(original_unit)
+            if other._scalar.unit != self._scalar.unit:
+                original_unit = self.unit
+                try:
+                    self._convert_unit(other.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {other.unit} and {self.unit} cannot be subtracted'
+                    ) from None
+                new_full_value = other.full_value - self.full_value
+                min_value = other.value - self.max
+                max_value = other.value - self.min
+                self._convert_unit(original_unit)
+            else:
+                new_full_value = other.full_value - self.full_value
+                min_value = other.value - self.max
+                max_value = other.value - self.min
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
@@ -1093,9 +1130,9 @@ class Parameter(DescriptorNumber):
                     (self.max, other.min),
                     (self.max, other.max),
                 ]:  # noqa: E501
-                    if first == 0 and np.isinf(second):
+                    if first == 0 and math.isinf(second):
                         combinations.append(0)
-                    elif second == 0 and np.isinf(first):
+                    elif second == 0 and math.isinf(first):
                         combinations.append(0)
                     else:
                         combinations.append(first * second)
@@ -1105,9 +1142,7 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __rmul__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
@@ -1126,9 +1161,7 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __truediv__(self, other: DescriptorNumber | Parameter | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
@@ -1173,9 +1206,7 @@ class Parameter(DescriptorNumber):
             return NotImplemented
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __rtruediv__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         original_self = self.value
@@ -1211,9 +1242,7 @@ class Parameter(DescriptorNumber):
             combinations = [other_value / self.min, other_value / self.max]
         min_value = min(combinations)
         max_value = max(combinations)
-        parameter = Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
-        parameter._convert_unit(parameter._base_unit())
-        return parameter
+        return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
 
     def __pow__(self, other: DescriptorNumber | numbers.Real) -> Parameter:
         if isinstance(other, numbers.Real):
@@ -1221,7 +1250,7 @@ class Parameter(DescriptorNumber):
         elif (
             type(other) is DescriptorNumber
         ):  # Strictly a DescriptorNumber, We can't raise to the power of a Parameter
-            if other.unit != 'dimensionless':
+            if other._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Exponents must be dimensionless')
             if other.variance is not None:
                 raise ValueError('Exponents must not have variance')
@@ -1234,7 +1263,7 @@ class Parameter(DescriptorNumber):
         except Exception as message:
             raise message from None
 
-        if np.isnan(new_full_value.value):
+        if math.isnan(new_full_value.value):
             raise ValueError('The result of the exponentiation is not a number')
         if exponent == 0:
             return DescriptorNumber.from_scipp(full_value=new_full_value)

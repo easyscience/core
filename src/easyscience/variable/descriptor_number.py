@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import math
 import numbers
 import uuid
 from typing import Any
@@ -52,7 +53,7 @@ class DescriptorNumber(DescriptorBase):
         self,
         value: numbers.Real,
         *,
-        unit: str | sc.Unit | None = '',
+        unit: str | sc.Unit = '',
         variance: numbers.Real | None = None,
         unique_name: str | None = None,
         description: str | None = None,
@@ -69,7 +70,7 @@ class DescriptorNumber(DescriptorBase):
         ----------
         value : numbers.Real
             Value of this object.
-        unit : str | sc.Unit | None, default=''
+        unit : str | sc.Unit, default=''
             This object can have a physical unit associated with it. By
             default, ''.
         variance : numbers.Real | None, default=None
@@ -132,8 +133,11 @@ class DescriptorNumber(DescriptorBase):
         )
 
         # Call convert_unit during initialization to ensure that the unit has no numbers in it, and to ensure unit consistency.
-        if self.unit is not None:
-            self._convert_unit(self._base_unit())
+        # Only convert when needed, as conversion is slow.
+        unit_str = str(self._scalar.unit)
+        base_unit = self._base_unit(unit_str)
+        if base_unit != unit_str:
+            self._convert_unit(base_unit)
 
     @classmethod
     def from_scipp(cls, full_value: Variable, **kwargs: Any) -> DescriptorNumber:
@@ -456,26 +460,29 @@ class DescriptorNumber(DescriptorBase):
 
     def __add__(self, other: DescriptorNumber | numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_value = self.full_value + other
         elif type(other) is DescriptorNumber:
-            original_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be added'
-                ) from None
-            new_value = self.full_value + other.full_value
-            other._convert_unit(original_unit)
+            if other._scalar.unit != self._scalar.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be added'
+                    ) from None
+                new_value = self.full_value + other.full_value
+                other._convert_unit(original_unit)
+            else:
+                new_value = self.full_value + other.full_value
         else:
             return NotImplemented
         return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __radd__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be added to dimensionless values')
             new_value = other + self.full_value
         else:
@@ -484,26 +491,29 @@ class DescriptorNumber(DescriptorBase):
 
     def __sub__(self, other: DescriptorNumber | numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_value = self.full_value - other
         elif type(other) is DescriptorNumber:
-            original_unit = other.unit
-            try:
-                other._convert_unit(self.unit)
-            except UnitError:
-                raise UnitError(
-                    f'Values with units {self.unit} and {other.unit} cannot be subtracted'
-                ) from None
-            new_value = self.full_value - other.full_value
-            other._convert_unit(original_unit)
+            if other._scalar.unit != self._scalar.unit:
+                original_unit = other.unit
+                try:
+                    other._convert_unit(self.unit)
+                except UnitError:
+                    raise UnitError(
+                        f'Values with units {self.unit} and {other.unit} cannot be subtracted'
+                    ) from None
+                new_value = self.full_value - other.full_value
+                other._convert_unit(original_unit)
+            else:
+                new_value = self.full_value - other.full_value
         else:
             return NotImplemented
         return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rsub__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Numbers can only be subtracted from dimensionless values')
             new_value = other - self.full_value
         else:
@@ -517,9 +527,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value * other.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
-        descriptor_number._convert_unit(descriptor_number._base_unit())
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rmul__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
@@ -539,9 +547,7 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value / other.full_value
         else:
             return NotImplemented
-        descriptor_number = DescriptorNumber.from_scipp(full_value=new_value)
-        descriptor_number._convert_unit(descriptor_number._base_unit())
-        return descriptor_number
+        return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rtruediv__(self, other: numbers.Real) -> DescriptorNumber:
         if isinstance(other, numbers.Real):
@@ -556,7 +562,7 @@ class DescriptorNumber(DescriptorBase):
         if isinstance(other, numbers.Real):
             exponent = other
         elif type(other) is DescriptorNumber:
-            if other.unit != 'dimensionless':
+            if other._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Exponents must be dimensionless')
             if other.variance is not None:
                 raise ValueError('Exponents must not have variance')
@@ -567,13 +573,13 @@ class DescriptorNumber(DescriptorBase):
             new_value = self.full_value**exponent
         except Exception as message:
             raise message from None
-        if np.isnan(new_value.value):
+        if math.isnan(new_value.value):
             raise ValueError('The result of the exponentiation is not a number')
         return DescriptorNumber.from_scipp(full_value=new_value)
 
     def __rpow__(self, other: numbers.Real) -> numbers.Real:
         if isinstance(other, numbers.Real):
-            if self.unit != 'dimensionless':
+            if self._scalar.unit != sc.units.dimensionless:
                 raise UnitError('Exponents must be dimensionless')
             if self.variance is not None:
                 raise ValueError('Exponents must not have variance')
@@ -590,12 +596,24 @@ class DescriptorNumber(DescriptorBase):
         new_value = abs(self.full_value)
         return DescriptorNumber.from_scipp(full_value=new_value)
 
-    def _base_unit(self) -> str:
+    def _base_unit(self, string: str | None = None) -> str:
         """
         Extract the base unit from the unit string by removing numeric
         components and scientific notation.
+
+        Parameters
+        ----------
+        string : str | None, default=None
+            Unit string to strip. If None, the unit of this object is
+            used.
+
+        Returns
+        -------
+        str
+            The base unit extracted from the unit string.
         """
-        string = str(self._scalar.unit)
+        if string is None:
+            string = str(self._scalar.unit)
         for i, letter in enumerate(string):
             if letter == 'e':
                 if string[i : i + 2] not in ['e+', 'e-']:
