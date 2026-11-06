@@ -606,6 +606,11 @@ class DescriptorNumber(DescriptorBase):
         string : str | None, default=None
             Unit string to strip. If None, the unit of this object is
             used.
+
+        Returns
+        -------
+        str
+            The base unit extracted from the unit string.
         """
         if string is None:
             string = str(self._scalar.unit)
