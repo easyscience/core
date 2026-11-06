@@ -53,7 +53,7 @@ class DescriptorNumber(DescriptorBase):
         self,
         value: numbers.Real,
         *,
-        unit: str | sc.Unit | None = '',
+        unit: str | sc.Unit = '',
         variance: numbers.Real | None = None,
         unique_name: str | None = None,
         description: str | None = None,
@@ -70,7 +70,7 @@ class DescriptorNumber(DescriptorBase):
         ----------
         value : numbers.Real
             Value of this object.
-        unit : str | sc.Unit | None, default=''
+        unit : str | sc.Unit, default=''
             This object can have a physical unit associated with it. By
             default, ''.
         variance : numbers.Real | None, default=None
@@ -603,7 +603,7 @@ class DescriptorNumber(DescriptorBase):
 
         Parameters
         ----------
-        string : str | None
+        string : str | None, default=None
             Unit string to strip. If None, the unit of this object is
             used.
         """
