@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import math
 import numbers
 import re
 from typing import Any
@@ -101,7 +102,7 @@ class Parameter(DescriptorNumber):
             raise ValueError(f'{value=} can not be less than {min=}')
         if value > max:
             raise ValueError(f'{value=} can not be greater than {max=}')
-        if np.isclose(min, max, rtol=1e-9, atol=0.0):
+        if math.isclose(min, max, rtol=1e-9, atol=0.0):
             raise ValueError(
                 'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
             )
