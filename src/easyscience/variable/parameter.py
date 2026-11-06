@@ -180,7 +180,7 @@ class Parameter(DescriptorNumber):
             # Update the value of the parameter using the dependency interpreter
             temporary_parameter = self._dependency_interpreter(self._clean_dependency_string)
             self._scalar.value = temporary_parameter.value
-            self._scalar.unit = temporary_parameter.unit
+            self._scalar.unit = temporary_parameter._scalar.unit
             self._scalar.variance = temporary_parameter.variance
             self._min.value = (
                 temporary_parameter.min
@@ -192,8 +192,8 @@ class Parameter(DescriptorNumber):
                 if isinstance(temporary_parameter, Parameter)
                 else temporary_parameter.value
             )  # noqa: E501
-            self._min.unit = temporary_parameter.unit
-            self._max.unit = temporary_parameter.unit
+            self._min.unit = temporary_parameter._scalar.unit
+            self._max.unit = temporary_parameter._scalar.unit
 
             if self._desired_unit is not None:
                 self._convert_unit(self._desired_unit)
