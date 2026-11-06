@@ -712,7 +712,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             if not isinstance(min_value, numbers.Real):
                 raise TypeError('`min` must be a number')
-            if np.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
+            if math.isclose(min_value, self._max.value, rtol=1e-9, atol=0.0):
                 raise ValueError(
                     'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
                 )
@@ -768,7 +768,7 @@ class Parameter(DescriptorNumber):
         if self._independent:
             if not isinstance(max_value, numbers.Real):
                 raise TypeError('`max` must be a real number')
-            if np.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
+            if math.isclose(max_value, self._min.value, rtol=1e-9, atol=0.0):
                 raise ValueError(
                     'The min and max bounds cannot be identical. Please use fixed=True instead to fix the value.'
                 )
