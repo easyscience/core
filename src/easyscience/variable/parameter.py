@@ -1006,7 +1006,6 @@ class Parameter(DescriptorNumber):
                     if isinstance(other, Parameter)
                     else self.max + other.value
                 )
-            return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
         else:
             return NotImplemented
         return Parameter.from_scipp(full_value=new_full_value, min=min_value, max=max_value)
